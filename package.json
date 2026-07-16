@@ -1,0 +1,37 @@
+{
+  "name": "smart-city-ecosystem",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Smart City Ecosystem - Tourism, Health, Education & Public Services",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "dev:services": "turbo run dev --filter=./services/*",
+    "dev:apps": "turbo run dev --filter=./apps/*",
+    "dev:gateway": "turbo run dev --filter=gateway",
+    "dev:tourism": "turbo run dev --filter=tourism-app --filter=tourism-service",
+    "dev:auth": "turbo run dev --filter=auth-portal --filter=user-service --filter=gateway",
+    "db:generate": "turbo run db:generate --filter=@smartcity/database",
+    "db:push": "turbo run db:push --filter=@smartcity/database",
+    "db:seed": "turbo run db:seed --filter=@smartcity/database",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\""
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0",
+    "turbo": "^2.4.0",
+    "typescript": "^5.5.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "mongodb-memory-server": "^8.16.1"
+  }
+}

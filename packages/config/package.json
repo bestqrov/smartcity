@@ -1,0 +1,6 @@
+{
+  "name": "@smartcity/config",
+  "version": "0.1.0",
+  "private": true,
+  "files": ["tailwind.config.ts", "tsconfig/*.json", "eslint/*"]
+}

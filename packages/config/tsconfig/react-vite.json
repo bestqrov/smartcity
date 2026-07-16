@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "allowJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@smartcity/types": ["../../packages/shared-types/src"],
+      "@smartcity/types/*": ["../../packages/shared-types/src/*"],
+      "@smartcity/ui": ["../../packages/ui/src"],
+      "@smartcity/ui/*": ["../../packages/ui/src/*"],
+      "@smartcity/utils": ["../../packages/utils/src"],
+      "@smartcity/utils/*": ["../../packages/utils/src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,120 @@
+# ═══════════════════════════════════════════════════════════
+# Smart City Ecosystem – Docker Compose
+# ═══════════════════════════════════════════════════════════
+
+services:
+  # ── MongoDB ──────────────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: smartcity-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - smartcity-mongo-data:/data/db
+    networks:
+      - smartcity-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ── Redis ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: smartcity-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - smartcity-redis-data:/data
+    networks:
+      - smartcity-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  # ── API Gateway ──────────────────────────────────────────
+  gateway:
+    build:
+      context: .
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_NAME: gateway
+    container_name: smartcity-gateway
+    ports:
+      - "${PORT_GATEWAY:-3000}:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-mongodb://mongodb:27017/smartcity}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
+  # ── User Service ─────────────────────────────────────────
+  user-service:
+    build:
+      context: .
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_NAME: user-service
+    container_name: smartcity-user-service
+    ports:
+      - "${PORT_USER_SERVICE:-3001}:3001"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-mongodb://mongodb:27017/smartcity}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
+  # ── Tourism Service ──────────────────────────────────────
+  tourism-service:
+    build:
+      context: .
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_NAME: tourism-service
+    container_name: smartcity-tourism-service
+    ports:
+      - "${PORT_TOURISM_SERVICE:-3002}:3002"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-mongodb://mongodb:27017/smartcity}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
+volumes:
+  smartcity-mongo-data:
+  smartcity-redis-data:
+
+networks:
+  smartcity-network:
+    driver: bridge

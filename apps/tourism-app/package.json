@@ -1,0 +1,30 @@
+{
+  "name": "tourism-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NEXT_PUBLIC_API_URL=http://localhost:3000/api next dev -p 3102",
+    "build": "next build",
+    "start": "next start -p 3102",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@smartcity/i18n": "workspace:*",
+    "@smartcity/types": "workspace:*",
+    "@smartcity/ui": "workspace:*",
+    "jose": "^5.6.0",
+    "jsqr": "^1.4.0",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,271 @@
+// ─────────────────────────────────────────────────────────────
+// SmartCity – Prisma Schema (MongoDB provider)
+// ─────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────────
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  STAFF
+  GUEST
+}
+
+enum TenantType {
+  HOTEL
+  RIAD
+  RESORT
+  GUESTHOUSE
+  HOSTEL
+}
+
+enum RoomType {
+  SINGLE
+  DOUBLE
+  TWIN
+  SUITE
+  DELUXE
+  FAMILY
+  PENTHOUSE
+  DORMITORY
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  DELIVERED
+  CANCELLED
+}
+
+enum ActivityType {
+  EXCURSION
+  WELLNESS
+  SPORT
+  CULTURAL
+  CULINARY
+  ADVENTURE
+  ENTERTAINMENT
+  WORKSHOP
+}
+
+// ── Models ───────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  phone        String?
+  avatar       String?
+  role         UserRole @default(GUEST)
+  tenantId     String?  @db.ObjectId
+  isActive     Boolean  @default(true)
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant   Tenant?   @relation(fields: [tenantId], references: [id])
+  bookings Booking[]
+  reviews  Review[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+model Tenant {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  slug          String     @unique
+  domain        String?
+  type          TenantType
+  logo          String?
+  isActive      Boolean    @default(true)
+  currency      String     @default("MAD")
+  defaultLocale String     @default("fr")
+  timezone      String     @default("Africa/Casablanca")
+  features      String[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  users  User[]
+  hotels Hotel[]
+
+  @@map("tenants")
+}
+
+model Hotel {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId     String     @db.ObjectId
+  name         String
+  description  String?
+  type         TenantType
+  address      String
+  city         String
+  lat          Float
+  lng          Float
+  images       String[]
+  amenities    String[]
+  rating       Float      @default(0)
+  reviewCount  Int        @default(0)
+  priceRange   String?
+  contactPhone String?
+  contactEmail String?
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  rooms       Room[]
+  bookings    Booking[]
+  reviews     Review[]
+  activities  Activity[]
+  restaurants Restaurant[]
+
+  @@map("hotels")
+}
+
+model Room {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  hotelId     String   @db.ObjectId
+  name        String
+  type        RoomType
+  description String?
+  price       Float
+  currency    String   @default("MAD")
+  capacity    Int
+  amenities   String[]
+  images      String[]
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  hotel    Hotel     @relation(fields: [hotelId], references: [id])
+  bookings Booking[]
+
+  @@map("rooms")
+}
+
+model Booking {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  guestId         String        @db.ObjectId
+  hotelId         String        @db.ObjectId
+  roomId          String        @db.ObjectId
+  checkIn         DateTime
+  checkOut        DateTime
+  status          BookingStatus @default(PENDING)
+  totalPrice      Float
+  qrCode          String?
+  guestCount      Int
+  specialRequests String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  guest         User           @relation(fields: [guestId], references: [id])
+  hotel         Hotel          @relation(fields: [hotelId], references: [id])
+  room          Room           @relation(fields: [roomId], references: [id])
+  serviceOrders ServiceOrder[]
+
+  @@map("bookings")
+}
+
+model ServiceOrder {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId   String      @db.ObjectId
+  type        String
+  description String?
+  quantity    Int
+  price       Float
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@map("service_orders")
+}
+
+model Review {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  guestId     String   @db.ObjectId
+  hotelId     String   @db.ObjectId
+  rating      Int
+  comment     String?
+  cleanliness Int
+  service     Int
+  location    Int
+  value       Int
+  createdAt   DateTime @default(now())
+
+  guest User  @relation(fields: [guestId], references: [id])
+  hotel Hotel @relation(fields: [hotelId], references: [id])
+
+  @@map("reviews")
+}
+
+model Activity {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  hotelId         String       @db.ObjectId
+  name            String
+  type            ActivityType
+  description     String?
+  price           Float
+  duration        String?
+  maxParticipants Int
+  images          String[]
+  isAvailable     Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  hotel Hotel @relation(fields: [hotelId], references: [id])
+
+  @@map("activities")
+}
+
+model Restaurant {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  hotelId      String   @db.ObjectId
+  name         String
+  description  String?
+  cuisine      String[]
+  priceRange   String?
+  images       String[]
+  openingHours String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  hotel Hotel @relation(fields: [hotelId], references: [id])
+
+  @@map("restaurants")
+}
+
+model Session {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("sessions")
+}

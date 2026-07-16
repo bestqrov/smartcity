@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "incremental": true,
+    "paths": {
+      "@smartcity/ui": ["./packages/ui-components/src/index.ts"],
+      "@smartcity/types": ["./packages/shared-types/src/index.ts"],
+      "@smartcity/utils": ["./packages/utils/src/index.ts"],
+      "@smartcity/database": ["./packages/database/src/index.ts"],
+      "@smartcity/i18n": ["./packages/i18n/index.ts"],
+      "@smartcity/config/*": ["./packages/config/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next", ".turbo"]
+}

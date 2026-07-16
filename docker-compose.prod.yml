@@ -1,0 +1,120 @@
+# ═══════════════════════════════════════════════════════════
+# Smart City Ecosystem – Production Docker Compose (Coolify)
+# ═══════════════════════════════════════════════════════════
+#
+# Usage:
+#   docker-compose -f docker-compose.prod.yml up -d
+#
+# Required env vars (see .env.example):
+#   DATABASE_URL, REDIS_URL, JWT_SECRET, JWT_REFRESH_SECRET
+# ═══════════════════════════════════════════════════════════
+
+services:
+  # ── Redis ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: smartcity-redis
+    volumes:
+      - smartcity-redis-data:/data
+    networks:
+      - smartcity-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  # ── API Gateway ──────────────────────────────────────────
+  gateway:
+    build:
+      context: .
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_NAME: gateway
+    container_name: smartcity-gateway
+    ports:
+      - "${PORT_GATEWAY:-3000}:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT_GATEWAY:-3000}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - USER_SERVICE_URL=${USER_SERVICE_URL:-http://user-service:3001}
+      - TOURISM_SERVICE_URL=${TOURISM_SERVICE_URL:-http://tourism-service:3002}
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
+  # ── User Service ─────────────────────────────────────────
+  user-service:
+    build:
+      context: .
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_NAME: user-service
+    container_name: smartcity-user-service
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT_USER_SERVICE:-3001}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
+  # ── Tourism Service ──────────────────────────────────────
+  tourism-service:
+    build:
+      context: .
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_NAME: tourism-service
+    container_name: smartcity-tourism-service
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT_TOURISM_SERVICE:-3002}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
+  # ── Tourism Frontend ─────────────────────────────────────
+  tourism-app:
+    build:
+      context: .
+      dockerfile: infra/docker/tourism-app.Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+    container_name: smartcity-tourism-app
+    ports:
+      - "${PORT_TOURISM_APP:-3102}:3102"
+    depends_on:
+      - gateway
+    env_file:
+      - .env
+    environment:
+      - PORT=3102
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
+volumes:
+  smartcity-redis-data:
+
+networks:
+  smartcity-network:
+    driver: bridge

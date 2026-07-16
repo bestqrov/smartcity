@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "allowJs": true,
+    "noEmit": true,
+    "incremental": true,
+    "plugins": [
+      { "name": "next" }
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@smartcity/types": ["../../packages/shared-types/src"],
+      "@smartcity/types/*": ["../../packages/shared-types/src/*"],
+      "@smartcity/ui": ["../../packages/ui/src"],
+      "@smartcity/ui/*": ["../../packages/ui/src/*"],
+      "@smartcity/utils": ["../../packages/utils/src"],
+      "@smartcity/utils/*": ["../../packages/utils/src/*"]
+    }
+  },
+  "include": ["src", "next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "dist", ".next"]
+}

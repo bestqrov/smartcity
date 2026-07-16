@@ -1,0 +1,14 @@
+{
+  "extends": "../../packages/config/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@smartcity/ui-components": ["../../packages/ui-components/src"],
+      "@smartcity/i18n": ["../../packages/i18n"],
+      "@smartcity/types": ["../../packages/shared-types/src"]
+    }
+  },
+  "include": ["next-env.d.ts", "src/**/*", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next"]
+}
