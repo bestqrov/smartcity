@@ -25,12 +25,12 @@ Services : `user-service:3001`, `tourism-service:3002`, `gateway:3000`
 |----------|----------|-------|
 | `GET /api/hotels` | 200 OK | 3 hôtels retournés |
 | `GET /api/hotels/search` | 200 OK | Recherche OK |
-| `GET /api/rooms/search` | 200 OK | 9 chambres |
-| `GET /api/activities/search` | 200 OK | 9 activités |
-| `GET /api/restaurants/search` | 200 OK | 3 restaurants |
-| `GET /api/restaurants` | 404 | Endpoint non implémenté, utiliser `/search` |
-| `GET /api/activities` | 404 | Endpoint non implémenté, utiliser `/search` |
-| `GET /api/rooms` | 404 | Endpoint non implémenté, utiliser `/search` |
+| `GET /api/rooms` | 200 OK | 9 chambres retournées |
+| `GET /api/rooms/search` | 200 OK | Recherche OK |
+| `GET /api/activities` | 200 OK | 9 activités retournées |
+| `GET /api/activities/search` | 200 OK | Recherche OK |
+| `GET /api/restaurants` | 200 OK | 3 restaurants retournés |
+| `GET /api/restaurants/search` | 200 OK | Recherche OK |
 
 ---
 
@@ -75,34 +75,30 @@ Identifiants admin testés :
 
 ## 6. Problèmes identifiés
 
-1. **Routes list simple manquantes** : `GET /api/restaurants`, `GET /api/activities`, `GET /api/rooms` retournent 404.
-   - **Impact faible** : les endpoints `/search` fonctionnent et retournent toutes les données.
-   - **Fix possible** : ajouter des routes `GET /` dans les contrôleurs.
-
-2. **Création de booking** : nécessite `guestId` explicite et respect de la capacité de la chambre.
+1. **Création de booking** : nécessite `guestId` explicite et respect de la capacité de la chambre.
    - **Comportement normal** : validation métier.
 
-3. **Création de review** : nécessite `cleanliness`, `service`, `location`, `value` en plus de `rating` et `comment`.
+2. **Création de review** : nécessite `cleanliness`, `service`, `location`, `value` en plus de `rating` et `comment`.
    - **Comportement normal** : validation DTO.
 
----
+## 7. Résolutions
 
-## 7. Verdict global
-
-✅ **L'API est fonctionnelle pour le déploiement.**
-
-Les fonctionnalités critiques fonctionnent :
-- Health des services
-- Listing public des hôtels/chambres/activités/restaurants
-- Authentification JWT
-- Endpoints protégés admin
-- Génération et validation QR
-
-Les 404 sur `/api/restaurants`, `/api/activities`, `/api/rooms` sont mineurs car les endpoints `/search` équivalents sont disponibles.
+- ✅ `GET /api/restaurants` corrigé.
+- ✅ `GET /api/activities` corrigé.
+- ✅ `GET /api/rooms` corrigé.
+- Commit : `fix(tourism): add missing GET / routes for restaurants, activities and rooms`
 
 ---
 
-## 8. Commandes utilisées
+## 9. Verdict global
+
+✅ **L'API est entièrement fonctionnelle et prête pour le déploiement.**
+
+Toutes les routes publiques et protégées testées retournent les réponses attendues.
+
+---
+
+## 10. Commandes utilisées
 
 ```bash
 # Health
