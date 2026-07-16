@@ -31,6 +31,15 @@ export class RoomsController {
     return this.roomsService.search(query);
   }
 
+  @Get()
+  @Public()
+  async findAll(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.roomsService.findAllPublic(page || 1, limit || 20);
+  }
+
   @Get(':hotelId/hotel')
   @Public()
   async findByHotel(

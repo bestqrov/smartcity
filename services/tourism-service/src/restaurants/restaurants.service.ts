@@ -18,6 +18,30 @@ export class RestaurantsService {
     });
   }
 
+  async findAllPublic(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+
+    const [restaurants, total] = await Promise.all([
+      this.prisma.restaurant.findMany({
+        where: { isActive: true },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          hotel: {
+            select: { id: true, name: true, city: true },
+          },
+        },
+      }),
+      this.prisma.restaurant.count({ where: { isActive: true } }),
+    ]);
+
+    return {
+      data: restaurants,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
   async findAll(hotelId: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
 

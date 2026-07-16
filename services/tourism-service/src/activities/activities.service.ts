@@ -17,6 +17,30 @@ export class ActivitiesService {
     });
   }
 
+  async findAllPublic(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+
+    const [activities, total] = await Promise.all([
+      this.prisma.activity.findMany({
+        where: { isAvailable: true },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          hotel: {
+            select: { id: true, name: true, city: true },
+          },
+        },
+      }),
+      this.prisma.activity.count({ where: { isAvailable: true } }),
+    ]);
+
+    return {
+      data: activities,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
   async findAll(hotelId: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
 

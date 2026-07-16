@@ -18,6 +18,30 @@ export class RoomsService {
     });
   }
 
+  async findAllPublic(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+
+    const [rooms, total] = await Promise.all([
+      this.prisma.room.findMany({
+        where: { isAvailable: true },
+        skip,
+        take: limit,
+        orderBy: { price: 'asc' },
+        include: {
+          hotel: {
+            select: { id: true, name: true, city: true },
+          },
+        },
+      }),
+      this.prisma.room.count({ where: { isAvailable: true } }),
+    ]);
+
+    return {
+      data: rooms,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
   async findAll(hotelId: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
 

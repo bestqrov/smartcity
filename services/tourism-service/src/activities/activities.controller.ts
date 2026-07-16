@@ -31,6 +31,15 @@ export class ActivitiesController {
     return this.activitiesService.search(query);
   }
 
+  @Get()
+  @Public()
+  async findAll(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.activitiesService.findAllPublic(page || 1, limit || 20);
+  }
+
   @Get(':hotelId/hotel')
   @Public()
   async findByHotel(
