@@ -19,7 +19,8 @@
     "db:seed": "turbo run db:seed --filter=@smartcity/database",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "postinstall": "pnpm --filter @smartcity/database run db:generate"
   },
   "devDependencies": {
     "eslint": "^9.0.0",
