@@ -135,7 +135,14 @@
     "contactEmail": "Email de contact",
     "currency": "Devise",
     "defaultLanguage": "Langue par défaut",
-    "generalSettings": "Paramètres généraux"
+    "generalSettings": "Paramètres généraux",
+    "totalBookings": "Total réservations",
+    "pendingBookings": "En attente",
+    "totalHotels": "Total hôtels",
+    "totalUsers": "Total utilisateurs",
+    "recentBookings": "Réservations récentes",
+    "viewAll": "Voir tout",
+    "noBookings": "Aucune réservation pour le moment"
   },
   "tourism": {
     "hotels": "Hôtels",

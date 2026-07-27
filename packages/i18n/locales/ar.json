@@ -135,7 +135,14 @@
     "contactEmail": "بريد التواصل",
     "currency": "العملة",
     "defaultLanguage": "اللغة الافتراضية",
-    "generalSettings": "الإعدادات العامة"
+    "generalSettings": "الإعدادات العامة",
+    "totalBookings": "إجمالي الحجوزات",
+    "pendingBookings": "قيد الانتظار",
+    "totalHotels": "إجمالي الفنادق",
+    "totalUsers": "إجمالي المستخدمين",
+    "recentBookings": "الحجوزات الأخيرة",
+    "viewAll": "عرض الكل",
+    "noBookings": "لا توجد حجوزات بعد"
   },
   "tourism": {
     "hotels": "الفنادق",

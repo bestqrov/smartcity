@@ -135,7 +135,14 @@
     "contactEmail": "Contact email",
     "currency": "Currency",
     "defaultLanguage": "Default language",
-    "generalSettings": "General settings"
+    "generalSettings": "General settings",
+    "totalBookings": "Total bookings",
+    "pendingBookings": "Pending",
+    "totalHotels": "Total hotels",
+    "totalUsers": "Total users",
+    "recentBookings": "Recent bookings",
+    "viewAll": "View all",
+    "noBookings": "No bookings yet"
   },
   "tourism": {
     "hotels": "Hotels",
