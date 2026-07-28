@@ -67,6 +67,19 @@ enum ActivityType {
   WORKSHOP
 }
 
+enum BillingPeriod {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
 // ── Models ───────────────────────────────────────────────────
 
 model User {
@@ -107,10 +120,47 @@ model Tenant {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  users  User[]
-  hotels Hotel[]
+  users        User[]
+  hotels       Hotel[]
+  subscription Subscription?
 
   @@map("tenants")
+}
+
+model Plan {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  slug           String        @unique
+  description    String?
+  price          Float
+  currency       String        @default("MAD")
+  billingPeriod  BillingPeriod @default(MONTHLY)
+  features       String[]
+  maxHotels      Int?
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId          String             @unique @db.ObjectId
+  planId            String             @db.ObjectId
+  status            SubscriptionStatus @default(TRIALING)
+  startDate         DateTime           @default(now())
+  currentPeriodEnd  DateTime
+  cancelAtPeriodEnd Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  plan   Plan   @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
 }
 
 model Hotel {

@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { HotelsService } from './hotels.service';
 import { CreateHotelDto } from './dto/create-hotel.dto';
@@ -14,6 +15,7 @@ import { UpdateHotelDto } from './dto/update-hotel.dto';
 import { SearchHotelDto } from './dto/search-hotel.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { SubscriptionGuard } from '../auth/subscription.guard';
 
 @Controller('hotels')
 export class HotelsController {
@@ -21,6 +23,7 @@ export class HotelsController {
 
   @Post()
   @Roles('ADMIN', 'MANAGER')
+  @UseGuards(SubscriptionGuard)
   async create(@Body() dto: CreateHotelDto) {
     return this.hotelsService.create(dto);
   }
@@ -69,6 +72,7 @@ export class HotelsController {
 
   @Patch(':id')
   @Roles('ADMIN', 'MANAGER')
+  @UseGuards(SubscriptionGuard)
   async update(@Param('id') id: string, @Body() dto: UpdateHotelDto) {
     return this.hotelsService.update(id, dto);
   }

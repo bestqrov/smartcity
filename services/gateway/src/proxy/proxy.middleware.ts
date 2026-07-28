@@ -14,6 +14,9 @@ export class ProxyMiddleware implements NestMiddleware {
     const tourismServiceUrl =
       this.configService.get<string>('TOURISM_SERVICE_URL') ||
       'http://localhost:3002';
+    const billingServiceUrl =
+      this.configService.get<string>('BILLING_SERVICE_URL') ||
+      'http://localhost:3006';
 
     this.routeMap = {
       '/api/auth': userServiceUrl,
@@ -27,6 +30,8 @@ export class ProxyMiddleware implements NestMiddleware {
       '/api/reviews': tourismServiceUrl,
       '/api/orders': tourismServiceUrl,
       '/api/qr': tourismServiceUrl,
+      '/api/plans': billingServiceUrl,
+      '/api/subscriptions': billingServiceUrl,
     };
   }
 
