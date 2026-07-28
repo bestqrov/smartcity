@@ -31,11 +31,11 @@ export function LoginForm({ locale }: { locale: string }) {
         },
       );
 
-      if (!response.ok) {
-        throw new Error(t('auth.loginError'));
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || t('auth.loginError'));
+      }
       login(data);
       router.push(`/${locale}`);
     } catch (err) {
