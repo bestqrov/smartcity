@@ -142,7 +142,8 @@
     "totalUsers": "إجمالي المستخدمين",
     "recentBookings": "الحجوزات الأخيرة",
     "viewAll": "عرض الكل",
-    "noBookings": "لا توجد حجوزات بعد"
+    "noBookings": "لا توجد حجوزات بعد",
+    "bookingsByStatus": "الحجوزات حسب الحالة"
   },
   "tourism": {
     "hotels": "الفنادق",

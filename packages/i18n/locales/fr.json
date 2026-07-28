@@ -142,7 +142,8 @@
     "totalUsers": "Total utilisateurs",
     "recentBookings": "Réservations récentes",
     "viewAll": "Voir tout",
-    "noBookings": "Aucune réservation pour le moment"
+    "noBookings": "Aucune réservation pour le moment",
+    "bookingsByStatus": "Réservations par statut"
   },
   "tourism": {
     "hotels": "Hôtels",

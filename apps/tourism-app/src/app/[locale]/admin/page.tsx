@@ -14,6 +14,16 @@ interface Stats {
   users: number;
 }
 
+const STATUS_LIST = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'] as const;
+
+const STATUS_BAR_COLORS: Record<string, string> = {
+  PENDING: 'bg-amber-500',
+  CONFIRMED: 'bg-blue-500',
+  CHECKED_IN: 'bg-emerald-500',
+  CHECKED_OUT: 'bg-slate-400',
+  CANCELLED: 'bg-red-500',
+};
+
 interface RecentBooking {
   id: string;
   guest: { firstName: string; lastName: string };
@@ -40,6 +50,7 @@ export default function AdminDashboardPage({
   const { t } = useTranslation();
   const [stats, setStats] = React.useState<Stats | null>(null);
   const [recentBookings, setRecentBookings] = React.useState<RecentBooking[]>([]);
+  const [statusCounts, setStatusCounts] = React.useState<Record<string, number>>({});
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -48,8 +59,9 @@ export default function AdminDashboardPage({
       apiClient('/bookings?page=1&limit=1&status=PENDING'),
       apiClient('/hotels?page=1&limit=1'),
       apiClient('/users?page=1&limit=1'),
+      ...STATUS_LIST.map((status) => apiClient(`/bookings?page=1&limit=1&status=${status}`)),
     ])
-      .then(([bookingsRes, pendingRes, hotelsRes, usersRes]) => {
+      .then(([bookingsRes, pendingRes, hotelsRes, usersRes, ...statusResults]) => {
         setRecentBookings(bookingsRes.data || []);
         setStats({
           bookings: bookingsRes.meta?.total ?? bookingsRes.data?.length ?? 0,
@@ -57,6 +69,11 @@ export default function AdminDashboardPage({
           hotels: hotelsRes.meta?.total ?? hotelsRes.data?.length ?? 0,
           users: usersRes.meta?.total ?? usersRes.data?.length ?? 0,
         });
+        setStatusCounts(
+          Object.fromEntries(
+            STATUS_LIST.map((status, i) => [status, statusResults[i]?.meta?.total ?? 0]),
+          ),
+        );
       })
       .catch(() => setStats({ bookings: 0, pendingBookings: 0, hotels: 0, users: 0 }))
       .finally(() => setLoading(false));
@@ -109,6 +126,37 @@ export default function AdminDashboardPage({
             </Link>
           ))}
         </div>
+
+        <Card>
+          <div className="border-b border-gray-100 p-5">
+            <h2 className="text-base font-semibold text-gray-900">
+              {t('admin.bookingsByStatus')}
+            </h2>
+          </div>
+          <div className="space-y-4 p-5">
+            {STATUS_LIST.map((status) => {
+              const count = statusCounts[status] ?? 0;
+              const max = Math.max(...STATUS_LIST.map((s) => statusCounts[s] ?? 0), 1);
+              const width = loading ? 0 : Math.max((count / max) * 100, count > 0 ? 4 : 0);
+              return (
+                <div key={status} className="flex items-center gap-4">
+                  <span className="w-28 shrink-0 text-xs font-medium text-gray-600">
+                    {status}
+                  </span>
+                  <div className="h-3 flex-1 overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${STATUS_BAR_COLORS[status]}`}
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
+                  <span className="w-8 shrink-0 text-right text-sm font-semibold text-gray-800">
+                    {loading ? '—' : count}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
 
         <Card>
           <div className="flex items-center justify-between border-b border-gray-100 p-5">

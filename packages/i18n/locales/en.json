@@ -142,7 +142,8 @@
     "totalUsers": "Total users",
     "recentBookings": "Recent bookings",
     "viewAll": "View all",
-    "noBookings": "No bookings yet"
+    "noBookings": "No bookings yet",
+    "bookingsByStatus": "Bookings by status"
   },
   "tourism": {
     "hotels": "Hotels",
