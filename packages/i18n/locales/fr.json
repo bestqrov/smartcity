@@ -143,7 +143,8 @@
     "recentBookings": "Réservations récentes",
     "viewAll": "Voir tout",
     "noBookings": "Aucune réservation pour le moment",
-    "bookingsByStatus": "Réservations par statut"
+    "bookingsByStatus": "Réservations par statut",
+    "billing": "Facturation"
   },
   "tourism": {
     "hotels": "Hôtels",
@@ -189,5 +190,29 @@
     "hotel": "Hôtel",
     "room": "Chambre",
     "status": "Statut"
+  },
+  "billing": {
+    "newPlan": "Nouveau plan",
+    "planName": "Nom du plan",
+    "planSlug": "Identifiant (slug)",
+    "planPrice": "Prix",
+    "planFeatures": "Fonctionnalités",
+    "planFeaturesPlaceholder": "séparées par des virgules",
+    "createPlan": "Créer le plan",
+    "assignSubscription": "Attribuer un abonnement",
+    "tenant": "Établissement",
+    "selectTenant": "Choisir un établissement",
+    "plan": "Plan",
+    "selectPlan": "Choisir un plan",
+    "activateSubscription": "Activer l'abonnement",
+    "plans": "Plans",
+    "noPlans": "Aucun plan pour le moment",
+    "subscriptions": "Abonnements",
+    "noSubscriptions": "Aucun abonnement pour le moment",
+    "periodEnd": "Fin de période",
+    "month": "mois",
+    "year": "an",
+    "accessDenied": "Accès réservé aux super-administrateurs.",
+    "confirmCancel": "Annuler cet abonnement ?"
   }
 }

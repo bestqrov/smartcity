@@ -17,6 +17,7 @@ const adminLinks = [
   { href: '/admin/bookings', key: 'admin.bookings', icon: BookingIcon },
   { href: '/admin/users', key: 'admin.users', icon: UsersIcon },
   { href: '/admin/scan', key: 'admin.scan', icon: ScanIcon },
+  { href: '/admin/billing', key: 'admin.billing', icon: BillingIcon },
   { href: '/admin/settings', key: 'admin.settings', icon: SettingsIcon },
 ];
 
@@ -185,6 +186,15 @@ function ScanIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
       <path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M4 12h16" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function BillingIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <path d="M2 10h20M6 15h4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

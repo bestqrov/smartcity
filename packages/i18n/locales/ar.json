@@ -143,7 +143,8 @@
     "recentBookings": "الحجوزات الأخيرة",
     "viewAll": "عرض الكل",
     "noBookings": "لا توجد حجوزات بعد",
-    "bookingsByStatus": "الحجوزات حسب الحالة"
+    "bookingsByStatus": "الحجوزات حسب الحالة",
+    "billing": "الفوترة"
   },
   "tourism": {
     "hotels": "الفنادق",
@@ -189,5 +190,29 @@
     "hotel": "الفندق",
     "room": "الغرفة",
     "status": "الحالة"
+  },
+  "billing": {
+    "newPlan": "خطة جديدة",
+    "planName": "اسم الخطة",
+    "planSlug": "المعرف (slug)",
+    "planPrice": "السعر",
+    "planFeatures": "المميزات",
+    "planFeaturesPlaceholder": "مفصولة بفواصل",
+    "createPlan": "إنشاء الخطة",
+    "assignSubscription": "تعيين اشتراك",
+    "tenant": "المنشأة",
+    "selectTenant": "اختر منشأة",
+    "plan": "الخطة",
+    "selectPlan": "اختر خطة",
+    "activateSubscription": "تفعيل الاشتراك",
+    "plans": "الخطط",
+    "noPlans": "لا توجد خطط بعد",
+    "subscriptions": "الاشتراكات",
+    "noSubscriptions": "لا توجد اشتراكات بعد",
+    "periodEnd": "نهاية الفترة",
+    "month": "شهر",
+    "year": "سنة",
+    "accessDenied": "الوصول مخصص للمشرفين العامين فقط.",
+    "confirmCancel": "إلغاء هذا الاشتراك؟"
   }
 }

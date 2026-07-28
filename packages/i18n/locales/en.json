@@ -143,7 +143,8 @@
     "recentBookings": "Recent bookings",
     "viewAll": "View all",
     "noBookings": "No bookings yet",
-    "bookingsByStatus": "Bookings by status"
+    "bookingsByStatus": "Bookings by status",
+    "billing": "Billing"
   },
   "tourism": {
     "hotels": "Hotels",
@@ -189,5 +190,29 @@
     "hotel": "Hotel",
     "room": "Room",
     "status": "Status"
+  },
+  "billing": {
+    "newPlan": "New plan",
+    "planName": "Plan name",
+    "planSlug": "Slug",
+    "planPrice": "Price",
+    "planFeatures": "Features",
+    "planFeaturesPlaceholder": "comma-separated",
+    "createPlan": "Create plan",
+    "assignSubscription": "Assign a subscription",
+    "tenant": "Property",
+    "selectTenant": "Select a property",
+    "plan": "Plan",
+    "selectPlan": "Select a plan",
+    "activateSubscription": "Activate subscription",
+    "plans": "Plans",
+    "noPlans": "No plans yet",
+    "subscriptions": "Subscriptions",
+    "noSubscriptions": "No subscriptions yet",
+    "periodEnd": "Period ends",
+    "month": "month",
+    "year": "year",
+    "accessDenied": "Access restricted to super-administrators.",
+    "confirmCancel": "Cancel this subscription?"
   }
 }
