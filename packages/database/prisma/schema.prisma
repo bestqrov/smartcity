@@ -43,6 +43,13 @@ enum RoomType {
   DORMITORY
 }
 
+enum HousekeepingStatus {
+  CLEAN
+  DIRTY
+  IN_PROGRESS
+  INSPECTED
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -200,19 +207,20 @@ model Hotel {
 }
 
 model Room {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  hotelId     String   @db.ObjectId
-  name        String
-  type        RoomType
-  description String?
-  price       Float
-  currency    String   @default("MAD")
-  capacity    Int
-  amenities   String[]
-  images      String[]
-  isAvailable Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  hotelId             String             @db.ObjectId
+  name                String
+  type                RoomType
+  description         String?
+  price               Float
+  currency            String             @default("MAD")
+  capacity            Int
+  amenities           String[]
+  images              String[]
+  isAvailable         Boolean            @default(true)
+  housekeepingStatus  HousekeepingStatus @default(CLEAN)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   hotel    Hotel     @relation(fields: [hotelId], references: [id])
   bookings Booking[]

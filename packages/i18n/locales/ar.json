@@ -260,5 +260,16 @@
     "marketplaceOption": "السوق (المدينة كاملة)",
     "privateOption": "خاص — {{hotel}}",
     "privateHint": "يبان غير لضيوف هاد الفندق (مثلا minibar، room service)."
+  },
+  "housekeeping": {
+    "title": "التدبير المنزلي",
+    "subtitle": "حالة الغرف — كيتحدث من طرف الفريق ديالك",
+    "noRooms": "لا توجد غرف بعد",
+    "status": {
+      "CLEAN": "نظيفة",
+      "DIRTY": "محتاجة تنظيف",
+      "IN_PROGRESS": "جارية",
+      "INSPECTED": "تم الفحص"
+    }
   }
 }

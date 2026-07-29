@@ -260,5 +260,16 @@
     "marketplaceOption": "Marketplace (whole city)",
     "privateOption": "Private — {{hotel}}",
     "privateHint": "Visible only to guests of this hotel (e.g. minibar, room service)."
+  },
+  "housekeeping": {
+    "title": "Housekeeping",
+    "subtitle": "Room status — updated by your team",
+    "noRooms": "No rooms yet",
+    "status": {
+      "CLEAN": "Clean",
+      "DIRTY": "Needs cleaning",
+      "IN_PROGRESS": "In progress",
+      "INSPECTED": "Inspected"
+    }
   }
 }

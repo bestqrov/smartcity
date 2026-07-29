@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
@@ -71,7 +71,7 @@ export class RoomsService {
       where: { id },
       include: {
         hotel: {
-          select: { id: true, name: true, city: true, address: true },
+          select: { id: true, name: true, city: true, address: true, tenantId: true },
         },
         bookings: {
           where: {
@@ -106,6 +106,30 @@ export class RoomsService {
     await this.prisma.room.delete({ where: { id } });
 
     return { message: 'Room deleted successfully' };
+  }
+
+  async findHousekeepingForTenant(tenantId: string) {
+    return this.prisma.room.findMany({
+      where: { hotel: { tenantId } },
+      orderBy: [{ hotelId: 'asc' }, { name: 'asc' }],
+      include: {
+        hotel: { select: { id: true, name: true } },
+      },
+    });
+  }
+
+  async updateHousekeeping(id: string, status: string) {
+    const room = await this.findById(id);
+
+    const validStatuses = ['CLEAN', 'DIRTY', 'IN_PROGRESS', 'INSPECTED'];
+    if (!validStatuses.includes(status)) {
+      throw new BadRequestException(`Invalid housekeeping status: ${status}`);
+    }
+
+    return this.prisma.room.update({
+      where: { id },
+      data: { housekeepingStatus: status as any },
+    });
   }
 
   async search(query: SearchRoomDto) {

@@ -17,6 +17,7 @@ const adminLinks = [
   { href: '/admin/hotels', key: 'admin.hotels', icon: HotelIcon },
   { href: '/admin/listings', key: 'listings.title', icon: ListingsIcon },
   { href: '/admin/bookings', key: 'admin.bookings', icon: BookingIcon },
+  { href: '/admin/housekeeping', key: 'housekeeping.title', icon: HousekeepingIcon },
   { href: '/admin/orders', key: 'services.orders', icon: OrdersIcon },
   { href: '/admin/messages', key: 'services.chatTitle', icon: MessagesIcon },
   { href: '/admin/users', key: 'admin.users', icon: UsersIcon },
@@ -228,6 +229,14 @@ function OrdersIcon(props: React.SVGProps<SVGSVGElement>) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
       <path d="M6 2l1.5 4h9L18 2M4 6h16l-1.5 14a2 2 0 01-2 1.8H7.5a2 2 0 01-2-1.8L4 6z" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M9 10v6M15 10v6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function HousekeepingIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M15 4l5 5-9 9-5-5 9-9zM4 20l4-1-3-3-1 4z" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   Query,
+  ForbiddenException,
 } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/create-room.dto';
@@ -14,6 +15,8 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 import { SearchRoomDto } from './dto/search-room.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CurrentUserDto } from '../auth/jwt.strategy';
 
 @Controller('rooms')
 export class RoomsController {
@@ -29,6 +32,15 @@ export class RoomsController {
   @Public()
   async search(@Query() query: SearchRoomDto) {
     return this.roomsService.search(query);
+  }
+
+  @Get('housekeeping')
+  @Roles('ADMIN', 'MANAGER', 'STAFF')
+  async housekeeping(@CurrentUser() user: CurrentUserDto) {
+    if (!user.tenantId) {
+      return [];
+    }
+    return this.roomsService.findHousekeepingForTenant(user.tenantId);
   }
 
   @Get()
@@ -60,6 +72,20 @@ export class RoomsController {
   @Roles('ADMIN', 'MANAGER')
   async update(@Param('id') id: string, @Body() dto: UpdateRoomDto) {
     return this.roomsService.update(id, dto);
+  }
+
+  @Patch(':id/housekeeping')
+  @Roles('ADMIN', 'MANAGER', 'STAFF')
+  async updateHousekeeping(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @CurrentUser() user: CurrentUserDto,
+  ) {
+    const room = await this.roomsService.findById(id);
+    if (user.role !== 'SUPER_ADMIN' && room.hotel.tenantId !== user.tenantId) {
+      throw new ForbiddenException('You do not have access to this room');
+    }
+    return this.roomsService.updateHousekeeping(id, status);
   }
 
   @Delete(':id')

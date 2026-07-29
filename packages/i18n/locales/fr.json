@@ -260,5 +260,16 @@
     "marketplaceOption": "Marketplace (toute la ville)",
     "privateOption": "Privé — {{hotel}}",
     "privateHint": "Visible uniquement par les clients de cet hôtel (ex : minibar, room service)."
+  },
+  "housekeeping": {
+    "title": "Ménage",
+    "subtitle": "État des chambres — mise à jour par vos équipes",
+    "noRooms": "Aucune chambre pour le moment",
+    "status": {
+      "CLEAN": "Propre",
+      "DIRTY": "À nettoyer",
+      "IN_PROGRESS": "En cours",
+      "INSPECTED": "Inspectée"
+    }
   }
 }

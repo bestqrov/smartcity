@@ -206,6 +206,13 @@ export class BookingsService {
       throw new BadRequestException(`Invalid status: ${status}`);
     }
 
+    if (status === 'CHECKED_OUT') {
+      await this.prisma.room.update({
+        where: { id: booking.roomId },
+        data: { housekeepingStatus: 'DIRTY' },
+      });
+    }
+
     return this.prisma.booking.update({
       where: { id },
       data: { status: status as BookingStatus },
