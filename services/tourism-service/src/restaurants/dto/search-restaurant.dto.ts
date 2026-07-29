@@ -12,6 +12,10 @@ export class SearchRestaurantDto {
 
   @IsString()
   @IsOptional()
+  city?: string;
+
+  @IsString()
+  @IsOptional()
   q?: string;
 
   @IsString()

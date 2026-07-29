@@ -28,6 +28,8 @@ enum TenantType {
   RESORT
   GUESTHOUSE
   HOSTEL
+  TOUR_OPERATOR
+  SHOP
 }
 
 enum RoomType {
@@ -65,6 +67,7 @@ enum ActivityType {
   ADVENTURE
   ENTERTAINMENT
   WORKSHOP
+  SHOPPING
 }
 
 enum BillingPeriod {
@@ -123,6 +126,8 @@ model Tenant {
   users        User[]
   hotels       Hotel[]
   subscription Subscription?
+  activities   Activity[]
+  restaurants  Restaurant[]
 
   @@map("tenants")
 }
@@ -273,7 +278,9 @@ model Review {
 
 model Activity {
   id              String       @id @default(auto()) @map("_id") @db.ObjectId
-  hotelId         String       @db.ObjectId
+  tenantId        String       @db.ObjectId
+  hotelId         String?      @db.ObjectId
+  city            String?
   name            String
   type            ActivityType
   description     String?
@@ -285,14 +292,17 @@ model Activity {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  hotel Hotel @relation(fields: [hotelId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  hotel  Hotel? @relation(fields: [hotelId], references: [id])
 
   @@map("activities")
 }
 
 model Restaurant {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  hotelId      String   @db.ObjectId
+  tenantId     String   @db.ObjectId
+  hotelId      String?  @db.ObjectId
+  city         String?
   name         String
   description  String?
   cuisine      String[]
@@ -303,7 +313,8 @@ model Restaurant {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  hotel Hotel @relation(fields: [hotelId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  hotel  Hotel? @relation(fields: [hotelId], references: [id])
 
   @@map("restaurants")
 }

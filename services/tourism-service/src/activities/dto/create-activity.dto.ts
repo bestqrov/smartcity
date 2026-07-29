@@ -19,11 +19,17 @@ export enum ActivityType {
   ADVENTURE = 'ADVENTURE',
   ENTERTAINMENT = 'ENTERTAINMENT',
   WORKSHOP = 'WORKSHOP',
+  SHOPPING = 'SHOPPING',
 }
 
 export class CreateActivityDto {
   @IsString()
-  hotelId: string;
+  @IsOptional()
+  hotelId?: string;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
 
   @IsString()
   @MinLength(2)

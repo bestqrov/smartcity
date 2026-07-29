@@ -8,22 +8,27 @@ import { SearchRestaurantDto } from './dto/search-restaurant.dto';
 export class RestaurantsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateRestaurantDto) {
+  async create(dto: CreateRestaurantDto, tenantId: string) {
     return this.prisma.restaurant.create({
       data: {
         ...dto,
+        tenantId,
         cuisine: dto.cuisine || [],
         images: dto.images || [],
       },
     });
   }
 
-  async findAllPublic(page = 1, limit = 20) {
+  async findAllPublic(page = 1, limit = 20, city?: string) {
     const skip = (page - 1) * limit;
+    const where: Record<string, any> = { isActive: true };
+    if (city) {
+      where.OR = [{ city }, { hotel: { city } }];
+    }
 
     const [restaurants, total] = await Promise.all([
       this.prisma.restaurant.findMany({
-        where: { isActive: true },
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -31,9 +36,12 @@ export class RestaurantsService {
           hotel: {
             select: { id: true, name: true, city: true },
           },
+          tenant: {
+            select: { id: true, name: true, type: true },
+          },
         },
       }),
-      this.prisma.restaurant.count({ where: { isActive: true } }),
+      this.prisma.restaurant.count({ where }),
     ]);
 
     return {
@@ -73,6 +81,9 @@ export class RestaurantsService {
         hotel: {
           select: { id: true, name: true, city: true, address: true },
         },
+        tenant: {
+          select: { id: true, name: true, type: true },
+        },
       },
     });
 
@@ -104,17 +115,22 @@ export class RestaurantsService {
   }
 
   async search(query: SearchRestaurantDto) {
-    const { hotelId, q, cuisine, priceRange, page = 1, limit = 20 } = query;
+    const { hotelId, city, q, cuisine, priceRange, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
     const where: Record<string, any> = { isActive: true };
     if (hotelId) where.hotelId = hotelId;
+    if (city) where.OR = [{ city }, { hotel: { city } }];
     if (cuisine) where.cuisine = { has: cuisine };
     if (priceRange) where.priceRange = priceRange;
     if (q) {
-      where.OR = [
-        { name: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
+      where.AND = [
+        {
+          OR: [
+            { name: { contains: q, mode: 'insensitive' } },
+            { description: { contains: q, mode: 'insensitive' } },
+          ],
+        },
       ];
     }
 
@@ -127,6 +143,9 @@ export class RestaurantsService {
         include: {
           hotel: {
             select: { id: true, name: true, city: true },
+          },
+          tenant: {
+            select: { id: true, name: true, type: true },
           },
         },
       }),

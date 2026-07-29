@@ -227,6 +227,10 @@
     "noOrders": "Aucune commande pour le moment",
     "orders": "Commandes",
     "type": "Service",
-    "orderedAt": "Commandé le"
+    "orderedAt": "Commandé le",
+    "marketplace": "Marketplace local",
+    "marketplaceSubtitle": "Excursions, boutiques et restaurants partenaires près de votre hôtel",
+    "reservation": "Réservation",
+    "reserve": "Réserver"
   }
 }

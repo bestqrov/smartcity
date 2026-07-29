@@ -8,21 +8,26 @@ import { SearchActivityDto } from './dto/search-activity.dto';
 export class ActivitiesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateActivityDto) {
+  async create(dto: CreateActivityDto, tenantId: string) {
     return this.prisma.activity.create({
       data: {
         ...dto,
+        tenantId,
         images: dto.images || [],
       },
     });
   }
 
-  async findAllPublic(page = 1, limit = 20) {
+  async findAllPublic(page = 1, limit = 20, city?: string) {
     const skip = (page - 1) * limit;
+    const where: Record<string, any> = { isAvailable: true };
+    if (city) {
+      where.OR = [{ city }, { hotel: { city } }];
+    }
 
     const [activities, total] = await Promise.all([
       this.prisma.activity.findMany({
-        where: { isAvailable: true },
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
@@ -30,9 +35,12 @@ export class ActivitiesService {
           hotel: {
             select: { id: true, name: true, city: true },
           },
+          tenant: {
+            select: { id: true, name: true, type: true },
+          },
         },
       }),
-      this.prisma.activity.count({ where: { isAvailable: true } }),
+      this.prisma.activity.count({ where }),
     ]);
 
     return {
@@ -72,6 +80,9 @@ export class ActivitiesService {
         hotel: {
           select: { id: true, name: true, city: true, address: true },
         },
+        tenant: {
+          select: { id: true, name: true, type: true },
+        },
       },
     });
 
@@ -105,6 +116,7 @@ export class ActivitiesService {
   async search(query: SearchActivityDto) {
     const {
       hotelId,
+      city,
       type,
       q,
       minPrice,
@@ -116,6 +128,7 @@ export class ActivitiesService {
 
     const where: Record<string, any> = { isAvailable: true };
     if (hotelId) where.hotelId = hotelId;
+    if (city) where.OR = [{ city }, { hotel: { city } }];
     if (type) where.type = type;
     if (minPrice !== undefined || maxPrice !== undefined) {
       where.price = {};
@@ -123,9 +136,13 @@ export class ActivitiesService {
       if (maxPrice !== undefined) where.price.lte = maxPrice;
     }
     if (q) {
-      where.OR = [
-        { name: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
+      where.AND = [
+        {
+          OR: [
+            { name: { contains: q, mode: 'insensitive' } },
+            { description: { contains: q, mode: 'insensitive' } },
+          ],
+        },
       ];
     }
 
@@ -138,6 +155,9 @@ export class ActivitiesService {
         include: {
           hotel: {
             select: { id: true, name: true, city: true },
+          },
+          tenant: {
+            select: { id: true, name: true, type: true },
           },
         },
       }),

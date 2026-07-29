@@ -227,6 +227,10 @@
     "noOrders": "No orders yet",
     "orders": "Orders",
     "type": "Service",
-    "orderedAt": "Ordered at"
+    "orderedAt": "Ordered at",
+    "marketplace": "Local marketplace",
+    "marketplaceSubtitle": "Trips, shops and partner restaurants near your hotel",
+    "reservation": "Reservation",
+    "reserve": "Reserve"
   }
 }

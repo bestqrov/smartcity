@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { RestaurantsService } from './restaurants.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
@@ -14,6 +15,8 @@ import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { SearchRestaurantDto } from './dto/search-restaurant.dto';
 import { Public } from '../auth/decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CurrentUserDto } from '../auth/jwt.strategy';
 
 @Controller('restaurants')
 export class RestaurantsController {
@@ -21,8 +24,15 @@ export class RestaurantsController {
 
   @Post()
   @Roles('ADMIN', 'MANAGER')
-  async create(@Body() dto: CreateRestaurantDto) {
-    return this.restaurantsService.create(dto);
+  async create(@Body() dto: CreateRestaurantDto, @CurrentUser() user: CurrentUserDto) {
+    if (!user.tenantId) {
+      throw new BadRequestException('Your account is not linked to a tenant');
+    }
+    if (!dto.hotelId && !dto.city) {
+      throw new BadRequestException('Either hotelId or city is required');
+    }
+
+    return this.restaurantsService.create(dto, user.tenantId);
   }
 
   @Get('search')
@@ -36,8 +46,9 @@ export class RestaurantsController {
   async findAll(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('city') city?: string,
   ) {
-    return this.restaurantsService.findAllPublic(page || 1, limit || 20);
+    return this.restaurantsService.findAllPublic(page || 1, limit || 20, city);
   }
 
   @Get(':hotelId/hotel')

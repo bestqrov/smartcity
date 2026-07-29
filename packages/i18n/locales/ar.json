@@ -227,6 +227,10 @@
     "noOrders": "لا توجد طلبات بعد",
     "orders": "الطلبات",
     "type": "الخدمة",
-    "orderedAt": "تاريخ الطلب"
+    "orderedAt": "تاريخ الطلب",
+    "marketplace": "السوق المحلي",
+    "marketplaceSubtitle": "رحلات ومحلات ومطاعم شريكة قريبة من الفندق",
+    "reservation": "حجز",
+    "reserve": "احجز"
   }
 }

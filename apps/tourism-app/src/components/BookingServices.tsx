@@ -28,6 +28,23 @@ interface Booking {
   serviceOrders: ServiceOrder[];
 }
 
+interface MarketplaceActivity {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  description: string | null;
+  tenant: { id: string; name: string; type: string };
+}
+
+interface MarketplaceRestaurant {
+  id: string;
+  name: string;
+  cuisine: string[];
+  priceRange: string | null;
+  tenant: { id: string; name: string; type: string };
+}
+
 interface CatalogItem {
   key: string;
   type: string;
@@ -59,6 +76,8 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [ordering, setOrdering] = useState<string | null>(null);
+  const [marketActivities, setMarketActivities] = useState<MarketplaceActivity[]>([]);
+  const [marketRestaurants, setMarketRestaurants] = useState<MarketplaceRestaurant[]>([]);
 
   const fetchBooking = useCallback(() => {
     return apiClient(`/bookings/${bookingId}`)
@@ -80,6 +99,19 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
     return () => clearInterval(interval);
   }, [authLoading, user, locale, router, fetchBooking]);
 
+  useEffect(() => {
+    const city = booking?.hotel.city;
+    if (!city) return;
+
+    apiClient(`/activities?city=${encodeURIComponent(city)}&limit=20`)
+      .then((res) => setMarketActivities(res.data || []))
+      .catch(() => setMarketActivities([]));
+
+    apiClient(`/restaurants?city=${encodeURIComponent(city)}&limit=20`)
+      .then((res) => setMarketRestaurants(res.data || []))
+      .catch(() => setMarketRestaurants([]));
+  }, [booking?.hotel.city]);
+
   const handleOrder = async (item: CatalogItem) => {
     setOrdering(item.key);
     setError('');
@@ -91,6 +123,50 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
           type: item.type,
           quantity: 1,
           price: item.price,
+        }),
+      });
+      await fetchBooking();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setOrdering(null);
+    }
+  };
+
+  const handleMarketActivityOrder = async (activity: MarketplaceActivity) => {
+    setOrdering(activity.id);
+    setError('');
+    try {
+      await apiClient('/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          bookingId,
+          type: activity.name,
+          description: activity.tenant.name,
+          quantity: 1,
+          price: activity.price,
+        }),
+      });
+      await fetchBooking();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setOrdering(null);
+    }
+  };
+
+  const handleRestaurantReservation = async (restaurant: MarketplaceRestaurant) => {
+    setOrdering(restaurant.id);
+    setError('');
+    try {
+      await apiClient('/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          bookingId,
+          type: `${t('services.reservation')}: ${restaurant.name}`,
+          description: restaurant.tenant.name,
+          quantity: 1,
+          price: 0,
         }),
       });
       await fetchBooking();
@@ -154,6 +230,66 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
           </div>
         </CardContent>
       </Card>
+
+      {(marketActivities.length > 0 || marketRestaurants.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('services.marketplace')}</CardTitle>
+            <p className="text-sm text-gray-500">{t('services.marketplaceSubtitle')}</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {marketActivities.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
+              >
+                <div>
+                  <p className="font-medium text-gray-800">{activity.name}</p>
+                  <p className="text-xs text-gray-400">
+                    {activity.tenant.name} · {activity.type}
+                  </p>
+                  <p className="text-sm text-gray-500">{activity.price} MAD</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  loading={ordering === activity.id}
+                  disabled={booking.status === 'CANCELLED'}
+                  onClick={() => handleMarketActivityOrder(activity)}
+                >
+                  {t('services.order')}
+                </Button>
+              </div>
+            ))}
+            {marketRestaurants.map((restaurant) => (
+              <div
+                key={restaurant.id}
+                className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
+              >
+                <div>
+                  <p className="font-medium text-gray-800">{restaurant.name}</p>
+                  <p className="text-xs text-gray-400">
+                    {restaurant.tenant.name}
+                    {restaurant.cuisine.length > 0 ? ` · ${restaurant.cuisine.join(', ')}` : ''}
+                  </p>
+                  {restaurant.priceRange && (
+                    <p className="text-sm text-gray-500">{restaurant.priceRange}</p>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  loading={ordering === restaurant.id}
+                  disabled={booking.status === 'CANCELLED'}
+                  onClick={() => handleRestaurantReservation(restaurant)}
+                >
+                  {t('services.reserve')}
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

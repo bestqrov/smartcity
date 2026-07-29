@@ -8,7 +8,12 @@ import {
 
 export class CreateRestaurantDto {
   @IsString()
-  hotelId: string;
+  @IsOptional()
+  hotelId?: string;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
 
   @IsString()
   @MinLength(2)
