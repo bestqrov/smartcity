@@ -53,6 +53,7 @@ export class HotelsController {
     @Query('type') type?: string,
     @Query('minRating') minRating?: number,
     @Query('maxPrice') maxPrice?: string,
+    @Query('tenantId') tenantId?: string,
   ) {
     return this.hotelsService.findAll({
       page: page || 1,
@@ -61,6 +62,7 @@ export class HotelsController {
       type,
       minRating,
       maxPrice,
+      tenantId,
     });
   }
 

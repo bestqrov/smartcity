@@ -11,6 +11,7 @@ interface FindAllParams {
   type?: string;
   minRating?: number;
   maxPrice?: string;
+  tenantId?: string;
 }
 
 @Injectable()
@@ -28,7 +29,7 @@ export class HotelsService {
   }
 
   async findAll(params: FindAllParams) {
-    const { page, limit, city, type, minRating, maxPrice } = params;
+    const { page, limit, city, type, minRating, maxPrice, tenantId } = params;
     const skip = (page - 1) * limit;
 
     const where: Record<string, any> = { isActive: true };
@@ -36,6 +37,7 @@ export class HotelsService {
     if (type) where.type = type;
     if (minRating) where.rating = { gte: minRating };
     if (maxPrice) where.priceRange = maxPrice;
+    if (tenantId) where.tenantId = tenantId;
 
     const [hotels, total] = await Promise.all([
       this.prisma.hotel.findMany({

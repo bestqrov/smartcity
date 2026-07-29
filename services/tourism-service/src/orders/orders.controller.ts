@@ -56,9 +56,11 @@ export class OrdersController {
       if (booking.guestId !== user.userId) {
         throw new ForbiddenException('You cannot access these orders');
       }
+      return this.ordersService.findAll(query);
     }
 
-    return this.ordersService.findAll(query);
+    const tenantId = user.role === 'SUPER_ADMIN' ? undefined : user.tenantId;
+    return this.ordersService.findAll({ ...query, tenantId });
   }
 
   @Get(':id')
@@ -72,6 +74,8 @@ export class OrdersController {
       if (booking.guestId !== user.userId) {
         throw new ForbiddenException('You cannot access this order');
       }
+    } else {
+      this.assertTenantOwnership(order, user);
     }
 
     return order;
@@ -79,7 +83,13 @@ export class OrdersController {
 
   @Patch(':id')
   @Roles('ADMIN', 'MANAGER', 'STAFF')
-  async update(@Param('id') id: string, @Body() dto: UpdateOrderDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateOrderDto,
+    @CurrentUser() user: CurrentUserDto,
+  ) {
+    const order = await this.ordersService.findById(id);
+    this.assertTenantOwnership(order, user);
     return this.ordersService.update(id, dto);
   }
 
@@ -88,13 +98,29 @@ export class OrdersController {
   async updateStatus(
     @Param('id') id: string,
     @Body('status') status: string,
+    @CurrentUser() user: CurrentUserDto,
   ) {
+    const order = await this.ordersService.findById(id);
+    this.assertTenantOwnership(order, user);
     return this.ordersService.updateStatus(id, status);
   }
 
   @Delete(':id')
   @Roles('ADMIN', 'MANAGER')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @CurrentUser() user: CurrentUserDto) {
+    const order = await this.ordersService.findById(id);
+    this.assertTenantOwnership(order, user);
     return this.ordersService.remove(id);
+  }
+
+  private assertTenantOwnership(
+    order: { booking: { hotel?: { tenantId: string } | null } },
+    user: CurrentUserDto,
+  ) {
+    if (user.role === 'SUPER_ADMIN') return;
+
+    if (order.booking.hotel?.tenantId !== user.tenantId) {
+      throw new ForbiddenException('You do not have access to this order');
+    }
   }
 }

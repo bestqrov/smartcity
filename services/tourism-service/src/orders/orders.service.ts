@@ -36,13 +36,14 @@ export class OrdersService {
     });
   }
 
-  async findAll(query: SearchOrderDto) {
-    const { bookingId, status, page = 1, limit = 20 } = query;
+  async findAll(query: SearchOrderDto & { tenantId?: string }) {
+    const { bookingId, status, tenantId, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
     const where: Record<string, any> = {};
     if (bookingId) where.bookingId = bookingId;
     if (status) where.status = status;
+    if (tenantId) where.booking = { hotel: { tenantId } };
 
     const [orders, total] = await Promise.all([
       this.prisma.serviceOrder.findMany({
@@ -70,7 +71,11 @@ export class OrdersService {
       where: { id },
       include: {
         booking: {
-          select: { id: true, status: true },
+          select: {
+            id: true,
+            status: true,
+            hotel: { select: { tenantId: true } },
+          },
         },
       },
     });

@@ -20,12 +20,21 @@ interface ServiceOrder {
 
 interface Booking {
   id: string;
+  hotelId: string;
   status: string;
   hotel: { name: string; city: string };
   room: { name: string };
   checkIn: string;
   checkOut: string;
   serviceOrders: ServiceOrder[];
+}
+
+interface HotelItem {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  description: string | null;
 }
 
 interface MarketplaceActivity {
@@ -78,6 +87,7 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
   const [ordering, setOrdering] = useState<string | null>(null);
   const [marketActivities, setMarketActivities] = useState<MarketplaceActivity[]>([]);
   const [marketRestaurants, setMarketRestaurants] = useState<MarketplaceRestaurant[]>([]);
+  const [hotelItems, setHotelItems] = useState<HotelItem[]>([]);
 
   const fetchBooking = useCallback(() => {
     return apiClient(`/bookings/${bookingId}`)
@@ -112,6 +122,15 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
       .catch(() => setMarketRestaurants([]));
   }, [booking?.hotel.city]);
 
+  useEffect(() => {
+    const hotelId = booking?.hotelId;
+    if (!hotelId) return;
+
+    apiClient(`/activities/${hotelId}/hotel?limit=50`)
+      .then((res) => setHotelItems(res.data || []))
+      .catch(() => setHotelItems([]));
+  }, [booking?.hotelId]);
+
   const handleOrder = async (item: CatalogItem) => {
     setOrdering(item.key);
     setError('');
@@ -121,6 +140,27 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
         body: JSON.stringify({
           bookingId,
           type: item.type,
+          quantity: 1,
+          price: item.price,
+        }),
+      });
+      await fetchBooking();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setOrdering(null);
+    }
+  };
+
+  const handleHotelItemOrder = async (item: HotelItem) => {
+    setOrdering(item.id);
+    setError('');
+    try {
+      await apiClient('/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          bookingId,
+          type: item.name,
           quantity: 1,
           price: item.price,
         }),
@@ -230,6 +270,39 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
           </div>
         </CardContent>
       </Card>
+
+      {hotelItems.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('services.hotelMenu')}</CardTitle>
+            <p className="text-sm text-gray-500">{t('services.hotelMenuSubtitle')}</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {hotelItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
+              >
+                <div>
+                  <p className="font-medium text-gray-800">{item.name}</p>
+                  {item.description && (
+                    <p className="text-xs text-gray-400">{item.description}</p>
+                  )}
+                  <p className="text-sm text-gray-500">{item.price} MAD</p>
+                </div>
+                <Button
+                  size="sm"
+                  loading={ordering === item.id}
+                  disabled={booking.status === 'CANCELLED'}
+                  onClick={() => handleHotelItemOrder(item)}
+                >
+                  {t('services.order')}
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {(marketActivities.length > 0 || marketRestaurants.length > 0) && (
         <Card>

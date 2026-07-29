@@ -231,7 +231,9 @@
     "marketplace": "السوق المحلي",
     "marketplaceSubtitle": "رحلات ومحلات ومطاعم شريكة قريبة من الفندق",
     "reservation": "حجز",
-    "reserve": "احجز"
+    "reserve": "احجز",
+    "hotelMenu": "خدمة الغرف — قائمة الفندق",
+    "hotelMenuSubtitle": "مشروبات، وجبات خفيفة وخدمات كيقترحها الفندق مباشرة"
   },
   "listings": {
     "title": "إعلاناتي",
@@ -243,6 +245,10 @@
     "createListing": "إنشاء الإعلان",
     "myListings": "إعلاناتي",
     "noListings": "لا توجد إعلانات بعد",
-    "noTenant": "حسابك غير مرتبط بأي منشأة."
+    "noTenant": "حسابك غير مرتبط بأي منشأة.",
+    "visibility": "الظهور",
+    "marketplaceOption": "السوق (المدينة كاملة)",
+    "privateOption": "خاص — {{hotel}}",
+    "privateHint": "يبان غير لضيوف هاد الفندق (مثلا minibar، room service)."
   }
 }

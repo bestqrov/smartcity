@@ -231,7 +231,9 @@
     "marketplace": "Local marketplace",
     "marketplaceSubtitle": "Trips, shops and partner restaurants near your hotel",
     "reservation": "Reservation",
-    "reserve": "Reserve"
+    "reserve": "Reserve",
+    "hotelMenu": "Room Service — hotel's menu",
+    "hotelMenuSubtitle": "Drinks, snacks and services offered directly by your hotel"
   },
   "listings": {
     "title": "My listings",
@@ -243,6 +245,10 @@
     "createListing": "Create listing",
     "myListings": "My listings",
     "noListings": "No listings yet",
-    "noTenant": "Your account is not linked to any business."
+    "noTenant": "Your account is not linked to any business.",
+    "visibility": "Visibility",
+    "marketplaceOption": "Marketplace (whole city)",
+    "privateOption": "Private — {{hotel}}",
+    "privateHint": "Visible only to guests of this hotel (e.g. minibar, room service)."
   }
 }

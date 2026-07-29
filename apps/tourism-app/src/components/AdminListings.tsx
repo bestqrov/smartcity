@@ -14,6 +14,12 @@ interface Listing {
   city: string | null;
   price: number;
   isAvailable: boolean;
+  hotel: { id: string; name: string } | null;
+}
+
+interface Hotel {
+  id: string;
+  name: string;
 }
 
 const ACTIVITY_TYPES = [
@@ -28,15 +34,19 @@ const ACTIVITY_TYPES = [
   'SHOPPING',
 ];
 
+const MARKETPLACE_TARGET = 'marketplace';
+
 export function AdminListings() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [listings, setListings] = useState<Listing[]>([]);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
     name: '',
     type: 'EXCURSION',
+    target: MARKETPLACE_TARGET,
     city: '',
     price: '',
     maxParticipants: '1',
@@ -50,8 +60,14 @@ export function AdminListings() {
       return;
     }
     setLoading(true);
-    apiClient(`/activities/search?tenantId=${user.tenantId}&includeInactive=true&limit=100`)
-      .then((response) => setListings(response.data || []))
+    Promise.all([
+      apiClient(`/activities/search?tenantId=${user.tenantId}&includeInactive=true&limit=100`),
+      apiClient(`/hotels?tenantId=${user.tenantId}&limit=100`),
+    ])
+      .then(([activitiesRes, hotelsRes]) => {
+        setListings(activitiesRes.data || []);
+        setHotels(hotelsRes.data || []);
+      })
       .catch((err) => setError(err instanceof Error ? err.message : t('common.error')))
       .finally(() => setLoading(false));
   };
@@ -66,18 +82,27 @@ export function AdminListings() {
     setError('');
 
     try {
+      const isPrivate = form.target !== MARKETPLACE_TARGET;
       await apiClient('/activities', {
         method: 'POST',
         body: JSON.stringify({
           name: form.name,
           type: form.type,
-          city: form.city,
+          ...(isPrivate ? { hotelId: form.target } : { city: form.city }),
           price: Number(form.price),
           maxParticipants: Number(form.maxParticipants) || 1,
           description: form.description || undefined,
         }),
       });
-      setForm({ name: '', type: 'EXCURSION', city: '', price: '', maxParticipants: '1', description: '' });
+      setForm({
+        name: '',
+        type: 'EXCURSION',
+        target: MARKETPLACE_TARGET,
+        city: '',
+        price: '',
+        maxParticipants: '1',
+        description: '',
+      });
       fetchListings();
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error'));
@@ -109,6 +134,8 @@ export function AdminListings() {
     return <div className="py-12 text-center text-gray-500">{t('common.loading')}</div>;
   }
 
+  const isPrivateTarget = form.target !== MARKETPLACE_TARGET;
+
   return (
     <div className="space-y-8">
       <div>
@@ -131,6 +158,28 @@ export function AdminListings() {
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
               />
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {t('listings.visibility')}
+                </label>
+                <select
+                  value={form.target}
+                  onChange={(e) => setForm({ ...form, target: e.target.value })}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                >
+                  <option value={MARKETPLACE_TARGET}>{t('listings.marketplaceOption')}</option>
+                  {hotels.map((hotel) => (
+                    <option key={hotel.id} value={hotel.id}>
+                      {t('listings.privateOption', { hotel: hotel.name })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {isPrivateTarget ? (
+              <p className="text-xs text-gray-500">{t('listings.privateHint')}</p>
+            ) : (
               <Input
                 label={t('listings.city')}
                 value={form.city}
@@ -138,7 +187,8 @@ export function AdminListings() {
                 placeholder="Marrakech"
                 required
               />
-            </div>
+            )}
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">{t('admin.type')}</label>
@@ -203,7 +253,7 @@ export function AdminListings() {
                   <tr className="border-b">
                     <th className="px-3 py-2 text-left">{t('listings.name')}</th>
                     <th className="px-3 py-2 text-left">{t('admin.type')}</th>
-                    <th className="px-3 py-2 text-left">{t('listings.city')}</th>
+                    <th className="px-3 py-2 text-left">{t('listings.visibility')}</th>
                     <th className="px-3 py-2 text-left">{t('billing.planPrice')}</th>
                     <th className="px-3 py-2 text-left">{t('myBookings.status')}</th>
                     <th className="px-3 py-2 text-right">{t('admin.actions')}</th>
@@ -214,7 +264,9 @@ export function AdminListings() {
                     <tr key={listing.id} className="border-b last:border-0">
                       <td className="px-3 py-3">{listing.name}</td>
                       <td className="px-3 py-3">{listing.type}</td>
-                      <td className="px-3 py-3">{listing.city || '—'}</td>
+                      <td className="px-3 py-3">
+                        {listing.hotel ? listing.hotel.name : listing.city || '—'}
+                      </td>
                       <td className="px-3 py-3">{listing.price} MAD</td>
                       <td className="px-3 py-3">
                         <span
