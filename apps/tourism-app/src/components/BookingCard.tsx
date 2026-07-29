@@ -65,7 +65,13 @@ export function BookingCard({
 
       {actions && <div className="mt-4 flex items-center gap-3">{actions}</div>}
       {!actions && status !== 'CANCELLED' && (
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex items-center gap-4">
+          <Link
+            href={`/${locale}/bookings/${bookingId}`}
+            className="text-sm font-medium text-primary-600 hover:underline"
+          >
+            {t('myBookings.services')}
+          </Link>
           <Link
             href={`/${locale}/bookings/${bookingId}/qr`}
             className="text-sm text-primary-600 hover:underline"

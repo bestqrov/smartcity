@@ -15,6 +15,7 @@ const adminLinks = [
   { href: '/admin', key: 'admin.dashboard', icon: DashboardIcon },
   { href: '/admin/hotels', key: 'admin.hotels', icon: HotelIcon },
   { href: '/admin/bookings', key: 'admin.bookings', icon: BookingIcon },
+  { href: '/admin/orders', key: 'services.orders', icon: OrdersIcon },
   { href: '/admin/users', key: 'admin.users', icon: UsersIcon },
   { href: '/admin/scan', key: 'admin.scan', icon: ScanIcon },
   { href: '/admin/billing', key: 'admin.billing', icon: BillingIcon },
@@ -186,6 +187,15 @@ function ScanIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
       <path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M4 12h16" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function OrdersIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M6 2l1.5 4h9L18 2M4 6h16l-1.5 14a2 2 0 01-2 1.8H7.5a2 2 0 01-2-1.8L4 6z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 10v6M15 10v6" strokeLinecap="round" />
     </svg>
   );
 }

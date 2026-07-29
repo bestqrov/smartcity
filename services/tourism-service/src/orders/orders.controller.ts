@@ -7,33 +7,74 @@ import {
   Param,
   Body,
   Query,
+  BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { SearchOrderDto } from './dto/search-order.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CurrentUserDto } from '../auth/jwt.strategy';
+import { BookingsService } from '../bookings/bookings.service';
+
+const STAFF_ROLES = ['ADMIN', 'MANAGER', 'STAFF'];
 
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    private readonly bookingsService: BookingsService,
+  ) {}
 
   @Post()
-  @Roles('ADMIN', 'MANAGER', 'STAFF')
-  async create(@Body() dto: CreateOrderDto) {
+  @Roles('ADMIN', 'MANAGER', 'STAFF', 'GUEST')
+  async create(@Body() dto: CreateOrderDto, @CurrentUser() user: CurrentUserDto) {
+    const isStaff = STAFF_ROLES.includes(user.role) || user.role === 'SUPER_ADMIN';
+
+    if (!isStaff) {
+      const booking = await this.bookingsService.findById(dto.bookingId);
+      if (booking.guestId !== user.userId) {
+        throw new ForbiddenException('You cannot order for this booking');
+      }
+    }
+
     return this.ordersService.create(dto);
   }
 
   @Get()
-  @Roles('ADMIN', 'MANAGER', 'STAFF')
-  async findAll(@Query() query: SearchOrderDto) {
+  @Roles('ADMIN', 'MANAGER', 'STAFF', 'GUEST')
+  async findAll(@Query() query: SearchOrderDto, @CurrentUser() user: CurrentUserDto) {
+    const isStaff = STAFF_ROLES.includes(user.role) || user.role === 'SUPER_ADMIN';
+
+    if (!isStaff) {
+      if (!query.bookingId) {
+        throw new BadRequestException('bookingId is required');
+      }
+      const booking = await this.bookingsService.findById(query.bookingId);
+      if (booking.guestId !== user.userId) {
+        throw new ForbiddenException('You cannot access these orders');
+      }
+    }
+
     return this.ordersService.findAll(query);
   }
 
   @Get(':id')
-  @Roles('ADMIN', 'MANAGER', 'STAFF')
-  async findOne(@Param('id') id: string) {
-    return this.ordersService.findById(id);
+  @Roles('ADMIN', 'MANAGER', 'STAFF', 'GUEST')
+  async findOne(@Param('id') id: string, @CurrentUser() user: CurrentUserDto) {
+    const order = await this.ordersService.findById(id);
+    const isStaff = STAFF_ROLES.includes(user.role) || user.role === 'SUPER_ADMIN';
+
+    if (!isStaff) {
+      const booking = await this.bookingsService.findById(order.bookingId);
+      if (booking.guestId !== user.userId) {
+        throw new ForbiddenException('You cannot access this order');
+      }
+    }
+
+    return order;
   }
 
   @Patch(':id')

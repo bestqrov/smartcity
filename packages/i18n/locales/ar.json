@@ -99,7 +99,8 @@
     "room": "الغرفة",
     "dates": "التواريخ",
     "status": "الحالة",
-    "price": "السعر"
+    "price": "السعر",
+    "services": "الخدمات"
   },
   "qrCode": {
     "title": "رمز QR للحجز",
@@ -214,5 +215,18 @@
     "year": "سنة",
     "accessDenied": "الوصول مخصص للمشرفين العامين فقط.",
     "confirmCancel": "إلغاء هذا الاشتراك؟"
+  },
+  "services": {
+    "orderTitle": "اطلب خدمة",
+    "breakfast": "الإفطار",
+    "roomService": "خدمة الغرف",
+    "spa": "سبا",
+    "lateCheckout": "مغادرة متأخرة",
+    "order": "اطلب",
+    "myOrders": "طلباتي",
+    "noOrders": "لا توجد طلبات بعد",
+    "orders": "الطلبات",
+    "type": "الخدمة",
+    "orderedAt": "تاريخ الطلب"
   }
 }

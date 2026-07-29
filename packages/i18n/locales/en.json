@@ -99,7 +99,8 @@
     "room": "Room",
     "dates": "Dates",
     "status": "Status",
-    "price": "Price"
+    "price": "Price",
+    "services": "Services"
   },
   "qrCode": {
     "title": "Booking QR Code",
@@ -214,5 +215,18 @@
     "year": "year",
     "accessDenied": "Access restricted to super-administrators.",
     "confirmCancel": "Cancel this subscription?"
+  },
+  "services": {
+    "orderTitle": "Order a service",
+    "breakfast": "Breakfast",
+    "roomService": "Room Service",
+    "spa": "Spa",
+    "lateCheckout": "Late check-out",
+    "order": "Order",
+    "myOrders": "My orders",
+    "noOrders": "No orders yet",
+    "orders": "Orders",
+    "type": "Service",
+    "orderedAt": "Ordered at"
   }
 }

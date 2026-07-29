@@ -99,7 +99,8 @@
     "room": "Chambre",
     "dates": "Dates",
     "status": "Statut",
-    "price": "Prix"
+    "price": "Prix",
+    "services": "Services"
   },
   "qrCode": {
     "title": "QR code de réservation",
@@ -214,5 +215,18 @@
     "year": "an",
     "accessDenied": "Accès réservé aux super-administrateurs.",
     "confirmCancel": "Annuler cet abonnement ?"
+  },
+  "services": {
+    "orderTitle": "Commander un service",
+    "breakfast": "Petit-déjeuner",
+    "roomService": "Room Service",
+    "spa": "Spa",
+    "lateCheckout": "Départ tardif",
+    "order": "Commander",
+    "myOrders": "Mes commandes",
+    "noOrders": "Aucune commande pour le moment",
+    "orders": "Commandes",
+    "type": "Service",
+    "orderedAt": "Commandé le"
   }
 }
