@@ -14,6 +14,20 @@ interface Stats {
   users: number;
 }
 
+interface DailyRevenue {
+  date: string;
+  revenue: number;
+  count: number;
+}
+
+interface BookingStats {
+  dailyRevenue: DailyRevenue[];
+  totalRevenue: number;
+  occupancyRate: number;
+  totalRooms: number;
+  occupiedRooms: number;
+}
+
 const STATUS_LIST = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'] as const;
 
 const STATUS_BAR_COLORS: Record<string, string> = {
@@ -51,17 +65,19 @@ export default function AdminDashboardPage({
   const [stats, setStats] = React.useState<Stats | null>(null);
   const [recentBookings, setRecentBookings] = React.useState<RecentBooking[]>([]);
   const [statusCounts, setStatusCounts] = React.useState<Record<string, number>>({});
+  const [bookingStats, setBookingStats] = React.useState<BookingStats | null>(null);
   const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    Promise.all([
+  const fetchDashboard = React.useCallback(() => {
+    return Promise.all([
       apiClient('/bookings?page=1&limit=5'),
       apiClient('/bookings?page=1&limit=1&status=PENDING'),
       apiClient('/hotels?page=1&limit=1'),
       apiClient('/users?page=1&limit=1'),
+      apiClient('/bookings/stats?days=14'),
       ...STATUS_LIST.map((status) => apiClient(`/bookings?page=1&limit=1&status=${status}`)),
     ])
-      .then(([bookingsRes, pendingRes, hotelsRes, usersRes, ...statusResults]) => {
+      .then(([bookingsRes, pendingRes, hotelsRes, usersRes, statsRes, ...statusResults]) => {
         setRecentBookings(bookingsRes.data || []);
         setStats({
           bookings: bookingsRes.meta?.total ?? bookingsRes.data?.length ?? 0,
@@ -69,15 +85,21 @@ export default function AdminDashboardPage({
           hotels: hotelsRes.meta?.total ?? hotelsRes.data?.length ?? 0,
           users: usersRes.meta?.total ?? usersRes.data?.length ?? 0,
         });
+        setBookingStats(statsRes);
         setStatusCounts(
           Object.fromEntries(
             STATUS_LIST.map((status, i) => [status, statusResults[i]?.meta?.total ?? 0]),
           ),
         );
       })
-      .catch(() => setStats({ bookings: 0, pendingBookings: 0, hotels: 0, users: 0 }))
-      .finally(() => setLoading(false));
+      .catch(() => setStats({ bookings: 0, pendingBookings: 0, hotels: 0, users: 0 }));
   }, []);
+
+  React.useEffect(() => {
+    fetchDashboard().finally(() => setLoading(false));
+    const interval = setInterval(fetchDashboard, 30000);
+    return () => clearInterval(interval);
+  }, [fetchDashboard]);
 
   const cards = [
     {
@@ -104,6 +126,12 @@ export default function AdminDashboardPage({
       color: 'bg-rose-600',
       href: '/admin/users',
     },
+    {
+      key: 'admin.occupancy',
+      value: bookingStats ? `${bookingStats.occupancyRate}%` : undefined,
+      color: 'bg-indigo-600',
+      href: '/admin/housekeeping',
+    },
   ];
 
   return (
@@ -114,18 +142,34 @@ export default function AdminDashboardPage({
           <p className="mt-1 text-sm text-gray-500">{t('admin.welcome')}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {cards.map((card) => (
             <Link key={card.key} href={`/${locale}${card.href}`}>
               <div className={`rounded-xl ${card.color} p-5 text-white shadow-sm transition hover:opacity-90`}>
                 <p className="text-3xl font-bold">
-                  {loading ? '—' : card.value}
+                  {loading ? '—' : card.value ?? '—'}
                 </p>
                 <p className="mt-1 text-sm font-medium text-white/90">{t(card.key)}</p>
               </div>
             </Link>
           ))}
         </div>
+
+        <Card>
+          <div className="flex items-center justify-between border-b border-gray-100 p-5">
+            <h2 className="text-base font-semibold text-gray-900">{t('admin.revenueTrend')}</h2>
+            <span className="text-sm font-semibold text-primary-600">
+              {loading || !bookingStats ? '—' : `${bookingStats.totalRevenue} MAD`}
+            </span>
+          </div>
+          <div className="p-5">
+            {loading || !bookingStats ? (
+              <div className="py-8 text-center text-sm text-gray-500">{t('common.loading')}</div>
+            ) : (
+              <RevenueChart data={bookingStats.dailyRevenue} />
+            )}
+          </div>
+        </Card>
 
         <Card>
           <div className="border-b border-gray-100 p-5">
@@ -212,5 +256,42 @@ export default function AdminDashboardPage({
         </Card>
       </div>
     </AdminLayout>
+  );
+}
+
+function RevenueChart({ data }: { data: DailyRevenue[] }) {
+  if (data.length === 0) return null;
+
+  const width = 600;
+  const height = 160;
+  const padding = 24;
+  const max = Math.max(...data.map((d) => d.revenue), 1);
+
+  const points = data.map((d, i) => {
+    const x = padding + (i / Math.max(data.length - 1, 1)) * (width - padding * 2);
+    const y = height - padding - (d.revenue / max) * (height - padding * 2);
+    return { x, y, ...d };
+  });
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+  const areaPath = `${linePath} L${points[points.length - 1].x},${height - padding} L${points[0].x},${height - padding} Z`;
+
+  const formatDay = (date: string) =>
+    new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ minWidth: 480 }}>
+        <path d={areaPath} fill="rgb(37 99 235 / 0.1)" />
+        <path d={linePath} fill="none" stroke="rgb(37 99 235)" strokeWidth="2" />
+        {points.map((p, i) => (
+          <circle key={i} cx={p.x} cy={p.y} r="3" fill="rgb(37 99 235)" />
+        ))}
+      </svg>
+      <div className="mt-1 flex justify-between text-xs text-gray-400">
+        <span>{formatDay(data[0].date)}</span>
+        <span>{formatDay(data[data.length - 1].date)}</span>
+      </div>
+    </div>
   );
 }

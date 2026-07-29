@@ -74,12 +74,13 @@ export class BookingsService {
     });
   }
 
-  async findAll(query: SearchBookingDto) {
+  async findAll(query: SearchBookingDto & { tenantId?: string }) {
     const {
       guestId,
       hotelId,
       roomId,
       status,
+      tenantId,
       page = 1,
       limit = 20,
     } = query;
@@ -90,6 +91,7 @@ export class BookingsService {
     if (hotelId) where.hotelId = hotelId;
     if (roomId) where.roomId = roomId;
     if (status) where.status = status;
+    if (tenantId) where.hotel = { tenantId };
 
     const [bookings, total] = await Promise.all([
       this.prisma.booking.findMany({
@@ -239,5 +241,71 @@ export class BookingsService {
     });
 
     return { message: 'Booking cancelled successfully' };
+  }
+
+  async getStats(tenantId: string, days: number) {
+    const since = new Date();
+    since.setHours(0, 0, 0, 0);
+    since.setDate(since.getDate() - (days - 1));
+
+    const [bookings, hotels, rooms] = await Promise.all([
+      this.prisma.booking.findMany({
+        where: {
+          hotel: { tenantId },
+          createdAt: { gte: since },
+        },
+        select: { createdAt: true, totalPrice: true, status: true },
+      }),
+      this.prisma.hotel.findMany({
+        where: { tenantId },
+        select: { id: true },
+      }),
+      this.prisma.room.findMany({
+        where: { hotel: { tenantId } },
+        select: { id: true },
+      }),
+    ]);
+
+    const dailyMap = new Map<string, { revenue: number; count: number }>();
+    for (let i = 0; i < days; i++) {
+      const day = new Date(since);
+      day.setDate(day.getDate() + i);
+      dailyMap.set(day.toISOString().slice(0, 10), { revenue: 0, count: 0 });
+    }
+
+    let totalRevenue = 0;
+    for (const booking of bookings) {
+      const key = booking.createdAt.toISOString().slice(0, 10);
+      const entry = dailyMap.get(key);
+      if (entry) {
+        entry.count += 1;
+        if (booking.status !== 'CANCELLED') {
+          entry.revenue += booking.totalPrice;
+          totalRevenue += booking.totalPrice;
+        }
+      }
+    }
+
+    const hotelIds = hotels.map((h) => h.id);
+    const checkedInCount = await this.prisma.booking.count({
+      where: {
+        hotelId: { in: hotelIds },
+        status: 'CHECKED_IN',
+      },
+    });
+
+    const totalRooms = rooms.length;
+    const occupancyRate = totalRooms > 0 ? Math.round((checkedInCount / totalRooms) * 100) : 0;
+
+    return {
+      dailyRevenue: Array.from(dailyMap.entries()).map(([date, value]) => ({
+        date,
+        ...value,
+      })),
+      totalRevenue,
+      occupancyRate,
+      totalRooms,
+      occupiedRooms: checkedInCount,
+    };
   }
 }

@@ -36,10 +36,23 @@ export class BookingsController {
     @CurrentUser() user: CurrentUserDto,
   ) {
     const isStaff = STAFF_ROLES.includes(user.role) || user.role === 'SUPER_ADMIN';
-    return this.bookingsService.findAll({
-      ...query,
-      guestId: isStaff ? query.guestId : user.userId,
-    });
+
+    if (!isStaff) {
+      return this.bookingsService.findAll({ ...query, guestId: user.userId });
+    }
+
+    const tenantId = user.role === 'SUPER_ADMIN' ? undefined : user.tenantId;
+    return this.bookingsService.findAll({ ...query, tenantId });
+  }
+
+  @Get('stats')
+  @Roles('ADMIN', 'MANAGER', 'STAFF')
+  async stats(@Query('days') days: string, @CurrentUser() user: CurrentUserDto) {
+    if (!user.tenantId) {
+      return { dailyRevenue: [], totalRevenue: 0, occupancyRate: 0, totalRooms: 0, occupiedRooms: 0 };
+    }
+    const parsedDays = Math.min(Math.max(parseInt(days, 10) || 7, 1), 90);
+    return this.bookingsService.getStats(user.tenantId, parsedDays);
   }
 
   @Get(':id')
@@ -48,8 +61,12 @@ export class BookingsController {
     const booking = await this.bookingsService.findById(id);
     const isStaff = STAFF_ROLES.includes(user.role) || user.role === 'SUPER_ADMIN';
 
-    if (!isStaff && booking.guestId !== user.userId) {
-      throw new ForbiddenException('You cannot access this booking');
+    if (!isStaff) {
+      if (booking.guestId !== user.userId) {
+        throw new ForbiddenException('You cannot access this booking');
+      }
+    } else {
+      this.assertTenantOwnership(booking, user);
     }
 
     return booking;
@@ -57,7 +74,13 @@ export class BookingsController {
 
   @Patch(':id')
   @Roles('ADMIN', 'MANAGER', 'STAFF')
-  async update(@Param('id') id: string, @Body() dto: UpdateBookingDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateBookingDto,
+    @CurrentUser() user: CurrentUserDto,
+  ) {
+    const booking = await this.bookingsService.findById(id);
+    this.assertTenantOwnership(booking, user);
     return this.bookingsService.update(id, dto);
   }
 
@@ -66,13 +89,29 @@ export class BookingsController {
   async updateStatus(
     @Param('id') id: string,
     @Body('status') status: string,
+    @CurrentUser() user: CurrentUserDto,
   ) {
+    const booking = await this.bookingsService.findById(id);
+    this.assertTenantOwnership(booking, user);
     return this.bookingsService.updateStatus(id, status);
   }
 
   @Delete(':id')
   @Roles('ADMIN', 'MANAGER')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @CurrentUser() user: CurrentUserDto) {
+    const booking = await this.bookingsService.findById(id);
+    this.assertTenantOwnership(booking, user);
     return this.bookingsService.remove(id);
+  }
+
+  private assertTenantOwnership(
+    booking: { hotel: { tenantId?: string } },
+    user: CurrentUserDto,
+  ) {
+    if (user.role === 'SUPER_ADMIN') return;
+
+    if (booking.hotel.tenantId !== user.tenantId) {
+      throw new ForbiddenException('You do not have access to this booking');
+    }
   }
 }
