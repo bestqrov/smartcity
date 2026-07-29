@@ -9,6 +9,7 @@ import { BookingsModule } from './bookings/bookings.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { QrModule } from './qr/qr.module';
 import { OrdersModule } from './orders/orders.module';
+import { MessagesModule } from './messages/messages.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { HealthModule } from './health/health.module';
     ReviewsModule,
     QrModule,
     OrdersModule,
+    MessagesModule,
     HealthModule,
   ],
 })

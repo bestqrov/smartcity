@@ -233,7 +233,17 @@
     "reservation": "Reservation",
     "reserve": "Reserve",
     "hotelMenu": "Room Service — hotel's menu",
-    "hotelMenuSubtitle": "Drinks, snacks and services offered directly by your hotel"
+    "hotelMenuSubtitle": "Drinks, snacks and services offered directly by your hotel",
+    "rateOrder": "Rate:",
+    "chatTitle": "Messages",
+    "noMessages": "No messages yet",
+    "messagePlaceholder": "Write a message...",
+    "send": "Send",
+    "viewInvoice": "View invoice",
+    "invoice": "Invoice",
+    "print": "Print",
+    "total": "Total",
+    "selectConversation": "Select a conversation"
   },
   "listings": {
     "title": "My listings",

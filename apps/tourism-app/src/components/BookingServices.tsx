@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/i18n';
 import { apiClient } from '@/lib/api';
@@ -15,6 +16,14 @@ interface ServiceOrder {
   quantity: number;
   price: number;
   status: string;
+  rating: number | null;
+  createdAt: string;
+}
+
+interface ChatMessage {
+  id: string;
+  text: string;
+  senderRole: string;
   createdAt: string;
 }
 
@@ -88,6 +97,10 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
   const [marketActivities, setMarketActivities] = useState<MarketplaceActivity[]>([]);
   const [marketRestaurants, setMarketRestaurants] = useState<MarketplaceRestaurant[]>([]);
   const [hotelItems, setHotelItems] = useState<HotelItem[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messageText, setMessageText] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [rating, setRating] = useState<string | null>(null);
 
   const fetchBooking = useCallback(() => {
     return apiClient(`/bookings/${bookingId}`)
@@ -108,6 +121,20 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
     const interval = setInterval(fetchBooking, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [authLoading, user, locale, router, fetchBooking]);
+
+  const fetchMessages = useCallback(() => {
+    return apiClient(`/messages?bookingId=${bookingId}`)
+      .then((data) => setMessages(data || []))
+      .catch(() => {});
+  }, [bookingId]);
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+
+    fetchMessages();
+    const interval = setInterval(fetchMessages, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [authLoading, user, fetchMessages]);
 
   useEffect(() => {
     const city = booking?.hotel.city;
@@ -217,6 +244,41 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
     }
   };
 
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageText.trim()) return;
+
+    setSendingMessage(true);
+    try {
+      await apiClient('/messages', {
+        method: 'POST',
+        body: JSON.stringify({ bookingId, text: messageText.trim() }),
+      });
+      setMessageText('');
+      await fetchMessages();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleRate = async (orderId: string, value: number) => {
+    setRating(orderId);
+    setError('');
+    try {
+      await apiClient(`/orders/${orderId}/rating`, {
+        method: 'PATCH',
+        body: JSON.stringify({ rating: value }),
+      });
+      await fetchBooking();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setRating(null);
+    }
+  };
+
   if (loading || authLoading) {
     return <div className="py-12 text-center text-gray-500">{t('common.loading')}</div>;
   }
@@ -233,11 +295,19 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{booking.hotel.name}</h1>
-        <p className="text-sm text-gray-500">
-          {booking.room.name} · {booking.hotel.city}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{booking.hotel.name}</h1>
+          <p className="text-sm text-gray-500">
+            {booking.room.name} · {booking.hotel.city}
+          </p>
+        </div>
+        <Link
+          href={`/${locale}/bookings/${bookingId}/invoice`}
+          className="text-sm font-medium text-primary-600 hover:underline"
+        >
+          {t('services.viewInvoice')}
+        </Link>
       </div>
 
       {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>}
@@ -377,22 +447,87 @@ export function BookingServices({ locale, bookingId }: { locale: string; booking
                 .slice()
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                 .map((order) => (
-                  <li key={order.id} className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="font-medium text-gray-800">{order.type}</p>
-                      <p className="text-sm text-gray-500">{order.price} MAD</p>
+                  <li key={order.id} className="flex flex-col gap-2 py-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-800">{order.type}</p>
+                        <p className="text-sm text-gray-500">{order.price} MAD</p>
+                      </div>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                          STATUS_STYLES[order.status] ?? 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {order.status}
+                      </span>
                     </div>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                        STATUS_STYLES[order.status] ?? 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      {order.status}
-                    </span>
+                    {order.status === 'DELIVERED' && !order.rating && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-gray-500">{t('services.rateOrder')}</span>
+                        {[1, 2, 3, 4, 5].map((value) => (
+                          <button
+                            key={value}
+                            type="button"
+                            disabled={rating === order.id}
+                            onClick={() => handleRate(order.id, value)}
+                            className="text-lg text-amber-400 hover:scale-110 disabled:opacity-50"
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {order.rating && (
+                      <p className="text-xs text-amber-500">
+                        {'★'.repeat(order.rating)}
+                        {'☆'.repeat(5 - order.rating)}
+                      </p>
+                    )}
                   </li>
                 ))}
             </ul>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('services.chatTitle')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {messages.length === 0 ? (
+            <p className="text-sm text-gray-500">{t('services.noMessages')}</p>
+          ) : (
+            <div className="max-h-72 space-y-2 overflow-y-auto">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.senderRole === 'GUEST' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
+                      msg.senderRole === 'GUEST'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <form onSubmit={handleSendMessage} className="flex gap-2">
+            <input
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              placeholder={t('services.messagePlaceholder')}
+              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+            <Button type="submit" size="sm" loading={sendingMessage}>
+              {t('services.send')}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

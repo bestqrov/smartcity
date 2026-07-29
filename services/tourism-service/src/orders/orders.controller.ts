@@ -113,6 +113,22 @@ export class OrdersController {
     return this.ordersService.remove(id);
   }
 
+  @Patch(':id/rating')
+  @Roles('GUEST')
+  async rate(
+    @Param('id') id: string,
+    @Body('rating') rating: number,
+    @CurrentUser() user: CurrentUserDto,
+  ) {
+    const order = await this.ordersService.findById(id);
+    const booking = await this.bookingsService.findById(order.bookingId);
+    if (booking.guestId !== user.userId) {
+      throw new ForbiddenException('You cannot rate this order');
+    }
+
+    return this.ordersService.rate(id, rating);
+  }
+
   private assertTenantOwnership(
     order: { booking: { hotel?: { tenantId: string } | null } },
     user: CurrentUserDto,

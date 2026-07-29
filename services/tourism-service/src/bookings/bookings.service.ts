@@ -126,7 +126,7 @@ export class BookingsService {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
         hotel: {
-          select: { id: true, name: true, city: true, address: true },
+          select: { id: true, name: true, city: true, address: true, tenantId: true },
         },
         room: {
           select: { id: true, name: true, type: true, price: true },

@@ -239,6 +239,7 @@ model Booking {
   hotel         Hotel          @relation(fields: [hotelId], references: [id])
   room          Room           @relation(fields: [roomId], references: [id])
   serviceOrders ServiceOrder[]
+  messages      Message[]
 
   @@map("bookings")
 }
@@ -251,11 +252,27 @@ model ServiceOrder {
   quantity    Int
   price       Float
   status      OrderStatus @default(PENDING)
+  rating      Int?
+  ratedAt     DateTime?
   createdAt   DateTime    @default(now())
 
   booking Booking @relation(fields: [bookingId], references: [id])
 
   @@map("service_orders")
+}
+
+model Message {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId  String   @db.ObjectId
+  senderId   String   @db.ObjectId
+  senderRole String
+  text       String
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@map("messages")
 }
 
 model Review {

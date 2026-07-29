@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { useTranslation } from '@/lib/i18n';
+import { apiClient } from '@/lib/api';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ const adminLinks = [
   { href: '/admin/listings', key: 'listings.title', icon: ListingsIcon },
   { href: '/admin/bookings', key: 'admin.bookings', icon: BookingIcon },
   { href: '/admin/orders', key: 'services.orders', icon: OrdersIcon },
+  { href: '/admin/messages', key: 'services.chatTitle', icon: MessagesIcon },
   { href: '/admin/users', key: 'admin.users', icon: UsersIcon },
   { href: '/admin/scan', key: 'admin.scan', icon: ScanIcon },
   { href: '/admin/billing', key: 'admin.billing', icon: BillingIcon },
@@ -29,6 +31,21 @@ export function AdminLayout({ children, locale }: AdminLayoutProps) {
   const { user, isLoading, logout } = useAuth();
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  useEffect(() => {
+    if (!user?.tenantId) return;
+
+    const fetchUnread = () => {
+      apiClient('/messages/unread-count')
+        .then((res) => setUnreadMessages(res.count || 0))
+        .catch(() => {});
+    };
+
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 10000);
+    return () => clearInterval(interval);
+  }, [user?.tenantId]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -101,7 +118,12 @@ export function AdminLayout({ children, locale }: AdminLayoutProps) {
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                {t(link.key)}
+                <span className="flex-1">{t(link.key)}</span>
+                {link.href === '/admin/messages' && unreadMessages > 0 && (
+                  <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-semibold text-white">
+                    {unreadMessages}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -206,6 +228,14 @@ function OrdersIcon(props: React.SVGProps<SVGSVGElement>) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
       <path d="M6 2l1.5 4h9L18 2M4 6h16l-1.5 14a2 2 0 01-2 1.8H7.5a2 2 0 01-2-1.8L4 6z" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M9 10v6M15 10v6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function MessagesIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

@@ -233,7 +233,17 @@
     "reservation": "حجز",
     "reserve": "احجز",
     "hotelMenu": "خدمة الغرف — قائمة الفندق",
-    "hotelMenuSubtitle": "مشروبات، وجبات خفيفة وخدمات كيقترحها الفندق مباشرة"
+    "hotelMenuSubtitle": "مشروبات، وجبات خفيفة وخدمات كيقترحها الفندق مباشرة",
+    "rateOrder": "قيّم:",
+    "chatTitle": "الرسائل",
+    "noMessages": "لا توجد رسائل بعد",
+    "messagePlaceholder": "اكتب رسالة...",
+    "send": "إرسال",
+    "viewInvoice": "عرض الفاتورة",
+    "invoice": "الفاتورة",
+    "print": "طباعة",
+    "total": "المجموع",
+    "selectConversation": "اختر محادثة"
   },
   "listings": {
     "title": "إعلاناتي",

@@ -29,6 +29,7 @@ export class ProxyMiddleware implements NestMiddleware {
       '/api/restaurants': tourismServiceUrl,
       '/api/reviews': tourismServiceUrl,
       '/api/orders': tourismServiceUrl,
+      '/api/messages': tourismServiceUrl,
       '/api/qr': tourismServiceUrl,
       '/api/plans': billingServiceUrl,
       '/api/subscriptions': billingServiceUrl,

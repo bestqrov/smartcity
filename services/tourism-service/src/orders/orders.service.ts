@@ -27,7 +27,7 @@ export class OrdersService {
     }
 
     return this.prisma.serviceOrder.create({
-      data: dto,
+      data: { ...dto, rating: null },
       include: {
         booking: {
           select: { id: true, status: true },
@@ -121,5 +121,24 @@ export class OrdersService {
     await this.prisma.serviceOrder.delete({ where: { id } });
 
     return { message: 'Order deleted successfully' };
+  }
+
+  async rate(id: string, rating: number) {
+    const order = await this.findById(id);
+
+    if (order.status !== 'DELIVERED') {
+      throw new BadRequestException('You can only rate a delivered order');
+    }
+    if (order.rating !== null && order.rating !== undefined) {
+      throw new BadRequestException('This order has already been rated');
+    }
+    if (rating < 1 || rating > 5) {
+      throw new BadRequestException('Rating must be between 1 and 5');
+    }
+
+    return this.prisma.serviceOrder.update({
+      where: { id },
+      data: { rating, ratedAt: new Date() },
+    });
   }
 }
