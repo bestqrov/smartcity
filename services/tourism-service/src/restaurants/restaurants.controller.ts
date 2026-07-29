@@ -8,6 +8,7 @@ import {
   Body,
   Query,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { RestaurantsService } from './restaurants.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
@@ -69,13 +70,28 @@ export class RestaurantsController {
 
   @Patch(':id')
   @Roles('ADMIN', 'MANAGER')
-  async update(@Param('id') id: string, @Body() dto: UpdateRestaurantDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateRestaurantDto,
+    @CurrentUser() user: CurrentUserDto,
+  ) {
+    await this.assertOwnership(id, user);
     return this.restaurantsService.update(id, dto);
   }
 
   @Delete(':id')
   @Roles('ADMIN', 'MANAGER')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @CurrentUser() user: CurrentUserDto) {
+    await this.assertOwnership(id, user);
     return this.restaurantsService.remove(id);
+  }
+
+  private async assertOwnership(id: string, user: CurrentUserDto) {
+    if (user.role === 'SUPER_ADMIN') return;
+
+    const restaurant = await this.restaurantsService.findById(id);
+    if (restaurant.tenantId !== user.tenantId) {
+      throw new ForbiddenException('You do not own this listing');
+    }
   }
 }

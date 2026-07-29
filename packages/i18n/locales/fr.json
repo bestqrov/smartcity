@@ -232,5 +232,17 @@
     "marketplaceSubtitle": "Excursions, boutiques et restaurants partenaires près de votre hôtel",
     "reservation": "Réservation",
     "reserve": "Réserver"
+  },
+  "listings": {
+    "title": "Mes annonces",
+    "subtitle": "Gérez vos excursions, produits et annonces visibles par tous les voyageurs de votre ville",
+    "newListing": "Nouvelle annonce",
+    "name": "Nom",
+    "city": "Ville",
+    "maxParticipants": "Participants max",
+    "createListing": "Créer l'annonce",
+    "myListings": "Mes annonces",
+    "noListings": "Aucune annonce pour le moment",
+    "noTenant": "Votre compte n'est rattaché à aucun établissement."
   }
 }

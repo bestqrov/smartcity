@@ -232,5 +232,17 @@
     "marketplaceSubtitle": "Trips, shops and partner restaurants near your hotel",
     "reservation": "Reservation",
     "reserve": "Reserve"
+  },
+  "listings": {
+    "title": "My listings",
+    "subtitle": "Manage the trips, products and listings visible to every traveler in your city",
+    "newListing": "New listing",
+    "name": "Name",
+    "city": "City",
+    "maxParticipants": "Max participants",
+    "createListing": "Create listing",
+    "myListings": "My listings",
+    "noListings": "No listings yet",
+    "noTenant": "Your account is not linked to any business."
   }
 }

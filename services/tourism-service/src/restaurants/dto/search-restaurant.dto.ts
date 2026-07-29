@@ -2,6 +2,7 @@ import {
   IsString,
   IsOptional,
   IsInt,
+  IsBoolean,
   Min,
 } from 'class-validator';
 
@@ -9,6 +10,10 @@ export class SearchRestaurantDto {
   @IsString()
   @IsOptional()
   hotelId?: string;
+
+  @IsString()
+  @IsOptional()
+  tenantId?: string;
 
   @IsString()
   @IsOptional()
@@ -25,6 +30,10 @@ export class SearchRestaurantDto {
   @IsString()
   @IsOptional()
   priceRange?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  includeInactive?: boolean;
 
   @IsInt()
   @IsOptional()

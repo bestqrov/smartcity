@@ -116,18 +116,21 @@ export class ActivitiesService {
   async search(query: SearchActivityDto) {
     const {
       hotelId,
+      tenantId,
       city,
       type,
       q,
       minPrice,
       maxPrice,
+      includeInactive,
       page = 1,
       limit = 20,
     } = query;
     const skip = (page - 1) * limit;
 
-    const where: Record<string, any> = { isAvailable: true };
+    const where: Record<string, any> = includeInactive ? {} : { isAvailable: true };
     if (hotelId) where.hotelId = hotelId;
+    if (tenantId) where.tenantId = tenantId;
     if (city) where.OR = [{ city }, { hotel: { city } }];
     if (type) where.type = type;
     if (minPrice !== undefined || maxPrice !== undefined) {

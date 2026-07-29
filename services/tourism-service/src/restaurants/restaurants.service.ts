@@ -115,11 +115,22 @@ export class RestaurantsService {
   }
 
   async search(query: SearchRestaurantDto) {
-    const { hotelId, city, q, cuisine, priceRange, page = 1, limit = 20 } = query;
+    const {
+      hotelId,
+      tenantId,
+      city,
+      q,
+      cuisine,
+      priceRange,
+      includeInactive,
+      page = 1,
+      limit = 20,
+    } = query;
     const skip = (page - 1) * limit;
 
-    const where: Record<string, any> = { isActive: true };
+    const where: Record<string, any> = includeInactive ? {} : { isActive: true };
     if (hotelId) where.hotelId = hotelId;
+    if (tenantId) where.tenantId = tenantId;
     if (city) where.OR = [{ city }, { hotel: { city } }];
     if (cuisine) where.cuisine = { has: cuisine };
     if (priceRange) where.priceRange = priceRange;

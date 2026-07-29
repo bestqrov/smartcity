@@ -14,6 +14,7 @@ interface AdminLayoutProps {
 const adminLinks = [
   { href: '/admin', key: 'admin.dashboard', icon: DashboardIcon },
   { href: '/admin/hotels', key: 'admin.hotels', icon: HotelIcon },
+  { href: '/admin/listings', key: 'listings.title', icon: ListingsIcon },
   { href: '/admin/bookings', key: 'admin.bookings', icon: BookingIcon },
   { href: '/admin/orders', key: 'services.orders', icon: OrdersIcon },
   { href: '/admin/users', key: 'admin.users', icon: UsersIcon },
@@ -187,6 +188,15 @@ function ScanIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
       <path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M4 12h16" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ListingsIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 3v3M15 3v3" strokeLinecap="round" />
     </svg>
   );
 }

@@ -8,6 +8,7 @@ import {
   Body,
   Query,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
@@ -69,13 +70,28 @@ export class ActivitiesController {
 
   @Patch(':id')
   @Roles('ADMIN', 'MANAGER')
-  async update(@Param('id') id: string, @Body() dto: UpdateActivityDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateActivityDto,
+    @CurrentUser() user: CurrentUserDto,
+  ) {
+    await this.assertOwnership(id, user);
     return this.activitiesService.update(id, dto);
   }
 
   @Delete(':id')
   @Roles('ADMIN', 'MANAGER')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @CurrentUser() user: CurrentUserDto) {
+    await this.assertOwnership(id, user);
     return this.activitiesService.remove(id);
+  }
+
+  private async assertOwnership(id: string, user: CurrentUserDto) {
+    if (user.role === 'SUPER_ADMIN') return;
+
+    const activity = await this.activitiesService.findById(id);
+    if (activity.tenantId !== user.tenantId) {
+      throw new ForbiddenException('You do not own this listing');
+    }
   }
 }
