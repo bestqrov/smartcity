@@ -45,6 +45,9 @@ export class ExpensesController {
     if (!user.tenantId) {
       throw new BadRequestException('Your account is not linked to a tenant');
     }
+    if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+      throw new BadRequestException('month must be in YYYY-MM format');
+    }
     return this.expensesService.summary(user.tenantId, month);
   }
 
