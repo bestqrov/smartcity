@@ -30,14 +30,6 @@ export class ExpensesService {
     });
   }
 
-  async getTenantCurrency(tenantId: string) {
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { id: tenantId },
-      select: { currency: true },
-    });
-    return tenant?.currency || 'MAD';
-  }
-
   async findAll(tenantId: string, query: SearchExpenseDto) {
     const { categoryId, hotelId, from, to, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
@@ -145,5 +137,13 @@ export class ExpensesService {
     if (!hotel || hotel.tenantId !== tenantId) {
       throw new NotFoundException('Hotel not found');
     }
+  }
+
+  private async getTenantCurrency(tenantId: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { currency: true },
+    });
+    return tenant?.currency || 'MAD';
   }
 }
