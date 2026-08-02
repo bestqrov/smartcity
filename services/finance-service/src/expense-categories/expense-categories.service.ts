@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { CreateExpenseCategoryDto } from './dto/create-expense-category.dto';
 import { UpdateExpenseCategoryDto } from './dto/update-expense-category.dto';
@@ -27,13 +28,20 @@ export class ExpenseCategoriesService {
       return existing;
     }
 
-    await this.prisma.expenseCategory.createMany({
-      data: DEFAULT_CATEGORY_NAMES.map((name) => ({
-        tenantId,
-        name,
-        isDefault: true,
-      })),
-    });
+    try {
+      await this.prisma.expenseCategory.createMany({
+        data: DEFAULT_CATEGORY_NAMES.map((name) => ({
+          tenantId,
+          name,
+          isDefault: true,
+        })),
+      });
+    } catch (error) {
+      if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) {
+        throw error;
+      }
+      // Another concurrent request already seeded defaults for this tenant — fine, fall through to re-query.
+    }
 
     return this.prisma.expenseCategory.findMany({
       where: { tenantId },
@@ -42,25 +50,32 @@ export class ExpenseCategoriesService {
   }
 
   async create(tenantId: string, dto: CreateExpenseCategoryDto) {
-    const existing = await this.prisma.expenseCategory.findFirst({
-      where: { tenantId, name: dto.name },
-    });
-    if (existing) {
-      throw new ConflictException('A category with this name already exists');
+    try {
+      return await this.prisma.expenseCategory.create({
+        data: { tenantId, name: dto.name },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException('A category with this name already exists');
+      }
+      throw error;
     }
-
-    return this.prisma.expenseCategory.create({
-      data: { tenantId, name: dto.name },
-    });
   }
 
   async update(tenantId: string, id: string, dto: UpdateExpenseCategoryDto) {
     const category = await this.findOwned(tenantId, id);
 
-    return this.prisma.expenseCategory.update({
-      where: { id: category.id },
-      data: dto,
-    });
+    try {
+      return await this.prisma.expenseCategory.update({
+        where: { id: category.id },
+        data: dto,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException('A category with this name already exists');
+      }
+      throw error;
+    }
   }
 
   async remove(tenantId: string, id: string) {

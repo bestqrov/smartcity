@@ -370,6 +370,7 @@ model ExpenseCategory {
   tenant   Tenant    @relation(fields: [tenantId], references: [id])
   expenses Expense[]
 
+  @@unique([tenantId, name])
   @@map("expense_categories")
 }
 
