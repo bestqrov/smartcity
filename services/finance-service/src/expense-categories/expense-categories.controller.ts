@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+} from '@nestjs/common';
 import { ExpenseCategoriesService } from './expense-categories.service';
 import { CreateExpenseCategoryDto } from './dto/create-expense-category.dto';
 import { UpdateExpenseCategoryDto } from './dto/update-expense-category.dto';
@@ -13,6 +22,9 @@ export class ExpenseCategoriesController {
   @Get()
   @Roles('ADMIN', 'MANAGER', 'ACCOUNTANT')
   async findAll(@CurrentUser() user: CurrentUserDto) {
+    if (!user.tenantId) {
+      throw new BadRequestException('Your account is not linked to a tenant');
+    }
     return this.categoriesService.findAll(user.tenantId);
   }
 
@@ -22,6 +34,9 @@ export class ExpenseCategoriesController {
     @Body() dto: CreateExpenseCategoryDto,
     @CurrentUser() user: CurrentUserDto,
   ) {
+    if (!user.tenantId) {
+      throw new BadRequestException('Your account is not linked to a tenant');
+    }
     return this.categoriesService.create(user.tenantId, dto);
   }
 
@@ -32,12 +47,18 @@ export class ExpenseCategoriesController {
     @Body() dto: UpdateExpenseCategoryDto,
     @CurrentUser() user: CurrentUserDto,
   ) {
+    if (!user.tenantId) {
+      throw new BadRequestException('Your account is not linked to a tenant');
+    }
     return this.categoriesService.update(user.tenantId, id, dto);
   }
 
   @Delete(':id')
   @Roles('ADMIN')
   async remove(@Param('id') id: string, @CurrentUser() user: CurrentUserDto) {
+    if (!user.tenantId) {
+      throw new BadRequestException('Your account is not linked to a tenant');
+    }
     return this.categoriesService.remove(user.tenantId, id);
   }
 }
