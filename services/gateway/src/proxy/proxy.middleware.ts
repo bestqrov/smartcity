@@ -39,6 +39,7 @@ export class ProxyMiddleware implements NestMiddleware {
       '/api/expenses': financeServiceUrl,
       '/api/expense-categories': financeServiceUrl,
       '/api/stock-items': financeServiceUrl,
+      '/api/purchases': financeServiceUrl,
     };
   }
 
