@@ -19,6 +19,7 @@ enum UserRole {
   ADMIN
   MANAGER
   STAFF
+  ACCOUNTANT
   GUEST
 }
 
@@ -354,4 +355,31 @@ model Session {
   user User @relation(fields: [userId], references: [id])
 
   @@map("sessions")
+}
+
+model ExpenseCategory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId  String   @db.ObjectId
+  name      String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("expense_categories")
+}
+
+model Expense {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId    String   @db.ObjectId
+  hotelId     String?  @db.ObjectId
+  categoryId  String   @db.ObjectId
+  amount      Float
+  currency    String
+  description String?
+  receiptUrl  String?
+  date        DateTime
+  createdById String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("expenses")
 }
