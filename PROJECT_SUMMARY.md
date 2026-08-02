@@ -1,12 +1,12 @@
 # SmartCity Tourism – Project Documentation
 
-Ce document résume l’architecture, les modules implémentés, les identifiants de test et la procédure de démarrage du projet SmartCity (focus tourisme).
+Ce document résume l’architecture, les modules implémentés, les identifiants de test et la procédure de démarrage du projet SmartCity. Le module **Tourisme** est le seul module complet à ce jour ; les autres verticales (santé, éducation, services publics, super-admin) sont scaffoldées mais pas encore développées (voir section 2.2).
 
 ---
 
 ## 1. Vue d’ensemble
 
-SmartCity est un écosystème multi-services (tourisme, santé, éducation, services publics). Cette documentation couvre le module **Tourisme** qui a été complété : backend, gateway sécurisée, frontend Next.js avec i18n, authentification JWT et dashboard admin.
+SmartCity est conçu comme un écosystème multi-services (tourisme, santé, éducation, services publics), mais en pratique **seul le module Tourisme est opérationnel** aujourd’hui : backend, gateway sécurisée, frontend Next.js avec i18n, authentification JWT, dashboard admin avec analytics en direct, marketplace pour partenaires indépendants, et facturation SaaS.
 
 - **Monorepo** : `pnpm` workspaces + `turbo`
 - **Base de données** : MongoDB Atlas (cluster cloud) – Prisma ORM
@@ -22,22 +22,46 @@ SmartCity est un écosystème multi-services (tourisme, santé, éducation, serv
 
 ## 2. Structure du repo
 
+### 2.1 Modules opérationnels
+
 ```
 smartcity/
 ├── apps/
-│   └── tourism-app/            # Frontend Next.js (port 3102)
+│   ├── tourism-app/             # Frontend Next.js guest + admin (port 3102)
+│   ├── landing-page/            # Site vitrine (port 3100)
+│   └── auth-portal/             # UI login/register/reset centralisée (pas de package.json — scaffold routes seulement)
 ├── services/
-│   ├── gateway/                # API Gateway (port 3000)
-│   ├── user-service/           # Auth + utilisateurs + tenants (port 3001)
-│   └── tourism-service/        # Hôtels, chambres, réservations, etc. (port 3002)
+│   ├── gateway/                 # API Gateway (port 3000)
+│   ├── user-service/            # Auth + utilisateurs + tenants (port 3001)
+│   ├── tourism-service/         # Hôtels, chambres, réservations, restaurants, activités, avis, commandes, messages, QR (port 3002)
+│   └── billing-service/         # Plans + abonnements SaaS (port 3006)
 ├── packages/
-│   ├── database/               # Prisma schema + seed
-│   ├── i18n/                   # Translations ar/fr/en
-│   ├── types/                  # Types partagés
-│   └── ui-components/          # Composants UI partagés
+│   ├── database/                # Prisma schema + seed (@smartcity/database)
+│   ├── i18n/                    # Translations ar/fr/en
+│   ├── shared-types/            # Types partagés (api, i18n, tenant, tourism, user)
+│   ├── ui-components/           # Composants UI partagés (Button, Card, Modal, Input, Badge, Loading, LanguageSwitcher)
+│   ├── utils/                   # Helpers partagés (api-client, formatters, validators, constants)
+│   └── config/                  # Config build partagée (tailwind, tsconfig bases)
 ├── docker-compose.yml
 └── .env.example
 ```
+
+### 2.2 Scaffolds vides (dossiers présents, aucun code)
+
+Ces apps/services existent dans l’arborescence mais n’ont **aucun fichier tracké** (pas de `package.json`, pas de logique) à l’exception des services backend qui ont un stub `health.controller` minimal :
+
+| Nom | Type | État | Port prévu |
+|---|---|---|---|
+| `apps/education-app` | Frontend | Vide (dossiers `public/`, `src/app` seulement) | — |
+| `apps/health-app` | Frontend | Vide | — |
+| `apps/services-app` | Frontend | Vide | — |
+| `apps/super-admin-dashboard` | Frontend | Vide | — |
+| `services/health-service` | Backend | Stub (health check uniquement) | 3003 |
+| `services/education-service` | Backend | Stub (health check uniquement) | 3004 |
+| `services/services-service` | Backend | Stub (health check uniquement) | 3005 |
+| `services/notification-service` | Backend | Stub (health check uniquement) | 3007 |
+
+Le schéma Prisma (section 5) ne contient d’ailleurs aucun modèle Santé/Éducation/Services — cohérent avec l’état de scaffold de ces verticales.
 
 ---
 
@@ -76,7 +100,8 @@ Le gateway expose tout sous `/api` et route vers les bons services. Le middlewar
 | Préfixe | Service | Port |
 |---------|---------|------|
 | `/api/auth/*`, `/api/users/*`, `/api/tenants/*` | user-service | 3001 |
-| `/api/hotels/*`, `/api/rooms/*`, `/api/bookings/*`, `/api/activities/*`, `/api/restaurants/*`, `/api/reviews/*`, `/api/orders/*`, `/api/qr/*` | tourism-service | 3002 |
+| `/api/hotels/*`, `/api/rooms/*`, `/api/bookings/*`, `/api/activities/*`, `/api/restaurants/*`, `/api/reviews/*`, `/api/orders/*`, `/api/qr/*`, `/api/messages/*` | tourism-service | 3002 |
+| `/api/plans/*`, `/api/subscriptions/*` | billing-service | 3006 |
 
 Configuration clé :
 - `bodyParser: false` pour permettre au proxy middleware de transmettre les corps bruts.
@@ -99,10 +124,18 @@ Configuration clé :
 | `/:locale/hotels/:id/book` | Formulaire de réservation |
 | `/:locale/bookings` | Mes réservations |
 | `/:locale/bookings/:id/qr` | QR code d’une réservation |
-| `/:locale/admin` | Dashboard admin |
+| `/:locale/restaurants`, `/:locale/activities`, `/:locale/rooms` | Catalogues côté guest |
+| `/:locale/orders` | Commandes room-service/minibar (guest) |
+| `/:locale/profile` | Profil guest |
+| `/:locale/admin` | Dashboard admin (analytics live, refresh 30s) |
 | `/:locale/admin/hotels` | Gestion des hôtels |
 | `/:locale/admin/bookings` | Gestion des réservations |
+| `/:locale/admin/listings` | Marketplace – gestion des annonces (trips/shops/restaurants) par partenaires indépendants |
 | `/:locale/admin/users` | Gestion des utilisateurs |
+| `/:locale/admin/orders` | Commandes (vue admin) |
+| `/:locale/admin/billing` | Plans + abonnements SaaS |
+| `/:locale/admin/housekeeping` | Suivi statut des chambres |
+| `/:locale/admin/messages` | Inbox / chat quasi temps-réel |
 | `/:locale/admin/settings` | Paramètres admin |
 | `/:locale/admin/scan` | Scanner QR pour check-in |
 
@@ -116,6 +149,7 @@ Configuration clé :
 - `QrScanner.tsx` – scanner QR
 - `AdminLayout.tsx` – sidebar admin + garde rôles
 - `AdminHotels.tsx`, `AdminBookings.tsx`, `AdminUsers.tsx`, `AdminSettings.tsx` – panneaux admin
+- Panneaux ajoutés récemment : gestion housekeeping, inbox/chat, facturation, listings marketplace, graphique de revenus (SVG inline) sur le dashboard
 
 ### 4.3 Sécurité frontend
 
@@ -137,15 +171,19 @@ Configuration clé :
 Entités principales :
 
 - `User` – rôles : `SUPER_ADMIN`, `ADMIN`, `MANAGER`, `STAFF`, `GUEST`
-- `Tenant` – établissement (hôtel, riad, resort…)
+- `Tenant` – établissement (hôtel, riad, resort, ou partenaire marketplace indépendant)
+- `Plan` / `Subscription` – plans SaaS et abonnements de tenant (billing-service)
 - `Hotel`
 - `Room`
-- `Booking` – avec champ `qrCode`
-- `ServiceOrder` (orders)
-- `Review`
+- `Booking` – avec champ `qrCode`, scoping par tenant (voir section 9)
+- `ServiceOrder` (orders) – commandes minibar/room-service itemisées
+- `Review` – avis clients
+- `Message` – chat / inbox quasi temps-réel
 - `Activity`
 - `Restaurant`
 - `Session`
+
+> Housekeeping (statut des chambres) et les stats du dashboard (`GET /bookings/stats`) s’appuient sur les modèles `Room`/`Booking` existants, sans modèle dédié supplémentaire.
 
 ---
 
@@ -277,6 +315,10 @@ pnpm format
 | POST | `/api/qr/generate` | Générer QR |
 | POST | `/api/qr/validate` | Valider QR check-in |
 | GET | `/api/qr/:bookingId` | Récupérer QR |
+| GET/POST | `/api/messages` | Chat / inbox |
+| GET | `/api/bookings/stats` | Stats dashboard (revenu/jour, occupancy) – scoped tenant |
+| GET/POST | `/api/plans` | Plans SaaS (billing-service) |
+| GET/POST | `/api/subscriptions` | Abonnements tenant (billing-service) |
 
 ---
 
@@ -293,6 +335,13 @@ pnpm format
 
 ## 10. Changements récents notables
 
+- **Dashboard admin en direct** : `GET /bookings/stats` (scoped tenant) + graphique de revenus (SVG inline) et carte KPI d’occupancy, refresh 30s.
+- **Faille de sécurité corrigée** : `GET/PATCH/DELETE /bookings` n’avait aucun contrôle tenant pour le staff — un ADMIN/MANAGER/STAFF d’un hôtel pouvait lister/modifier/annuler les réservations de n’importe quel autre hôtel. Corrigé avec le même pattern d’ownership que orders/activities (`booking.hotel.tenantId` vs `user.tenantId`, bypass SUPER_ADMIN).
+- **Housekeeping board** : suivi du statut des chambres (nettoyage, disponibilité) pour le staff.
+- **Ratings, chat, factures** : avis clients, messagerie quasi temps-réel (`Message` model), facturation.
+- **Commandes itemisées** : minibar / room-service avec catalogue détaillé.
+- **Marketplace** : ouverture des trips/shops/restaurants à des partenaires tenants indépendants, avec self-service listings et correction d’un gap d’ownership similaire à celui des bookings.
+- **Billing SaaS** : nouveau `billing-service` avec modèles `Plan`/`Subscription` et page admin dédiée.
 - Connexion à **MongoDB Atlas** remplaçant la base locale en mémoire.
 - Création de fichiers `.env` dans `services/user-service`, `services/tourism-service` et `services/gateway` avec l’URI Atlas et les secrets JWT synchronisés.
 - Correction du proxy gateway : application du middleware à toutes les routes (`path: '*'`).
