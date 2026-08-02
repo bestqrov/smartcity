@@ -13,7 +13,7 @@ import { OrderStatus } from './dto/create-order.dto';
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateOrderDto) {
+  async create(dto: CreateOrderDto, createdById: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: dto.bookingId },
     });
@@ -26,14 +26,43 @@ export class OrdersService {
       throw new BadRequestException('Cannot add order to a cancelled booking');
     }
 
-    return this.prisma.serviceOrder.create({
-      data: { ...dto, rating: null },
-      include: {
-        booking: {
-          select: { id: true, status: true },
+    const operations: any[] = [
+      this.prisma.serviceOrder.create({
+        data: { ...dto, rating: null },
+        include: {
+          booking: {
+            select: { id: true, status: true },
+          },
         },
-      },
-    });
+      }),
+    ];
+
+    if (dto.itemId) {
+      const item = await this.prisma.stockItem.findUnique({
+        where: { id: dto.itemId },
+      });
+      if (!item || item.hotelId !== booking.hotelId) {
+        throw new NotFoundException('Stock item not found for this hotel');
+      }
+
+      operations.push(
+        this.prisma.stockItem.update({
+          where: { id: dto.itemId },
+          data: { quantity: { decrement: dto.quantity } },
+        }),
+        this.prisma.stockMovement.create({
+          data: {
+            itemId: dto.itemId,
+            type: 'ORDER_DEDUCTION',
+            quantityChange: -dto.quantity,
+            createdById,
+          },
+        }),
+      );
+    }
+
+    const [order] = await this.prisma.$transaction(operations);
+    return order;
   }
 
   async findAll(query: SearchOrderDto & { tenantId?: string }) {
