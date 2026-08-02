@@ -8,16 +8,12 @@ import { SearchExpenseDto } from './dto/search-expense.dto';
 export class ExpensesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    tenantId: string,
-    createdById: string,
-    defaultCurrency: string,
-    dto: CreateExpenseDto,
-  ) {
+  async create(tenantId: string, createdById: string, dto: CreateExpenseDto) {
     await this.assertCategoryOwnership(tenantId, dto.categoryId);
     if (dto.hotelId) {
       await this.assertHotelOwnership(tenantId, dto.hotelId);
     }
+    const currency = dto.currency || (await this.getTenantCurrency(tenantId));
 
     return this.prisma.expense.create({
       data: {
@@ -25,13 +21,21 @@ export class ExpensesService {
         hotelId: dto.hotelId,
         categoryId: dto.categoryId,
         amount: dto.amount,
-        currency: dto.currency || defaultCurrency,
+        currency,
         description: dto.description,
         receiptUrl: dto.receiptUrl,
         date: new Date(dto.date),
         createdById,
       },
     });
+  }
+
+  async getTenantCurrency(tenantId: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { currency: true },
+    });
+    return tenant?.currency || 'MAD';
   }
 
   async findAll(tenantId: string, query: SearchExpenseDto) {

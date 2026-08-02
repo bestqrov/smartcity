@@ -27,7 +27,7 @@ export class ExpensesController {
     if (!user.tenantId) {
       throw new BadRequestException('Your account is not linked to a tenant');
     }
-    return this.expensesService.create(user.tenantId, user.userId, 'MAD', dto);
+    return this.expensesService.create(user.tenantId, user.userId, dto);
   }
 
   @Get()
