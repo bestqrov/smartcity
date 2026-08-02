@@ -1,10 +1,13 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
+import { UpdatePurchaseStatusDto } from './dto/update-purchase-status.dto';
 import { SearchPurchaseDto } from './dto/search-purchase.dto';
 
 @Injectable()
@@ -72,6 +75,82 @@ export class PurchasesService {
 
   async findOne(tenantId: string, id: string) {
     return this.findOwned(tenantId, id);
+  }
+
+  async updateStatus(
+    tenantId: string,
+    id: string,
+    createdById: string,
+    dto: UpdatePurchaseStatusDto,
+  ) {
+    const purchase = await this.findOwned(tenantId, id);
+
+    if (purchase.status !== 'PENDING') {
+      throw new BadRequestException(
+        `Purchase is already ${purchase.status} and cannot be changed`,
+      );
+    }
+
+    if (dto.status === 'CANCELLED') {
+      return this.prisma.purchase.update({
+        where: { id: purchase.id },
+        data: { status: 'CANCELLED' },
+        include: { items: true },
+      });
+    }
+
+    const operations: any[] = [
+      this.prisma.purchase.update({
+        where: { id: purchase.id },
+        data: { status: 'RECEIVED', receivedAt: new Date() },
+        include: { items: true },
+      }),
+      this.prisma.expense.create({
+        data: {
+          tenantId,
+          hotelId: purchase.hotelId,
+          categoryId: purchase.categoryId,
+          amount: purchase.totalCost,
+          currency: purchase.currency,
+          description: `Purchase from ${purchase.vendorName}`,
+          date: new Date(),
+          createdById,
+        },
+      }),
+    ];
+
+    for (const item of purchase.items) {
+      operations.push(
+        this.prisma.stockItem.update({
+          where: { id: item.stockItemId },
+          data: { quantity: { increment: item.quantity } },
+        }),
+        this.prisma.stockMovement.create({
+          data: {
+            itemId: item.stockItemId,
+            type: 'RESTOCK',
+            quantityChange: item.quantity,
+            reason: `Received purchase from ${purchase.vendorName}`,
+            createdById,
+          },
+        }),
+      );
+    }
+
+    try {
+      const [updatedPurchase] = await this.prisma.$transaction(operations);
+      return updatedPurchase;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(
+          'A stock item referenced by this purchase no longer exists',
+        );
+      }
+      throw error;
+    }
   }
 
   async findOwned(tenantId: string, id: string) {

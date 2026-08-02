@@ -3,12 +3,14 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Param,
   Body,
   Query,
 } from '@nestjs/common';
 import { PurchasesService } from './purchases.service';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
+import { UpdatePurchaseStatusDto } from './dto/update-purchase-status.dto';
 import { SearchPurchaseDto } from './dto/search-purchase.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -43,5 +45,18 @@ export class PurchasesController {
       throw new BadRequestException('Your account is not linked to a tenant');
     }
     return this.purchasesService.findOne(user.tenantId, id);
+  }
+
+  @Patch(':id/status')
+  @Roles('ADMIN', 'MANAGER')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdatePurchaseStatusDto,
+    @CurrentUser() user: CurrentUserDto,
+  ) {
+    if (!user.tenantId) {
+      throw new BadRequestException('Your account is not linked to a tenant');
+    }
+    return this.purchasesService.updateStatus(user.tenantId, id, user.userId, dto);
   }
 }
