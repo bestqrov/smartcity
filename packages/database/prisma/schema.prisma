@@ -138,6 +138,7 @@ model Tenant {
   restaurants       Restaurant[]
   expenseCategories ExpenseCategory[]
   expenses          Expense[]
+  stockItems        StockItem[]
 
   @@map("tenants")
 }
@@ -206,6 +207,7 @@ model Hotel {
   activities  Activity[]
   restaurants Restaurant[]
   expenses    Expense[]
+  stockItems  StockItem[]
 
   @@map("hotels")
 }
@@ -259,6 +261,7 @@ model Booking {
 model ServiceOrder {
   id          String      @id @default(auto()) @map("_id") @db.ObjectId
   bookingId   String      @db.ObjectId
+  itemId      String?     @db.ObjectId
   type        String
   description String?
   quantity    Int
@@ -393,4 +396,37 @@ model Expense {
   category ExpenseCategory @relation(fields: [categoryId], references: [id])
 
   @@map("expenses")
+}
+
+model StockItem {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId    String   @db.ObjectId
+  hotelId     String   @db.ObjectId
+  name        String
+  unit        String
+  quantity    Int      @default(0)
+  minQuantity Int      @default(0)
+  costPrice   Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id])
+  hotel     Hotel           @relation(fields: [hotelId], references: [id])
+  movements StockMovement[]
+
+  @@map("stock_items")
+}
+
+model StockMovement {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  itemId         String   @db.ObjectId
+  type           String
+  quantityChange Int
+  reason         String?
+  createdById    String   @db.ObjectId
+  createdAt      DateTime @default(now())
+
+  item StockItem @relation(fields: [itemId], references: [id])
+
+  @@map("stock_movements")
 }
