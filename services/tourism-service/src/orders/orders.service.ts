@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -61,8 +62,19 @@ export class OrdersService {
       );
     }
 
-    const [order] = await this.prisma.$transaction(operations);
-    return order;
+    try {
+      const [order] = await this.prisma.$transaction(operations);
+      return order;
+    } catch (error) {
+      if (
+        dto.itemId &&
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Stock item not found for this hotel');
+      }
+      throw error;
+    }
   }
 
   async findAll(query: SearchOrderDto & { tenantId?: string }) {
