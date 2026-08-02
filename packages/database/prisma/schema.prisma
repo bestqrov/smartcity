@@ -131,11 +131,13 @@ model Tenant {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  users        User[]
-  hotels       Hotel[]
-  subscription Subscription?
-  activities   Activity[]
-  restaurants  Restaurant[]
+  users             User[]
+  hotels            Hotel[]
+  subscription      Subscription?
+  activities        Activity[]
+  restaurants       Restaurant[]
+  expenseCategories ExpenseCategory[]
+  expenses          Expense[]
 
   @@map("tenants")
 }
@@ -203,6 +205,7 @@ model Hotel {
   reviews     Review[]
   activities  Activity[]
   restaurants Restaurant[]
+  expenses    Expense[]
 
   @@map("hotels")
 }
@@ -364,6 +367,9 @@ model ExpenseCategory {
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  expenses Expense[]
+
   @@map("expense_categories")
 }
 
@@ -380,6 +386,10 @@ model Expense {
   createdById String   @db.ObjectId
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  hotel    Hotel?          @relation(fields: [hotelId], references: [id])
+  category ExpenseCategory @relation(fields: [categoryId], references: [id])
 
   @@map("expenses")
 }
