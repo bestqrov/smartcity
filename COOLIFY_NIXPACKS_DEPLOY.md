@@ -184,6 +184,48 @@ node dist/main.js
 
 ---
 
+## 8bis. Déployer `finance-service`
+
+### 8bis.1 Créer la ressource
+
+1. **Add New Resource** → **Public Repository**.
+2. `bestqrov/smartcity` → branche `main`.
+3. **Base Directory** : `services/finance-service`.
+4. **Build Pack** : `Nixpacks`.
+5. **Port** : `3008`.
+
+### 8bis.2 Variables spécifiques
+
+```env
+PORT=3008
+```
+
+### 8bis.3 Build / Start Commands
+
+```bash
+# Build
+npm install && npm run build
+
+# Start
+node dist/main.js
+```
+
+### 8bis.4 Mettre à jour `gateway`
+
+Ajoutez dans les variables d'environnement de la ressource `gateway` :
+
+```env
+FINANCE_SERVICE_URL=http://finance-service:3008
+```
+
+Redéployez `gateway` pour que la nouvelle variable soit prise en compte.
+
+### 8bis.5 Domaine
+
+Aucun domaine public n'est nécessaire — accessible uniquement via le `gateway` (`/api/expenses`, `/api/expense-categories`, `/api/stock-items`, `/api/purchases`).
+
+---
+
 ## 9. Déployer `tourism-app` (frontend)
 
 ### 9.1 Créer la ressource
