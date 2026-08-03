@@ -19,6 +19,7 @@ const adminLinks = [
   { href: '/admin/bookings', key: 'admin.bookings', icon: BookingIcon },
   { href: '/admin/housekeeping', key: 'housekeeping.title', icon: HousekeepingIcon },
   { href: '/admin/orders', key: 'services.orders', icon: OrdersIcon },
+  { href: '/admin/expenses', key: 'admin.expenses', icon: ExpensesIcon },
   { href: '/admin/messages', key: 'services.chatTitle', icon: MessagesIcon },
   { href: '/admin/users', key: 'admin.users', icon: UsersIcon },
   { href: '/admin/scan', key: 'admin.scan', icon: ScanIcon },
@@ -92,7 +93,7 @@ export function AdminLayout({ children, locale }: AdminLayoutProps) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-900 text-slate-200 transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-900 text-slate-200 transition-transform lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -245,6 +246,14 @@ function MessagesIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
       <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ExpensesIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path d="M12 2v20M17 5.5c0-1.9-2.2-3.5-5-3.5s-5 1.6-5 3.5S9.2 9 12 9s5 1.6 5 3.5-2.2 3.5-5 3.5-5-1.6-5-3.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
