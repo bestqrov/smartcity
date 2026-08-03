@@ -17,6 +17,9 @@ export class ProxyMiddleware implements NestMiddleware {
     const billingServiceUrl =
       this.configService.get<string>('BILLING_SERVICE_URL') ||
       'http://localhost:3006';
+    const financeServiceUrl =
+      this.configService.get<string>('FINANCE_SERVICE_URL') ||
+      'http://localhost:3008';
 
     this.routeMap = {
       '/api/auth': userServiceUrl,
@@ -33,6 +36,10 @@ export class ProxyMiddleware implements NestMiddleware {
       '/api/qr': tourismServiceUrl,
       '/api/plans': billingServiceUrl,
       '/api/subscriptions': billingServiceUrl,
+      '/api/expenses': financeServiceUrl,
+      '/api/expense-categories': financeServiceUrl,
+      '/api/stock-items': financeServiceUrl,
+      '/api/purchases': financeServiceUrl,
     };
   }
 

@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
@@ -19,6 +19,7 @@ enum UserRole {
   ADMIN
   MANAGER
   STAFF
+  ACCOUNTANT
   GUEST
 }
 
@@ -130,28 +131,32 @@ model Tenant {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  users        User[]
-  hotels       Hotel[]
-  subscription Subscription?
-  activities   Activity[]
-  restaurants  Restaurant[]
+  users             User[]
+  hotels            Hotel[]
+  subscription      Subscription?
+  activities        Activity[]
+  restaurants       Restaurant[]
+  expenseCategories ExpenseCategory[]
+  expenses          Expense[]
+  stockItems        StockItem[]
+  purchases         Purchase[]
 
   @@map("tenants")
 }
 
 model Plan {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
-  slug           String        @unique
-  description    String?
-  price          Float
-  currency       String        @default("MAD")
-  billingPeriod  BillingPeriod @default(MONTHLY)
-  features       String[]
-  maxHotels      Int?
-  isActive       Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  slug          String        @unique
+  description   String?
+  price         Float
+  currency      String        @default("MAD")
+  billingPeriod BillingPeriod @default(MONTHLY)
+  features      String[]
+  maxHotels     Int?
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   subscriptions Subscription[]
 
@@ -202,25 +207,28 @@ model Hotel {
   reviews     Review[]
   activities  Activity[]
   restaurants Restaurant[]
+  expenses    Expense[]
+  stockItems  StockItem[]
+  purchases   Purchase[]
 
   @@map("hotels")
 }
 
 model Room {
-  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
-  hotelId             String             @db.ObjectId
-  name                String
-  type                RoomType
-  description         String?
-  price               Float
-  currency            String             @default("MAD")
-  capacity            Int
-  amenities           String[]
-  images              String[]
-  isAvailable         Boolean            @default(true)
-  housekeepingStatus  HousekeepingStatus @default(CLEAN)
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  hotelId            String             @db.ObjectId
+  name               String
+  type               RoomType
+  description        String?
+  price              Float
+  currency           String             @default("MAD")
+  capacity           Int
+  amenities          String[]
+  images             String[]
+  isAvailable        Boolean            @default(true)
+  housekeepingStatus HousekeepingStatus @default(CLEAN)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   hotel    Hotel     @relation(fields: [hotelId], references: [id])
   bookings Booking[]
@@ -255,6 +263,7 @@ model Booking {
 model ServiceOrder {
   id          String      @id @default(auto()) @map("_id") @db.ObjectId
   bookingId   String      @db.ObjectId
+  itemId      String?     @db.ObjectId
   type        String
   description String?
   quantity    Int
@@ -270,13 +279,13 @@ model ServiceOrder {
 }
 
 model Message {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  bookingId  String   @db.ObjectId
-  senderId   String   @db.ObjectId
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId  String    @db.ObjectId
+  senderId   String    @db.ObjectId
   senderRole String
   text       String
   readAt     DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   booking Booking @relation(fields: [bookingId], references: [id])
 
@@ -354,4 +363,115 @@ model Session {
   user User @relation(fields: [userId], references: [id])
 
   @@map("sessions")
+}
+
+model ExpenseCategory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId  String   @db.ObjectId
+  name      String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id])
+  expenses  Expense[]
+  purchases Purchase[]
+
+  @@unique([tenantId, name])
+  @@map("expense_categories")
+}
+
+model Expense {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId    String   @db.ObjectId
+  hotelId     String?  @db.ObjectId
+  categoryId  String   @db.ObjectId
+  amount      Float
+  currency    String
+  description String?
+  receiptUrl  String?
+  date        DateTime
+  createdById String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  hotel    Hotel?          @relation(fields: [hotelId], references: [id])
+  category ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  @@map("expenses")
+}
+
+model StockItem {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId    String   @db.ObjectId
+  hotelId     String   @db.ObjectId
+  name        String
+  unit        String
+  quantity    Int      @default(0)
+  minQuantity Int      @default(0)
+  costPrice   Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant        Tenant          @relation(fields: [tenantId], references: [id])
+  hotel         Hotel           @relation(fields: [hotelId], references: [id])
+  movements     StockMovement[]
+  purchaseItems PurchaseItem[]
+
+  @@map("stock_items")
+}
+
+model StockMovement {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  itemId         String   @db.ObjectId
+  type           String
+  quantityChange Int
+  reason         String?
+  createdById    String   @db.ObjectId
+  createdAt      DateTime @default(now())
+
+  item StockItem @relation(fields: [itemId], references: [id])
+
+  @@map("stock_movements")
+}
+
+enum PurchaseStatus {
+  PENDING
+  RECEIVED
+  CANCELLED
+}
+
+model Purchase {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId    String         @db.ObjectId
+  hotelId     String         @db.ObjectId
+  vendorName  String
+  categoryId  String         @db.ObjectId
+  status      PurchaseStatus @default(PENDING)
+  totalCost   Float
+  currency    String
+  createdById String         @db.ObjectId
+  receivedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id])
+  hotel    Hotel           @relation(fields: [hotelId], references: [id])
+  category ExpenseCategory @relation(fields: [categoryId], references: [id])
+  items    PurchaseItem[]
+
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  purchaseId  String @db.ObjectId
+  stockItemId String @db.ObjectId
+  quantity    Int
+  unitCost    Float
+
+  purchase  Purchase  @relation(fields: [purchaseId], references: [id])
+  stockItem StockItem @relation(fields: [stockItemId], references: [id])
+
+  @@map("purchase_items")
 }

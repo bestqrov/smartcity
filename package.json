@@ -5,7 +5,7 @@
   "description": "Smart City Ecosystem - Tourism, Health, Education & Public Services",
   "scripts": {
     "dev": "turbo run dev",
-    "build": "turbo run build --filter=gateway --filter=user-service --filter=tourism-service --filter=billing-service --filter=tourism-app --filter=landing-page --concurrency=2",
+    "build": "turbo run build --filter=gateway --filter=user-service --filter=tourism-service --filter=billing-service --filter=finance-service --filter=tourism-app --filter=landing-page --concurrency=2",
     "build:all": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",

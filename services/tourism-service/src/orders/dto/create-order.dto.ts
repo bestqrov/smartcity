@@ -20,6 +20,10 @@ export class CreateOrderDto {
   bookingId: string;
 
   @IsString()
+  @IsOptional()
+  itemId?: string;
+
+  @IsString()
   @MinLength(2)
   type: string;
 

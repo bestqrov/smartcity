@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -13,7 +14,7 @@ import { OrderStatus } from './dto/create-order.dto';
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateOrderDto) {
+  async create(dto: CreateOrderDto, createdById: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id: dto.bookingId },
     });
@@ -26,14 +27,54 @@ export class OrdersService {
       throw new BadRequestException('Cannot add order to a cancelled booking');
     }
 
-    return this.prisma.serviceOrder.create({
-      data: { ...dto, rating: null },
-      include: {
-        booking: {
-          select: { id: true, status: true },
+    const operations: any[] = [
+      this.prisma.serviceOrder.create({
+        data: { ...dto, rating: null },
+        include: {
+          booking: {
+            select: { id: true, status: true },
+          },
         },
-      },
-    });
+      }),
+    ];
+
+    if (dto.itemId) {
+      const item = await this.prisma.stockItem.findUnique({
+        where: { id: dto.itemId },
+      });
+      if (!item || item.hotelId !== booking.hotelId) {
+        throw new NotFoundException('Stock item not found for this hotel');
+      }
+
+      operations.push(
+        this.prisma.stockItem.update({
+          where: { id: dto.itemId },
+          data: { quantity: { decrement: dto.quantity } },
+        }),
+        this.prisma.stockMovement.create({
+          data: {
+            itemId: dto.itemId,
+            type: 'ORDER_DEDUCTION',
+            quantityChange: -dto.quantity,
+            createdById,
+          },
+        }),
+      );
+    }
+
+    try {
+      const [order] = await this.prisma.$transaction(operations);
+      return order;
+    } catch (error) {
+      if (
+        dto.itemId &&
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Stock item not found for this hotel');
+      }
+      throw error;
+    }
   }
 
   async findAll(query: SearchOrderDto & { tenantId?: string }) {

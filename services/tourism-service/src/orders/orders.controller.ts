@@ -40,7 +40,7 @@ export class OrdersController {
       }
     }
 
-    return this.ordersService.create(dto);
+    return this.ordersService.create(dto, user.userId);
   }
 
   @Get()
