@@ -45,7 +45,7 @@ RUN if [ -f packages/database/prisma/schema.prisma ]; then \
     fi
 
 # Build with webpack to produce a single dist/main.js
-RUN cd services/${SERVICE_NAME} && npx nest build --webpack
+RUN cd services/${SERVICE_NAME} && pnpm exec nest build --webpack
 
 # ── Stage 3: Production ──────────────────────────────────
 FROM node:${NODE_VERSION}-alpine AS production
