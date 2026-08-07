@@ -28,6 +28,7 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 FROM node:${NODE_VERSION}-alpine AS builder
 
 ARG SERVICE_NAME
+RUN test -n "$SERVICE_NAME" || (echo "SERVICE_NAME build arg is required (e.g. --build-arg SERVICE_NAME=finance-service)" >&2 && exit 1)
 
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
@@ -51,6 +52,7 @@ RUN cd services/${SERVICE_NAME} && ./node_modules/.bin/nest build --webpack
 FROM node:${NODE_VERSION}-alpine AS production
 
 ARG SERVICE_NAME
+RUN test -n "$SERVICE_NAME" || (echo "SERVICE_NAME build arg is required (e.g. --build-arg SERVICE_NAME=finance-service)" >&2 && exit 1)
 
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
