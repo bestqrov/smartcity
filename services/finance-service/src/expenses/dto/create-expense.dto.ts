@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   Min,
 } from 'class-validator';
 
@@ -28,7 +29,7 @@ export class CreateExpenseDto {
   @IsOptional()
   description?: string;
 
-  @IsString()
+  @IsUrl()
   @IsOptional()
   receiptUrl?: string;
 

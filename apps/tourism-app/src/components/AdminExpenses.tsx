@@ -57,6 +57,7 @@ export function AdminExpenses({ locale }: { locale: string }) {
   const { user } = useAuth();
   const { t } = useTranslation();
   const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+  const canEdit = isAdmin || user?.role === 'ACCOUNTANT';
 
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -388,6 +389,7 @@ export function AdminExpenses({ locale }: { locale: string }) {
 
               <Input
                 label={`${t('admin.receiptUrl')} (${t('admin.optional')})`}
+                type="url"
                 value={form.receiptUrl}
                 onChange={(e) => setForm({ ...form, receiptUrl: e.target.value })}
                 placeholder="https://..."
@@ -523,7 +525,9 @@ export function AdminExpenses({ locale }: { locale: string }) {
                     <th className="py-2 px-3 font-medium">{t('admin.category')}</th>
                     <th className="py-2 px-3 font-medium">{t('admin.description')}</th>
                     <th className="py-2 px-3 font-medium">{t('admin.amount')}</th>
-                    <th className="py-2 px-3 font-medium text-right">{t('admin.actions')}</th>
+                    {(canEdit || isAdmin) && (
+                      <th className="py-2 px-3 font-medium text-right">{t('admin.actions')}</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -553,16 +557,22 @@ export function AdminExpenses({ locale }: { locale: string }) {
                       <td className="py-3 px-3 font-semibold text-gray-800">
                         {expense.amount.toLocaleString()} {expense.currency}
                       </td>
-                      <td className="py-3 px-3 text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" onClick={() => openEditForm(expense)}>
-                            {t('common.edit')}
-                          </Button>
-                          <Button variant="danger" size="sm" onClick={() => handleDelete(expense.id)}>
-                            {t('common.delete')}
-                          </Button>
-                        </div>
-                      </td>
+                      {(canEdit || isAdmin) && (
+                        <td className="py-3 px-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            {canEdit && (
+                              <Button variant="outline" size="sm" onClick={() => openEditForm(expense)}>
+                                {t('common.edit')}
+                              </Button>
+                            )}
+                            {isAdmin && (
+                              <Button variant="danger" size="sm" onClick={() => handleDelete(expense.id)}>
+                                {t('common.delete')}
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
