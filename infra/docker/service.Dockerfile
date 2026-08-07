@@ -41,9 +41,8 @@ COPY . .
 
 # Generate Prisma client if schema exists
 RUN if [ -f packages/database/prisma/schema.prisma ]; then \
-      pnpm exec prisma generate --schema=packages/database/prisma/schema.prisma; \
-    fi && \
-    mkdir -p node_modules/.prisma node_modules/@prisma
+      pnpm --filter @smartcity/database exec prisma generate --schema=prisma/schema.prisma; \
+    fi
 
 # Build with webpack to produce a single dist/main.js
 RUN cd services/${SERVICE_NAME} && npx nest build --webpack
@@ -72,13 +71,14 @@ COPY --from=builder /app/services/${SERVICE_NAME}/package.json ./services/${SERV
 # Copy built shared packages
 COPY --from=builder /app/packages ./packages
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod --ignore-scripts && \
-    pnpm store prune
-
-# Copy generated Prisma client (directories always exist, possibly empty — see builder stage)
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Reuse the builder's node_modules as-is: with pnpm's isolated store, the
+# generated Prisma client lives inside node_modules/.pnpm/@prisma+client@*/,
+# not at a top-level node_modules/.prisma — a fresh `pnpm install --prod`
+# here would recreate the workspace symlinks but never re-run `prisma
+# generate` (devDependency, skipped by --prod), leaving a client with no
+# generated engine. Copying the already-built tree sidesteps that entirely.
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/services/${SERVICE_NAME}/node_modules ./services/${SERVICE_NAME}/node_modules
 
 USER appuser
 
