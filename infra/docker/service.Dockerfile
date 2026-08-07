@@ -41,8 +41,9 @@ COPY . .
 
 # Generate Prisma client if schema exists
 RUN if [ -f packages/database/prisma/schema.prisma ]; then \
-      npx prisma generate --schema=packages/database/prisma/schema.prisma; \
-    fi
+      pnpm exec prisma generate --schema=packages/database/prisma/schema.prisma; \
+    fi && \
+    mkdir -p node_modules/.prisma node_modules/@prisma
 
 # Build with webpack to produce a single dist/main.js
 RUN cd services/${SERVICE_NAME} && npx nest build --webpack
@@ -75,9 +76,9 @@ COPY --from=builder /app/packages ./packages
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts && \
     pnpm store prune
 
-# Copy Prisma client if it was generated
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma 2>/dev/null || true
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma 2>/dev/null || true
+# Copy generated Prisma client (directories always exist, possibly empty — see builder stage)
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 USER appuser
 
