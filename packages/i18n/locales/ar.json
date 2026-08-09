@@ -50,7 +50,11 @@
     "featureHotels": "الفنادق والغرف",
     "featureRestaurants": "المطاعم",
     "featureActivities": "الأنشطة",
-    "featureQr": "تسجيل الوصول عبر QR"
+    "featureQr": "تسجيل الوصول عبر QR",
+    "statHotels": "فندق",
+    "statCities": "مدينة",
+    "statGuests": "عميل سعيد",
+    "statSupport": "دعم"
   },
   "hotels": {
     "title": "الفنادق",

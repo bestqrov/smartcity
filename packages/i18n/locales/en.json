@@ -50,7 +50,11 @@
     "featureHotels": "Hotels & rooms",
     "featureRestaurants": "Restaurants",
     "featureActivities": "Activities",
-    "featureQr": "QR check-in"
+    "featureQr": "QR check-in",
+    "statHotels": "Hotels",
+    "statCities": "Cities",
+    "statGuests": "Happy guests",
+    "statSupport": "Support"
   },
   "hotels": {
     "title": "Hotels",

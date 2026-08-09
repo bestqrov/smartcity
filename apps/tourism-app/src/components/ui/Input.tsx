@@ -40,7 +40,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           className={[
             'w-full rounded-lg border bg-white transition-colors',
-            'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500',
+            'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500',
             error ? 'border-red-500' : 'border-gray-300',
             sizeClasses[size],
           ].join(' ')}
