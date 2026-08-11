@@ -295,9 +295,6 @@ importers:
       '@prisma/client':
         specifier: ^6.0.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
-      '@smartcity/utils':
-        specifier: workspace:*
-        version: link:../../packages/utils
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
