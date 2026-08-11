@@ -308,5 +308,24 @@
       "IN_PROGRESS": "جارية",
       "INSPECTED": "تم الفحص"
     }
+  },
+  "education": {
+    "branches": "الفروع",
+    "students": "الطلبة",
+    "addBranch": "إضافة فرع",
+    "addStudent": "إضافة طالب",
+    "branchName": "اسم الفرع",
+    "branchAddress": "العنوان",
+    "branchCity": "المدينة",
+    "studentFirstName": "الاسم الشخصي",
+    "studentLastName": "الاسم العائلي",
+    "studentRegistrationNumber": "رقم التسجيل",
+    "studentBranch": "الفرع",
+    "studentStatus": "الحالة",
+    "statusActive": "نشط",
+    "statusWithdrawn": "منسحب",
+    "statusGraduated": "متخرج",
+    "noBranchesYet": "لا توجد فروع بعد. أضف أول فرع للبدء.",
+    "noStudentsYet": "لا يوجد طلبة بعد. أضف أول طالب للبدء."
   }
 }

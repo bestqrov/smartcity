@@ -308,5 +308,24 @@
       "IN_PROGRESS": "En cours",
       "INSPECTED": "Inspectée"
     }
+  },
+  "education": {
+    "branches": "Filiales",
+    "students": "Étudiants",
+    "addBranch": "Ajouter une filiale",
+    "addStudent": "Ajouter un étudiant",
+    "branchName": "Nom de la filiale",
+    "branchAddress": "Adresse",
+    "branchCity": "Ville",
+    "studentFirstName": "Prénom",
+    "studentLastName": "Nom",
+    "studentRegistrationNumber": "Numéro d'inscription",
+    "studentBranch": "Filiale",
+    "studentStatus": "Statut",
+    "statusActive": "Actif",
+    "statusWithdrawn": "Retiré",
+    "statusGraduated": "Diplômé",
+    "noBranchesYet": "Aucune filiale pour l'instant. Ajoutez votre première filiale.",
+    "noStudentsYet": "Aucun étudiant pour l'instant. Ajoutez votre premier étudiant."
   }
 }

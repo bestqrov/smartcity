@@ -308,5 +308,24 @@
       "IN_PROGRESS": "In progress",
       "INSPECTED": "Inspected"
     }
+  },
+  "education": {
+    "branches": "Branches",
+    "students": "Students",
+    "addBranch": "Add branch",
+    "addStudent": "Add student",
+    "branchName": "Branch name",
+    "branchAddress": "Address",
+    "branchCity": "City",
+    "studentFirstName": "First name",
+    "studentLastName": "Last name",
+    "studentRegistrationNumber": "Registration number",
+    "studentBranch": "Branch",
+    "studentStatus": "Status",
+    "statusActive": "Active",
+    "statusWithdrawn": "Withdrawn",
+    "statusGraduated": "Graduated",
+    "noBranchesYet": "No branches yet. Add your first branch to get started.",
+    "noStudentsYet": "No students yet. Add your first student to get started."
   }
 }
