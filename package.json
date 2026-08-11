@@ -14,6 +14,7 @@
     "dev:apps": "turbo run dev --filter=./apps/*",
     "dev:gateway": "turbo run dev --filter=gateway",
     "dev:tourism": "turbo run dev --filter=tourism-app --filter=tourism-service",
+    "dev:education": "turbo run dev --filter=education-app --filter=education-service",
     "dev:auth": "turbo run dev --filter=auth-portal --filter=user-service --filter=gateway",
     "db:generate": "turbo run db:generate --filter=@smartcity/database",
     "db:push": "turbo run db:push --filter=@smartcity/database",

@@ -111,6 +111,30 @@ services:
       - smartcity-network
     restart: unless-stopped
 
+  # ── Education Service ─────────────────────────────────────
+  education-service:
+    build:
+      context: .
+      dockerfile: infra/docker/service.Dockerfile
+      args:
+        SERVICE_NAME: education-service
+    container_name: smartcity-education-service
+    ports:
+      - "${PORT_EDUCATION_SERVICE:-3004}:3004"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-mongodb://mongodb:27017/smartcity}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
 volumes:
   smartcity-mongo-data:
   smartcity-redis-data:
