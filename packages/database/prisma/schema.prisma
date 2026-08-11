@@ -31,6 +31,7 @@ enum TenantType {
   HOSTEL
   TOUR_OPERATOR
   SHOP
+  EDUCATION_INSTITUTE
 }
 
 enum RoomType {
@@ -140,6 +141,8 @@ model Tenant {
   expenses          Expense[]
   stockItems        StockItem[]
   purchases         Purchase[]
+  branches          Branch[]
+  students          Student[]
 
   @@map("tenants")
 }
@@ -474,4 +477,45 @@ model PurchaseItem {
   stockItem StockItem @relation(fields: [stockItemId], references: [id])
 
   @@map("purchase_items")
+}
+
+enum StudentStatus {
+  ACTIVE
+  WITHDRAWN
+  GRADUATED
+}
+
+model Branch {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId  String   @db.ObjectId
+  name      String
+  address   String
+  city      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  students Student[]
+
+  @@map("branches")
+}
+
+model Student {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId           String        @db.ObjectId
+  branchId           String        @db.ObjectId
+  registrationNumber String
+  firstName          String
+  lastName           String
+  dateOfBirth        DateTime?
+  status             StudentStatus @default(ACTIVE)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  branch Branch @relation(fields: [branchId], references: [id])
+
+  @@unique([tenantId, registrationNumber])
+  @@map("students")
 }
