@@ -143,6 +143,8 @@ model Tenant {
   purchases         Purchase[]
   branches          Branch[]
   students          Student[]
+  guardians         Guardian[]
+  studentGuardians  StudentGuardian[]
 
   @@map("tenants")
 }
@@ -515,7 +517,54 @@ model Student {
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
   branch Branch @relation(fields: [branchId], references: [id])
+  guardianLinks StudentGuardian[]
 
   @@unique([tenantId, registrationNumber])
   @@map("students")
+}
+
+enum GuardianRelationshipType {
+  MOTHER
+  FATHER
+  GUARDIAN
+  OTHER
+}
+
+model Guardian {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId  String   @db.ObjectId
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant       Tenant            @relation(fields: [tenantId], references: [id])
+  studentLinks StudentGuardian[]
+
+  @@map("guardians")
+}
+
+model StudentGuardian {
+  id                     String                   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId               String                   @db.ObjectId
+  studentId              String                   @db.ObjectId
+  guardianId             String                   @db.ObjectId
+  relationshipType       GuardianRelationshipType
+  isPrimary              Boolean                  @default(false)
+  isEmergencyContact     Boolean                  @default(false)
+  canPickUp              Boolean                  @default(false)
+  canCommunicate         Boolean                  @default(true)
+  financiallyResponsible Boolean                  @default(false)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  student  Student  @relation(fields: [studentId], references: [id])
+  guardian Guardian @relation(fields: [guardianId], references: [id])
+
+  @@unique([studentId, guardianId])
+  @@map("student_guardians")
 }

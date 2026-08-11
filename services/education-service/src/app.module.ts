@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { BranchesModule } from './branches/branches.module';
 import { StudentsModule } from './students/students.module';
+import { GuardiansModule } from './guardians/guardians.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -14,6 +15,7 @@ import { HealthModule } from './health/health.module';
     AuthModule,
     BranchesModule,
     StudentsModule,
+    GuardiansModule,
     HealthModule,
   ],
 })
