@@ -51,7 +51,7 @@ export default function LoginPage() {
               autoComplete="email"
             />
             <Input
-              label={t('auth.password') === 'auth.password' ? 'Password' : t('auth.password')}
+              label={t('auth.password')}
               type="password"
               required
               value={password}
@@ -60,7 +60,7 @@ export default function LoginPage() {
             />
             {error && <p className="text-sm text-red-600">{error}</p>}
             <Button type="submit" loading={isSubmitting} className="w-full">
-              {t('common.login') === 'common.login' ? 'Login' : t('common.login')}
+              {t('common.login')}
             </Button>
           </form>
         </CardContent>

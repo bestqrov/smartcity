@@ -319,6 +319,7 @@
     "branchCity": "Ville",
     "studentFirstName": "Prénom",
     "studentLastName": "Nom",
+    "studentName": "Nom complet",
     "studentRegistrationNumber": "Numéro d'inscription",
     "studentBranch": "Filiale",
     "studentStatus": "Statut",

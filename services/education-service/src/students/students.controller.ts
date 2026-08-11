@@ -11,6 +11,7 @@ import {
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { FindStudentsQueryDto } from './dto/find-students-query.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { requireTenantId } from '../common/tenant.util';
@@ -29,16 +30,13 @@ export class StudentsController {
   @Get()
   async findAll(
     @CurrentUser() user: CurrentUserDto,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('branchId') branchId?: string,
-    @Query('status') status?: string,
+    @Query() query: FindStudentsQueryDto,
   ) {
     return this.studentsService.findAll(requireTenantId(user), {
-      page: page || 1,
-      limit: limit || 20,
-      branchId,
-      status,
+      page: query.page || 1,
+      limit: query.limit || 20,
+      branchId: query.branchId,
+      status: query.status,
     });
   }
 

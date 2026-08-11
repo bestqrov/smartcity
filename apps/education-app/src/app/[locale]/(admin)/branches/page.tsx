@@ -20,14 +20,20 @@ export default function BranchesPage() {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    await createBranch.mutateAsync({ name, address, city });
-    setName('');
-    setAddress('');
-    setCity('');
-    setIsModalOpen(false);
+    setError(null);
+    try {
+      await createBranch.mutateAsync({ name, address, city });
+      setName('');
+      setAddress('');
+      setCity('');
+      setIsModalOpen(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('common.error'));
+    }
   };
 
   return (
@@ -97,6 +103,7 @@ export default function BranchesPage() {
             onChange={(e) => setCity(e.target.value)}
             required
           />
+          {error && <p className="text-sm text-red-600">{error}</p>}
         </form>
       </Modal>
     </div>

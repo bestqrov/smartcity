@@ -319,6 +319,7 @@
     "branchCity": "City",
     "studentFirstName": "First name",
     "studentLastName": "Last name",
+    "studentName": "Name",
     "studentRegistrationNumber": "Registration number",
     "studentBranch": "Branch",
     "studentStatus": "Status",

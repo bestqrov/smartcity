@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-4 text-sm">
             <span className="text-gray-500">{user.email}</span>
             <button onClick={logout} className="text-gray-700 hover:underline">
-              {t('common.logout') === 'common.logout' ? 'Logout' : t('common.logout')}
+              {t('common.logout')}
             </button>
           </div>
         </header>

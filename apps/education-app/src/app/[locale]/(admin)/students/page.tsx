@@ -79,7 +79,9 @@ export default function StudentsPage() {
                 <th className="p-3 text-start font-medium text-gray-500">
                   {t('education.studentRegistrationNumber')}
                 </th>
-                <th className="p-3 text-start font-medium text-gray-500">Name</th>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.studentName')}
+                </th>
                 <th className="p-3 text-start font-medium text-gray-500">
                   {t('education.studentBranch')}
                 </th>
