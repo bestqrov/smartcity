@@ -1,7 +1,7 @@
-import { IsString, IsOptional, IsDateString, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsDateString, IsMongoId, MinLength } from 'class-validator';
 
 export class CreateStudentDto {
-  @IsString()
+  @IsMongoId()
   branchId: string;
 
   @IsString()
