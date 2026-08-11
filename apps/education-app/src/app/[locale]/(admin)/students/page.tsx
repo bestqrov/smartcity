@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import {
   Button,
   Input,
@@ -20,6 +22,8 @@ const STATUS_VARIANT: Record<string, 'success' | 'default' | 'info'> = {
 
 export default function StudentsPage() {
   const { t } = useTranslation();
+  const params = useParams();
+  const locale = (params?.locale as string) || 'fr';
   const { data, isLoading } = useStudents();
   const { data: branchesData } = useBranches();
   const createStudent = useCreateStudent();
@@ -95,7 +99,12 @@ export default function StudentsPage() {
                 <tr key={student.id} className="border-b border-gray-100 last:border-0">
                   <td className="p-3">{student.registrationNumber}</td>
                   <td className="p-3">
-                    {student.firstName} {student.lastName}
+                    <Link
+                      href={`/${locale}/students/${student.id}`}
+                      className="text-primary-700 hover:underline"
+                    >
+                      {student.firstName} {student.lastName}
+                    </Link>
                   </td>
                   <td className="p-3">{branchNameById(student.branchId)}</td>
                   <td className="p-3">

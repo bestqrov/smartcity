@@ -23,6 +23,14 @@ export function useStudents(page = 1, limit = 20) {
   });
 }
 
+export function useStudent(id: string | undefined) {
+  return useQuery({
+    queryKey: ['students', id],
+    queryFn: () => apiClient<IStudent>(`/api/students/${id}`),
+    enabled: !!id,
+  });
+}
+
 export function useCreateStudent() {
   const queryClient = useQueryClient();
 

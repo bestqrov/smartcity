@@ -28,6 +28,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: `/${locale}/branches`, label: t('education.branches') },
     { href: `/${locale}/students`, label: t('education.students') },
+    { href: `/${locale}/guardians`, label: t('education.guardians') },
   ];
 
   return (
