@@ -310,6 +310,10 @@
     }
   },
   "education": {
+    "brandName": "Education",
+    "loginPrefix": "Espace",
+    "loginHeading": "Connexion",
+    "brandTagline": "La plateforme tout-en-un pour piloter votre établissement avec précision.",
     "branches": "Filiales",
     "students": "Étudiants",
     "addBranch": "Ajouter une filiale",

@@ -310,6 +310,10 @@
     }
   },
   "education": {
+    "brandName": "Education",
+    "loginPrefix": "Login",
+    "loginHeading": "Portal",
+    "brandTagline": "The all-in-one platform to run your institution with precision.",
     "branches": "Branches",
     "students": "Students",
     "addBranch": "Add branch",

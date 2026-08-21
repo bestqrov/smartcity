@@ -310,6 +310,10 @@
     }
   },
   "education": {
+    "brandName": "التعليم",
+    "loginPrefix": "فضاء",
+    "loginHeading": "تسجيل الدخول",
+    "brandTagline": "المنصة الشاملة لتسيير مؤسستكم بدقة واحترافية.",
     "branches": "الفروع",
     "students": "الطلبة",
     "addBranch": "إضافة فرع",
