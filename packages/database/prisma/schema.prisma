@@ -145,6 +145,9 @@ model Tenant {
   students          Student[]
   guardians         Guardian[]
   studentGuardians  StudentGuardian[]
+  teachers          Teacher[]
+  groups            Group[]
+  groupStudents     GroupStudent[]
 
   @@map("tenants")
 }
@@ -481,6 +484,12 @@ model PurchaseItem {
   @@map("purchase_items")
 }
 
+enum PaymentType {
+  HOURLY
+  FIXED
+  PERCENTAGE
+}
+
 enum StudentStatus {
   ACTIVE
   WITHDRAWN
@@ -499,6 +508,7 @@ model Branch {
 
   tenant   Tenant    @relation(fields: [tenantId], references: [id])
   students Student[]
+  groups   Group[]
 
   @@map("branches")
 }
@@ -518,6 +528,7 @@ model Student {
   tenant Tenant @relation(fields: [tenantId], references: [id])
   branch Branch @relation(fields: [branchId], references: [id])
   guardianLinks StudentGuardian[]
+  groupLinks GroupStudent[]
 
   @@unique([tenantId, registrationNumber])
   @@map("students")
@@ -567,4 +578,61 @@ model StudentGuardian {
 
   @@unique([studentId, guardianId])
   @@map("student_guardians")
+}
+
+model Teacher {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId    String      @db.ObjectId
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+  specialties String[]
+  levels      String[]
+  hourlyRate  Float       @default(0)
+  paymentType PaymentType @default(HOURLY)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  groups Group[]
+
+  @@map("teachers")
+}
+
+model Group {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId  String   @db.ObjectId
+  branchId  String   @db.ObjectId
+  name      String
+  level     String?
+  subject   String?
+  room      String?
+  teacherId String?  @db.ObjectId
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant         @relation(fields: [tenantId], references: [id])
+  branch   Branch         @relation(fields: [branchId], references: [id])
+  teacher  Teacher?       @relation(fields: [teacherId], references: [id])
+  students GroupStudent[]
+
+  @@map("groups")
+}
+
+model GroupStudent {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId  String   @db.ObjectId
+  groupId   String   @db.ObjectId
+  studentId String   @db.ObjectId
+  createdAt DateTime @default(now())
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  group   Group   @relation(fields: [groupId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@unique([groupId, studentId])
+  @@map("group_students")
 }
