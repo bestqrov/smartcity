@@ -88,23 +88,26 @@ export default function GroupsPage() {
       {!isLoading && data && data.data.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data.data.map((group) => (
-            <Link key={group.id} href={`/${locale}/groups/${group.id}`}>
-              <Card className="transition-shadow hover:shadow-md">
-                <CardContent>
-                  <p className="font-medium text-gray-900">{group.name}</p>
-                  {(group.subject || group.level) && (
-                    <p className="mt-1 text-sm text-gray-500">
-                      {[group.subject, group.level].filter(Boolean).join(' · ')}
-                    </p>
-                  )}
+            <Card key={group.id} className="transition-shadow hover:shadow-md">
+              <CardContent>
+                <Link
+                  href={`/${locale}/groups/${group.id}`}
+                  className="font-medium text-primary-700 hover:underline"
+                >
+                  {group.name}
+                </Link>
+                {(group.subject || group.level) && (
                   <p className="mt-1 text-sm text-gray-500">
-                    {group.teacher
-                      ? `${group.teacher.firstName} ${group.teacher.lastName}`
-                      : t('education.noTeacherAssigned')}
+                    {[group.subject, group.level].filter(Boolean).join(' · ')}
                   </p>
-                </CardContent>
-              </Card>
-            </Link>
+                )}
+                <p className="mt-1 text-sm text-gray-500">
+                  {group.teacher
+                    ? `${group.teacher.firstName} ${group.teacher.lastName}`
+                    : t('education.noTeacherAssigned')}
+                </p>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
