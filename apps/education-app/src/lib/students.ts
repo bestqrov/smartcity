@@ -19,14 +19,14 @@ export function useStudents(page = 1, limit = 20) {
   return useQuery({
     queryKey: ['students', page, limit],
     queryFn: () =>
-      apiClient<StudentListResponse>(`/api/students?page=${page}&limit=${limit}`),
+      apiClient<StudentListResponse>(`/students?page=${page}&limit=${limit}`),
   });
 }
 
 export function useStudent(id: string | undefined) {
   return useQuery({
     queryKey: ['students', id],
-    queryFn: () => apiClient<IStudent>(`/api/students/${id}`),
+    queryFn: () => apiClient<IStudent>(`/students/${id}`),
     enabled: !!id,
   });
 }
@@ -36,7 +36,7 @@ export function useCreateStudent() {
 
   return useMutation({
     mutationFn: (input: CreateStudentInput) =>
-      apiClient<IStudent>('/api/students', {
+      apiClient<IStudent>('/students', {
         method: 'POST',
         body: JSON.stringify(input),
       }),

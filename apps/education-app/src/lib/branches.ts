@@ -17,7 +17,7 @@ export function useBranches(page = 1, limit = 20) {
   return useQuery({
     queryKey: ['branches', page, limit],
     queryFn: () =>
-      apiClient<BranchListResponse>(`/api/branches?page=${page}&limit=${limit}`),
+      apiClient<BranchListResponse>(`/branches?page=${page}&limit=${limit}`),
   });
 }
 
@@ -26,7 +26,7 @@ export function useCreateBranch() {
 
   return useMutation({
     mutationFn: (input: CreateBranchInput) =>
-      apiClient<IBranch>('/api/branches', {
+      apiClient<IBranch>('/branches', {
         method: 'POST',
         body: JSON.stringify(input),
       }),

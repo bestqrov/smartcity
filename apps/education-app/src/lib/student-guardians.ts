@@ -26,7 +26,7 @@ export function useStudentGuardians(studentId: string | undefined) {
     queryKey: ['student-guardians', studentId],
     queryFn: () =>
       apiClient<StudentGuardianWithGuardian[]>(
-        `/api/student-guardians?studentId=${studentId}`,
+        `/student-guardians?studentId=${studentId}`,
       ),
     enabled: !!studentId,
   });
@@ -37,7 +37,7 @@ export function useCreateStudentGuardian() {
 
   return useMutation({
     mutationFn: (input: CreateStudentGuardianInput) =>
-      apiClient<IStudentGuardian>('/api/student-guardians', {
+      apiClient<IStudentGuardian>('/student-guardians', {
         method: 'POST',
         body: JSON.stringify(input),
       }),
@@ -55,7 +55,7 @@ export function useUpdateStudentGuardian(studentId: string) {
 
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: UpdateStudentGuardianInput }) =>
-      apiClient<IStudentGuardian>(`/api/student-guardians/${id}`, {
+      apiClient<IStudentGuardian>(`/student-guardians/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(input),
       }),
@@ -70,7 +70,7 @@ export function useRemoveStudentGuardian(studentId: string) {
 
   return useMutation({
     mutationFn: (id: string) =>
-      apiClient<{ message: string }>(`/api/student-guardians/${id}`, {
+      apiClient<{ message: string }>(`/student-guardians/${id}`, {
         method: 'DELETE',
       }),
     onSuccess: () => {

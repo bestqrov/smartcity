@@ -35,7 +35,7 @@ export function useGuardians(page = 1, limit = 20) {
   return useQuery({
     queryKey: ['guardians', page, limit],
     queryFn: () =>
-      apiClient<GuardianListResponse>(`/api/guardians?page=${page}&limit=${limit}`),
+      apiClient<GuardianListResponse>(`/guardians?page=${page}&limit=${limit}`),
   });
 }
 
@@ -43,7 +43,7 @@ export function useGuardianStudents(guardianId: string | undefined) {
   return useQuery({
     queryKey: ['guardians', guardianId, 'students'],
     queryFn: () =>
-      apiClient<GuardianStudentLink[]>(`/api/guardians/${guardianId}/students`),
+      apiClient<GuardianStudentLink[]>(`/guardians/${guardianId}/students`),
     enabled: !!guardianId,
   });
 }
@@ -53,7 +53,7 @@ export function useCreateGuardian() {
 
   return useMutation({
     mutationFn: (input: CreateGuardianInput) =>
-      apiClient<IGuardian>('/api/guardians', {
+      apiClient<IGuardian>('/guardians', {
         method: 'POST',
         body: JSON.stringify(input),
       }),
@@ -68,7 +68,7 @@ export function useUpdateGuardian(id: string) {
 
   return useMutation({
     mutationFn: (input: UpdateGuardianInput) =>
-      apiClient<IGuardian>(`/api/guardians/${id}`, {
+      apiClient<IGuardian>(`/guardians/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(input),
       }),
@@ -83,7 +83,7 @@ export function useDeleteGuardian() {
 
   return useMutation({
     mutationFn: (id: string) =>
-      apiClient<{ message: string }>(`/api/guardians/${id}`, {
+      apiClient<{ message: string }>(`/guardians/${id}`, {
         method: 'DELETE',
       }),
     onSuccess: () => {

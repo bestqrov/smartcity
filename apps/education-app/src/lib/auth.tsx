@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await apiClient<ILoginResponse>('/api/auth/login', {
+    const response = await apiClient<ILoginResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
 
     if (refreshToken) {
-      apiClient('/api/auth/logout', {
+      apiClient('/auth/logout', {
         method: 'POST',
         body: JSON.stringify({ refreshToken }),
       }).catch(() => {
