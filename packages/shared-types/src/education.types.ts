@@ -61,3 +61,47 @@ export interface IStudentGuardian {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export enum PaymentType {
+  HOURLY = "HOURLY",
+  FIXED = "FIXED",
+  PERCENTAGE = "PERCENTAGE",
+}
+
+export interface ITeacher {
+  id: string;
+  tenantId: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  specialties: string[];
+  levels: string[];
+  hourlyRate: number;
+  paymentType: PaymentType;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IGroup {
+  id: string;
+  tenantId: string;
+  branchId: string;
+  name: string;
+  level?: string;
+  subject?: string;
+  room?: string;
+  teacherId?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IGroupStudent {
+  id: string;
+  tenantId: string;
+  groupId: string;
+  studentId: string;
+  createdAt: Date;
+}
