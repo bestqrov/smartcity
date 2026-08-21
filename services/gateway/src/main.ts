@@ -8,8 +8,13 @@ async function bootstrap() {
 
   app.enableCors({
     origin: process.env.FRONTEND_URL
-      ? [process.env.FRONTEND_URL, 'http://localhost:3102', 'http://localhost:4000']
-      : ['http://localhost:3102', 'http://localhost:4000'],
+      ? [
+          process.env.FRONTEND_URL,
+          'http://localhost:3102',
+          'http://localhost:3103',
+          'http://localhost:4000',
+        ]
+      : ['http://localhost:3102', 'http://localhost:3103', 'http://localhost:4000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
