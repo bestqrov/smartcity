@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { BranchesModule } from './branches/branches.module';
 import { StudentsModule } from './students/students.module';
 import { GuardiansModule } from './guardians/guardians.module';
+import { TeachersModule } from './teachers/teachers.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { HealthModule } from './health/health.module';
     BranchesModule,
     StudentsModule,
     GuardiansModule,
+    TeachersModule,
     HealthModule,
   ],
 })
