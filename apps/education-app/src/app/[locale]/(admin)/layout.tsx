@@ -14,6 +14,8 @@ import {
   LogOut,
   Menu,
   X,
+  Presentation,
+  Layers,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -59,6 +61,22 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       accent: 'text-amber-400',
       activeBg: 'bg-amber-500/10',
       activeBorder: 'border-amber-400',
+    },
+    {
+      href: `/${locale}/teachers`,
+      label: t('education.teachers'),
+      icon: Presentation,
+      accent: 'text-violet-400',
+      activeBg: 'bg-violet-500/10',
+      activeBorder: 'border-violet-400',
+    },
+    {
+      href: `/${locale}/groups`,
+      label: t('education.groups'),
+      icon: Layers,
+      accent: 'text-rose-400',
+      activeBg: 'bg-rose-500/10',
+      activeBorder: 'border-rose-400',
     },
   ];
 
