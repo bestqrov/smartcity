@@ -402,6 +402,21 @@
     "avgHourlyRate": "Avg. hourly rate",
     "totalGroups": "Total groups",
     "groupsWithTeacher": "With a teacher assigned",
-    "fullName": "Full name"
+    "fullName": "Full name",
+    "attendance": "Attendance",
+    "markAttendance": "Mark attendance",
+    "selectGroupForAttendance": "Select a group",
+    "selectDate": "Date",
+    "markAllPresent": "Mark all present",
+    "statusPresent": "Present",
+    "statusAbsent": "Absent",
+    "statusLate": "Late",
+    "statusExcused": "Excused",
+    "attendanceNotes": "Notes (optional)",
+    "saveAttendance": "Save attendance",
+    "attendanceRate": "Attendance rate",
+    "attendanceHistory": "Attendance history",
+    "noAttendanceRecordsYet": "No attendance recorded yet.",
+    "selectGroupAndDatePrompt": "Select a group and a date to take attendance."
   }
 }

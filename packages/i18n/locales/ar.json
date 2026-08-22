@@ -402,6 +402,21 @@
     "avgHourlyRate": "متوسط الأجر بالساعة",
     "totalGroups": "إجمالي الأفواج",
     "groupsWithTeacher": "لديها أستاذ معيَّن",
-    "fullName": "الاسم الكامل"
+    "fullName": "الاسم الكامل",
+    "attendance": "الحضور",
+    "markAttendance": "تسجيل الحضور",
+    "selectGroupForAttendance": "اختر فوجًا",
+    "selectDate": "التاريخ",
+    "markAllPresent": "تعليم الكل حاضر",
+    "statusPresent": "حاضر",
+    "statusAbsent": "غائب",
+    "statusLate": "متأخر",
+    "statusExcused": "معذور",
+    "attendanceNotes": "ملاحظات (اختياري)",
+    "saveAttendance": "حفظ الحضور",
+    "attendanceRate": "نسبة الحضور",
+    "attendanceHistory": "سجل الحضور",
+    "noAttendanceRecordsYet": "لا يوجد حضور مسجل بعد.",
+    "selectGroupAndDatePrompt": "اختر فوجًا وتاريخًا لتسجيل الحضور."
   }
 }

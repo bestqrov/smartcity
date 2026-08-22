@@ -402,6 +402,21 @@
     "avgHourlyRate": "Taux horaire moyen",
     "totalGroups": "Total groupes",
     "groupsWithTeacher": "Avec un enseignant assigné",
-    "fullName": "Nom complet"
+    "fullName": "Nom complet",
+    "attendance": "Présence",
+    "markAttendance": "Prendre la présence",
+    "selectGroupForAttendance": "Sélectionner un groupe",
+    "selectDate": "Date",
+    "markAllPresent": "Tout marquer présent",
+    "statusPresent": "Présent",
+    "statusAbsent": "Absent",
+    "statusLate": "En retard",
+    "statusExcused": "Excusé",
+    "attendanceNotes": "Notes (optionnel)",
+    "saveAttendance": "Enregistrer la présence",
+    "attendanceRate": "Taux de présence",
+    "attendanceHistory": "Historique de présence",
+    "noAttendanceRecordsYet": "Aucune présence enregistrée pour l'instant.",
+    "selectGroupAndDatePrompt": "Sélectionnez un groupe et une date pour prendre la présence."
   }
 }
