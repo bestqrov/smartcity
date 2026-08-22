@@ -63,7 +63,7 @@ export default function GroupDetailPage() {
         <Link href={`/${locale}/groups`} className="text-sm text-primary-700 hover:underline">
           &larr; {t('education.backToGroups')}
         </Link>
-        <p className="mt-4 text-sm text-gray-500">{t('education.noGroupsYet')}</p>
+        <p className="mt-4 text-sm text-gray-500">{t('education.groupNotFound')}</p>
       </div>
     );
   }

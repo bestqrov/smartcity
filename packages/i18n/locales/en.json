@@ -388,6 +388,7 @@
     "noStudentsEnrolledYet": "No students enrolled yet.",
     "removeFromGroup": "Remove",
     "confirmRemoveFromGroup": "Remove this student from the group?",
-    "backToGroups": "Back to groups"
+    "backToGroups": "Back to groups",
+    "groupNotFound": "This group could not be found."
   }
 }

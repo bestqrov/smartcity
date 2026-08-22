@@ -388,6 +388,7 @@
     "noStudentsEnrolledYet": "لا يوجد طلبة مسجلين بعد.",
     "removeFromGroup": "إزالة",
     "confirmRemoveFromGroup": "إزالة هذا الطالب من الفوج؟",
-    "backToGroups": "العودة إلى الأفواج"
+    "backToGroups": "العودة إلى الأفواج",
+    "groupNotFound": "لم يتم العثور على هذا الفوج."
   }
 }

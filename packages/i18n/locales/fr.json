@@ -388,6 +388,7 @@
     "noStudentsEnrolledYet": "Aucun étudiant inscrit pour l'instant.",
     "removeFromGroup": "Retirer",
     "confirmRemoveFromGroup": "Retirer cet étudiant du groupe ?",
-    "backToGroups": "Retour aux groupes"
+    "backToGroups": "Retour aux groupes",
+    "groupNotFound": "Ce groupe est introuvable."
   }
 }
