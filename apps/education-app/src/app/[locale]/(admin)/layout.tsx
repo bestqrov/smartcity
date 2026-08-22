@@ -16,6 +16,7 @@ import {
   X,
   Presentation,
   Layers,
+  Calendar,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -77,6 +78,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       accent: 'text-rose-400',
       activeBg: 'bg-rose-500/10',
       activeBorder: 'border-rose-400',
+    },
+    {
+      href: `/${locale}/attendance`,
+      label: t('education.attendance'),
+      icon: Calendar,
+      accent: 'text-cyan-400',
+      activeBg: 'bg-cyan-500/10',
+      activeBorder: 'border-cyan-400',
     },
   ];
 
