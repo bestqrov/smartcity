@@ -148,6 +148,7 @@ model Tenant {
   teachers          Teacher[]
   groups            Group[]
   groupStudents     GroupStudent[]
+  attendances       Attendance[]
 
   @@map("tenants")
 }
@@ -484,6 +485,13 @@ model PurchaseItem {
   @@map("purchase_items")
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
 enum PaymentType {
   HOURLY
   FIXED
@@ -529,6 +537,7 @@ model Student {
   branch Branch @relation(fields: [branchId], references: [id])
   guardianLinks StudentGuardian[]
   groupLinks GroupStudent[]
+  attendances Attendance[]
 
   @@unique([tenantId, registrationNumber])
   @@map("students")
@@ -618,6 +627,7 @@ model Group {
   branch   Branch         @relation(fields: [branchId], references: [id])
   teacher  Teacher?       @relation(fields: [teacherId], references: [id])
   students GroupStudent[]
+  attendances Attendance[]
 
   @@map("groups")
 }
@@ -635,4 +645,23 @@ model GroupStudent {
 
   @@unique([groupId, studentId])
   @@map("group_students")
+}
+
+model Attendance {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId  String           @db.ObjectId
+  groupId   String           @db.ObjectId
+  studentId String           @db.ObjectId
+  date      DateTime
+  status    AttendanceStatus
+  notes     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  group   Group   @relation(fields: [groupId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@unique([groupId, studentId, date])
+  @@map("attendances")
 }
