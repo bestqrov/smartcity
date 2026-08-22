@@ -105,3 +105,22 @@ export interface IGroupStudent {
   studentId: string;
   createdAt: Date;
 }
+
+export enum AttendanceStatus {
+  PRESENT = "PRESENT",
+  ABSENT = "ABSENT",
+  LATE = "LATE",
+  EXCUSED = "EXCUSED",
+}
+
+export interface IAttendance {
+  id: string;
+  tenantId: string;
+  groupId: string;
+  studentId: string;
+  date: Date;
+  status: AttendanceStatus;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
