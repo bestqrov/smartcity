@@ -6,6 +6,7 @@ import { StudentsModule } from './students/students.module';
 import { GuardiansModule } from './guardians/guardians.module';
 import { TeachersModule } from './teachers/teachers.module';
 import { GroupsModule } from './groups/groups.module';
+import { AttendanceModule } from './attendance/attendance.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -20,6 +21,7 @@ import { HealthModule } from './health/health.module';
     GuardiansModule,
     TeachersModule,
     GroupsModule,
+    AttendanceModule,
     HealthModule,
   ],
 })
