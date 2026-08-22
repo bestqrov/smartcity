@@ -50,6 +50,7 @@ export class ProxyMiddleware implements NestMiddleware {
       '/api/teachers': educationServiceUrl,
       '/api/groups': educationServiceUrl,
       '/api/group-students': educationServiceUrl,
+      '/api/attendance': educationServiceUrl,
     };
   }
 
