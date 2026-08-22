@@ -9,6 +9,7 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
+    "actions": "Actions",
     "search": "Search",
     "filter": "Filter",
     "back": "Back",
@@ -389,6 +390,18 @@
     "removeFromGroup": "Remove",
     "confirmRemoveFromGroup": "Remove this student from the group?",
     "backToGroups": "Back to groups",
-    "groupNotFound": "This group could not be found."
+    "groupNotFound": "This group could not be found.",
+    "totalBranches": "Total branches",
+    "citiesCovered": "Cities covered",
+    "totalStudents": "Total students",
+    "activeStudents": "Active",
+    "graduatedStudents": "Graduated",
+    "totalGuardians": "Total guardians",
+    "guardiansWithPhone": "With phone number",
+    "totalTeachers": "Total teachers",
+    "avgHourlyRate": "Avg. hourly rate",
+    "totalGroups": "Total groups",
+    "groupsWithTeacher": "With a teacher assigned",
+    "fullName": "Full name"
   }
 }

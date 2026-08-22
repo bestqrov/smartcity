@@ -3,11 +3,10 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { Users, Phone, Eye, Pencil, Trash2 } from 'lucide-react';
 import {
   Button,
   Input,
-  Card,
-  CardContent,
   Modal,
   Skeleton,
 } from '@smartcity/ui';
@@ -20,6 +19,8 @@ import {
   useDeleteGuardian,
 } from '@/lib/guardians';
 import { useTranslation } from '@/lib/i18n';
+import { StatCard } from '@/components/StatCard';
+import { InitialsAvatar } from '@/components/InitialsAvatar';
 
 interface GuardianFormState {
   firstName: string;
@@ -102,6 +103,8 @@ export default function GuardiansPage() {
   };
 
   const isSaving = createGuardian.isPending || updateGuardian.isPending;
+  const guardians = data?.data ?? [];
+  const withPhoneCount = guardians.filter((g) => g.phone).length;
 
   return (
     <div>
@@ -110,6 +113,23 @@ export default function GuardiansPage() {
         <Button onClick={openCreateModal}>{t('education.addGuardian')}</Button>
       </div>
 
+      {!isLoading && guardians.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <StatCard
+            icon={Users}
+            color="amber"
+            label={t('education.totalGuardians')}
+            value={guardians.length}
+          />
+          <StatCard
+            icon={Phone}
+            color="amber"
+            label={t('education.guardiansWithPhone')}
+            value={withPhoneCount}
+          />
+        </div>
+      )}
+
       {isLoading && (
         <div className="flex flex-col gap-3">
           <Skeleton height="4rem" />
@@ -117,43 +137,79 @@ export default function GuardiansPage() {
         </div>
       )}
 
-      {!isLoading && data?.data.length === 0 && (
-        <p className="text-sm text-gray-500">{t('education.noGuardiansYet')}</p>
+      {!isLoading && guardians.length === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 py-16">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500">
+            <Users size={24} />
+          </div>
+          <p className="text-sm text-gray-500">{t('education.noGuardiansYet')}</p>
+        </div>
       )}
 
-      {!isLoading && data && data.data.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.data.map((guardian) => (
-            <Card key={guardian.id}>
-              <CardContent>
-                <p className="font-medium text-gray-900">
-                  {guardian.firstName} {guardian.lastName}
-                </p>
-                {guardian.email && (
-                  <p className="mt-1 text-sm text-gray-500">{guardian.email}</p>
-                )}
-                {guardian.phone && (
-                  <p className="text-sm text-gray-500">{guardian.phone}</p>
-                )}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setViewingStudentsFor(guardian)}>
-                    {t('education.linkedStudents')}
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => openEditModal(guardian)}>
-                    {t('common.edit')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => handleDelete(guardian.id)}
-                    loading={deleteGuardian.isPending}
-                  >
-                    {t('common.delete')}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      {!isLoading && guardians.length > 0 && (
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <table className="w-full text-start text-sm">
+            <thead className="border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.fullName')}
+                </th>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.guardianEmail')}
+                </th>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.guardianPhone')}
+                </th>
+                <th className="p-3 text-end font-medium text-gray-500">
+                  {t('common.actions')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {guardians.map((guardian) => (
+                <tr key={guardian.id} className="border-b border-gray-100 last:border-0 hover:bg-amber-50/30">
+                  <td className="p-3">
+                    <div className="flex items-center gap-3">
+                      <InitialsAvatar
+                        name={`${guardian.firstName} ${guardian.lastName}`}
+                        color="amber"
+                      />
+                      <span className="font-medium text-gray-900">
+                        {guardian.firstName} {guardian.lastName}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="p-3 text-gray-600">{guardian.email ?? '—'}</td>
+                  <td className="p-3 text-gray-600">{guardian.phone ?? '—'}</td>
+                  <td className="p-3">
+                    <div className="flex justify-end gap-1">
+                      <button
+                        onClick={() => setViewingStudentsFor(guardian)}
+                        title={t('education.linkedStudents')}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-amber-50 hover:text-amber-600"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        onClick={() => openEditModal(guardian)}
+                        title={t('common.edit')}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-sky-50 hover:text-sky-600"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(guardian.id)}
+                        title={t('common.delete')}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

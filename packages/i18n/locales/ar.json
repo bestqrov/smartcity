@@ -9,6 +9,7 @@
     "cancel": "إلغاء",
     "delete": "حذف",
     "edit": "تعديل",
+    "actions": "إجراءات",
     "search": "بحث",
     "filter": "تصفية",
     "back": "رجوع",
@@ -389,6 +390,18 @@
     "removeFromGroup": "إزالة",
     "confirmRemoveFromGroup": "إزالة هذا الطالب من الفوج؟",
     "backToGroups": "العودة إلى الأفواج",
-    "groupNotFound": "لم يتم العثور على هذا الفوج."
+    "groupNotFound": "لم يتم العثور على هذا الفوج.",
+    "totalBranches": "إجمالي الفروع",
+    "citiesCovered": "المدن المغطاة",
+    "totalStudents": "إجمالي الطلبة",
+    "activeStudents": "نشطون",
+    "graduatedStudents": "متخرجون",
+    "totalGuardians": "إجمالي الأولياء",
+    "guardiansWithPhone": "لديهم رقم هاتف",
+    "totalTeachers": "إجمالي الأساتذة",
+    "avgHourlyRate": "متوسط الأجر بالساعة",
+    "totalGroups": "إجمالي الأفواج",
+    "groupsWithTeacher": "لديها أستاذ معيَّن",
+    "fullName": "الاسم الكامل"
   }
 }

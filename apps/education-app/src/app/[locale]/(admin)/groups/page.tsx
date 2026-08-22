@@ -3,11 +3,10 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { Layers, UserCheck } from 'lucide-react';
 import {
   Button,
   Input,
-  Card,
-  CardContent,
   Modal,
   Skeleton,
 } from '@smartcity/ui';
@@ -15,6 +14,8 @@ import { useGroups, useCreateGroup } from '@/lib/groups';
 import { useBranches } from '@/lib/branches';
 import { useTeachers } from '@/lib/teachers';
 import { useTranslation } from '@/lib/i18n';
+import { StatCard } from '@/components/StatCard';
+import { InitialsAvatar } from '@/components/InitialsAvatar';
 
 interface GroupFormState {
   name: string;
@@ -67,12 +68,32 @@ export default function GroupsPage() {
     }
   };
 
+  const groups = data?.data ?? [];
+  const withTeacherCount = groups.filter((g) => g.teacher).length;
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">{t('education.groups')}</h1>
         <Button onClick={() => setIsModalOpen(true)}>{t('education.addGroup')}</Button>
       </div>
+
+      {!isLoading && groups.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <StatCard
+            icon={Layers}
+            color="rose"
+            label={t('education.totalGroups')}
+            value={groups.length}
+          />
+          <StatCard
+            icon={UserCheck}
+            color="rose"
+            label={t('education.groupsWithTeacher')}
+            value={withTeacherCount}
+          />
+        </div>
+      )}
 
       {isLoading && (
         <div className="flex flex-col gap-3">
@@ -81,34 +102,51 @@ export default function GroupsPage() {
         </div>
       )}
 
-      {!isLoading && data?.data.length === 0 && (
-        <p className="text-sm text-gray-500">{t('education.noGroupsYet')}</p>
+      {!isLoading && groups.length === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 py-16">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 text-rose-500">
+            <Layers size={24} />
+          </div>
+          <p className="text-sm text-gray-500">{t('education.noGroupsYet')}</p>
+        </div>
       )}
 
-      {!isLoading && data && data.data.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.data.map((group) => (
-            <Card key={group.id} className="transition-shadow hover:shadow-md">
-              <CardContent>
-                <Link
-                  href={`/${locale}/groups/${group.id}`}
-                  className="font-medium text-primary-700 hover:underline"
-                >
-                  {group.name}
-                </Link>
-                {(group.subject || group.level) && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    {[group.subject, group.level].filter(Boolean).join(' · ')}
-                  </p>
-                )}
-                <p className="mt-1 text-sm text-gray-500">
-                  {group.teacher
-                    ? `${group.teacher.firstName} ${group.teacher.lastName}`
-                    : t('education.noTeacherAssigned')}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+      {!isLoading && groups.length > 0 && (
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <table className="w-full text-start text-sm">
+            <thead className="border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th className="p-3 text-start font-medium text-gray-500">{t('education.groupName')}</th>
+                <th className="p-3 text-start font-medium text-gray-500">{t('education.groupSubject')}</th>
+                <th className="p-3 text-start font-medium text-gray-500">{t('education.groupTeacher')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.map((group) => (
+                <tr key={group.id} className="border-b border-gray-100 last:border-0 hover:bg-rose-50/30">
+                  <td className="p-3">
+                    <div className="flex items-center gap-3">
+                      <InitialsAvatar name={group.name} color="rose" />
+                      <Link
+                        href={`/${locale}/groups/${group.id}`}
+                        className="font-medium text-primary-700 hover:underline"
+                      >
+                        {group.name}
+                      </Link>
+                    </div>
+                  </td>
+                  <td className="p-3 text-gray-600">
+                    {[group.subject, group.level].filter(Boolean).join(' · ') || '—'}
+                  </td>
+                  <td className="p-3 text-gray-600">
+                    {group.teacher
+                      ? `${group.teacher.firstName} ${group.teacher.lastName}`
+                      : t('education.noTeacherAssigned')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

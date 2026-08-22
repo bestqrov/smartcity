@@ -9,6 +9,7 @@
     "cancel": "Annuler",
     "delete": "Supprimer",
     "edit": "Modifier",
+    "actions": "Actions",
     "search": "Rechercher",
     "filter": "Filtrer",
     "back": "Retour",
@@ -389,6 +390,18 @@
     "removeFromGroup": "Retirer",
     "confirmRemoveFromGroup": "Retirer cet étudiant du groupe ?",
     "backToGroups": "Retour aux groupes",
-    "groupNotFound": "Ce groupe est introuvable."
+    "groupNotFound": "Ce groupe est introuvable.",
+    "totalBranches": "Total filiales",
+    "citiesCovered": "Villes couvertes",
+    "totalStudents": "Total étudiants",
+    "activeStudents": "Actifs",
+    "graduatedStudents": "Diplômés",
+    "totalGuardians": "Total tuteurs",
+    "guardiansWithPhone": "Avec numéro de téléphone",
+    "totalTeachers": "Total enseignants",
+    "avgHourlyRate": "Taux horaire moyen",
+    "totalGroups": "Total groupes",
+    "groupsWithTeacher": "Avec un enseignant assigné",
+    "fullName": "Nom complet"
   }
 }

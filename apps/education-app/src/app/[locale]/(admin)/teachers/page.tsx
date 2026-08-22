@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import { Presentation, DollarSign, Pencil, Trash2 } from 'lucide-react';
 import {
   Button,
   Input,
-  Card,
-  CardContent,
   Modal,
   Skeleton,
 } from '@smartcity/ui';
@@ -18,6 +17,8 @@ import {
   useDeleteTeacher,
 } from '@/lib/teachers';
 import { useTranslation } from '@/lib/i18n';
+import { StatCard } from '@/components/StatCard';
+import { InitialsAvatar } from '@/components/InitialsAvatar';
 
 interface TeacherFormState {
   firstName: string;
@@ -115,6 +116,10 @@ export default function TeachersPage() {
   };
 
   const isSaving = createTeacher.isPending || updateTeacher.isPending;
+  const teachers = data?.data ?? [];
+  const avgHourlyRate = teachers.length
+    ? Math.round(teachers.reduce((sum, teacher) => sum + teacher.hourlyRate, 0) / teachers.length)
+    : 0;
 
   return (
     <div>
@@ -123,6 +128,23 @@ export default function TeachersPage() {
         <Button onClick={openCreateModal}>{t('education.addTeacher')}</Button>
       </div>
 
+      {!isLoading && teachers.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <StatCard
+            icon={Presentation}
+            color="violet"
+            label={t('education.totalTeachers')}
+            value={teachers.length}
+          />
+          <StatCard
+            icon={DollarSign}
+            color="violet"
+            label={t('education.avgHourlyRate')}
+            value={avgHourlyRate}
+          />
+        </div>
+      )}
+
       {isLoading && (
         <div className="flex flex-col gap-3">
           <Skeleton height="4rem" />
@@ -130,43 +152,75 @@ export default function TeachersPage() {
         </div>
       )}
 
-      {!isLoading && data?.data.length === 0 && (
-        <p className="text-sm text-gray-500">{t('education.noTeachersYet')}</p>
+      {!isLoading && teachers.length === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 py-16">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-violet-50 text-violet-500">
+            <Presentation size={24} />
+          </div>
+          <p className="text-sm text-gray-500">{t('education.noTeachersYet')}</p>
+        </div>
       )}
 
-      {!isLoading && data && data.data.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.data.map((teacher) => (
-            <Card key={teacher.id}>
-              <CardContent>
-                <p className="font-medium text-gray-900">
-                  {teacher.firstName} {teacher.lastName}
-                </p>
-                {teacher.email && (
-                  <p className="mt-1 text-sm text-gray-500">{teacher.email}</p>
-                )}
-                {teacher.phone && <p className="text-sm text-gray-500">{teacher.phone}</p>}
-                {teacher.specialties.length > 0 && (
-                  <p className="mt-2 text-xs text-gray-500">
-                    {teacher.specialties.join(', ')}
-                  </p>
-                )}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => openEditModal(teacher)}>
-                    {t('common.edit')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => handleDelete(teacher.id)}
-                    loading={deleteTeacher.isPending}
-                  >
-                    {t('common.delete')}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      {!isLoading && teachers.length > 0 && (
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <table className="w-full text-start text-sm">
+            <thead className="border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.fullName')}
+                </th>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.teacherSpecialties')}
+                </th>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.teacherPhone')}
+                </th>
+                <th className="p-3 text-end font-medium text-gray-500">{t('common.actions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {teachers.map((teacher) => (
+                <tr key={teacher.id} className="border-b border-gray-100 last:border-0 hover:bg-violet-50/30">
+                  <td className="p-3">
+                    <div className="flex items-center gap-3">
+                      <InitialsAvatar
+                        name={`${teacher.firstName} ${teacher.lastName}`}
+                        color="violet"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {teacher.firstName} {teacher.lastName}
+                        </p>
+                        {teacher.email && <p className="text-xs text-gray-500">{teacher.email}</p>}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-3 text-gray-600">
+                    {teacher.specialties.length > 0 ? teacher.specialties.join(', ') : '—'}
+                  </td>
+                  <td className="p-3 text-gray-600">{teacher.phone ?? '—'}</td>
+                  <td className="p-3">
+                    <div className="flex justify-end gap-1">
+                      <button
+                        onClick={() => openEditModal(teacher)}
+                        title={t('common.edit')}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-sky-50 hover:text-sky-600"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(teacher.id)}
+                        title={t('common.delete')}
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-red-50 hover:text-red-600"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
