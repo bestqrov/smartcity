@@ -1,23 +1,65 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../common/prisma.service';
+import { CreateUserDto } from './dto/create-user.dto';
 
 interface FindAllParams {
   page: number;
   limit: number;
-  tenantId?: string;
   role?: string;
 }
+
+const SELECT_FIELDS = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
+  role: true,
+  tenantId: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(params: FindAllParams) {
-    const { page, limit, tenantId, role } = params;
+  async create(tenantId: string, dto: CreateUserDto) {
+    const email = dto.email.toLowerCase();
+
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      throw new ConflictException('A user with this email already exists');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
+    return this.prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phone: dto.phone,
+        role: dto.role,
+        tenantId,
+      },
+      select: SELECT_FIELDS,
+    });
+  }
+
+  async findAll(tenantId: string, params: FindAllParams) {
+    const { page, limit, role } = params;
     const skip = (page - 1) * limit;
 
-    const where: Record<string, any> = { isActive: true };
-    if (tenantId) where.tenantId = tenantId;
+    const where: Record<string, any> = { tenantId };
     if (role) where.role = role;
 
     const [users, total] = await Promise.all([
@@ -25,18 +67,7 @@ export class UsersService {
         where,
         skip,
         take: limit,
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          phone: true,
-          role: true,
-          tenantId: true,
-          isActive: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        select: SELECT_FIELDS,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.user.count({ where }),
@@ -56,18 +87,7 @@ export class UsersService {
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        role: true,
-        tenantId: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: SELECT_FIELDS,
     });
 
     if (!user) {
@@ -77,11 +97,24 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, data: Record<string, any>) {
-    // Prevent updating sensitive fields directly
-    const { password, email, role, isActive, ...safeData } = data;
+  async findByIdInTenant(tenantId: string, id: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id, tenantId },
+      select: SELECT_FIELDS,
+    });
 
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  async update(tenantId: string, id: string, data: Record<string, any>) {
+    // Prevent updating sensitive fields directly
+    const { password, email, role, isActive, tenantId: _ignored, ...safeData } = data;
+
+    const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -89,23 +122,16 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id },
       data: safeData,
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        role: true,
-        tenantId: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: SELECT_FIELDS,
     });
   }
 
-  async softDelete(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+  async softDelete(tenantId: string, id: string, callerId: string) {
+    if (id === callerId) {
+      throw new BadRequestException('You cannot deactivate your own account');
+    }
+
+    const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
