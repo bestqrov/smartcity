@@ -4,7 +4,10 @@ import { useState, FormEvent } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Card, CardContent, Modal, Skeleton } from '@smartcity/ui';
+import { CalendarCheck } from 'lucide-react';
+import { StatCard } from '@/components/StatCard';
 import { useGroup } from '@/lib/groups';
+import { useGroupAttendanceStats } from '@/lib/attendance';
 import { useStudents } from '@/lib/students';
 import {
   useGroupStudents,
@@ -20,6 +23,7 @@ export default function GroupDetailPage() {
   const groupId = params?.id as string;
 
   const { data: group, isLoading: isLoadingGroup } = useGroup(groupId);
+  const { data: attendanceStats } = useGroupAttendanceStats(groupId);
   const { data: enrollments, isLoading: isLoadingEnrollments } = useGroupStudents(groupId);
   const { data: studentsData } = useStudents(1, 100);
 
@@ -85,6 +89,17 @@ export default function GroupDetailPage() {
             : t('education.noTeacherAssigned')}
         </p>
       </div>
+
+      {attendanceStats && attendanceStats.totalRecords > 0 && (
+        <div className="mb-6">
+          <StatCard
+            icon={CalendarCheck}
+            color="rose"
+            label={t('education.attendanceRate')}
+            value={`${attendanceStats.attendanceRate}%`}
+          />
+        </div>
+      )}
 
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">{t('education.groupStudents')}</h2>
