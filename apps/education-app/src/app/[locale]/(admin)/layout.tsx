@@ -19,6 +19,7 @@ import {
   Calendar,
   Wallet,
   UserCog,
+  ClipboardList,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -104,6 +105,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       accent: 'text-indigo-400',
       activeBg: 'bg-indigo-500/10',
       activeBorder: 'border-indigo-400',
+    },
+    {
+      href: `/${locale}/inscriptions`,
+      label: t('education.inscriptions'),
+      icon: ClipboardList,
+      accent: 'text-teal-400',
+      activeBg: 'bg-teal-500/10',
+      activeBorder: 'border-teal-400',
     },
   ];
 
