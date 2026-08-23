@@ -17,6 +17,7 @@ import {
   Presentation,
   Layers,
   Calendar,
+  Wallet,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -86,6 +87,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       accent: 'text-cyan-400',
       activeBg: 'bg-cyan-500/10',
       activeBorder: 'border-cyan-400',
+    },
+    {
+      href: `/${locale}/finance`,
+      label: t('education.finance'),
+      icon: Wallet,
+      accent: 'text-green-400',
+      activeBg: 'bg-green-500/10',
+      activeBorder: 'border-green-400',
     },
   ];
 

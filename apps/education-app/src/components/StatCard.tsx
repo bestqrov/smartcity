@@ -6,6 +6,7 @@ const colorClasses = {
   amber: 'bg-amber-50 text-amber-600',
   violet: 'bg-violet-50 text-violet-600',
   rose: 'bg-rose-50 text-rose-600',
+  green: 'bg-green-50 text-green-600',
 } as const;
 
 export type StatCardColor = keyof typeof colorClasses;
