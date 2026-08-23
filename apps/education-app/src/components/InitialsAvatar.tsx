@@ -4,6 +4,7 @@ const gradientClasses = {
   amber: 'from-amber-500 to-amber-600',
   violet: 'from-violet-500 to-violet-600',
   rose: 'from-rose-500 to-rose-600',
+  indigo: 'from-indigo-500 to-indigo-600',
 } as const;
 
 export type AvatarColor = keyof typeof gradientClasses;
