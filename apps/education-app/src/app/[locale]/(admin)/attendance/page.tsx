@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Skeleton } from '@smartcity/ui';
 import { AttendanceStatus } from '@smartcity/types';
 import { useGroups } from '@/lib/groups';
@@ -37,8 +37,13 @@ export default function AttendancePage() {
   const bulkMark = useBulkMarkAttendance();
 
   const students = useMemo(() => (enrollments ?? []).map((e) => e.student), [enrollments]);
+  const prefilledKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const key = groupId && date ? `${groupId}|${date}` : null;
+    if (!key || key === prefilledKeyRef.current) return;
+    if (students.length === 0) return;
+
     const nextStatus: Record<string, AttendanceStatus> = {};
     const nextNotes: Record<string, string> = {};
 
@@ -50,7 +55,15 @@ export default function AttendancePage() {
 
     setStatusByStudent(nextStatus);
     setNotesByStudent(nextNotes);
-  }, [students, existingAttendance]);
+
+    // Only lock in the key once existingAttendance has actually resolved
+    // (undefined -> loaded). While it's still loading, keep re-running so
+    // the real records get applied once the query settles; after that,
+    // further reference changes (e.g. refocus refetches) are ignored.
+    if (existingAttendance !== undefined) {
+      prefilledKeyRef.current = key;
+    }
+  }, [students, existingAttendance, groupId, date]);
 
   const markAllPresent = () => {
     const next: Record<string, AttendanceStatus> = {};
@@ -139,9 +152,12 @@ export default function AttendancePage() {
                         <button
                           key={option.value}
                           type="button"
-                          onClick={() =>
-                            setStatusByStudent({ ...statusByStudent, [student.id]: option.value })
-                          }
+                          onClick={() => {
+                            setStatusByStudent({ ...statusByStudent, [student.id]: option.value });
+                            if (option.value === AttendanceStatus.PRESENT) {
+                              setNotesByStudent({ ...notesByStudent, [student.id]: '' });
+                            }
+                          }}
                           className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                             active ? option.activeClass : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                           }`}
