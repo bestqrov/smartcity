@@ -124,3 +124,33 @@ export interface IAttendance {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export enum TransactionType {
+  INCOME = "INCOME",
+  EXPENSE = "EXPENSE",
+}
+
+export interface ITransaction {
+  id: string;
+  tenantId: string;
+  type: TransactionType;
+  amount: number;
+  category: string;
+  description?: string;
+  date: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IPayment {
+  id: string;
+  tenantId: string;
+  studentId: string;
+  transactionId: string;
+  amount: number;
+  method: string;
+  notes?: string;
+  date: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
