@@ -79,10 +79,4 @@ export class PaymentsService {
     };
   }
 
-  async findByStudent(tenantId: string, studentId: string) {
-    return this.prisma.payment.findMany({
-      where: { tenantId, studentId },
-      orderBy: { date: 'desc' },
-    });
-  }
 }
