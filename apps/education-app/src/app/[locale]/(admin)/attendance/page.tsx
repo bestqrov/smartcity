@@ -66,11 +66,14 @@ export default function AttendancePage() {
   }, [students, existingAttendance, groupId, date]);
 
   const markAllPresent = () => {
-    const next: Record<string, AttendanceStatus> = {};
+    const nextStatus: Record<string, AttendanceStatus> = {};
+    const nextNotes: Record<string, string> = {};
     for (const student of students) {
-      next[student.id] = AttendanceStatus.PRESENT;
+      nextStatus[student.id] = AttendanceStatus.PRESENT;
+      nextNotes[student.id] = '';
     }
-    setStatusByStudent(next);
+    setStatusByStudent(nextStatus);
+    setNotesByStudent(nextNotes);
   };
 
   const handleSave = async () => {
