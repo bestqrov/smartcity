@@ -23,6 +23,13 @@ import { requireTenantId } from '../common/tenant.util';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  private resolveTenantScope(user: any): string | undefined {
+    if (user.role === 'SUPER_ADMIN') {
+      return undefined;
+    }
+    return requireTenantId(user);
+  }
+
   @Get('me')
   async getMe(@Req() req: any) {
     const userId = req.user?.userId;
@@ -42,7 +49,7 @@ export class UsersController {
     @Query('limit') limit?: string,
     @Query('role') role?: string,
   ) {
-    const tenantId = requireTenantId(req.user);
+    const tenantId = this.resolveTenantScope(req.user);
     return this.usersService.findAll(tenantId, {
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 20,
@@ -52,7 +59,7 @@ export class UsersController {
 
   @Get(':id')
   async findOne(@Req() req: any, @Param('id') id: string) {
-    const tenantId = requireTenantId(req.user);
+    const tenantId = this.resolveTenantScope(req.user);
     return this.usersService.findByIdInTenant(tenantId, id);
   }
 
@@ -62,13 +69,13 @@ export class UsersController {
     @Param('id') id: string,
     @Body() data: Record<string, any>,
   ) {
-    const tenantId = requireTenantId(req.user);
+    const tenantId = this.resolveTenantScope(req.user);
     return this.usersService.update(tenantId, id, data);
   }
 
   @Delete(':id')
   async remove(@Req() req: any, @Param('id') id: string) {
-    const tenantId = requireTenantId(req.user);
+    const tenantId = this.resolveTenantScope(req.user);
     return this.usersService.softDelete(tenantId, id, req.user.userId);
   }
 }

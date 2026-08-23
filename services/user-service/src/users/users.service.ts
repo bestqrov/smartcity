@@ -55,11 +55,12 @@ export class UsersService {
     });
   }
 
-  async findAll(tenantId: string, params: FindAllParams) {
+  async findAll(tenantId: string | undefined, params: FindAllParams) {
     const { page, limit, role } = params;
     const skip = (page - 1) * limit;
 
-    const where: Record<string, any> = { tenantId };
+    const where: Record<string, any> = {};
+    if (tenantId) where.tenantId = tenantId;
     if (role) where.role = role;
 
     const [users, total] = await Promise.all([
@@ -97,9 +98,12 @@ export class UsersService {
     return user;
   }
 
-  async findByIdInTenant(tenantId: string, id: string) {
+  async findByIdInTenant(tenantId: string | undefined, id: string) {
+    const where: Record<string, any> = { id };
+    if (tenantId) where.tenantId = tenantId;
+
     const user = await this.prisma.user.findFirst({
-      where: { id, tenantId },
+      where,
       select: SELECT_FIELDS,
     });
 
@@ -110,11 +114,14 @@ export class UsersService {
     return user;
   }
 
-  async update(tenantId: string, id: string, data: Record<string, any>) {
+  async update(tenantId: string | undefined, id: string, data: Record<string, any>) {
     // Prevent updating sensitive fields directly
     const { password, email, role, isActive, tenantId: _ignored, ...safeData } = data;
 
-    const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
+    const where: Record<string, any> = { id };
+    if (tenantId) where.tenantId = tenantId;
+
+    const user = await this.prisma.user.findFirst({ where });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -126,12 +133,15 @@ export class UsersService {
     });
   }
 
-  async softDelete(tenantId: string, id: string, callerId: string) {
+  async softDelete(tenantId: string | undefined, id: string, callerId: string) {
     if (id === callerId) {
       throw new BadRequestException('You cannot deactivate your own account');
     }
 
-    const user = await this.prisma.user.findFirst({ where: { id, tenantId } });
+    const where: Record<string, any> = { id };
+    if (tenantId) where.tenantId = tenantId;
+
+    const user = await this.prisma.user.findFirst({ where });
     if (!user) {
       throw new NotFoundException('User not found');
     }
