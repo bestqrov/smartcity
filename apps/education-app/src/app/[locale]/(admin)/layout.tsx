@@ -18,6 +18,7 @@ import {
   Layers,
   Calendar,
   Wallet,
+  UserCog,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -95,6 +96,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       accent: 'text-green-400',
       activeBg: 'bg-green-500/10',
       activeBorder: 'border-green-400',
+    },
+    {
+      href: `/${locale}/users`,
+      label: t('education.users'),
+      icon: UserCog,
+      accent: 'text-indigo-400',
+      activeBg: 'bg-indigo-500/10',
+      activeBorder: 'border-indigo-400',
     },
   ];
 
