@@ -14,6 +14,7 @@ import {
 } from '@smartcity/ui';
 import { GuardianRelationshipType } from '@smartcity/types';
 import { useStudent } from '@/lib/students';
+import { useStudentAttendance } from '@/lib/attendance';
 import { useGuardians, useCreateGuardian } from '@/lib/guardians';
 import {
   useStudentGuardians,
@@ -43,6 +44,20 @@ const RELATIONSHIP_METADATA_FIELDS: Array<{
   { key: 'financiallyResponsible', labelKey: 'education.financiallyResponsible' },
 ];
 
+const ATTENDANCE_STATUS_VARIANT: Record<string, 'success' | 'error' | 'warning' | 'info'> = {
+  PRESENT: 'success',
+  ABSENT: 'error',
+  LATE: 'warning',
+  EXCUSED: 'info',
+};
+
+const ATTENDANCE_STATUS_LABEL_KEY: Record<string, string> = {
+  PRESENT: 'education.statusPresent',
+  ABSENT: 'education.statusAbsent',
+  LATE: 'education.statusLate',
+  EXCUSED: 'education.statusExcused',
+};
+
 export default function StudentDetailPage() {
   const { t } = useTranslation();
   const params = useParams();
@@ -51,6 +66,8 @@ export default function StudentDetailPage() {
 
   const { data: student, isLoading: isLoadingStudent } = useStudent(studentId);
   const { data: links, isLoading: isLoadingLinks } = useStudentGuardians(studentId);
+  const { data: attendanceHistory, isLoading: isLoadingAttendance } =
+    useStudentAttendance(studentId);
   const { data: guardiansData } = useGuardians(1, 100);
 
   const createGuardian = useCreateGuardian();
@@ -407,6 +424,53 @@ export default function StudentDetailPage() {
           ))}
         </form>
       </Modal>
+
+      <div className="mt-10">
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">
+          {t('education.attendanceHistory')}
+        </h2>
+
+        {isLoadingAttendance && <Skeleton height="4rem" />}
+
+        {!isLoadingAttendance && attendanceHistory?.length === 0 && (
+          <p className="text-sm text-gray-500">{t('education.noAttendanceRecordsYet')}</p>
+        )}
+
+        {!isLoadingAttendance && attendanceHistory && attendanceHistory.length > 0 && (
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <table className="w-full text-start text-sm">
+              <thead className="border-b border-gray-200 bg-gray-50">
+                <tr>
+                  <th className="p-3 text-start font-medium text-gray-500">
+                    {t('education.selectDate')}
+                  </th>
+                  <th className="p-3 text-start font-medium text-gray-500">
+                    {t('education.groups')}
+                  </th>
+                  <th className="p-3 text-start font-medium text-gray-500">
+                    {t('education.studentStatus')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceHistory.map((record) => (
+                  <tr key={record.id} className="border-b border-gray-100 last:border-0">
+                    <td className="p-3 text-gray-600">
+                      {new Date(record.date).toLocaleDateString(locale)}
+                    </td>
+                    <td className="p-3 text-gray-600">{record.group.name}</td>
+                    <td className="p-3">
+                      <Badge variant={ATTENDANCE_STATUS_VARIANT[record.status] ?? 'default'}>
+                        {t(ATTENDANCE_STATUS_LABEL_KEY[record.status] ?? record.status)}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
