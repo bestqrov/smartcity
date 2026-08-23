@@ -489,6 +489,11 @@
     "methodCheck": "Chèque",
     "methodOther": "Autre",
     "printReceipt": "Imprimer le reçu",
+    "receiptLabel": "Reçu",
+    "receiptDate": "Date",
+    "receiptStudent": "Étudiant",
+    "receiptOffering": "Offre",
+    "receiptMethod": "Méthode",
     "receiptThankYou": "Merci"
   }
 }

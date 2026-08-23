@@ -6,6 +6,7 @@ import type { OfferingWithTeacher } from './offerings';
 export interface InscriptionWithRelations extends IInscription {
   student: IStudent;
   offering: OfferingWithTeacher;
+  payment: { method: string };
 }
 
 export interface CreatedInscription extends InscriptionWithRelations {

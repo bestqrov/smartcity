@@ -13,6 +13,7 @@ interface FindAllParams {
 const INCLUDE_RELATIONS = {
   student: true,
   offering: { include: { teacher: true } },
+  payment: { select: { method: true } },
 } as const;
 
 @Injectable()

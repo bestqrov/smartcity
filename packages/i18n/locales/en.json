@@ -489,6 +489,11 @@
     "methodCheck": "Check",
     "methodOther": "Other",
     "printReceipt": "Print receipt",
+    "receiptLabel": "Receipt",
+    "receiptDate": "Date",
+    "receiptStudent": "Student",
+    "receiptOffering": "Offering",
+    "receiptMethod": "Method",
     "receiptThankYou": "Thank you"
   }
 }

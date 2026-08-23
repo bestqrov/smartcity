@@ -347,7 +347,7 @@ export default function InscriptionsPage() {
                       </Badge>
                     </td>
                     <td className="p-3 text-gray-600">{inscription.amount}</td>
-                    <td className="p-3 text-gray-600">—</td>
+                    <td className="p-3 text-gray-600">{inscription.payment.method}</td>
                   </tr>
                 ))}
               </tbody>
@@ -558,6 +558,11 @@ export default function InscriptionsPage() {
                 method={lastCreated.method}
                 amount={lastCreated.amount}
                 thankYouLabel={t('education.receiptThankYou')}
+                receiptLabel={t('education.receiptLabel')}
+                dateLabel={t('education.receiptDate')}
+                studentLabel={t('education.receiptStudent')}
+                offeringLabel={t('education.receiptOffering')}
+                methodLabel={t('education.receiptMethod')}
               />
             </div>
           </>

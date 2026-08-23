@@ -9,6 +9,11 @@ interface ThermalReceiptProps {
   method: string;
   amount: number;
   thankYouLabel: string;
+  receiptLabel: string;
+  dateLabel: string;
+  studentLabel: string;
+  offeringLabel: string;
+  methodLabel: string;
 }
 
 export function ThermalReceipt({
@@ -20,6 +25,11 @@ export function ThermalReceipt({
   method,
   amount,
   thankYouLabel,
+  receiptLabel,
+  dateLabel,
+  studentLabel,
+  offeringLabel,
+  methodLabel,
 }: ThermalReceiptProps) {
   return (
     <div
@@ -27,11 +37,11 @@ export function ThermalReceipt({
       style={{ width: 384, padding: 8, fontFamily: 'monospace', color: '#000', background: '#fff' }}
     >
       <div style={{ textAlign: 'center', fontWeight: 'bold' }}>{tenantName}</div>
-      <div style={{ marginTop: 8 }}>Reçu: {receiptId}</div>
-      <div>Date: {date}</div>
-      <div>Étudiant: {studentName}</div>
-      <div>Offre: {offeringName}</div>
-      <div>Méthode: {method}</div>
+      <div style={{ marginTop: 8 }}>{receiptLabel}: {receiptId}</div>
+      <div>{dateLabel}: {date}</div>
+      <div>{studentLabel}: {studentName}</div>
+      <div>{offeringLabel}: {offeringName}</div>
+      <div>{methodLabel}: {method}</div>
       <div style={{ marginTop: 8, fontWeight: 'bold' }}>Montant: {amount} MAD</div>
       <div style={{ marginTop: 12, textAlign: 'center' }}>--- {thankYouLabel} ---</div>
     </div>

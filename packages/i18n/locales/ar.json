@@ -489,6 +489,11 @@
     "methodCheck": "شيك",
     "methodOther": "أخرى",
     "printReceipt": "طباعة الوصل",
+    "receiptLabel": "الوصل",
+    "receiptDate": "التاريخ",
+    "receiptStudent": "الطالب",
+    "receiptOffering": "العرض",
+    "receiptMethod": "الطريقة",
     "receiptThankYou": "شكرا"
   }
 }
