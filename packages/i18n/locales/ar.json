@@ -437,6 +437,27 @@
     "transactionDescription": "الوصف (اختياري)",
     "noTransactionsYet": "لا توجد معاملات مسجلة بعد.",
     "typeIncome": "إيراد",
-    "typeExpense": "مصروف"
+    "typeExpense": "مصروف",
+    "users": "المستخدمون",
+    "addUser": "إضافة مستخدم",
+    "userEmail": "البريد الإلكتروني",
+    "userPassword": "كلمة المرور",
+    "userFirstName": "الاسم الشخصي",
+    "userLastName": "الاسم العائلي",
+    "userPhone": "الهاتف (اختياري)",
+    "userRole": "الدور",
+    "roleManager": "مدير",
+    "roleStaff": "موظف",
+    "roleAccountant": "محاسب",
+    "userStatus": "الحالة",
+    "statusActive": "نشط",
+    "statusInactive": "غير نشط",
+    "deactivateUser": "تعطيل",
+    "confirmDeactivateUser": "تعطيل هذا المستخدم؟ لن يتمكن من تسجيل الدخول بعد الآن.",
+    "cannotDeactivateSelf": "لا يمكنك تعطيل حسابك الخاص.",
+    "noUsersYet": "لا توجد حسابات موظفين بعد.",
+    "totalStaff": "إجمالي الموظفين",
+    "activeStaff": "الموظفون النشطون",
+    "staffByRole": "مدير / موظف / محاسب"
   }
 }

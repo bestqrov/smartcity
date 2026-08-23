@@ -437,6 +437,27 @@
     "transactionDescription": "Description (optionnel)",
     "noTransactionsYet": "Aucune transaction enregistrée pour l'instant.",
     "typeIncome": "Revenu",
-    "typeExpense": "Dépense"
+    "typeExpense": "Dépense",
+    "users": "Utilisateurs",
+    "addUser": "Ajouter un utilisateur",
+    "userEmail": "Email",
+    "userPassword": "Mot de passe",
+    "userFirstName": "Prénom",
+    "userLastName": "Nom",
+    "userPhone": "Téléphone (optionnel)",
+    "userRole": "Rôle",
+    "roleManager": "Manager",
+    "roleStaff": "Personnel",
+    "roleAccountant": "Comptable",
+    "userStatus": "Statut",
+    "statusActive": "Actif",
+    "statusInactive": "Inactif",
+    "deactivateUser": "Désactiver",
+    "confirmDeactivateUser": "Désactiver cet utilisateur ? Il ne pourra plus se connecter.",
+    "cannotDeactivateSelf": "Vous ne pouvez pas désactiver votre propre compte.",
+    "noUsersYet": "Aucun compte du personnel pour l'instant.",
+    "totalStaff": "Total du personnel",
+    "activeStaff": "Personnel actif",
+    "staffByRole": "Manager / Personnel / Comptable"
   }
 }

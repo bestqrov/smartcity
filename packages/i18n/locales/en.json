@@ -437,6 +437,27 @@
     "transactionDescription": "Description (optional)",
     "noTransactionsYet": "No transactions recorded yet.",
     "typeIncome": "Income",
-    "typeExpense": "Expense"
+    "typeExpense": "Expense",
+    "users": "Users",
+    "addUser": "Add user",
+    "userEmail": "Email",
+    "userPassword": "Password",
+    "userFirstName": "First name",
+    "userLastName": "Last name",
+    "userPhone": "Phone (optional)",
+    "userRole": "Role",
+    "roleManager": "Manager",
+    "roleStaff": "Staff",
+    "roleAccountant": "Accountant",
+    "userStatus": "Status",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "deactivateUser": "Deactivate",
+    "confirmDeactivateUser": "Deactivate this user? They will no longer be able to log in.",
+    "cannotDeactivateSelf": "You cannot deactivate your own account.",
+    "noUsersYet": "No staff accounts yet.",
+    "totalStaff": "Total staff",
+    "activeStaff": "Active staff",
+    "staffByRole": "Manager / Staff / Accountant"
   }
 }
