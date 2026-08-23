@@ -8,6 +8,7 @@ import { TeachersModule } from './teachers/teachers.module';
 import { GroupsModule } from './groups/groups.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { FinanceModule } from './finance/finance.module';
+import { InscriptionsModule } from './inscriptions/inscriptions.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -24,6 +25,7 @@ import { HealthModule } from './health/health.module';
     GroupsModule,
     AttendanceModule,
     FinanceModule,
+    InscriptionsModule,
     HealthModule,
   ],
 })
