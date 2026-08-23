@@ -19,4 +19,12 @@ export class CreatePaymentDto {
   @IsDateString()
   @IsOptional()
   date?: string;
+
+  @IsString()
+  @IsOptional()
+  category?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
 }

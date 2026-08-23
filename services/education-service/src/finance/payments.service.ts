@@ -29,8 +29,10 @@ export class PaymentsService {
           tenantId,
           type: 'INCOME',
           amount: dto.amount,
-          category: 'Tuition Payment',
-          description: `Payment from ${student.firstName} ${student.lastName} (${dto.method})`,
+          category: dto.category ?? 'Tuition Payment',
+          description:
+            dto.description ??
+            `Payment from ${student.firstName} ${student.lastName} (${dto.method})`,
           date,
         },
       });
