@@ -417,6 +417,26 @@
     "attendanceRate": "Attendance rate",
     "attendanceHistory": "Attendance history",
     "noAttendanceRecordsYet": "No attendance recorded yet.",
-    "selectGroupAndDatePrompt": "Select a group and a date to take attendance."
+    "selectGroupAndDatePrompt": "Select a group and a date to take attendance.",
+    "finance": "Finance",
+    "totalIncome": "Total income",
+    "totalExpenses": "Total expenses",
+    "balance": "Balance",
+    "payments": "Payments",
+    "addPayment": "Add payment",
+    "paymentAmount": "Amount",
+    "paymentMethod": "Payment method",
+    "paymentNotes": "Notes (optional)",
+    "paymentStudent": "Student",
+    "noPaymentsYet": "No payments recorded yet.",
+    "transactions": "Transactions",
+    "addTransaction": "Add transaction",
+    "transactionType": "Type",
+    "transactionAmount": "Amount",
+    "transactionCategory": "Category",
+    "transactionDescription": "Description (optional)",
+    "noTransactionsYet": "No transactions recorded yet.",
+    "typeIncome": "Income",
+    "typeExpense": "Expense"
   }
 }

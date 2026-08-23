@@ -417,6 +417,26 @@
     "attendanceRate": "نسبة الحضور",
     "attendanceHistory": "سجل الحضور",
     "noAttendanceRecordsYet": "لا يوجد حضور مسجل بعد.",
-    "selectGroupAndDatePrompt": "اختر فوجًا وتاريخًا لتسجيل الحضور."
+    "selectGroupAndDatePrompt": "اختر فوجًا وتاريخًا لتسجيل الحضور.",
+    "finance": "المالية",
+    "totalIncome": "إجمالي الإيرادات",
+    "totalExpenses": "إجمالي المصاريف",
+    "balance": "الرصيد",
+    "payments": "الأداءات",
+    "addPayment": "إضافة أداء",
+    "paymentAmount": "المبلغ",
+    "paymentMethod": "طريقة الأداء",
+    "paymentNotes": "ملاحظات (اختياري)",
+    "paymentStudent": "الطالب",
+    "noPaymentsYet": "لا يوجد أداء مسجل بعد.",
+    "transactions": "المعاملات",
+    "addTransaction": "إضافة معاملة",
+    "transactionType": "النوع",
+    "transactionAmount": "المبلغ",
+    "transactionCategory": "الفئة",
+    "transactionDescription": "الوصف (اختياري)",
+    "noTransactionsYet": "لا توجد معاملات مسجلة بعد.",
+    "typeIncome": "إيراد",
+    "typeExpense": "مصروف"
   }
 }

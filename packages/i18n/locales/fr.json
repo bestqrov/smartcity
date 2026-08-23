@@ -417,6 +417,26 @@
     "attendanceRate": "Taux de présence",
     "attendanceHistory": "Historique de présence",
     "noAttendanceRecordsYet": "Aucune présence enregistrée pour l'instant.",
-    "selectGroupAndDatePrompt": "Sélectionnez un groupe et une date pour prendre la présence."
+    "selectGroupAndDatePrompt": "Sélectionnez un groupe et une date pour prendre la présence.",
+    "finance": "Finances",
+    "totalIncome": "Total des revenus",
+    "totalExpenses": "Total des dépenses",
+    "balance": "Solde",
+    "payments": "Paiements",
+    "addPayment": "Ajouter un paiement",
+    "paymentAmount": "Montant",
+    "paymentMethod": "Mode de paiement",
+    "paymentNotes": "Notes (optionnel)",
+    "paymentStudent": "Étudiant",
+    "noPaymentsYet": "Aucun paiement enregistré pour l'instant.",
+    "transactions": "Transactions",
+    "addTransaction": "Ajouter une transaction",
+    "transactionType": "Type",
+    "transactionAmount": "Montant",
+    "transactionCategory": "Catégorie",
+    "transactionDescription": "Description (optionnel)",
+    "noTransactionsYet": "Aucune transaction enregistrée pour l'instant.",
+    "typeIncome": "Revenu",
+    "typeExpense": "Dépense"
   }
 }
