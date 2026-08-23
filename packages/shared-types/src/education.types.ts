@@ -154,3 +154,35 @@ export interface IPayment {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export enum InscriptionType {
+  SOUTIEN = "SOUTIEN",
+  FORMATION = "FORMATION",
+}
+
+export interface IOffering {
+  id: string;
+  tenantId: string;
+  type: InscriptionType;
+  name: string;
+  description?: string;
+  duration?: string;
+  price: number;
+  teacherId?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IInscription {
+  id: string;
+  tenantId: string;
+  studentId: string;
+  offeringId: string;
+  paymentId: string;
+  amount: number;
+  date: Date;
+  note?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
