@@ -149,6 +149,8 @@ model Tenant {
   groups            Group[]
   groupStudents     GroupStudent[]
   attendances       Attendance[]
+  transactions      Transaction[]
+  payments          Payment[]
 
   @@map("tenants")
 }
@@ -485,6 +487,11 @@ model PurchaseItem {
   @@map("purchase_items")
 }
 
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
 enum AttendanceStatus {
   PRESENT
   ABSENT
@@ -538,6 +545,7 @@ model Student {
   guardianLinks StudentGuardian[]
   groupLinks GroupStudent[]
   attendances Attendance[]
+  payments    Payment[]
 
   @@unique([tenantId, registrationNumber])
   @@map("students")
@@ -664,4 +672,40 @@ model Attendance {
 
   @@unique([groupId, studentId, date])
   @@map("attendances")
+}
+
+model Transaction {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId    String          @db.ObjectId
+  type        TransactionType
+  amount      Float
+  category    String
+  description String?
+  date        DateTime
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tenant  Tenant    @relation(fields: [tenantId], references: [id])
+  payment Payment?
+
+  @@map("transactions")
+}
+
+model Payment {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId      String   @db.ObjectId
+  studentId     String   @db.ObjectId
+  transactionId String   @unique @db.ObjectId
+  amount        Float
+  method        String
+  notes         String?
+  date          DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id])
+  student     Student     @relation(fields: [studentId], references: [id])
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+
+  @@map("payments")
 }
