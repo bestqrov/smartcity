@@ -72,7 +72,7 @@ export class AttendanceService {
           },
           update: {
             status: entry.status,
-            notes: entry.notes,
+            notes: entry.notes ?? null,
           },
         }),
       ),
