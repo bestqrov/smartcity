@@ -496,6 +496,21 @@
     "receiptStudent": "الطالب",
     "receiptItem": "العنصر",
     "receiptMethod": "الطريقة",
-    "receiptThankYou": "شكرا"
+    "receiptThankYou": "شكرا",
+    "formations": "التكوين المهني",
+    "addFormation": "إضافة تكوين",
+    "editFormation": "تعديل التكوين",
+    "formationName": "الاسم",
+    "formationDuration": "المدة",
+    "formationPrice": "الثمن",
+    "formationDescription": "الوصف (اختياري)",
+    "noFormationsYet": "لا توجد تكوينات في الكتالوج بعد.",
+    "enrollStudent": "تسجيل طالب",
+    "enrollStudentField": "الطالب",
+    "enrollFormation": "التكوين",
+    "totalFormations": "إجمالي التكوينات",
+    "totalFormationInscriptions": "إجمالي التسجيلات",
+    "totalFormationRevenue": "إجمالي الإيرادات",
+    "monthlyFormationRevenue": "إيرادات هذا الشهر"
   }
 }

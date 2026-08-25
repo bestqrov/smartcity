@@ -496,6 +496,21 @@
     "receiptStudent": "Student",
     "receiptItem": "Item",
     "receiptMethod": "Method",
-    "receiptThankYou": "Thank you"
+    "receiptThankYou": "Thank you",
+    "formations": "Formation Pro",
+    "addFormation": "Add formation",
+    "editFormation": "Edit formation",
+    "formationName": "Name",
+    "formationDuration": "Duration",
+    "formationPrice": "Price",
+    "formationDescription": "Description (optional)",
+    "noFormationsYet": "No formations in the catalogue yet.",
+    "enrollStudent": "Enroll a student",
+    "enrollStudentField": "Student",
+    "enrollFormation": "Formation",
+    "totalFormations": "Total formations",
+    "totalFormationInscriptions": "Total inscriptions",
+    "totalFormationRevenue": "Total revenue",
+    "monthlyFormationRevenue": "Revenue this month"
   }
 }

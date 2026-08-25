@@ -496,6 +496,21 @@
     "receiptStudent": "Étudiant",
     "receiptItem": "Article",
     "receiptMethod": "Méthode",
-    "receiptThankYou": "Merci"
+    "receiptThankYou": "Merci",
+    "formations": "Formation Pro",
+    "addFormation": "Ajouter une formation",
+    "editFormation": "Modifier la formation",
+    "formationName": "Nom",
+    "formationDuration": "Durée",
+    "formationPrice": "Prix",
+    "formationDescription": "Description (optionnel)",
+    "noFormationsYet": "Aucune formation dans le catalogue pour l'instant.",
+    "enrollStudent": "Inscrire un étudiant",
+    "enrollStudentField": "Étudiant",
+    "enrollFormation": "Formation",
+    "totalFormations": "Total des formations",
+    "totalFormationInscriptions": "Total des inscriptions",
+    "totalFormationRevenue": "Revenu total",
+    "monthlyFormationRevenue": "Revenu ce mois-ci"
   }
 }
