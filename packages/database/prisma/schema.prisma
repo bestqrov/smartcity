@@ -157,6 +157,7 @@ model Tenant {
   transactions      Transaction[]
   payments          Payment[]
   inscriptions      Inscription[]
+  formations        Formation[]
 
   @@map("tenants")
 }
@@ -734,4 +735,19 @@ model Inscription {
   student Student @relation(fields: [studentId], references: [id])
 
   @@map("inscriptions")
+}
+
+model Formation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId    String   @db.ObjectId
+  name        String
+  duration    String
+  price       Float
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("formations")
 }
