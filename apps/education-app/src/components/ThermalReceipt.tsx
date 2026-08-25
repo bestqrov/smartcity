@@ -5,14 +5,14 @@ interface ThermalReceiptProps {
   receiptId: string;
   date: string;
   studentName: string;
-  offeringName: string;
+  itemLabel: string;
   method: string;
   amount: number;
   thankYouLabel: string;
   receiptLabel: string;
   dateLabel: string;
   studentLabel: string;
-  offeringLabel: string;
+  itemFieldLabel: string;
   methodLabel: string;
 }
 
@@ -21,14 +21,14 @@ export function ThermalReceipt({
   receiptId,
   date,
   studentName,
-  offeringName,
+  itemLabel,
   method,
   amount,
   thankYouLabel,
   receiptLabel,
   dateLabel,
   studentLabel,
-  offeringLabel,
+  itemFieldLabel,
   methodLabel,
 }: ThermalReceiptProps) {
   return (
@@ -40,7 +40,7 @@ export function ThermalReceipt({
       <div style={{ marginTop: 8 }}>{receiptLabel}: {receiptId}</div>
       <div>{dateLabel}: {date}</div>
       <div>{studentLabel}: {studentName}</div>
-      <div>{offeringLabel}: {offeringName}</div>
+      <div>{itemFieldLabel}: {itemLabel}</div>
       <div>{methodLabel}: {method}</div>
       <div style={{ marginTop: 8, fontWeight: 'bold' }}>Montant: {amount} MAD</div>
       <div style={{ marginTop: 12, textAlign: 'center' }}>--- {thankYouLabel} ---</div>
