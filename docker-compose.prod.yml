@@ -47,7 +47,6 @@ services:
       - USER_SERVICE_URL=${USER_SERVICE_URL:-http://user-service:3001}
       - TOURISM_SERVICE_URL=${TOURISM_SERVICE_URL:-http://tourism-service:3002}
       - FINANCE_SERVICE_URL=${FINANCE_SERVICE_URL:-http://finance-service:3008}
-      - EDUCATION_SERVICE_URL=${EDUCATION_SERVICE_URL:-http://education-service:3004}
     networks:
       - smartcity-network
     restart: unless-stopped
@@ -131,47 +130,6 @@ services:
       - .env
     environment:
       - PORT=3102
-    networks:
-      - smartcity-network
-    restart: unless-stopped
-
-  # ── Education Service ─────────────────────────────────────
-  education-service:
-    build:
-      context: .
-      dockerfile: infra/docker/service.Dockerfile
-      args:
-        SERVICE_NAME: education-service
-    container_name: smartcity-education-service
-    depends_on:
-      redis:
-        condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      - PORT=${PORT_EDUCATION_SERVICE:-3004}
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-    networks:
-      - smartcity-network
-    restart: unless-stopped
-
-  # ── Education Frontend ────────────────────────────────────
-  education-app:
-    build:
-      context: .
-      dockerfile: infra/docker/education-app.Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
-    container_name: smartcity-education-app
-    ports:
-      - "${PORT_EDUCATION_APP:-3103}:3103"
-    depends_on:
-      - gateway
-    env_file:
-      - .env
-    environment:
-      - PORT=3103
     networks:
       - smartcity-network
     restart: unless-stopped
