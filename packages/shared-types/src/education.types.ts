@@ -172,3 +172,14 @@ export interface IInscription {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface IFormation {
+  id: string;
+  tenantId: string;
+  name: string;
+  duration: string;
+  price: number;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
