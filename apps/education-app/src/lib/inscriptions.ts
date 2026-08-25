@@ -1,12 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { IInscription, IStudent } from '@smartcity/types';
+import type { IInscription, IStudent, InscriptionType } from '@smartcity/types';
 import { apiClient } from './api';
-import type { OfferingWithTeacher } from './offerings';
 
 export interface InscriptionWithRelations extends IInscription {
   student: IStudent;
-  offering: OfferingWithTeacher;
-  payment: { method: string };
 }
 
 export interface CreatedInscription extends InscriptionWithRelations {
@@ -21,7 +18,8 @@ interface InscriptionListResponse {
 
 export interface CreateInscriptionInput {
   studentId: string;
-  offeringId: string;
+  type: InscriptionType;
+  category: string;
   amount: number;
   method: string;
   note?: string;
