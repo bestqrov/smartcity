@@ -1,24 +1,10 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import {
-  ClipboardList,
-  GraduationCap,
-  BookOpen,
-  Printer,
-  Pencil,
-} from 'lucide-react';
+import { ClipboardList, GraduationCap, BookOpen, Printer } from 'lucide-react';
 import { Button, Input, Badge, Modal, Skeleton } from '@smartcity/ui';
 import { InscriptionType } from '@smartcity/types';
-import { useTeachers } from '@/lib/teachers';
 import { useStudents } from '@/lib/students';
-import {
-  useOfferings,
-  useCreateOffering,
-  useUpdateOffering,
-  type OfferingWithTeacher,
-  type CreateOfferingInput,
-} from '@/lib/offerings';
 import {
   useInscriptions,
   useCreateInscription,
@@ -42,27 +28,29 @@ const TYPE_LABEL_KEY: Record<InscriptionType, string> = {
   [InscriptionType.FORMATION]: 'education.typeFormation',
 };
 
-interface OfferingFormState {
-  type: InscriptionType;
-  name: string;
-  description: string;
-  duration: string;
-  price: string;
-  teacherId: string;
-}
+const SOUTIEN_CATEGORIES = [
+  { value: 'math', labelKey: 'education.categoryMath' },
+  { value: 'physique', labelKey: 'education.categoryPhysique' },
+  { value: 'svt', labelKey: 'education.categorySvt' },
+  { value: 'francais', labelKey: 'education.categoryFrancais' },
+  { value: 'anglais', labelKey: 'education.categoryAnglais' },
+  { value: 'calcul_mental', labelKey: 'education.categoryCalculMental' },
+  { value: 'couran', labelKey: 'education.categoryCouran' },
+  { value: 'autre', labelKey: 'education.categoryAutre' },
+] as const;
 
-const EMPTY_OFFERING_FORM: OfferingFormState = {
-  type: InscriptionType.SOUTIEN,
-  name: '',
-  description: '',
-  duration: '',
-  price: '',
-  teacherId: '',
-};
+const FORMATION_CATEGORIES = [
+  { value: 'coiffure', labelKey: 'education.categoryCoiffure' },
+  { value: 'bureautique', labelKey: 'education.categoryBureautique' },
+  { value: 'ecommerce', labelKey: 'education.categoryEcommerce' },
+  { value: 'autre', labelKey: 'education.categoryAutre' },
+] as const;
 
 interface InscriptionFormState {
   studentId: string;
-  offeringId: string;
+  type: InscriptionType;
+  category: string;
+  otherCategory: string;
   amount: string;
   method: string;
   otherMethod: string;
@@ -71,7 +59,9 @@ interface InscriptionFormState {
 
 const EMPTY_INSCRIPTION_FORM: InscriptionFormState = {
   studentId: '',
-  offeringId: '',
+  type: InscriptionType.SOUTIEN,
+  category: 'math',
+  otherCategory: '',
   amount: '',
   method: 'Espèces',
   otherMethod: '',
@@ -81,73 +71,15 @@ const EMPTY_INSCRIPTION_FORM: InscriptionFormState = {
 export default function InscriptionsPage() {
   const { t } = useTranslation();
 
-  const { data: offeringsData, isLoading: isLoadingOfferings } = useOfferings(1, 100);
-  const { data: teachersData } = useTeachers(1, 100);
   const { data: studentsData } = useStudents(1, 100);
   const { data: inscriptionsData, isLoading: isLoadingInscriptions } = useInscriptions(1, 100);
 
-  const createOffering = useCreateOffering();
   const createInscription = useCreateInscription();
-
-  const [isOfferingModalOpen, setIsOfferingModalOpen] = useState(false);
-  const [editingOffering, setEditingOffering] = useState<OfferingWithTeacher | null>(null);
-  const [offeringForm, setOfferingForm] = useState<OfferingFormState>(EMPTY_OFFERING_FORM);
-  const [offeringError, setOfferingError] = useState<string | null>(null);
-
-  const updateOffering = useUpdateOffering(editingOffering?.id ?? '');
 
   const [isInscriptionModalOpen, setIsInscriptionModalOpen] = useState(false);
   const [inscriptionForm, setInscriptionForm] = useState<InscriptionFormState>(EMPTY_INSCRIPTION_FORM);
   const [inscriptionError, setInscriptionError] = useState<string | null>(null);
   const [lastCreated, setLastCreated] = useState<CreatedInscription | null>(null);
-
-  const openCreateOfferingModal = () => {
-    setEditingOffering(null);
-    setOfferingForm(EMPTY_OFFERING_FORM);
-    setOfferingError(null);
-    setIsOfferingModalOpen(true);
-  };
-
-  const openEditOfferingModal = (offering: OfferingWithTeacher) => {
-    setEditingOffering(offering);
-    setOfferingForm({
-      type: offering.type,
-      name: offering.name,
-      description: offering.description ?? '',
-      duration: offering.duration ?? '',
-      price: String(offering.price),
-      teacherId: offering.teacherId ?? '',
-    });
-    setOfferingError(null);
-    setIsOfferingModalOpen(true);
-  };
-
-  const handleOfferingSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    setOfferingError(null);
-
-    const input: CreateOfferingInput = {
-      type: offeringForm.type,
-      name: offeringForm.name,
-      description: offeringForm.description || undefined,
-      duration: offeringForm.duration || undefined,
-      price: Number(offeringForm.price),
-      teacherId: offeringForm.teacherId || undefined,
-    };
-
-    try {
-      if (editingOffering) {
-        await updateOffering.mutateAsync(input);
-      } else {
-        await createOffering.mutateAsync(input);
-      }
-      setIsOfferingModalOpen(false);
-      setOfferingForm(EMPTY_OFFERING_FORM);
-      setEditingOffering(null);
-    } catch (err) {
-      setOfferingError(err instanceof Error ? err.message : t('common.error'));
-    }
-  };
 
   const openCreateInscriptionModal = () => {
     setInscriptionForm(EMPTY_INSCRIPTION_FORM);
@@ -156,26 +88,25 @@ export default function InscriptionsPage() {
     setIsInscriptionModalOpen(true);
   };
 
-  const handleOfferingSelect = (offeringId: string) => {
-    const offering = offerings.find((o) => o.id === offeringId);
-    setInscriptionForm({
-      ...inscriptionForm,
-      offeringId,
-      amount: offering ? String(offering.price) : inscriptionForm.amount,
-    });
+  const handleTypeChange = (type: InscriptionType) => {
+    const defaultCategory = type === InscriptionType.SOUTIEN ? 'math' : 'coiffure';
+    setInscriptionForm({ ...inscriptionForm, type, category: defaultCategory, otherCategory: '' });
   };
 
   const handleInscriptionSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setInscriptionError(null);
 
+    const category =
+      inscriptionForm.category === 'autre' ? inscriptionForm.otherCategory : inscriptionForm.category;
     const method =
       inscriptionForm.method === 'Autre' ? inscriptionForm.otherMethod : inscriptionForm.method;
 
     try {
       const created = await createInscription.mutateAsync({
         studentId: inscriptionForm.studentId,
-        offeringId: inscriptionForm.offeringId,
+        type: inscriptionForm.type,
+        category,
         amount: Number(inscriptionForm.amount),
         method,
         note: inscriptionForm.note || undefined,
@@ -190,245 +121,100 @@ export default function InscriptionsPage() {
     window.print();
   };
 
-  const offerings = offeringsData?.data ?? [];
   const inscriptions = inscriptionsData?.data ?? [];
-  const soutienCount = inscriptions.filter((i) => i.offering.type === InscriptionType.SOUTIEN).length;
-  const formationCount = inscriptions.filter((i) => i.offering.type === InscriptionType.FORMATION).length;
+  const soutienCount = inscriptions.filter((i) => i.type === InscriptionType.SOUTIEN).length;
+  const formationCount = inscriptions.filter((i) => i.type === InscriptionType.FORMATION).length;
+
+  const categoryOptions =
+    inscriptionForm.type === InscriptionType.SOUTIEN ? SOUTIEN_CATEGORIES : FORMATION_CATEGORIES;
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">{t('education.inscriptions')}</h1>
+        <Button onClick={openCreateInscriptionModal}>{t('education.addInscription')}</Button>
       </div>
 
-      <div className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">{t('education.offerings')}</h2>
-          <Button onClick={openCreateOfferingModal}>{t('education.addOffering')}</Button>
+      {!isLoadingInscriptions && inscriptions.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <StatCard
+            icon={ClipboardList}
+            color="teal"
+            label={t('education.totalInscriptions')}
+            value={inscriptions.length}
+          />
+          <StatCard
+            icon={GraduationCap}
+            color="teal"
+            label={t('education.soutienInscriptions')}
+            value={soutienCount}
+          />
+          <StatCard
+            icon={BookOpen}
+            color="teal"
+            label={t('education.formationInscriptions')}
+            value={formationCount}
+          />
         </div>
+      )}
 
-        {isLoadingOfferings && <Skeleton height="4rem" />}
+      {isLoadingInscriptions && <Skeleton height="4rem" />}
 
-        {!isLoadingOfferings && offerings.length === 0 && (
-          <p className="text-sm text-gray-500">{t('education.noOfferingsYet')}</p>
-        )}
-
-        {!isLoadingOfferings && offerings.length > 0 && (
-          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table className="w-full text-start text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.offeringName')}
-                  </th>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.offeringType')}
-                  </th>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.offeringPrice')}
-                  </th>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.offeringDuration')}
-                  </th>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.offeringTeacher')}
-                  </th>
-                  <th className="p-3 text-end font-medium text-gray-500">{t('common.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {offerings.map((offering) => (
-                  <tr key={offering.id} className="border-b border-gray-100 last:border-0 hover:bg-teal-50/30">
-                    <td className="p-3 font-medium text-gray-900">{offering.name}</td>
-                    <td className="p-3">
-                      <Badge variant={offering.type === InscriptionType.SOUTIEN ? 'info' : 'success'}>
-                        {t(TYPE_LABEL_KEY[offering.type])}
-                      </Badge>
-                    </td>
-                    <td className="p-3 text-gray-600">{offering.price}</td>
-                    <td className="p-3 text-gray-600">{offering.duration ?? '—'}</td>
-                    <td className="p-3 text-gray-600">
-                      {offering.teacher ? `${offering.teacher.firstName} ${offering.teacher.lastName}` : '—'}
-                    </td>
-                    <td className="p-3">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => openEditOfferingModal(offering)}
-                          title={t('common.edit')}
-                          className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition-all hover:bg-sky-50 hover:text-sky-600"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {!isLoadingInscriptions && inscriptions.length === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 py-16">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-teal-50 text-teal-500">
+            <ClipboardList size={24} />
           </div>
-        )}
-      </div>
-
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">{t('education.inscriptions')}</h2>
-          <Button onClick={openCreateInscriptionModal}>{t('education.addInscription')}</Button>
-        </div>
-
-        {!isLoadingInscriptions && inscriptions.length > 0 && (
-          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <StatCard
-              icon={ClipboardList}
-              color="teal"
-              label={t('education.totalInscriptions')}
-              value={inscriptions.length}
-            />
-            <StatCard
-              icon={GraduationCap}
-              color="teal"
-              label={t('education.soutienInscriptions')}
-              value={soutienCount}
-            />
-            <StatCard
-              icon={BookOpen}
-              color="teal"
-              label={t('education.formationInscriptions')}
-              value={formationCount}
-            />
-          </div>
-        )}
-
-        {isLoadingInscriptions && <Skeleton height="4rem" />}
-
-        {!isLoadingInscriptions && inscriptions.length === 0 && (
           <p className="text-sm text-gray-500">{t('education.noInscriptionsYet')}</p>
-        )}
+        </div>
+      )}
 
-        {!isLoadingInscriptions && inscriptions.length > 0 && (
-          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table className="w-full text-start text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.inscriptionStudent')}
-                  </th>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.inscriptionOffering')}
-                  </th>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.offeringType')}
-                  </th>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.inscriptionAmount')}
-                  </th>
-                  <th className="p-3 text-start font-medium text-gray-500">
-                    {t('education.inscriptionMethod')}
-                  </th>
+      {!isLoadingInscriptions && inscriptions.length > 0 && (
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <table className="w-full text-start text-sm">
+            <thead className="border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.inscriptionStudent')}
+                </th>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.inscriptionType')}
+                </th>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.inscriptionCategory')}
+                </th>
+                <th className="p-3 text-start font-medium text-gray-500">
+                  {t('education.inscriptionAmount')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {inscriptions.map((inscription) => (
+                <tr key={inscription.id} className="border-b border-gray-100 last:border-0 hover:bg-teal-50/30">
+                  <td className="p-3">
+                    <div className="flex items-center gap-3">
+                      <InitialsAvatar
+                        name={`${inscription.student.firstName} ${inscription.student.lastName}`}
+                        color="indigo"
+                      />
+                      <span className="font-medium text-gray-900">
+                        {inscription.student.firstName} {inscription.student.lastName}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    <Badge variant={inscription.type === InscriptionType.SOUTIEN ? 'info' : 'success'}>
+                      {t(TYPE_LABEL_KEY[inscription.type])}
+                    </Badge>
+                  </td>
+                  <td className="p-3 text-gray-600">{inscription.category}</td>
+                  <td className="p-3 text-gray-600">{inscription.amount}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {inscriptions.map((inscription) => (
-                  <tr key={inscription.id} className="border-b border-gray-100 last:border-0">
-                    <td className="p-3">
-                      <div className="flex items-center gap-3">
-                        <InitialsAvatar
-                          name={`${inscription.student.firstName} ${inscription.student.lastName}`}
-                          color="indigo"
-                        />
-                        <span className="font-medium text-gray-900">
-                          {inscription.student.firstName} {inscription.student.lastName}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-3 text-gray-600">{inscription.offering.name}</td>
-                    <td className="p-3">
-                      <Badge variant={inscription.offering.type === InscriptionType.SOUTIEN ? 'info' : 'success'}>
-                        {t(TYPE_LABEL_KEY[inscription.offering.type])}
-                      </Badge>
-                    </td>
-                    <td className="p-3 text-gray-600">{inscription.amount}</td>
-                    <td className="p-3 text-gray-600">{inscription.payment.method}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      <Modal
-        open={isOfferingModalOpen}
-        onClose={() => setIsOfferingModalOpen(false)}
-        title={editingOffering ? t('education.editOffering') : t('education.addOffering')}
-        footer={
-          <>
-            <Button variant="outline" onClick={() => setIsOfferingModalOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              onClick={handleOfferingSubmit}
-              loading={createOffering.isPending || updateOffering.isPending}
-            >
-              {t('common.save')}
-            </Button>
-          </>
-        }
-      >
-        <form onSubmit={handleOfferingSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">{t('education.offeringType')}</label>
-            <select
-              value={offeringForm.type}
-              onChange={(e) => setOfferingForm({ ...offeringForm, type: e.target.value as InscriptionType })}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              <option value={InscriptionType.SOUTIEN}>{t('education.typeSoutien')}</option>
-              <option value={InscriptionType.FORMATION}>{t('education.typeFormation')}</option>
-            </select>
-          </div>
-          <Input
-            label={t('education.offeringName')}
-            value={offeringForm.name}
-            onChange={(e) => setOfferingForm({ ...offeringForm, name: e.target.value })}
-            required
-          />
-          <Input
-            label={t('education.offeringDescription')}
-            value={offeringForm.description}
-            onChange={(e) => setOfferingForm({ ...offeringForm, description: e.target.value })}
-          />
-          <Input
-            label={t('education.offeringDuration')}
-            value={offeringForm.duration}
-            onChange={(e) => setOfferingForm({ ...offeringForm, duration: e.target.value })}
-          />
-          <Input
-            label={t('education.offeringPrice')}
-            type="number"
-            min="0"
-            step="0.01"
-            value={offeringForm.price}
-            onChange={(e) => setOfferingForm({ ...offeringForm, price: e.target.value })}
-            required
-          />
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">{t('education.offeringTeacher')}</label>
-            <select
-              value={offeringForm.teacherId}
-              onChange={(e) => setOfferingForm({ ...offeringForm, teacherId: e.target.value })}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              <option value="">—</option>
-              {(teachersData?.data ?? []).map((teacher) => (
-                <option key={teacher.id} value={teacher.id}>
-                  {teacher.firstName} {teacher.lastName}
-                </option>
               ))}
-            </select>
-          </div>
-          {offeringError && <p className="text-sm text-red-600">{offeringError}</p>}
-        </form>
-      </Modal>
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <Modal
         open={isInscriptionModalOpen}
@@ -480,25 +266,40 @@ export default function InscriptionsPage() {
               </select>
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">
-                {t('education.inscriptionOffering')}
-              </label>
+              <label className="text-sm font-medium text-gray-700">{t('education.inscriptionType')}</label>
               <select
-                value={inscriptionForm.offeringId}
-                onChange={(e) => handleOfferingSelect(e.target.value)}
-                required
+                value={inscriptionForm.type}
+                onChange={(e) => handleTypeChange(e.target.value as InscriptionType)}
                 className="rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
-                <option value="" disabled>
-                  —
-                </option>
-                {offerings.map((offering) => (
-                  <option key={offering.id} value={offering.id}>
-                    {t(TYPE_LABEL_KEY[offering.type])} — {offering.name} ({offering.price})
+                <option value={InscriptionType.SOUTIEN}>{t('education.typeSoutien')}</option>
+                <option value={InscriptionType.FORMATION}>{t('education.typeFormation')}</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-700">
+                {t('education.inscriptionCategory')}
+              </label>
+              <select
+                value={inscriptionForm.category}
+                onChange={(e) => setInscriptionForm({ ...inscriptionForm, category: e.target.value })}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                {categoryOptions.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {t(c.labelKey)}
                   </option>
                 ))}
               </select>
             </div>
+            {inscriptionForm.category === 'autre' && (
+              <Input
+                label={t('education.inscriptionCategory')}
+                value={inscriptionForm.otherCategory}
+                onChange={(e) => setInscriptionForm({ ...inscriptionForm, otherCategory: e.target.value })}
+                required
+              />
+            )}
             <Input
               label={t('education.inscriptionAmount')}
               type="number"
@@ -545,7 +346,7 @@ export default function InscriptionsPage() {
           <>
             <div className="print:hidden">
               <p className="text-sm text-gray-600">
-                {lastCreated.student.firstName} {lastCreated.student.lastName} — {lastCreated.offering.name}
+                {lastCreated.student.firstName} {lastCreated.student.lastName} — {t(TYPE_LABEL_KEY[lastCreated.type])}: {lastCreated.category}
               </p>
             </div>
             <div className="hidden print:block">
@@ -554,14 +355,14 @@ export default function InscriptionsPage() {
                 receiptId={lastCreated.id}
                 date={new Date(lastCreated.date).toLocaleDateString()}
                 studentName={`${lastCreated.student.firstName} ${lastCreated.student.lastName}`}
-                offeringName={lastCreated.offering.name}
+                itemLabel={`${t(TYPE_LABEL_KEY[lastCreated.type])} — ${lastCreated.category}`}
                 method={lastCreated.method}
                 amount={lastCreated.amount}
                 thankYouLabel={t('education.receiptThankYou')}
                 receiptLabel={t('education.receiptLabel')}
                 dateLabel={t('education.receiptDate')}
                 studentLabel={t('education.receiptStudent')}
-                offeringLabel={t('education.receiptOffering')}
+                itemFieldLabel={t('education.receiptItem')}
                 methodLabel={t('education.receiptMethod')}
               />
             </div>
