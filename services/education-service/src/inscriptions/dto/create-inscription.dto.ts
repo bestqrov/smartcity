@@ -1,11 +1,16 @@
-import { IsDateString, IsMongoId, IsNumber, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import { IsDateString, IsEnum, IsMongoId, IsNumber, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import { InscriptionType } from '@prisma/client';
 
 export class CreateInscriptionDto {
   @IsMongoId()
   studentId: string;
 
-  @IsMongoId()
-  offeringId: string;
+  @IsEnum(InscriptionType)
+  type: InscriptionType;
+
+  @IsString()
+  @MinLength(1)
+  category: string;
 
   @IsNumber()
   @Min(0.01)

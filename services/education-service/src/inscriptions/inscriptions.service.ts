@@ -12,8 +12,6 @@ interface FindAllParams {
 
 const INCLUDE_RELATIONS = {
   student: true,
-  offering: { include: { teacher: true } },
-  payment: { select: { method: true } },
 } as const;
 
 @Injectable()
@@ -31,22 +29,14 @@ export class InscriptionsService {
       throw new BadRequestException('studentId does not belong to this tenant');
     }
 
-    const offering = await this.prisma.offering.findFirst({
-      where: { id: dto.offeringId, tenantId, isActive: true },
-    });
-    if (!offering) {
-      throw new BadRequestException('offeringId does not belong to this tenant or is inactive');
-    }
-
     const date = dto.date ? new Date(dto.date) : new Date();
-    const typeLabel = offering.type === 'SOUTIEN' ? 'soutien' : 'formation';
+    const typeLabel = dto.type === 'SOUTIEN' ? 'soutien' : 'formation';
 
-    const payment = await this.paymentsService.create(tenantId, {
+    await this.paymentsService.create(tenantId, {
       studentId: dto.studentId,
       amount: dto.amount,
       method: dto.method,
-      category: offering.name,
-      description: `Inscription ${typeLabel}: ${offering.name} — ${student.firstName} ${student.lastName}`,
+      notes: dto.note ?? `Inscription ${typeLabel}: ${dto.category}`,
       date: date.toISOString(),
     });
 
@@ -54,8 +44,8 @@ export class InscriptionsService {
       data: {
         tenantId,
         studentId: dto.studentId,
-        offeringId: dto.offeringId,
-        paymentId: payment.id,
+        type: dto.type,
+        category: dto.category,
         amount: dto.amount,
         date,
         note: dto.note,
@@ -77,7 +67,7 @@ export class InscriptionsService {
 
     const where: Record<string, any> = { tenantId };
     if (studentId) where.studentId = studentId;
-    if (type) where.offering = { type };
+    if (type) where.type = type;
 
     const [inscriptions, total] = await Promise.all([
       this.prisma.inscription.findMany({
