@@ -20,6 +20,7 @@ import {
   Wallet,
   UserCog,
   ClipboardList,
+  Award,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -113,6 +114,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       accent: 'text-teal-400',
       activeBg: 'bg-teal-500/10',
       activeBorder: 'border-teal-400',
+    },
+    {
+      href: `/${locale}/formations`,
+      label: t('education.formations'),
+      icon: Award,
+      accent: 'text-orange-400',
+      activeBg: 'bg-orange-500/10',
+      activeBorder: 'border-orange-400',
     },
   ];
 
