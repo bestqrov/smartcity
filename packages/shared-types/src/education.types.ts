@@ -160,26 +160,12 @@ export enum InscriptionType {
   FORMATION = "FORMATION",
 }
 
-export interface IOffering {
-  id: string;
-  tenantId: string;
-  type: InscriptionType;
-  name: string;
-  description?: string;
-  duration?: string;
-  price: number;
-  teacherId?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface IInscription {
   id: string;
   tenantId: string;
   studentId: string;
-  offeringId: string;
-  paymentId: string;
+  type: InscriptionType;
+  category: string;
   amount: number;
   date: Date;
   note?: string;
