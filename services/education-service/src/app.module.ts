@@ -9,6 +9,7 @@ import { GroupsModule } from './groups/groups.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { FinanceModule } from './finance/finance.module';
 import { InscriptionsModule } from './inscriptions/inscriptions.module';
+import { FormationsModule } from './formations/formations.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { HealthModule } from './health/health.module';
     AttendanceModule,
     FinanceModule,
     InscriptionsModule,
+    FormationsModule,
     HealthModule,
   ],
 })
