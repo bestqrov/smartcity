@@ -156,7 +156,6 @@ model Tenant {
   attendances       Attendance[]
   transactions      Transaction[]
   payments          Payment[]
-  offerings         Offering[]
   inscriptions      Inscription[]
 
   @@map("tenants")
@@ -620,9 +619,8 @@ model Teacher {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  tenant    Tenant     @relation(fields: [tenantId], references: [id])
-  groups    Group[]
-  offerings Offering[]
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  groups Group[]
 
   @@map("teachers")
 }
@@ -715,47 +713,25 @@ model Payment {
   tenant      Tenant      @relation(fields: [tenantId], references: [id])
   student     Student     @relation(fields: [studentId], references: [id])
   transaction Transaction @relation(fields: [transactionId], references: [id])
-  inscription Inscription?
 
   @@map("payments")
 }
 
-model Offering {
-  id          String           @id @default(auto()) @map("_id") @db.ObjectId
-  tenantId    String           @db.ObjectId
-  type        InscriptionType
-  name        String
-  description String?
-  duration    String?
-  price       Float
-  teacherId   String?          @db.ObjectId
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
-  tenant       Tenant        @relation(fields: [tenantId], references: [id])
-  teacher      Teacher?      @relation(fields: [teacherId], references: [id])
-  inscriptions Inscription[]
-
-  @@map("offerings")
-}
 
 model Inscription {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  tenantId   String   @db.ObjectId
-  studentId  String   @db.ObjectId
-  offeringId String   @db.ObjectId
-  paymentId  String   @unique @db.ObjectId
-  amount     Float
-  date       DateTime
-  note       String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  tenantId  String          @db.ObjectId
+  studentId String          @db.ObjectId
+  type      InscriptionType
+  category  String
+  amount    Float
+  date      DateTime
+  note      String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
-  tenant   Tenant   @relation(fields: [tenantId], references: [id])
-  student  Student  @relation(fields: [studentId], references: [id])
-  offering Offering @relation(fields: [offeringId], references: [id])
-  payment  Payment  @relation(fields: [paymentId], references: [id])
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
 
   @@map("inscriptions")
 }
