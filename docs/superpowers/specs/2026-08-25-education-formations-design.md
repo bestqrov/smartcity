@@ -171,22 +171,34 @@ Gateway gets one new route: `'/api/formations': educationServiceUrl`.
     computation).
   - A formations table (name, duration, price, description) with an "Add formation" button
     opening a create/edit modal (name, duration, price, description).
-  - An "Enroll a student" button opening a modal: new-student fields (first name, last name,
-    email, phone, CIN, address — matching `createStudent`'s existing DTO shape already used by
-    the Students module), a formation `<select>` (populated from `useFormations`), submits by
-    calling `useCreateStudent()` then `useCreateInscription()` with `type: FORMATION`, `category:
-    <formation.name>`, `amount: <formation.price>`, `note: "Inscription Formation:
-    ${formation.name}"` — no new backend call, reuses the two already-existing endpoints exactly
-    like the reference does.
+  - An "Enroll a student" button opening a modal: a student `<select>` (populated from
+    `useStudents(1, 100)`, matching how the already-shipped Inscriptions page selects a student),
+    a formation `<select>` (populated from `useFormations`), submits by calling
+    `useCreateInscription()` with `type: FORMATION`, `category: <formation.name>`, `amount:
+    <formation.price>`, `note: "Inscription Formation: ${formation.name}"`.
+
+    **Correction from an earlier draft of this section, caught during plan-writing, before any
+    code was written:** the reference's own enrollment form creates a brand-new `Student` inline
+    (collecting name/email/phone/CIN/address) as part of the same submit. This monorepo's
+    already-shipped `Student` model (built in an earlier slice) has none of those fields — only
+    `firstName`, `lastName`, `dateOfBirth`, plus a required `branchId` and a required, per-tenant
+    unique `registrationNumber`, neither of which the reference's form even collects. Forcing the
+    reference's exact field set onto this endpoint isn't possible without either changing the
+    already-shipped `Student` model (out of scope for this slice) or inventing new required-field
+    UX the reference itself doesn't have (defeating the point of fidelity). This is a genuine
+    technical-shape mismatch, not a preference — so this slice's enroll flow selects an EXISTING
+    student instead, matching the pattern the already-shipped Inscriptions page already uses. A
+    genuinely new student is created first via the existing Students page, then enrolled here —
+    two steps instead of the reference's one, but consistent with how every other page in this
+    app already handles "pick a student."
 - Sidebar nav gains a "Formation Pro" entry, positioned after Inscriptions (last in the list).
 
 ## i18n
 
 New `education.*` keys in `en.json`/`fr.json`/`ar.json`: `formations`, `addFormation`,
 `editFormation`, `formationName`, `formationDuration`, `formationPrice`,
-`formationDescription`, `noFormationsYet`, `enrollStudent`, `enrollFormation`,
-`enrollFirstName`, `enrollLastName`, `enrollEmail`, `enrollPhone`, `enrollCin`, `enrollAddress`,
-`totalFormations`, `totalFormationInscriptions`, `totalFormationRevenue`,
+`formationDescription`, `noFormationsYet`, `enrollStudent`, `enrollStudentField`,
+`enrollFormation`, `totalFormations`, `totalFormationInscriptions`, `totalFormationRevenue`,
 `monthlyFormationRevenue`.
 
 ## Out of scope (explicitly deferred, same rationale as prior slices)
