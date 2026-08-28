@@ -30,6 +30,22 @@ export interface Student {
     currentSchool?: string;
     subjects?: any; // JSON
     active: boolean;
+    parentId?: string;
+    parent?: Parent;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// Parent types
+export interface Parent {
+    id: string;
+    name: string;
+    phone: string;
+    whatsapp?: string;
+    email?: string;
+    cin?: string;
+    address?: string;
+    students: Student[];
     createdAt: string;
     updatedAt: string;
 }
@@ -69,7 +85,9 @@ export interface Attendance {
     studentId: string;
     student?: Student;
     date: string;
-    status: 'present' | 'absent';
+    status: 'PRESENT' | 'LATE' | 'ABSENT';
+    scannedAt?: string;
+    groupId?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -155,7 +173,7 @@ export interface PaymentFormData {
 export interface AttendanceFormData {
     studentId: string;
     date: string;
-    status: 'present' | 'absent';
+    status: 'PRESENT' | 'LATE' | 'ABSENT';
 }
 
 export interface UserFormData {

@@ -10,3 +10,8 @@ export async function createAttendance(data: AttendanceFormData): Promise<Attend
     const response = await api.post<ApiResponse<Attendance>>('/attendance', data);
     return response.data.data;
 }
+
+export async function scanAttendance(studentToken: string, groupId: string): Promise<Attendance> {
+    const response = await api.post<ApiResponse<Attendance>>('/attendance/scan', { studentToken, groupId });
+    return response.data.data;
+}

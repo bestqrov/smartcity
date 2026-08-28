@@ -30,6 +30,11 @@ export async function searchStudents(query: string): Promise<Student[]> {
     return response.data.data;
 }
 
+export async function regenerateStudentToken(id: string): Promise<{ student: Student; rawToken: string }> {
+    const response = await api.post<ApiResponse<{ student: Student; rawToken: string }>>(`/students/${id}/regenerate-token`);
+    return response.data.data;
+}
+
 export async function getStudentAnalytics() {
     const response = await api.get<ApiResponse<{
         totalStudents: number;
