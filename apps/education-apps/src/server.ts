@@ -1,6 +1,7 @@
 import app from './app';
 import { env } from './config/env';
 import prisma from './config/database';
+import { startAbsenceCronJob } from './modules/attendance/absence-job';
 
 const startServer = async () => {
     try {
@@ -41,6 +42,9 @@ const startServer = async () => {
             console.log('   GET    /transactions (ADMIN)');
             console.log('   POST   /transactions (ADMIN)');
             console.log('   DELETE /transactions/:id (ADMIN)');
+
+            startAbsenceCronJob();
+            console.log('⏰ Absence sweep cron job started');
         });
     } catch (error) {
         console.error('❌ Failed to start server:', error);

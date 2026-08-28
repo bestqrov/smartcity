@@ -5,11 +5,11 @@ export interface TimeSlot {
 }
 
 const GRACE_PERIOD_MINUTES = 5;
-const WEEKDAY_NAMES = [
+export const WEEKDAY_NAMES = [
     'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
 ];
 
-const parseTimeOnDate = (date: Date, hhmm: string): Date => {
+export const parseTimeOnDate = (date: Date, hhmm: string): Date => {
     const [hours, minutes] = hhmm.split(':').map(Number);
     const result = new Date(date);
     result.setHours(hours, minutes, 0, 0);
