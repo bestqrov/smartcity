@@ -124,6 +124,7 @@ export const getStudentById = async (id: string) => {
             inscriptions: true,
             payments: true,
             attendances: true,
+            parent: true,
         },
     });
 

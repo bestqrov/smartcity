@@ -32,6 +32,9 @@ export interface Student {
     active: boolean;
     parentId?: string;
     parent?: Parent;
+    inscriptions?: Inscription[];
+    payments?: Payment[];
+    attendances?: Attendance[];
     createdAt: string;
     updatedAt: string;
 }
