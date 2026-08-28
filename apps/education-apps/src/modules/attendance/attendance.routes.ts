@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { create, getByStudent } from './attendance.controller';
+import { create, getByStudent, scan } from './attendance.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 
@@ -10,6 +10,7 @@ router.use(authMiddleware);
 router.use(roleMiddleware('ADMIN'));
 
 router.post('/', create);
+router.post('/scan', scan);
 router.get('/student/:id', getByStudent);
 
 export default router;
