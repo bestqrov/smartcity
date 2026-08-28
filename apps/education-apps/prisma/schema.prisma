@@ -1,0 +1,230 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  SECRETARY
+  SUPER_ADMIN
+}
+
+enum InscriptionType {
+  SOUTIEN
+  FORMATION
+}
+
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  email         String   @unique
+  password      String
+  role          UserRole
+  name          String
+  avatar        String?  // Base64 encoded image or URL
+  gsm           String?
+  whatsapp      String?
+  address       String?
+  schoolLevel   String?
+  certification String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Student {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  surname       String
+  phone         String?
+  email         String?
+  cin           String?
+  address       String?
+  birthDate     DateTime?
+  birthPlace    String?
+  fatherName    String?
+  motherName    String?
+  parentName    String?
+  parentPhone   String?
+  parentRelation String?
+  schoolLevel   String?
+  currentSchool String?
+  subjects      Json?
+  photo         String? // Base64 encoded image or file path
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  inscriptions Inscription[]
+  payments     Payment[]
+  attendances  Attendance[]
+  
+  groupIds     String[] @db.ObjectId
+  groups       Group[]  @relation(fields: [groupIds], references: [id])
+
+  @@map("students")
+}
+
+model Group {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  type          InscriptionType @default(SOUTIEN) 
+  
+  // Soutien fields
+  level         String? // e.g. LYCEE
+  subject       String? // e.g. MATHS
+
+  // Formation fields
+  formationId   String? @db.ObjectId
+  formation     Formation? @relation(fields: [formationId], references: [id])
+
+  room          String?
+  whatsappUrl   String?
+  
+  teacherId     String? @db.ObjectId
+  teacher       Teacher? @relation(fields: [teacherId], references: [id])
+  
+  studentIds    String[] @db.ObjectId
+  students      Student[] @relation(fields: [studentIds], references: [id])
+  
+  timeSlots     Json? // [{ day: string, startTime: string, endTime: string }]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("groups")
+}
+
+model Teacher {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String?
+  phone         String?
+  cin           String?
+  dob           DateTime?
+  gender        String?
+  picture       String?
+  status        String   @default("Active")
+  socialMedia   Json?    // { linkedin, twitter, facebook, whatsapp }
+  
+  hourlyRate    Float    @default(0)
+  paymentType   String   @default("HOURLY") // HOURLY, FIXED, PERCENTAGE
+  commission    Float?   // For percentage based payment
+  
+  specialties   String[] // Subjects
+  levels        String[] // Levels
+
+  groups        Group[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("teachers")
+}
+
+model Inscription {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  studentId String @db.ObjectId
+  student   Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type      InscriptionType
+  category  String
+  amount    Float
+  date      DateTime        @default(now())
+  note      String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@map("inscriptions")
+}
+
+model Payment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId String @db.ObjectId
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  amount    Float
+  method    String
+  note      String?
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
+}
+
+model Attendance {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId String @db.ObjectId
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    String // present / absent
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("attendances")
+}
+
+model Settings {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  schoolName   String
+  logo         String?
+  academicYear String
+  contactInfo  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model Formation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  duration    String
+  price       Float
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  groups      Group[]
+
+  @@map("formations")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+
+model Transaction {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  type        TransactionType
+  amount      Float
+  category    String
+  description String?
+  date        DateTime        @default(now())
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("transactions")
+}
+
+model Pricing {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  category    String   // SOUTIEN, FORMATION
+  level       String   // LYCÉE, COLLÈGE, etc.
+  subject     String   // MATHS, PHYSIQUE, etc.
+  price       Float    @default(0)
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("pricing")
+}
