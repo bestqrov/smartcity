@@ -21,6 +21,23 @@ enum InscriptionType {
   FORMATION
 }
 
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  SMS
+  PUSH
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+}
+
 model User {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   email         String   @unique
@@ -37,6 +54,24 @@ model User {
   updatedAt     DateTime @updatedAt
 
   @@map("users")
+}
+
+model Parent {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  phone           String
+  whatsapp        String?
+  email           String?
+  cin             String?
+  address         String?
+  accessTokenHash String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  students        Student[]
+  notifications   AttendanceNotification[]
+
+  @@map("parents")
 }
 
 model Student {
@@ -61,6 +96,10 @@ model Student {
   active        Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  parentId        String?   @db.ObjectId
+  parent          Parent?   @relation(fields: [parentId], references: [id])
+  accessTokenHash String    @unique
 
   inscriptions Inscription[]
   payments     Payment[]
@@ -93,7 +132,9 @@ model Group {
   
   studentIds    String[] @db.ObjectId
   students      Student[] @relation(fields: [studentIds], references: [id])
-  
+
+  attendances   Attendance[]
+
   timeSlots     Json? // [{ day: string, startTime: string, endTime: string }]
 
   createdAt     DateTime @default(now())
@@ -159,15 +200,45 @@ model Payment {
 }
 
 model Attendance {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  studentId String @db.ObjectId
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  date      DateTime
-  status    String // present / absent
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  studentId  String           @db.ObjectId
+  student    Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  groupId    String?          @db.ObjectId
+  group      Group?           @relation(fields: [groupId], references: [id])
+  date       DateTime
+  scannedAt  DateTime?
+  status     AttendanceStatus
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
+  notifications AttendanceNotification[]
+
+  @@unique([studentId, groupId, date])
   @@map("attendances")
+}
+
+model AttendanceNotification {
+  id           String              @id @default(auto()) @map("_id") @db.ObjectId
+  attendanceId String              @db.ObjectId
+  attendance   Attendance          @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  parentId     String              @db.ObjectId
+  parent       Parent              @relation(fields: [parentId], references: [id])
+  channel      NotificationChannel
+  message      String
+  status       NotificationStatus
+  sentAt       DateTime            @default(now())
+
+  @@map("attendance_notifications")
+}
+
+model AccessLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  parentId   String?  @db.ObjectId
+  studentId  String?  @db.ObjectId
+  ip         String?
+  accessedAt DateTime @default(now())
+
+  @@map("access_logs")
 }
 
 model Settings {
