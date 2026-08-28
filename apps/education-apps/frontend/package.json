@@ -11,6 +11,7 @@
     "dependencies": {
         "axios": "^1.7.2",
         "clsx": "^2.1.1",
+        "html5-qrcode": "^2.3.8",
         "lucide-react": "^0.263.1",
         "next": "14.2.18",
         "qrcode": "^1.5.4",

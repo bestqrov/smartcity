@@ -86,9 +86,12 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       id: 'presence',
       label: 'Présence',
       icon: Calendar,
-      path: '/admin/presence',
       activeColor: 'bg-[#334155]/50 border-[#F472B6]',
-      iconColor: 'text-[#F472B6]'
+      iconColor: 'text-[#F472B6]',
+      submenu: [
+        { label: 'Etat Présence', path: '/admin/presence' },
+        { label: 'Scanner QR', path: '/admin/attendance/scan' },
+      ]
     },
     {
       id: 'personnel',
