@@ -17,6 +17,7 @@ import pricingRoutes from './modules/pricing/pricing.routes';
 import groupsRoutes from './modules/groups/groups.routes';
 import teachersRoutes from './modules/teachers/teachers.routes';
 import transactionsRoutes from './modules/transactions/transactions.routes';
+import parentsRoutes from './modules/parents/parents.routes';
 
 const app: Application = express();
 
@@ -35,6 +36,7 @@ const apiRouter = express.Router();
 apiRouter.use('/auth', authRoutes);
 apiRouter.use('/users', usersRoutes);
 apiRouter.use('/students', studentsRoutes);
+apiRouter.use('/parents', parentsRoutes);
 apiRouter.use('/inscriptions', inscriptionsRoutes);
 apiRouter.use('/payments', paymentsRoutes);
 apiRouter.use('/attendance', attendanceRoutes);
