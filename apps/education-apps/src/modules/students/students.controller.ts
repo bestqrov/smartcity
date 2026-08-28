@@ -81,7 +81,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         const {
             name, surname, phone, email, cin, address, birthDate,
             birthPlace, fatherName, motherName, schoolLevel, currentSchool, subjects, photo,
-            parentName, parentPhone, parentRelation
+            parentName, parentPhone, parentRelation, parentId
         } = req.body;
 
         const updateData: any = {};
@@ -102,6 +102,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         if (parentName !== undefined) updateData.parentName = parentName;
         if (parentPhone !== undefined) updateData.parentPhone = parentPhone;
         if (parentRelation !== undefined) updateData.parentRelation = parentRelation;
+        if (parentId !== undefined) updateData.parentId = parentId;
 
         const student = await updateStudent(id, updateData);
 

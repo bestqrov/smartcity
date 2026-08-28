@@ -41,6 +41,7 @@ interface UpdateStudentData {
     subjects?: any;
     photo?: string;
     active?: boolean;
+    parentId?: string | null;
 }
 
 export const createStudent = async (data: CreateStudentData & { inscriptionFee?: number; amountPaid?: number }) => {
