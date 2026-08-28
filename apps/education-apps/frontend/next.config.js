@@ -2,8 +2,6 @@
 const nextConfig = {
     reactStrictMode: true,
     optimizeFonts: false,
-    output: 'export',
-    distDir: 'dist',
     images: {
         unoptimized: true,
         domains: ['localhost'],

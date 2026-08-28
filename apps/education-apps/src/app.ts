@@ -1,6 +1,5 @@
 import express, { Application } from 'express';
 import cors from 'cors';
-import path from 'path';
 import { errorMiddleware } from './middlewares/error.middleware';
 
 // Import routes
@@ -49,16 +48,6 @@ apiRouter.use('/teachers', teachersRoutes);
 apiRouter.use('/transactions', transactionsRoutes);
 
 app.use('/api', apiRouter);
-
-// ================= FRONTEND STATIC =================
-// path ديال build ديال frontend (Vite)
-const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
-app.use(express.static(frontendPath));
-
-// أي route ماشي API → frontend
-app.get('*', (_req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-});
 
 // ================= ERROR HANDLING =================
 app.use(errorMiddleware);
