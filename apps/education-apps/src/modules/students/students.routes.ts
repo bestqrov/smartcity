@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { create, getAll, getById, update, remove, getAnalytics } from './students.controller';
+import { create, getAll, getById, update, remove, getAnalytics, regenerateToken } from './students.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 
@@ -17,5 +17,6 @@ router.get('/', getAll);
 router.get('/:id', getById);
 router.put('/:id', update);
 router.delete('/:id', remove);
+router.post('/:id/regenerate-token', regenerateToken);
 
 export default router;

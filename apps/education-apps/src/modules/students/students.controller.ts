@@ -6,8 +6,14 @@ import {
     updateStudent,
     deleteStudent,
     getStudentAnalytics,
+    regenerateStudentToken,
 } from './students.service';
 import { sendSuccess, sendError } from '../../utils/response';
+
+const stripTokenHash = <T extends { accessTokenHash?: string }>(student: T) => {
+    const { accessTokenHash, ...rest } = student;
+    return rest;
+};
 
 export const create = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -44,7 +50,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
 
         const student = await createStudent(studentData);
 
-        sendSuccess(res, student, 'Student created successfully', 201);
+        sendSuccess(res, stripTokenHash(student), 'Student created successfully', 201);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to create student', 400);
     }
@@ -53,7 +59,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
 export const getAll = async (req: Request, res: Response): Promise<void> => {
     try {
         const students = await getAllStudents();
-        sendSuccess(res, students, 'Students retrieved successfully', 200);
+        sendSuccess(res, students.map(stripTokenHash), 'Students retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve students', 500);
     }
@@ -63,7 +69,7 @@ export const getById = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const student = await getStudentById(id);
-        sendSuccess(res, student, 'Student retrieved successfully', 200);
+        sendSuccess(res, stripTokenHash(student), 'Student retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve student', 404);
     }
@@ -99,9 +105,18 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 
         const student = await updateStudent(id, updateData);
 
-        sendSuccess(res, student, 'Student updated successfully', 200);
+        sendSuccess(res, stripTokenHash(student), 'Student updated successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to update student', 400);
+    }
+};
+
+export const regenerateToken = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { student, rawToken } = await regenerateStudentToken(req.params.id);
+        sendSuccess(res, { student: stripTokenHash(student), rawToken }, 'Token regenerated successfully', 200);
+    } catch (error: any) {
+        sendError(res, error.message, 'Failed to regenerate token', 400);
     }
 };
 

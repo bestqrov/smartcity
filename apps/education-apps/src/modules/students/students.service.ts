@@ -1,4 +1,5 @@
 import prisma from '../../config/database';
+import { generateRawToken, hashToken } from '../../utils/accessToken';
 
 interface CreateStudentData {
     name: string;
@@ -65,6 +66,7 @@ export const createStudent = async (data: CreateStudentData & { inscriptionFee?:
                 subjects: data.subjects,
                 photo: data.photo,
                 active: data.active ?? true,
+                accessTokenHash: hashToken(generateRawToken()),
             },
         });
 
@@ -165,6 +167,17 @@ export const deleteStudent = async (id: string) => {
     });
 
     return { message: 'Student deleted successfully' };
+};
+
+export const regenerateStudentToken = async (id: string) => {
+    const rawToken = generateRawToken();
+
+    const student = await prisma.student.update({
+        where: { id },
+        data: { accessTokenHash: hashToken(rawToken) },
+    });
+
+    return { student, rawToken };
 };
 
 // Helpers removed as global pricing is deprecated
