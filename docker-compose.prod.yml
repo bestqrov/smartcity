@@ -134,6 +134,47 @@ services:
       - smartcity-network
     restart: unless-stopped
 
+  # ── Education Backend (ArwaEduc) ─────────────────────────
+  # Standalone Express+Prisma app with its own MongoDB database,
+  # separate from the main smartcity ecosystem's DATABASE_URL.
+  education-service:
+    build:
+      context: .
+      dockerfile: infra/docker/education-service.Dockerfile
+    container_name: smartcity-education-service
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT_EDUCATION_SERVICE:-3010}
+      - DATABASE_URL=${EDUCATION_DATABASE_URL}
+      - JWT_SECRET=${EDUCATION_JWT_SECRET}
+      - JWT_EXPIRES_IN=${EDUCATION_JWT_EXPIRES_IN:-7d}
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
+  # ── Education Frontend (ArwaEduc) ────────────────────────
+  education-app:
+    build:
+      context: .
+      dockerfile: infra/docker/education-app.Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${EDUCATION_NEXT_PUBLIC_API_URL:-/api}
+        NEXT_PUBLIC_FRONTEND_URL: ${EDUCATION_FRONTEND_URL}
+    container_name: smartcity-education-app
+    ports:
+      - "${PORT_EDUCATION_APP:-3011}:3011"
+    depends_on:
+      - education-service
+    env_file:
+      - .env
+    environment:
+      - PORT=3011
+      - INTERNAL_API_URL=http://education-service:${PORT_EDUCATION_SERVICE:-3010}
+    networks:
+      - smartcity-network
+    restart: unless-stopped
+
 volumes:
   smartcity-redis-data:
 
