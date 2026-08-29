@@ -40,7 +40,7 @@ export default function SignupPage() {
             setAccessTokenState(token);
             setUser(user);
             setActiveBranchId(null);
-            router.push('/admin');
+            router.push('/admin/select-branch');
         } catch (err: any) {
             const msg = err.response?.data?.error || err.response?.data?.message || 'Signup failed';
             setError(msg);
