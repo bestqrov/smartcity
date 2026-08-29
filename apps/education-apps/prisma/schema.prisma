@@ -13,7 +13,14 @@ datasource db {
 enum UserRole {
   ADMIN
   SECRETARY
+  OWNER
   SUPER_ADMIN
+}
+
+enum SchoolStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
 }
 
 enum InscriptionType {
@@ -53,6 +60,11 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  schoolId String? @db.ObjectId
+  school   School? @relation(fields: [schoolId], references: [id])
+  branchId String? @db.ObjectId
+  branch   Branch? @relation(fields: [branchId], references: [id])
+
   @@map("users")
 }
 
@@ -72,6 +84,39 @@ model Parent {
   notifications   AttendanceNotification[]
 
   @@map("parents")
+}
+
+model School {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  status     SchoolStatus @default(PENDING)
+  packTier   String
+  ownerName  String
+  ownerEmail String
+  ownerPhone String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  branches   Branch[]
+  users      User[]
+
+  @@map("schools")
+}
+
+model Branch {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  schoolId  String   @db.ObjectId
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name      String
+  city      String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  students  Student[]
+
+  @@map("branches")
 }
 
 model Student {
@@ -100,6 +145,9 @@ model Student {
   parentId        String?   @db.ObjectId
   parent          Parent?   @relation(fields: [parentId], references: [id])
   accessTokenHash String    @unique
+
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
 
   inscriptions Inscription[]
   payments     Payment[]
@@ -140,6 +188,11 @@ model Group {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
+
   @@map("groups")
 }
 
@@ -167,6 +220,11 @@ model Teacher {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
+
   @@map("teachers")
 }
 
@@ -182,6 +240,11 @@ model Inscription {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
+
   @@map("inscriptions")
 }
 
@@ -195,6 +258,11 @@ model Payment {
   date      DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
 
   @@map("payments")
 }
@@ -213,6 +281,11 @@ model Attendance {
 
   notifications AttendanceNotification[]
 
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
+
   @@unique([studentId, groupId, date])
   @@map("attendances")
 }
@@ -227,6 +300,11 @@ model AttendanceNotification {
   message      String
   status       NotificationStatus
   sentAt       DateTime            @default(now())
+
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
 
   @@map("attendance_notifications")
 }
@@ -250,6 +328,11 @@ model Settings {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
+
   @@map("settings")
 }
 
@@ -263,6 +346,11 @@ model Formation {
   updatedAt   DateTime @updatedAt
 
   groups      Group[]
+
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
 
   @@map("formations")
 }
@@ -283,6 +371,11 @@ model Transaction {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
+
   @@map("transactions")
 }
 
@@ -296,6 +389,11 @@ model Pricing {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // branchId is intentionally a bare scalar (no @relation) here — this model
+  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
+  // real Branch relation when this module's queries are branch-scoped.
+  branchId String? @db.ObjectId
 
   @@map("pricing")
 }
