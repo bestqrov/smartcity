@@ -5,9 +5,9 @@ import { roleMiddleware } from '../../middlewares/role.middleware';
 
 const router = Router();
 
-// All routes require authentication and ADMIN role
+// All routes require authentication; staff (admin or secretary) can scan/record attendance
 router.use(authMiddleware);
-router.use(roleMiddleware('ADMIN'));
+router.use(roleMiddleware('ADMIN', 'SECRETARY'));
 
 router.post('/', create);
 router.post('/scan', scan);
