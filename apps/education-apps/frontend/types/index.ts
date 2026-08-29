@@ -1,5 +1,5 @@
 // User types
-export type UserRole = 'ADMIN' | 'SECRETARY' | 'SUPER_ADMIN';
+export type UserRole = 'ADMIN' | 'SECRETARY' | 'OWNER' | 'SUPER_ADMIN';
 
 export interface User {
     id: string;
@@ -7,6 +7,7 @@ export interface User {
     name: string;
     surname?: string;
     role: UserRole;
+    schoolId?: string | null;
     createdAt: string;
 }
 

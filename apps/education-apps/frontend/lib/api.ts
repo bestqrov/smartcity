@@ -1,6 +1,6 @@
 // lib/api.ts
 import axios from "axios";
-import { getAccessToken, setAccessToken, clearTokens } from "../store/useAuthStore";
+import { getAccessToken, setAccessToken, clearTokens, getActiveBranchId } from "../store/useAuthStore";
 
 const api = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000" });
 
@@ -18,6 +18,8 @@ const processQueue = (error: any, token: string | null = null) => {
 api.interceptors.request.use((config) => {
     const token = getAccessToken();
     if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
+    const branchId = getActiveBranchId();
+    if (branchId && config.headers) config.headers['X-Branch-Id'] = branchId;
     return config;
 });
 

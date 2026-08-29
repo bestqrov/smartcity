@@ -5,9 +5,11 @@ import { User } from '../types';
 type AuthState = {
     user: User | null;
     accessToken: string | null;
+    activeBranchId: string | null;
     loading: boolean;
     setUser: (u: User | null) => void;
     setAccessToken: (t: string | null) => void;
+    setActiveBranchId: (id: string | null) => void;
     login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
     logout: () => void;
     getMe: () => Promise<void>;
@@ -35,12 +37,29 @@ if (typeof window !== 'undefined') {
     _accessToken = localStorage.getItem('accessToken');
 }
 
+let _activeBranchId: string | null = null;
+
+export const getActiveBranchId = () => _activeBranchId;
+export const setActiveBranchId = (id: string | null) => {
+    _activeBranchId = id;
+    if (typeof window !== 'undefined') {
+        if (id) localStorage.setItem('activeBranchId', id);
+        else localStorage.removeItem('activeBranchId');
+    }
+};
+
+if (typeof window !== 'undefined') {
+    _activeBranchId = localStorage.getItem('activeBranchId');
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,
     accessToken: _accessToken,
+    activeBranchId: _activeBranchId,
     loading: false,
     setUser: (u) => set({ user: u }),
     setAccessToken: (t) => { setAccessToken(t); set({ accessToken: t }); },
+    setActiveBranchId: (id) => { setActiveBranchId(id); set({ activeBranchId: id }); },
     login: async (email, password) => {
         try {
             set({ loading: true });
@@ -68,6 +87,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         } finally { set({ loading: false }); }
     },
     logout: () => {
+        setActiveBranchId(null);
         clearTokens();
         set({ user: null, accessToken: null });
         if (typeof window !== 'undefined') {
