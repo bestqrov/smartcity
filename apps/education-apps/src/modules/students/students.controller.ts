@@ -9,13 +9,14 @@ import {
     regenerateStudentToken,
 } from './students.service';
 import { sendSuccess, sendError } from '../../utils/response';
+import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
 const stripTokenHash = <T extends { accessTokenHash?: string }>(student: T) => {
     const { accessTokenHash, ...rest } = student;
     return rest;
 };
 
-export const create = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const {
             name, surname, phone, email, cin, address, birthDate,
@@ -29,7 +30,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const studentData: any = { name, surname };
+        const studentData: any = { name, surname, branchId: req.branchId! };
         if (phone) studentData.phone = phone;
         if (email) studentData.email = email;
         if (cin) studentData.cin = cin;
@@ -56,26 +57,26 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const getAll = async (req: Request, res: Response): Promise<void> => {
+export const getAll = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const students = await getAllStudents();
+        const students = await getAllStudents(req.branchId!);
         sendSuccess(res, students.map(stripTokenHash), 'Students retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve students', 500);
     }
 };
 
-export const getById = async (req: Request, res: Response): Promise<void> => {
+export const getById = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const student = await getStudentById(id);
+        const student = await getStudentById(id, req.branchId!);
         sendSuccess(res, stripTokenHash(student), 'Student retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve student', 404);
     }
 };
 
-export const update = async (req: Request, res: Response): Promise<void> => {
+export const update = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const {
@@ -104,7 +105,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         if (parentRelation !== undefined) updateData.parentRelation = parentRelation;
         if (parentId !== undefined) updateData.parentId = parentId;
 
-        const student = await updateStudent(id, updateData);
+        const student = await updateStudent(id, req.branchId!, updateData);
 
         sendSuccess(res, stripTokenHash(student), 'Student updated successfully', 200);
     } catch (error: any) {
@@ -112,19 +113,19 @@ export const update = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const regenerateToken = async (req: Request, res: Response): Promise<void> => {
+export const regenerateToken = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const { student, rawToken } = await regenerateStudentToken(req.params.id);
+        const { student, rawToken } = await regenerateStudentToken(req.params.id, req.branchId!);
         sendSuccess(res, { student: stripTokenHash(student), rawToken }, 'Token regenerated successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to regenerate token', 400);
     }
 };
 
-export const remove = async (req: Request, res: Response): Promise<void> => {
+export const remove = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const result = await deleteStudent(id);
+        const result = await deleteStudent(id, req.branchId!);
         sendSuccess(res, result, 'Student deleted successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to delete student', 404);

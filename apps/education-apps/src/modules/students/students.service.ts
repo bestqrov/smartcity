@@ -2,6 +2,7 @@ import prisma from '../../config/database';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
 
 interface CreateStudentData {
+    branchId: string;
     name: string;
     surname: string;
     phone?: string;
@@ -49,6 +50,7 @@ export const createStudent = async (data: CreateStudentData & { inscriptionFee?:
         // 1. Create Student
         const student = await tx.student.create({
             data: {
+                branchId: data.branchId,
                 name: data.name,
                 surname: data.surname,
                 phone: data.phone,
@@ -105,8 +107,9 @@ export const createStudent = async (data: CreateStudentData & { inscriptionFee?:
     });
 };
 
-export const getAllStudents = async () => {
+export const getAllStudents = async (branchId: string) => {
     const students = await prisma.student.findMany({
+        where: { branchId },
         include: {
             inscriptions: true,
         },
@@ -118,9 +121,16 @@ export const getAllStudents = async () => {
     return students;
 };
 
-export const getStudentById = async (id: string) => {
-    const student = await prisma.student.findUnique({
-        where: { id },
+// Pattern: every branch-scoped lookup below does findFirst({ id, branchId }) as the
+// authorization check, then mutates by bare `id` alone. This is safe ONLY because
+// MongoDB ObjectIds are globally unique — once findFirst confirms this id belongs to
+// this branch, no other document can share that id, so the later update/delete/etc.
+// by id alone is mechanically incapable of hitting a different document. If a future
+// module's lookup key is NOT globally unique on its own, this shortcut is unsafe —
+// keep branchId in the mutating call's `where` too in that case.
+export const getStudentById = async (id: string, branchId: string) => {
+    const student = await prisma.student.findFirst({
+        where: { id, branchId },
         include: {
             inscriptions: true,
             payments: true,
@@ -136,11 +146,9 @@ export const getStudentById = async (id: string) => {
     return student;
 };
 
-export const updateStudent = async (id: string, data: UpdateStudentData) => {
+export const updateStudent = async (id: string, branchId: string, data: UpdateStudentData) => {
     // Check if student exists
-    const existingStudent = await prisma.student.findUnique({
-        where: { id },
-    });
+    const existingStudent = await prisma.student.findFirst({ where: { id, branchId } });
 
     if (!existingStudent) {
         throw new Error('Student not found');
@@ -154,11 +162,9 @@ export const updateStudent = async (id: string, data: UpdateStudentData) => {
     return student;
 };
 
-export const deleteStudent = async (id: string) => {
+export const deleteStudent = async (id: string, branchId: string) => {
     // Check if student exists
-    const existingStudent = await prisma.student.findUnique({
-        where: { id },
-    });
+    const existingStudent = await prisma.student.findFirst({ where: { id, branchId } });
 
     if (!existingStudent) {
         throw new Error('Student not found');
@@ -171,7 +177,13 @@ export const deleteStudent = async (id: string) => {
     return { message: 'Student deleted successfully' };
 };
 
-export const regenerateStudentToken = async (id: string) => {
+export const regenerateStudentToken = async (id: string, branchId: string) => {
+    const existingStudent = await prisma.student.findFirst({ where: { id, branchId } });
+
+    if (!existingStudent) {
+        throw new Error('Student not found');
+    }
+
     const rawToken = generateRawToken();
 
     const student = await prisma.student.update({
