@@ -21,7 +21,7 @@ import useAuthStore from '@/store/useAuthStore';
 
 interface SidebarProps {
   currentPath: string;
-  role?: 'ADMIN' | 'SECRETARY' | 'SUPER_ADMIN';
+  role?: 'ADMIN' | 'SECRETARY' | 'SUPER_ADMIN' | 'OWNER';
 }
 
 export function Sidebar({ currentPath, role }: SidebarProps) {
@@ -151,6 +151,19 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     }
   ];
 
+  /* Owner Menu Items (cross-branch) */
+  const ownerMenuItems = [
+    {
+      id: 'branches',
+      label: 'Tous les établissements',
+      icon: Building,
+      path: '/admin/branches',
+      activeColor: 'bg-[#334155]/50 border-[#60A5FA]',
+      iconColor: 'text-[#60A5FA]'
+    },
+    ...adminMenuItems
+  ];
+
   /* Secretary Menu Items */
   const secretaryMenuItems = [
     {
@@ -189,7 +202,9 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     }
   ];
 
-  const menuItems = (effectiveRole === 'ADMIN' || effectiveRole === 'SUPER_ADMIN') ? adminMenuItems : secretaryMenuItems;
+  const menuItems = effectiveRole === 'OWNER'
+    ? ownerMenuItems
+    : (effectiveRole === 'ADMIN' || effectiveRole === 'SUPER_ADMIN') ? adminMenuItems : secretaryMenuItems;
 
   const handleNavigation = (path: string) => {
     router.push(path);
@@ -250,7 +265,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                 {profile.schoolName}
               </h1>
               <p className="text-xs text-slate-400 font-medium truncate mt-0.5">
-                {effectiveRole === 'SUPER_ADMIN' ? 'Maintenance (Super Admin)' : (effectiveRole === 'SECRETARY' ? 'Secrétaire' : (profile.director || 'Administrateur'))}
+                {effectiveRole === 'SUPER_ADMIN' ? 'Maintenance (Super Admin)' : (effectiveRole === 'SECRETARY' ? 'Secrétaire' : (effectiveRole === 'OWNER' ? 'Propriétaire' : (profile.director || 'Administrateur')))}
               </p>
             </div>
           </div>
