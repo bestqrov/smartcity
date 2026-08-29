@@ -7,6 +7,8 @@ export interface AuthRequest extends Request {
         id: string;
         email: string;
         role: string;
+        schoolId: string | null;
+        branchId: string | null;
     };
 }
 

@@ -35,6 +35,8 @@ export const loginUser = async (data: LoginData) => {
         email: user.email,
         role: user.role,
         name: user.name,
+        schoolId: user.schoolId,
+        branchId: user.branchId,
     });
 
     return {
