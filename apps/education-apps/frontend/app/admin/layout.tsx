@@ -1,10 +1,12 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { RequireRole } from '@/components/auth/RequireRole';
 import { Sidebar } from '@/components/Sidebar';
 
 import TopBar from '@/components/TopBar';
+import useAuthStore, { getActiveBranchId } from '@/store/useAuthStore';
 
 export default function AdminLayout({
     children,
@@ -12,9 +14,17 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const router = useRouter();
+    const user = useAuthStore((state) => state.user);
+
+    useEffect(() => {
+        if (user?.role === 'OWNER' && !getActiveBranchId() && pathname !== '/admin/select-branch') {
+            router.push('/admin/select-branch');
+        }
+    }, [user, pathname, router]);
 
     return (
-        <RequireRole allowedRoles={['ADMIN']}>
+        <RequireRole allowedRoles={['ADMIN', 'OWNER']}>
             <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
                 <Sidebar currentPath={pathname} />
                 <div className="flex-1 flex flex-col min-w-0">

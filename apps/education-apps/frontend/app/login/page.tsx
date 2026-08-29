@@ -29,7 +29,8 @@ export default function LoginPage() {
         if (!res.success) return setError(res.message || 'Login failed');
 
         const user = useAuthStore.getState().user;
-        if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') router.push('/admin');
+        if (user?.role === 'OWNER') router.push('/admin/select-branch');
+        else if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') router.push('/admin');
         else if (user?.role === 'SECRETARY') router.push('/secretary');
         else router.push('/');
     };
