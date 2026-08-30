@@ -38,6 +38,18 @@ describe('branch scoping', () => {
         expect(prisma.teacher.findFirst).toHaveBeenCalledWith({ where: { id: 't1', branchId: 'b1' } });
     });
 
+    it('updateTeacher does not let a caller smuggle branchId into the update payload', async () => {
+        (prisma.teacher.findFirst as jest.Mock).mockResolvedValue({ id: 't1', branchId: 'b1' });
+        (prisma.teacher.update as jest.Mock).mockResolvedValue({ id: 't1', branchId: 'b1', name: 'New Name' });
+
+        await updateTeacher('t1', 'b1', { branchId: 'other-branch', name: 'New Name' } as any);
+
+        expect(prisma.teacher.update).toHaveBeenCalledWith({
+            where: { id: 't1' },
+            data: { name: 'New Name' }
+        });
+    });
+
     it('deleteTeacher throws for a teacher outside the given branch', async () => {
         (prisma.teacher.findFirst as jest.Mock).mockResolvedValue(null);
 

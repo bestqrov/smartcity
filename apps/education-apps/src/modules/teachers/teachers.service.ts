@@ -18,6 +18,23 @@ export interface CreateTeacherData {
     levels?: string[];
 }
 
+export interface UpdateTeacherData {
+    name?: string;
+    email?: string;
+    phone?: string;
+    cin?: string;
+    dob?: Date | string;
+    gender?: string;
+    picture?: string;
+    status?: string;
+    socialMedia?: any;
+    hourlyRate?: number;
+    paymentType?: string;
+    commission?: number;
+    specialties?: string[];
+    levels?: string[];
+}
+
 export const createTeacher = async (data: CreateTeacherData) => {
     return await prisma.teacher.create({
         data
@@ -36,13 +53,21 @@ export const getAllTeachers = async (branchId: string) => {
     });
 };
 
-export const updateTeacher = async (id: string, branchId: string, data: Partial<CreateTeacherData>) => {
+export const updateTeacher = async (id: string, branchId: string, data: UpdateTeacherData) => {
     const existing = await prisma.teacher.findFirst({ where: { id, branchId } });
     if (!existing) throw new Error('Teacher not found');
 
+    const {
+        name, email, phone, cin, dob, gender, picture, status,
+        socialMedia, hourlyRate, paymentType, commission, specialties, levels
+    } = data;
+
     return await prisma.teacher.update({
         where: { id },
-        data
+        data: {
+            name, email, phone, cin, dob, gender, picture, status,
+            socialMedia, hourlyRate, paymentType, commission, specialties, levels
+        }
     });
 };
 
