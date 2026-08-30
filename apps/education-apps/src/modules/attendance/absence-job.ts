@@ -40,6 +40,7 @@ export const runAbsenceSweep = async (): Promise<void> => {
                         data: {
                             studentId: student.id,
                             groupId: group.id,
+                            branchId: group.branchId,
                             date: today,
                             status: 'ABSENT',
                         },
