@@ -71,6 +71,19 @@ describe('branch scoping', () => {
         );
     });
 
+    it('updateGroup does not let a caller smuggle branchId into the update payload', async () => {
+        (prisma.group.findFirst as jest.Mock).mockResolvedValue({ id: 'g1', branchId: 'b1' });
+        (prisma.group.update as jest.Mock).mockResolvedValue({ id: 'g1', branchId: 'b1', name: 'New Name' });
+
+        await updateGroup('g1', 'b1', { name: 'New Name', branchId: 'other-branch' } as any);
+
+        expect(prisma.group.update).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.not.objectContaining({ branchId: expect.anything() })
+            })
+        );
+    });
+
     it('deleteGroup throws for a group outside the given branch', async () => {
         (prisma.group.findFirst as jest.Mock).mockResolvedValue(null);
 

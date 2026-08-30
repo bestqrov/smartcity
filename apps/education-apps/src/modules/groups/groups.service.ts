@@ -119,14 +119,21 @@ export const updateGroup = async (id: string, branchId: string, data: UpdateGrou
     await assertStudentsInBranch(data.studentIds, branchId);
     await assertTeacherInBranch(data.teacherId, branchId);
 
+    const { name, level, subject, formationId, teacherId, room, whatsappUrl, studentIds, timeSlots } = data;
+
     return await prisma.group.update({
         where: { id },
         data: {
-            ...data,
-            formationId: data.formationId || undefined,
-            teacherId: data.teacherId || undefined,
-            students: data.studentIds ? {
-                set: data.studentIds.map(sid => ({ id: sid }))
+            name,
+            level,
+            subject,
+            formationId: formationId || undefined,
+            teacherId: teacherId || undefined,
+            room,
+            whatsappUrl,
+            timeSlots,
+            students: studentIds ? {
+                set: studentIds.map(sid => ({ id: sid }))
             } : undefined
         },
         include: {
