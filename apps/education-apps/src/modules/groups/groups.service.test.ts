@@ -7,6 +7,7 @@ jest.mock('../../config/database', () => ({
         group: { create: jest.fn(), findMany: jest.fn(), findUnique: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
         student: { findMany: jest.fn() },
         teacher: { findFirst: jest.fn() },
+        formation: { findFirst: jest.fn() },
     },
 }));
 
@@ -82,6 +83,14 @@ describe('branch scoping', () => {
                 data: expect.not.objectContaining({ branchId: expect.anything() })
             })
         );
+    });
+
+    it('createGroup throws when formationId belongs to a different branch', async () => {
+        (prisma.formation.findFirst as jest.Mock).mockResolvedValue(null);
+
+        await expect(
+            createGroup({ name: 'G1', type: 'FORMATION', formationId: 'f1', branchId: 'b1' } as any)
+        ).rejects.toThrow('Formation does not belong to this branch');
     });
 
     it('deleteGroup throws for a group outside the given branch', async () => {
