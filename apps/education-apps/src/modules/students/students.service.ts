@@ -96,6 +96,7 @@ export const createStudent = async (data: CreateStudentData & { inscriptionFee?:
             await tx.payment.create({
                 data: {
                     studentId: student.id,
+                    branchId: data.branchId,
                     amount: data.amountPaid,
                     method: 'CASH', // Default to CASH for now
                     date: new Date(),

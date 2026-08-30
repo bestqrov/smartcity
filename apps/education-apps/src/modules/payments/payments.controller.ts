@@ -6,12 +6,12 @@ import {
     getPaymentAnalytics,
 } from './payments.service';
 import { sendSuccess, sendError } from '../../utils/response';
+import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
-export const create = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { studentId, amount, method, note, date } = req.body;
 
-        // Validate required fields
         if (!studentId || amount === undefined || !method) {
             sendError(
                 res,
@@ -22,7 +22,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const paymentData: any = { studentId, amount, method };
+        const paymentData: any = { studentId, amount, method, branchId: req.branchId! };
         if (note) paymentData.note = note;
         if (date) paymentData.date = new Date(date);
 
@@ -34,19 +34,19 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const getAll = async (req: Request, res: Response): Promise<void> => {
+export const getAll = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const payments = await getAllPayments();
+        const payments = await getAllPayments(req.branchId!);
         sendSuccess(res, payments, 'Payments retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve payments', 500);
     }
 };
 
-export const getById = async (req: Request, res: Response): Promise<void> => {
+export const getById = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const payment = await getPaymentById(id);
+        const payment = await getPaymentById(id, req.branchId!);
         sendSuccess(res, payment, 'Payment retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve payment', 404);

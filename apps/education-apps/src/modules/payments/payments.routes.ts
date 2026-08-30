@@ -3,12 +3,14 @@ import { create, getAll, getById, getAnalytics } from './payments.controller';
 import { createSalary } from './salary-payments.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
+import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
 
 const router = Router();
 
-// All routes require authentication and ADMIN role
+// All routes require authentication and ADMIN/OWNER role
 router.use(authMiddleware);
-router.use(roleMiddleware('ADMIN')); // Ensure this line exists as viewed
+router.use(roleMiddleware('ADMIN', 'OWNER'));
+router.use(tenantScopeMiddleware);
 
 router.post('/salary', createSalary); // New endpoint for salary payments
 router.post('/', create);
