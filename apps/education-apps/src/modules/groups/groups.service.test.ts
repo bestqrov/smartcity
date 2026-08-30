@@ -1,10 +1,10 @@
 import prisma from '../../config/database';
-import { createGroup, getAllGroups, getGroupById, updateGroup } from './groups.service';
+import { createGroup, getAllGroups, getGroupById, updateGroup, deleteGroup } from './groups.service';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
     default: {
-        group: { create: jest.fn(), findMany: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
+        group: { create: jest.fn(), findMany: jest.fn(), findUnique: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
         student: { findMany: jest.fn() },
     },
 }));
@@ -42,20 +42,29 @@ describe('branch scoping', () => {
     });
 
     it('getGroupById throws for a group outside the given branch', async () => {
-        (prisma.group.findUnique as jest.Mock).mockResolvedValue({ id: 'g1', branchId: 'other-branch' });
+        (prisma.group.findFirst as jest.Mock).mockResolvedValue(null);
 
         await expect(getGroupById('g1', 'b1')).rejects.toThrow('Group not found');
     });
 
     it('updateGroup validates new studentIds belong to the group\'s branch', async () => {
-        (prisma.group.findUnique as jest.Mock).mockResolvedValue({ id: 'g1', branchId: 'b1' });
+        (prisma.group.findFirst as jest.Mock).mockResolvedValue({ id: 'g1', branchId: 'b1' });
         (prisma.student.findMany as jest.Mock).mockResolvedValue([{ id: 's1', branchId: 'b1' }]);
         (prisma.group.update as jest.Mock).mockResolvedValue({ id: 'g1', branchId: 'b1' });
 
         await updateGroup('g1', 'b1', { studentIds: ['s1'] });
 
         expect(prisma.group.update).toHaveBeenCalledWith(
-            expect.objectContaining({ where: { id: 'g1' } })
+            expect.objectContaining({
+                where: { id: 'g1' },
+                data: expect.objectContaining({ students: { set: [{ id: 's1' }] } })
+            })
         );
+    });
+
+    it('deleteGroup throws for a group outside the given branch', async () => {
+        (prisma.group.findFirst as jest.Mock).mockResolvedValue(null);
+
+        await expect(deleteGroup('g1', 'b1')).rejects.toThrow('Group not found');
     });
 });

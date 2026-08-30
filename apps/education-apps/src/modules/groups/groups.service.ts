@@ -89,8 +89,8 @@ export const getAllGroups = async (branchId: string, type?: InscriptionType) => 
 };
 
 export const getGroupById = async (id: string, branchId: string) => {
-    const group = await prisma.group.findUnique({
-        where: { id },
+    const group = await prisma.group.findFirst({
+        where: { id, branchId },
         include: {
             teacher: true,
             students: true,
@@ -98,13 +98,13 @@ export const getGroupById = async (id: string, branchId: string) => {
         }
     });
 
-    if (!group || group.branchId !== branchId) throw new Error('Group not found');
+    if (!group) throw new Error('Group not found');
     return group;
 };
 
 export const updateGroup = async (id: string, branchId: string, data: UpdateGroupData) => {
-    const existing = await prisma.group.findUnique({ where: { id } });
-    if (!existing || existing.branchId !== branchId) throw new Error('Group not found');
+    const existing = await prisma.group.findFirst({ where: { id, branchId } });
+    if (!existing) throw new Error('Group not found');
 
     await assertStudentsInBranch(data.studentIds, branchId);
 
@@ -127,8 +127,8 @@ export const updateGroup = async (id: string, branchId: string, data: UpdateGrou
 };
 
 export const deleteGroup = async (id: string, branchId: string) => {
-    const existing = await prisma.group.findUnique({ where: { id } });
-    if (!existing || existing.branchId !== branchId) throw new Error('Group not found');
+    const existing = await prisma.group.findFirst({ where: { id, branchId } });
+    if (!existing) throw new Error('Group not found');
 
     return await prisma.group.delete({
         where: { id }
