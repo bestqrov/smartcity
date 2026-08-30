@@ -122,6 +122,7 @@ model Branch {
   transactions Transaction[]
   pricing   Pricing[]
   attendances Attendance[]
+  attendanceNotifications AttendanceNotification[]
 
   @@map("branches")
 }
@@ -298,10 +299,8 @@ model AttendanceNotification {
   status       NotificationStatus
   sentAt       DateTime            @default(now())
 
-  // branchId is intentionally a bare scalar (no @relation) here — this model
-  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
-  // real Branch relation when this module's queries are branch-scoped.
-  branchId String? @db.ObjectId
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
 
   @@map("attendance_notifications")
 }

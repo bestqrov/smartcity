@@ -12,6 +12,11 @@ export const sendAttendanceNotification = async (
     provider: NotificationProvider,
     input: SendAttendanceNotificationInput
 ): Promise<void> => {
+    const attendance = await prisma.attendance.findUnique({ where: { id: input.attendanceId } });
+    if (!attendance) {
+        throw new Error('Attendance not found');
+    }
+
     let status: 'SENT' | 'FAILED' = 'SENT';
 
     try {
@@ -24,6 +29,7 @@ export const sendAttendanceNotification = async (
     await prisma.attendanceNotification.create({
         data: {
             attendanceId: input.attendanceId,
+            branchId: attendance.branchId,
             parentId: input.parentId,
             channel: input.channel,
             message: input.message,
