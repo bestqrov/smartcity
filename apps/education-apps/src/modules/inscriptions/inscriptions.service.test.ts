@@ -62,4 +62,14 @@ describe('branch scoping', () => {
             expect.objectContaining({ data: expect.not.objectContaining({ branchId: expect.anything() }) })
         );
     });
+
+    it('passes branchId through to the auto-created payment', async () => {
+        const { createPayment } = require('../payments/payments.service');
+        (prisma.student.findUnique as jest.Mock).mockResolvedValue({ id: 's1', branchId: 'b1' });
+        (prisma.inscription.create as jest.Mock).mockResolvedValue({ id: 'i1', branchId: 'b1' });
+
+        await createInscription({ studentId: 's1', type: 'SOUTIEN', category: 'math', amount: 100, branchId: 'b1' } as any);
+
+        expect(createPayment).toHaveBeenCalledWith(expect.objectContaining({ branchId: 'b1' }));
+    });
 });

@@ -69,6 +69,7 @@ export const createInscription = async (data: CreateInscriptionData) => {
         try {
             await createPayment({
                 studentId,
+                branchId,
                 amount,
                 method: 'CASH',
                 date: date || new Date(),
