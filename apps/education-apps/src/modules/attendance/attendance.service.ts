@@ -6,51 +6,52 @@ import { sendAttendanceNotification } from '../notifications/notification.servic
 
 interface CreateAttendanceData {
     studentId: string;
+    branchId: string;
     date: Date;
     status: string;
 }
 
 export const createAttendance = async (data: CreateAttendanceData) => {
-    const { studentId, date, status } = data;
+    const { studentId, branchId, date, status } = data;
 
     if (!['PRESENT', 'LATE', 'ABSENT'].includes(status)) {
         throw new Error('Status must be one of PRESENT, LATE, ABSENT');
     }
 
     const student = await prisma.student.findUnique({ where: { id: studentId } });
-    if (!student) {
+    if (!student || student.branchId !== branchId) {
         throw new Error('Student not found');
     }
 
     const attendance = await prisma.attendance.create({
-        data: { studentId, date, status: status as any },
+        data: { studentId, branchId, date, status: status as any },
         include: { student: true },
     });
 
     return attendance;
 };
 
-export const getAttendanceByStudent = async (studentId: string) => {
+export const getAttendanceByStudent = async (studentId: string, branchId: string) => {
     const student = await prisma.student.findUnique({ where: { id: studentId } });
-    if (!student) {
+    if (!student || student.branchId !== branchId) {
         throw new Error('Student not found');
     }
 
     return prisma.attendance.findMany({
-        where: { studentId },
+        where: { studentId, branchId },
         include: { student: true },
         orderBy: { date: 'desc' },
     });
 };
 
-export const scanAttendance = async (rawStudentToken: string, groupId: string) => {
+export const scanAttendance = async (rawStudentToken: string, groupId: string, branchId: string) => {
     const accessTokenHash = hashToken(rawStudentToken);
 
     const student = await prisma.student.findUnique({
         where: { accessTokenHash },
     });
 
-    if (!student) {
+    if (!student || student.branchId !== branchId) {
         throw new Error('Student not found');
     }
 
@@ -59,7 +60,7 @@ export const scanAttendance = async (rawStudentToken: string, groupId: string) =
     }
 
     const group = await prisma.group.findUnique({ where: { id: groupId } });
-    if (!group) {
+    if (!group || group.branchId !== branchId) {
         throw new Error('Group not found');
     }
 
@@ -88,6 +89,7 @@ export const scanAttendance = async (rawStudentToken: string, groupId: string) =
             data: {
                 studentId: student.id,
                 groupId,
+                branchId,
                 date: today,
                 scannedAt: now,
                 status: status as any,

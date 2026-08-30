@@ -1,16 +1,16 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import {
     createAttendance,
     getAttendanceByStudent,
     scanAttendance,
 } from './attendance.service';
 import { sendSuccess, sendError } from '../../utils/response';
+import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
-export const create = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { studentId, date, status } = req.body;
 
-        // Validate required fields
         if (!studentId || !date || !status) {
             sendError(
                 res,
@@ -33,6 +33,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
 
         const attendance = await createAttendance({
             studentId,
+            branchId: req.branchId!,
             date: new Date(date),
             status,
         });
@@ -44,19 +45,19 @@ export const create = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const getByStudent = async (
-    req: Request,
+    req: TenantRequest,
     res: Response
 ): Promise<void> => {
     try {
         const { id } = req.params;
-        const attendances = await getAttendanceByStudent(id);
+        const attendances = await getAttendanceByStudent(id, req.branchId!);
         sendSuccess(res, attendances, 'Attendance retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve attendance', 404);
     }
 };
 
-export const scan = async (req: Request, res: Response): Promise<void> => {
+export const scan = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { studentToken, groupId } = req.body;
 
@@ -65,7 +66,7 @@ export const scan = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const attendance = await scanAttendance(studentToken, groupId);
+        const attendance = await scanAttendance(studentToken, groupId, req.branchId!);
         sendSuccess(res, attendance, 'Attendance recorded', 201);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to record attendance', 400);
