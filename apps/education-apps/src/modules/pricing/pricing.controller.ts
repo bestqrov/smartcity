@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import {
     getAllPricing,
     getPricingByCategory,
@@ -8,16 +8,17 @@ import {
     bulkUpsertPricing
 } from './pricing.service';
 import { sendSuccess, sendError } from '../../utils/response';
+import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
-export const getAll = async (req: Request, res: Response): Promise<void> => {
+export const getAll = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { category } = req.query;
 
         let pricing;
         if (category && typeof category === 'string') {
-            pricing = await getPricingByCategory(category);
+            pricing = await getPricingByCategory(category, req.branchId!);
         } else {
-            pricing = await getAllPricing();
+            pricing = await getAllPricing(req.branchId!);
         }
 
         sendSuccess(res, pricing, 'Pricing retrieved successfully', 200);
@@ -26,7 +27,7 @@ export const getAll = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const create = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { category, level, subject, price, description } = req.body;
 
@@ -40,6 +41,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
             level,
             subject,
             price: parseFloat(price),
+            branchId: req.branchId!,
             description
         });
 
@@ -49,7 +51,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const update = async (req: Request, res: Response): Promise<void> => {
+export const update = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const { category, level, subject, price, description, active } = req.body;
@@ -62,7 +64,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         if (description !== undefined) updateData.description = description;
         if (active !== undefined) updateData.active = active;
 
-        const pricing = await updatePricing(id, updateData);
+        const pricing = await updatePricing(id, req.branchId!, updateData);
 
         sendSuccess(res, pricing, 'Pricing updated successfully', 200);
     } catch (error: any) {
@@ -70,17 +72,17 @@ export const update = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const remove = async (req: Request, res: Response): Promise<void> => {
+export const remove = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        await deletePricing(id);
+        await deletePricing(id, req.branchId!);
         sendSuccess(res, null, 'Pricing deleted successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to delete pricing', 404);
     }
 };
 
-export const bulkUpsert = async (req: Request, res: Response): Promise<void> => {
+export const bulkUpsert = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { items } = req.body;
 
@@ -89,7 +91,8 @@ export const bulkUpsert = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        const results = await bulkUpsertPricing(items);
+        const itemsWithBranch = items.map((item: any) => ({ ...item, branchId: req.branchId! }));
+        const results = await bulkUpsertPricing(itemsWithBranch);
         sendSuccess(res, results, 'Pricing bulk updated successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to bulk update pricing', 400);

@@ -5,13 +5,23 @@ export interface PricingData {
     level: string;
     subject: string;
     price: number;
+    branchId: string;
     description?: string;
     active?: boolean;
 }
 
-export const getAllPricing = async () => {
+export interface UpdatePricingData {
+    category?: string;
+    level?: string;
+    subject?: string;
+    price?: number;
+    description?: string;
+    active?: boolean;
+}
+
+export const getAllPricing = async (branchId: string) => {
     return await prisma.pricing.findMany({
-        where: { active: true },
+        where: { branchId, active: true },
         orderBy: [
             { category: 'asc' },
             { level: 'asc' },
@@ -20,10 +30,11 @@ export const getAllPricing = async () => {
     });
 };
 
-export const getPricingByCategory = async (category: string) => {
+export const getPricingByCategory = async (category: string, branchId: string) => {
     return await prisma.pricing.findMany({
         where: {
             category,
+            branchId,
             active: true
         },
         orderBy: [
@@ -52,20 +63,29 @@ export const createPricing = async (data: PricingData) => {
             level: data.level,
             subject: data.subject,
             price: data.price,
+            branchId: data.branchId,
             description: data.description,
             active: data.active ?? true
         }
     });
 };
 
-export const updatePricing = async (id: string, data: Partial<PricingData>) => {
+export const updatePricing = async (id: string, branchId: string, data: UpdatePricingData) => {
+    const existing = await prisma.pricing.findFirst({ where: { id, branchId } });
+    if (!existing) throw new Error('Pricing not found');
+
+    const { category, level, subject, price, description, active } = data;
+
     return await prisma.pricing.update({
         where: { id },
-        data
+        data: { category, level, subject, price, description, active }
     });
 };
 
-export const deletePricing = async (id: string) => {
+export const deletePricing = async (id: string, branchId: string) => {
+    const existing = await prisma.pricing.findFirst({ where: { id, branchId } });
+    if (!existing) throw new Error('Pricing not found');
+
     return await prisma.pricing.update({
         where: { id },
         data: { active: false }
@@ -77,7 +97,8 @@ export const upsertPricing = async (data: PricingData) => {
         where: {
             category: data.category,
             level: data.level,
-            subject: data.subject
+            subject: data.subject,
+            branchId: data.branchId
         }
     });
 

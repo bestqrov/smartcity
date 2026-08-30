@@ -2,11 +2,14 @@ import { Router } from 'express';
 import { getAll, create, update, remove, bulkUpsert } from './pricing.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
+import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
 
 const router = Router();
 
 // All routes require authentication
 router.use(authMiddleware);
+router.use(roleMiddleware('ADMIN', 'SECRETARY', 'OWNER'));
+router.use(tenantScopeMiddleware);
 
 // GET /pricing - Get all pricing (or filter by category)
 router.get('/', getAll);
