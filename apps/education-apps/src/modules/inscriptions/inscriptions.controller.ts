@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 import {
     createInscription,
     getAllInscriptions,
@@ -9,7 +10,7 @@ import {
 } from './inscriptions.service';
 import { sendSuccess, sendError } from '../../utils/response';
 
-export const create = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { studentId, type, category, amount, date, note } = req.body;
 
@@ -29,7 +30,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const inscriptionData: any = { studentId, type, category, amount };
+        const inscriptionData: any = { studentId, type, category, amount, branchId: req.branchId! };
         if (date) inscriptionData.date = new Date(date);
         if (note) inscriptionData.note = note;
 
@@ -41,26 +42,26 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const getAll = async (req: Request, res: Response): Promise<void> => {
+export const getAll = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const inscriptions = await getAllInscriptions();
+        const inscriptions = await getAllInscriptions(req.branchId!);
         sendSuccess(res, inscriptions, 'Inscriptions retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve inscriptions', 500);
     }
 };
 
-export const getById = async (req: Request, res: Response): Promise<void> => {
+export const getById = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const inscription = await getInscriptionById(id);
+        const inscription = await getInscriptionById(id, req.branchId!);
         sendSuccess(res, inscription, 'Inscription retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve inscription', 404);
     }
 };
 
-export const update = async (req: Request, res: Response): Promise<void> => {
+export const update = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const { type, category, amount, date, note } = req.body;
@@ -77,7 +78,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         if (date) updateData.date = new Date(date);
         if (note !== undefined) updateData.note = note;
 
-        const inscription = await updateInscription(id, updateData);
+        const inscription = await updateInscription(id, req.branchId!, updateData);
 
         sendSuccess(res, inscription, 'Inscription updated successfully', 200);
     } catch (error: any) {
@@ -85,10 +86,10 @@ export const update = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const remove = async (req: Request, res: Response): Promise<void> => {
+export const remove = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const result = await deleteInscription(id);
+        const result = await deleteInscription(id, req.branchId!);
         sendSuccess(res, result, 'Inscription deleted successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to delete inscription', 404);

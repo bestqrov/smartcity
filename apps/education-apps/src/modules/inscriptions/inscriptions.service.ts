@@ -4,6 +4,7 @@ import { createPayment } from '../payments/payments.service';
 
 interface CreateInscriptionData {
     studentId: string;
+    branchId: string;
     type: InscriptionType;
     category: string;
     amount: number;
@@ -19,7 +20,6 @@ interface UpdateInscriptionData {
     note?: string;
 }
 
-// Category validation rules
 const SOUTIEN_CATEGORIES = [
     'math',
     'physique',
@@ -31,37 +31,29 @@ const SOUTIEN_CATEGORIES = [
     'autre',
 ];
 
-
-
 const validateCategory = (type: InscriptionType, category: string): void => {
     if (type === 'SOUTIEN' && !SOUTIEN_CATEGORIES.includes(category)) {
-        // Optional: you might want to relax this too or keep it if strictly controlled
-        // For now preventing error, leaving SOUTIEN as is unless requested
-        // But matching seed data suggestion:
-        // throw new Error(...)
+        // Intentionally not enforced — see original implementation notes.
     }
-
-    // FORMATION validation removed to allow dynamic formation names
 };
 
 export const createInscription = async (data: CreateInscriptionData) => {
-    const { studentId, type, category, amount, date, note } = data;
+    const { studentId, branchId, type, category, amount, date, note } = data;
 
-    // Validate category based on type
     validateCategory(type, category);
 
-    // Check if student exists
     const student = await prisma.student.findUnique({
         where: { id: studentId },
     });
 
-    if (!student) {
+    if (!student || student.branchId !== branchId) {
         throw new Error('Student not found');
     }
 
     const inscription = await prisma.inscription.create({
         data: {
             studentId,
+            branchId,
             type,
             category,
             amount,
@@ -73,31 +65,26 @@ export const createInscription = async (data: CreateInscriptionData) => {
         },
     });
 
-    // Automatically create a payment for the inscription amount
-    // checking if amount > 0 to avoid zero-value payments if that's undesired, 
-    // but usually inscription implies payment.
     if (amount > 0) {
         try {
             await createPayment({
                 studentId,
                 amount,
-                method: 'CASH', // Default to CASH
+                method: 'CASH',
                 date: date || new Date(),
                 note: `Paiement pour inscription: ${type} - ${category}`,
-            });
+            } as any);
         } catch (error) {
             console.error('Failed to auto-create payment for inscription:', error);
-            // We don't throw here to avoid failing the inscription if payment fails,
-            // but ideally they should be in a transaction.
-            // For now, logging is sufficient as per current consistency level.
         }
     }
 
     return inscription;
 };
 
-export const getAllInscriptions = async () => {
+export const getAllInscriptions = async (branchId: string) => {
     const inscriptions = await prisma.inscription.findMany({
+        where: { branchId },
         include: {
             student: true,
         },
@@ -109,9 +96,9 @@ export const getAllInscriptions = async () => {
     return inscriptions;
 };
 
-export const getInscriptionById = async (id: string) => {
-    const inscription = await prisma.inscription.findUnique({
-        where: { id },
+export const getInscriptionById = async (id: string, branchId: string) => {
+    const inscription = await prisma.inscription.findFirst({
+        where: { id, branchId },
         include: {
             student: true,
         },
@@ -126,25 +113,24 @@ export const getInscriptionById = async (id: string) => {
 
 export const updateInscription = async (
     id: string,
+    branchId: string,
     data: UpdateInscriptionData
 ) => {
-    // Check if inscription exists
-    const existingInscription = await prisma.inscription.findUnique({
-        where: { id },
-    });
+    const existingInscription = await prisma.inscription.findFirst({ where: { id, branchId } });
 
     if (!existingInscription) {
         throw new Error('Inscription not found');
     }
 
-    // Validate category if type or category is being updated
-    const newType = data.type || existingInscription.type;
-    const newCategory = data.category || existingInscription.category;
+    const { type, category, amount, date, note } = data;
+
+    const newType = type || existingInscription.type;
+    const newCategory = category || existingInscription.category;
     validateCategory(newType, newCategory);
 
     const inscription = await prisma.inscription.update({
         where: { id },
-        data,
+        data: { type, category, amount, date, note },
         include: {
             student: true,
         },
@@ -153,11 +139,8 @@ export const updateInscription = async (
     return inscription;
 };
 
-export const deleteInscription = async (id: string) => {
-    // Check if inscription exists
-    const existingInscription = await prisma.inscription.findUnique({
-        where: { id },
-    });
+export const deleteInscription = async (id: string, branchId: string) => {
+    const existingInscription = await prisma.inscription.findFirst({ where: { id, branchId } });
 
     if (!existingInscription) {
         throw new Error('Inscription not found');
@@ -175,7 +158,6 @@ export const getInscriptionAnalytics = async () => {
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Daily stats
     const dailyInscriptions = await prisma.inscription.findMany({
         where: {
             createdAt: {
@@ -189,7 +171,6 @@ export const getInscriptionAnalytics = async () => {
     const dailySoutien = dailyInscriptions.filter(i => i.type === 'SOUTIEN').length;
     const dailyFormation = dailyInscriptions.filter(i => i.type === 'FORMATION').length;
 
-    // Monthly stats
     const monthlyInscriptions = await prisma.inscription.findMany({
         where: {
             createdAt: {
@@ -218,4 +199,3 @@ export const getInscriptionAnalytics = async () => {
         },
     };
 };
-

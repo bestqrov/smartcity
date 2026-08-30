@@ -80,6 +80,7 @@ export const createStudent = async (data: CreateStudentData & { inscriptionFee?:
             await tx.inscription.create({
                 data: {
                     studentId: student.id,
+                    branchId: data.branchId,
                     type: 'SOUTIEN',
                     category: data.schoolLevel || 'Unknown',
                     amount: data.inscriptionFee,
