@@ -40,9 +40,10 @@ export const createPayment = async (data: CreatePaymentData) => {
         type: 'INCOME',
         amount: amount,
         category: 'Paiement Scolarité',
+        branchId,
         description: `Paiement de ${student.name} ${student.surname} (${method})`,
         date: date || new Date(),
-    } as any);
+    });
 
     return payment;
 };

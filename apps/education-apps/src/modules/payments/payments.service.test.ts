@@ -56,4 +56,14 @@ describe('branch scoping', () => {
         await expect(getPaymentById('p1', 'b1')).rejects.toThrow('Payment not found');
         expect(prisma.payment.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'p1', branchId: 'b1' } }));
     });
+
+    it('passes branchId through to the auto-created INCOME transaction', async () => {
+        const { createTransaction } = require('../transactions/transactions.service');
+        (prisma.student.findUnique as jest.Mock).mockResolvedValue({ id: 's1', branchId: 'b1', name: 'A', surname: 'B' });
+        (prisma.payment.create as jest.Mock).mockResolvedValue({ id: 'p1', branchId: 'b1' });
+
+        await createPayment({ studentId: 's1', amount: 100, method: 'CASH', branchId: 'b1' } as any);
+
+        expect(createTransaction).toHaveBeenCalledWith(expect.objectContaining({ branchId: 'b1' }));
+    });
 });
