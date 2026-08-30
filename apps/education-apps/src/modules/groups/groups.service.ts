@@ -38,12 +38,22 @@ const assertStudentsInBranch = async (studentIds: string[] | undefined, branchId
     }
 };
 
+const assertTeacherInBranch = async (teacherId: string | undefined, branchId: string) => {
+    if (!teacherId) return;
+
+    const teacher = await prisma.teacher.findFirst({ where: { id: teacherId, branchId } });
+    if (!teacher) {
+        throw new Error('Teacher does not belong to this branch');
+    }
+};
+
 export const createGroup = async (data: CreateGroupData) => {
     if (data.type === 'FORMATION' && !data.formationId) {
         throw new Error('Formation Group requires a formationId');
     }
 
     await assertStudentsInBranch(data.studentIds, data.branchId);
+    await assertTeacherInBranch(data.teacherId, data.branchId);
 
     return await prisma.group.create({
         data: {
@@ -107,6 +117,7 @@ export const updateGroup = async (id: string, branchId: string, data: UpdateGrou
     if (!existing) throw new Error('Group not found');
 
     await assertStudentsInBranch(data.studentIds, branchId);
+    await assertTeacherInBranch(data.teacherId, branchId);
 
     return await prisma.group.update({
         where: { id },
