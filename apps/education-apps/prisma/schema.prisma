@@ -329,6 +329,7 @@ model Settings {
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
 
+  @@unique([branchId])
   @@map("settings")
 }
 
