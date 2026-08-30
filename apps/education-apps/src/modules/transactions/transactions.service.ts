@@ -5,18 +5,20 @@ interface CreateTransactionData {
     type: TransactionType;
     amount: number;
     category: string;
+    branchId: string;
     description?: string;
     date?: Date;
 }
 
 export const createTransaction = async (data: CreateTransactionData) => {
-    const { type, amount, category, description, date } = data;
+    const { type, amount, category, branchId, description, date } = data;
 
     const transaction = await prisma.transaction.create({
         data: {
             type,
             amount,
             category,
+            branchId,
             description,
             date: date || new Date(),
         },
@@ -25,8 +27,9 @@ export const createTransaction = async (data: CreateTransactionData) => {
     return transaction;
 };
 
-export const getAllTransactions = async () => {
+export const getAllTransactions = async (branchId: string) => {
     const transactions = await prisma.transaction.findMany({
+        where: { branchId },
         orderBy: {
             date: 'desc',
         },
@@ -35,8 +38,8 @@ export const getAllTransactions = async () => {
     return transactions;
 };
 
-export const getTransactionStats = async () => {
-    const transactions = await prisma.transaction.findMany();
+export const getTransactionStats = async (branchId: string) => {
+    const transactions = await prisma.transaction.findMany({ where: { branchId } });
 
     const totalIncome = transactions
         .filter(t => t.type === 'INCOME')
@@ -56,14 +59,11 @@ export const getTransactionStats = async () => {
 };
 
 export const getMonthlyTransactionStats = async () => {
+    // Aggregate across all branches — intentionally left unscoped, accepted debt.
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     endOfMonth.setHours(23, 59, 59, 999);
-
-    console.log('=== Monthly Transaction Stats Debug ===');
-    console.log('Start of month:', startOfMonth);
-    console.log('End of month:', endOfMonth);
 
     const transactions = await prisma.transaction.findMany({
         where: {
@@ -72,11 +72,6 @@ export const getMonthlyTransactionStats = async () => {
                 lte: endOfMonth
             }
         }
-    });
-
-    console.log('Transactions found:', transactions.length);
-    transactions.forEach(t => {
-        console.log(`- Type: ${t.type}, Amount: ${t.amount}, Date: ${t.date}`);
     });
 
     const totalIncome = transactions
@@ -89,10 +84,6 @@ export const getMonthlyTransactionStats = async () => {
 
     const balance = totalIncome - totalExpense;
 
-    console.log('Total Income:', totalIncome);
-    console.log('Total Expense:', totalExpense);
-    console.log('Balance:', balance);
-
     return {
         totalIncome,
         totalExpense,
@@ -100,8 +91,12 @@ export const getMonthlyTransactionStats = async () => {
     };
 };
 
+export const deleteTransaction = async (id: string, branchId: string) => {
+    const existing = await prisma.transaction.findFirst({ where: { id, branchId } });
+    if (!existing) {
+        throw new Error('Transaction not found');
+    }
 
-export const deleteTransaction = async (id: string) => {
     await prisma.transaction.delete({
         where: { id },
     });

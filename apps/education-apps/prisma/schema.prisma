@@ -119,6 +119,7 @@ model Branch {
   teachers  Teacher[]
   inscriptions Inscription[]
   payments  Payment[]
+  transactions Transaction[]
 
   @@map("branches")
 }
@@ -367,10 +368,8 @@ model Transaction {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  // branchId is intentionally a bare scalar (no @relation) here — this model
-  // hasn't been retrofitted for multi-tenancy yet. A follow-up plan adds the
-  // real Branch relation when this module's queries are branch-scoped.
-  branchId String? @db.ObjectId
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
 
   @@map("transactions")
 }

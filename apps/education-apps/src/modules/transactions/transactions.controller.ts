@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import {
     createTransaction,
     getAllTransactions,
@@ -6,13 +6,10 @@ import {
     deleteTransaction,
 } from './transactions.service';
 import { sendSuccess, sendError } from '../../utils/response';
+import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
-export const create = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        console.log('--- Create Transaction Request ---');
-        console.log('Body:', req.body);
-        console.log('Headers:', req.headers);
-
         const { type, amount, category, description, date } = req.body;
 
         if (!type || !amount || !category) {
@@ -24,6 +21,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
             type,
             amount: parseFloat(amount),
             category,
+            branchId: req.branchId!,
             description,
             date: date ? new Date(date) : undefined,
         });
@@ -34,28 +32,28 @@ export const create = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const getAll = async (req: Request, res: Response): Promise<void> => {
+export const getAll = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const transactions = await getAllTransactions();
+        const transactions = await getAllTransactions(req.branchId!);
         sendSuccess(res, transactions, 'Transactions retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve transactions', 500);
     }
 };
 
-export const getStats = async (req: Request, res: Response): Promise<void> => {
+export const getStats = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const stats = await getTransactionStats();
+        const stats = await getTransactionStats(req.branchId!);
         sendSuccess(res, stats, 'Transaction stats retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve stats', 500);
     }
 };
 
-export const remove = async (req: Request, res: Response): Promise<void> => {
+export const remove = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const result = await deleteTransaction(id);
+        const result = await deleteTransaction(id, req.branchId!);
         sendSuccess(res, result, 'Transaction deleted successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to delete transaction', 400);
