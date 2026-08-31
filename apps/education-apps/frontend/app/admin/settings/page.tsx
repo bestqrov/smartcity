@@ -22,6 +22,7 @@ import Button from '@/components/Button';
 import Input from '@/components/Input';
 import api from '@/lib/api';
 import useAuthStore from '@/store/useAuthStore';
+import { getMySchool, updateMySchool } from '@/lib/services/schools';
 
 interface User {
     id: string;
@@ -52,6 +53,7 @@ export default function SettingsPage() {
         director: '',
         logo: '',
     });
+    const [trialInfo, setTrialInfo] = useState<{ status: string; trialEndsAt: string | null } | null>(null);
 
     // Theme State
     const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('light');
@@ -65,18 +67,29 @@ export default function SettingsPage() {
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [showSecretaryPassword, setShowSecretaryPassword] = useState(false);
 
-    // Load saved school profile on mount
+    // Load school profile from the backend on mount
     useEffect(() => {
-        const savedProfile = localStorage.getItem('school-profile');
-        if (savedProfile) {
-            try {
-                setSchoolProfile(JSON.parse(savedProfile));
-            } catch (e) {
-                console.error('Failed to load school profile', e);
-            }
-        }
+        loadSchoolProfile();
         fetchUsers();
     }, []);
+
+    const loadSchoolProfile = async () => {
+        try {
+            const school = await getMySchool();
+            setSchoolProfile({
+                schoolName: school.name || 'Smart School',
+                city: school.city || '',
+                address: school.address || '',
+                phone: school.phone || '',
+                email: school.email || '',
+                director: school.director || '',
+                logo: school.logo || '',
+            });
+            setTrialInfo({ status: school.status, trialEndsAt: school.trialEndsAt });
+        } catch (e) {
+            console.error('Failed to load school profile', e);
+        }
+    };
 
 
     const fetchUsers = async () => {
@@ -149,15 +162,21 @@ export default function SettingsPage() {
         setSuccess('');
 
         try {
-            // Save to localStorage
-            localStorage.setItem('school-profile', JSON.stringify(schoolProfile));
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+            await updateMySchool({
+                name: schoolProfile.schoolName,
+                director: schoolProfile.director,
+                city: schoolProfile.city,
+                address: schoolProfile.address,
+                phone: schoolProfile.phone,
+                email: schoolProfile.email,
+                logo: schoolProfile.logo,
+            });
             setSuccess('Profil de l\'école enregistré avec succès');
 
             // Trigger a custom event to notify sidebar of logo change
             window.dispatchEvent(new Event('school-profile-updated'));
         } catch (err: any) {
-            setError('Échec de l\'enregistrement du profil');
+            setError(err.response?.data?.message || 'Échec de l\'enregistrement du profil');
         } finally {
             setSaving(false);
         }
@@ -291,6 +310,27 @@ export default function SettingsPage() {
                     {error}
                 </div>
             )}
+
+            {trialInfo && trialInfo.status === 'PENDING' && (() => {
+                const expired = trialInfo.trialEndsAt ? new Date(trialInfo.trialEndsAt) < new Date() : false;
+                const daysLeft = trialInfo.trialEndsAt
+                    ? Math.max(0, Math.ceil((new Date(trialInfo.trialEndsAt).getTime() - Date.now()) / 86400000))
+                    : null;
+                return (
+                    <div
+                        className={`p-4 rounded-xl border flex items-center gap-3 ${
+                            expired
+                                ? 'bg-red-50 text-red-700 border-red-100'
+                                : 'bg-amber-50 text-amber-700 border-amber-100'
+                        }`}
+                    >
+                        <AlertCircle size={20} />
+                        {expired
+                            ? "Votre période d'essai de 15 jours est terminée. Contactez-nous pour activer votre école."
+                            : `Essai gratuit : il vous reste ${daysLeft} jour(s).`}
+                    </div>
+                );
+            })()}
 
             {/* Tabs */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
