@@ -7,27 +7,20 @@ import { useRouter } from 'next/navigation';
 import { signupSchool, SignupSchoolData } from '../../lib/services/schools';
 import { GraduationCap, X } from 'lucide-react';
 
-const PACK_OPTIONS = ['basic', 'standard', 'premium'];
-
 export default function SignupPage() {
     const router = useRouter();
     const setUser = useAuthStore((state) => state.setUser);
     const setAccessTokenState = useAuthStore((state) => state.setAccessToken);
 
     const [form, setForm] = useState<SignupSchoolData>({
-        schoolName: '',
         ownerName: '',
         ownerEmail: '',
-        ownerPhone: '',
         password: '',
-        branchName: '',
-        branchCity: '',
-        packTier: PACK_OPTIONS[0],
     });
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const update = (field: keyof SignupSchoolData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const update = (field: keyof SignupSchoolData) => (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
     };
 
@@ -36,11 +29,11 @@ export default function SignupPage() {
         setError(null);
         setLoading(true);
         try {
-            const { token, user } = await signupSchool(form);
+            const { token, user, branch } = await signupSchool(form);
             setAccessTokenState(token);
             setUser(user);
-            setActiveBranchId(null);
-            router.push('/admin/select-branch');
+            setActiveBranchId(branch.id);
+            router.push('/admin/settings');
         } catch (err: any) {
             const msg = err.response?.data?.error || err.response?.data?.message || 'Signup failed';
             setError(msg);
@@ -110,16 +103,6 @@ export default function SignupPage() {
                     <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 pb-8">
                         <Input
                             type="text"
-                            value={form.schoolName}
-                            onChange={update('schoolName')}
-                            required
-                            autoComplete="off"
-                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                            placeholder="Nom de l'école"
-                        />
-
-                        <Input
-                            type="text"
                             value={form.ownerName}
                             onChange={update('ownerName')}
                             required
@@ -139,15 +122,6 @@ export default function SignupPage() {
                         />
 
                         <Input
-                            type="tel"
-                            value={form.ownerPhone}
-                            onChange={update('ownerPhone')}
-                            autoComplete="off"
-                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                            placeholder="Téléphone (optionnel)"
-                        />
-
-                        <Input
                             type="password"
                             value={form.password}
                             onChange={update('password')}
@@ -157,36 +131,6 @@ export default function SignupPage() {
                             className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
                             placeholder="Mot de passe (8 caractères min.)"
                         />
-
-                        <Input
-                            type="text"
-                            value={form.branchName}
-                            onChange={update('branchName')}
-                            required
-                            autoComplete="off"
-                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                            placeholder="Nom du premier établissement"
-                        />
-
-                        <Input
-                            type="text"
-                            value={form.branchCity}
-                            onChange={update('branchCity')}
-                            required
-                            autoComplete="off"
-                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                            placeholder="Ville"
-                        />
-
-                        <select
-                            value={form.packTier}
-                            onChange={update('packTier')}
-                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 font-bold text-lg shadow-sm"
-                        >
-                            {PACK_OPTIONS.map((pack) => (
-                                <option key={pack} value={pack}>{pack.charAt(0).toUpperCase() + pack.slice(1)}</option>
-                            ))}
-                        </select>
 
                         <div className="pt-4 lg:pt-6">
                             <Button isLoading={loading} disabled={loading} className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-xl shadow-[0_20px_45px_-10px_rgba(79,70,229,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-4 group">
