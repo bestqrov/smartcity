@@ -87,15 +87,22 @@ model Parent {
 }
 
 model School {
-  id         String       @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  status     SchoolStatus @default(PENDING)
-  packTier   String
-  ownerName  String
-  ownerEmail String
-  ownerPhone String?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  status      SchoolStatus @default(PENDING)
+  packTier    String
+  ownerName   String
+  ownerEmail  String
+  ownerPhone  String?
+  director    String?
+  city        String?
+  address     String?
+  phone       String?
+  email       String?
+  logo        String?
+  trialEndsAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   branches   Branch[]
   users      User[]
