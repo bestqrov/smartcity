@@ -72,3 +72,43 @@ export const signupSchool = async (data: SignupSchoolData) => {
         throw error;
     }
 };
+
+export const getSchoolBySchoolId = async (schoolId: string) => {
+    const school = await prisma.school.findUnique({ where: { id: schoolId } });
+    if (!school) {
+        throw new Error('School not found');
+    }
+    return school;
+};
+
+export interface UpdateSchoolProfileData {
+    name?: string;
+    director?: string;
+    city?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    logo?: string;
+}
+
+export const updateSchoolProfile = async (schoolId: string, data: UpdateSchoolProfileData) => {
+    return prisma.school.update({ where: { id: schoolId }, data });
+};
+
+export const listSchools = async () => {
+    return prisma.school.findMany({
+        select: {
+            id: true,
+            name: true,
+            ownerEmail: true,
+            status: true,
+            trialEndsAt: true,
+            createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+};
+
+export const updateSchoolStatus = async (id: string, status: 'PENDING' | 'ACTIVE' | 'SUSPENDED') => {
+    return prisma.school.update({ where: { id }, data: { status } });
+};

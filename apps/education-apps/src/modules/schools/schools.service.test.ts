@@ -1,11 +1,18 @@
 import prisma from '../../config/database';
-import { signupSchool } from './schools.service';
+import {
+    signupSchool,
+    getSchoolBySchoolId,
+    updateSchoolProfile,
+    listSchools,
+    updateSchoolStatus,
+} from './schools.service';
 import * as bcryptUtil from '../../utils/bcrypt';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
     default: {
         user: { findUnique: jest.fn() },
+        school: { findUnique: jest.fn(), update: jest.fn(), findMany: jest.fn() },
         $transaction: jest.fn(),
     },
 }));
@@ -190,5 +197,68 @@ describe('signupSchool', () => {
                 data: expect.objectContaining({ name: 'Main', city: 'Casablanca' }),
             })
         );
+    });
+});
+
+describe('getSchoolBySchoolId', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('throws when the school does not exist', async () => {
+        (prisma.school.findUnique as jest.Mock).mockResolvedValue(null);
+        await expect(getSchoolBySchoolId('missing')).rejects.toThrow('School not found');
+    });
+
+    it('returns the school when found', async () => {
+        const school = { id: 's1', name: 'Ecole A' };
+        (prisma.school.findUnique as jest.Mock).mockResolvedValue(school);
+        await expect(getSchoolBySchoolId('s1')).resolves.toEqual(school);
+    });
+});
+
+describe('updateSchoolProfile', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('updates only the provided fields on the given school', async () => {
+        const updated = { id: 's1', name: 'New Name' };
+        (prisma.school.update as jest.Mock).mockResolvedValue(updated);
+
+        const result = await updateSchoolProfile('s1', { name: 'New Name' });
+
+        expect(prisma.school.update).toHaveBeenCalledWith({
+            where: { id: 's1' },
+            data: { name: 'New Name' },
+        });
+        expect(result).toEqual(updated);
+    });
+});
+
+describe('listSchools', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('returns all schools ordered by newest first', async () => {
+        const schools = [{ id: 's1' }, { id: 's2' }];
+        (prisma.school.findMany as jest.Mock).mockResolvedValue(schools);
+
+        await expect(listSchools()).resolves.toEqual(schools);
+        expect(prisma.school.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({ orderBy: { createdAt: 'desc' } })
+        );
+    });
+});
+
+describe('updateSchoolStatus', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('updates the school status', async () => {
+        const updated = { id: 's1', status: 'ACTIVE' };
+        (prisma.school.update as jest.Mock).mockResolvedValue(updated);
+
+        const result = await updateSchoolStatus('s1', 'ACTIVE');
+
+        expect(prisma.school.update).toHaveBeenCalledWith({
+            where: { id: 's1' },
+            data: { status: 'ACTIVE' },
+        });
+        expect(result).toEqual(updated);
     });
 });
