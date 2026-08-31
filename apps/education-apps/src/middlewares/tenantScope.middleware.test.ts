@@ -131,4 +131,86 @@ describe('tenantScopeMiddleware', () => {
         expect(res.status).toHaveBeenCalledWith(403);
         expect(next).not.toHaveBeenCalled();
     });
+
+    describe('trial expiry (write requests only)', () => {
+        it('allows a write when the school is ACTIVE, regardless of trialEndsAt', async () => {
+            (prisma.branch.findUnique as jest.Mock).mockResolvedValue({
+                id: 'b1',
+                schoolId: 's1',
+                school: { status: 'ACTIVE', trialEndsAt: null },
+            });
+            const req = {
+                method: 'POST',
+                user: { id: 'u1', email: 'a@b.com', role: 'ADMIN', schoolId: 's1', branchId: 'b1' },
+                header: jest.fn(),
+            } as unknown as TenantRequest;
+            const res = makeRes();
+            const next = jest.fn();
+
+            await tenantScopeMiddleware(req, res, next);
+
+            expect(next).toHaveBeenCalled();
+        });
+
+        it('allows a write during an active PENDING trial (trialEndsAt in the future)', async () => {
+            const future = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+            (prisma.branch.findUnique as jest.Mock).mockResolvedValue({
+                id: 'b1',
+                schoolId: 's1',
+                school: { status: 'PENDING', trialEndsAt: future },
+            });
+            const req = {
+                method: 'POST',
+                user: { id: 'u1', email: 'a@b.com', role: 'ADMIN', schoolId: 's1', branchId: 'b1' },
+                header: jest.fn(),
+            } as unknown as TenantRequest;
+            const res = makeRes();
+            const next = jest.fn();
+
+            await tenantScopeMiddleware(req, res, next);
+
+            expect(next).toHaveBeenCalled();
+        });
+
+        it('blocks a write with 403 TRIAL_EXPIRED once trialEndsAt has passed and the school is still PENDING', async () => {
+            const past = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            (prisma.branch.findUnique as jest.Mock).mockResolvedValue({
+                id: 'b1',
+                schoolId: 's1',
+                school: { status: 'PENDING', trialEndsAt: past },
+            });
+            const req = {
+                method: 'POST',
+                user: { id: 'u1', email: 'a@b.com', role: 'ADMIN', schoolId: 's1', branchId: 'b1' },
+                header: jest.fn(),
+            } as unknown as TenantRequest;
+            const res = makeRes();
+            const next = jest.fn();
+
+            await tenantScopeMiddleware(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(403);
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it('allows a read (GET) even after the trial has expired', async () => {
+            const past = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            (prisma.branch.findUnique as jest.Mock).mockResolvedValue({
+                id: 'b1',
+                schoolId: 's1',
+                school: { status: 'PENDING', trialEndsAt: past },
+            });
+            const req = {
+                method: 'GET',
+                user: { id: 'u1', email: 'a@b.com', role: 'ADMIN', schoolId: 's1', branchId: 'b1' },
+                header: jest.fn(),
+            } as unknown as TenantRequest;
+            const res = makeRes();
+            const next = jest.fn();
+
+            await tenantScopeMiddleware(req, res, next);
+
+            expect(next).toHaveBeenCalled();
+        });
+    });
 });
