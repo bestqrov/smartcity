@@ -202,9 +202,23 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     }
   ];
 
+  const superAdminMenuItems = [
+    {
+      id: 'schools',
+      label: 'Écoles',
+      icon: Building,
+      path: '/admin/schools',
+      activeColor: 'bg-[#334155]/50 border-[#F87171]',
+      iconColor: 'text-[#F87171]'
+    },
+    ...adminMenuItems
+  ];
+
   const menuItems = effectiveRole === 'OWNER'
     ? ownerMenuItems
-    : (effectiveRole === 'ADMIN' || effectiveRole === 'SUPER_ADMIN') ? adminMenuItems : secretaryMenuItems;
+    : effectiveRole === 'SUPER_ADMIN'
+    ? superAdminMenuItems
+    : effectiveRole === 'ADMIN' ? adminMenuItems : secretaryMenuItems;
 
   const handleNavigation = (path: string) => {
     router.push(path);
