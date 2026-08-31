@@ -16,8 +16,9 @@ const signupLimiter = rateLimit({
 // Public — no auth, this is how a new school gets created
 router.post('/signup', signupLimiter, signup);
 
-// School owner/admin manage their own school's profile
-router.get('/me', authMiddleware, roleMiddleware('OWNER', 'ADMIN'), getMe);
+// Any authenticated staff member can read their school's profile (useSchoolProfile
+// hook calls this from every /admin and /secretary page); only OWNER/ADMIN can edit it.
+router.get('/me', authMiddleware, roleMiddleware('OWNER', 'ADMIN', 'SECRETARY'), getMe);
 router.put('/me', authMiddleware, roleMiddleware('OWNER', 'ADMIN'), updateMe);
 
 // Platform-level: SUPER_ADMIN sees and activates every school, bypassing tenant scoping
