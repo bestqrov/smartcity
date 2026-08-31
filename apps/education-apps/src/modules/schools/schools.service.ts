@@ -2,15 +2,17 @@ import prisma from '../../config/database';
 import { hashPassword } from '../../utils/bcrypt';
 
 export interface SignupSchoolData {
-    schoolName: string;
+    schoolName?: string;
     ownerName: string;
     ownerEmail: string;
     ownerPhone?: string;
     password: string;
-    branchName: string;
-    branchCity: string;
-    packTier: string;
+    branchName?: string;
+    branchCity?: string;
+    packTier?: string;
 }
+
+const TRIAL_DAYS = 15;
 
 export const signupSchool = async (data: SignupSchoolData) => {
     const email = data.ownerEmail.toLowerCase();
@@ -22,24 +24,32 @@ export const signupSchool = async (data: SignupSchoolData) => {
 
     const hashedPassword = await hashPassword(data.password);
 
+    const schoolName = data.schoolName || `École de ${data.ownerName}`;
+    const branchName = data.branchName || 'Établissement principal';
+    const branchCity = data.branchCity ?? '';
+    const packTier = data.packTier || 'basic';
+
+    const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+
     try {
         return await prisma.$transaction(async (tx) => {
             const school = await tx.school.create({
                 data: {
-                    name: data.schoolName,
+                    name: schoolName,
                     status: 'PENDING',
-                    packTier: data.packTier,
+                    packTier,
                     ownerName: data.ownerName,
                     ownerEmail: email,
                     ownerPhone: data.ownerPhone,
+                    trialEndsAt,
                 },
             });
 
             const branch = await tx.branch.create({
                 data: {
                     schoolId: school.id,
-                    name: data.branchName,
-                    city: data.branchCity,
+                    name: branchName,
+                    city: branchCity,
                 },
             });
 

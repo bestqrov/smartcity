@@ -105,4 +105,90 @@ describe('signupSchool', () => {
             })
         ).rejects.toThrow('Email already exists');
     });
+
+    it('fills in schoolName, branchName, branchCity, and packTier when omitted, and stamps a 15-day trialEndsAt', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+        jest.spyOn(bcryptUtil, 'hashPassword').mockResolvedValue('hashed-secret');
+
+        const school = { id: 'school1', name: 'École de Owner' };
+        const branch = { id: 'branch1', schoolId: 'school1' };
+        const user = { id: 'user1', email: 'owner@example.com', role: 'OWNER', schoolId: 'school1' };
+
+        const txClient = {
+            school: { create: jest.fn().mockResolvedValue(school) },
+            branch: { create: jest.fn().mockResolvedValue(branch) },
+            user: { create: jest.fn().mockResolvedValue(user) },
+        };
+        (prisma.$transaction as jest.Mock).mockImplementation(async (fn: any) => fn(txClient));
+
+        const before = Date.now();
+        await signupSchool({
+            ownerName: 'Owner',
+            ownerEmail: 'owner@example.com',
+            password: 'secret123',
+        });
+        const after = Date.now();
+
+        expect(txClient.school.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    name: 'École de Owner',
+                    status: 'PENDING',
+                    packTier: 'basic',
+                }),
+            })
+        );
+        const createdTrialEndsAt: Date = (txClient.school.create as jest.Mock).mock.calls[0][0].data.trialEndsAt;
+        expect(createdTrialEndsAt).toBeInstanceOf(Date);
+        const fifteenDaysMs = 15 * 24 * 60 * 60 * 1000;
+        expect(createdTrialEndsAt.getTime()).toBeGreaterThanOrEqual(before + fifteenDaysMs - 1000);
+        expect(createdTrialEndsAt.getTime()).toBeLessThanOrEqual(after + fifteenDaysMs + 1000);
+
+        expect(txClient.branch.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    schoolId: 'school1',
+                    name: 'Établissement principal',
+                    city: '',
+                }),
+            })
+        );
+    });
+
+    it('still honors explicit schoolName/branchName/branchCity/packTier when the caller supplies them', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+        jest.spyOn(bcryptUtil, 'hashPassword').mockResolvedValue('hashed-secret');
+
+        const school = { id: 'school1', name: 'Ecole A' };
+        const branch = { id: 'branch1', schoolId: 'school1' };
+        const user = { id: 'user1', email: 'owner@example.com', role: 'OWNER', schoolId: 'school1' };
+
+        const txClient = {
+            school: { create: jest.fn().mockResolvedValue(school) },
+            branch: { create: jest.fn().mockResolvedValue(branch) },
+            user: { create: jest.fn().mockResolvedValue(user) },
+        };
+        (prisma.$transaction as jest.Mock).mockImplementation(async (fn: any) => fn(txClient));
+
+        await signupSchool({
+            schoolName: 'Ecole A',
+            ownerName: 'Owner',
+            ownerEmail: 'owner@example.com',
+            password: 'secret123',
+            branchName: 'Main',
+            branchCity: 'Casablanca',
+            packTier: 'premium',
+        });
+
+        expect(txClient.school.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({ name: 'Ecole A', packTier: 'premium' }),
+            })
+        );
+        expect(txClient.branch.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({ name: 'Main', city: 'Casablanca' }),
+            })
+        );
+    });
 });
