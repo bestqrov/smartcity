@@ -91,7 +91,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         clearTokens();
         set({ user: null, accessToken: null });
         if (typeof window !== 'undefined') {
-            window.location.href = 'https://appinjahi.techmar.cloud';
+            window.location.href = '/login';
         }
     },
     getMe: async () => {

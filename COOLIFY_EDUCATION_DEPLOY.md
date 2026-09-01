@@ -19,23 +19,32 @@ Même repo GitHub (`bestqrov/smartcity`), même serveur Coolify, même style Nix
   besoin d'un domaine.
 - `apps/education-apps/frontend/.env.production` a déjà `NEXT_PUBLIC_API_URL=/api` (relatif) —
   cohérent avec le proxy interne ci-dessus. Ne pas le changer.
-- Le domaine de production visé est `https://appinjahi.techmar.cloud` (référencé en dur comme
-  fallback dans `src/config/env.ts` et dans plusieurs redirections frontend en cas de session
-  expirée) — confirmez avec l'équipe si ce domaine est bien celui à pointer vers ce nouveau
-  déploiement Coolify, ou si c'est un ancien hébergement à migrer/retirer après coup.
-- La base de données utilise **le même cluster MongoDB Atlas partagé que le reste de
-  smartcity**, mais une base isolée : le commentaire dans `apps/education-apps/.env` dit
-  explicitement *"smartcity's shared Atlas cluster, isolated 'arwaeduc' database (separate
-  from 'smartcity' to avoid colliding with education-service's own collections)"*. Réutilisez
-  ce cluster, ne créez pas un cluster Atlas séparé pour ArwaEduc.
+- ✅ **`https://appinjahi.techmar.cloud` n'est plus codé en dur.** Ce domaine appartenait à
+  l'app **app-injahi originale, dédiée à un seul client**, dont ce code (ArwaEduc) est une
+  réutilisation généralisée en produit SaaS multi-écoles — le garder aurait envoyé n'importe
+  quelle autre école vers l'app d'un client tiers à chaque expiration de session. Les 3
+  redirections absolues (`frontend/store/useAuthStore.ts`, `frontend/lib/api.ts`,
+  `frontend/app/admin/settings/page.tsx`) ont été remplacées par `/login` relatif — fonctionne
+  quel que soit le domaine choisi. ArwaEduc a besoin de son **propre nouveau domaine**, distinct
+  d'`appinjahi.techmar.cloud` (choisissez-en un à l'étape 1 des prérequis).
+- La base de données est un **cluster MongoDB Atlas dédié, séparé du reste de smartcity**
+  (confirmé — pas le cluster partagé `cluster0.jgzxinu.mongodb.net` mentionné dans un
+  commentaire de `.env` local, qui ne sert que pour le dev/tests). Voir §0bis.
 
-⚠️ **Le schéma Prisma de `School` a déjà été poussé** (`npx prisma db push`) sur la
-`DATABASE_URL` configurée dans `apps/education-apps/.env` local lors du développement de la
-fonctionnalité de démo 15 jours. Si cette URL pointe vers le même cluster Atlas que la
-production, la base de prod a déjà les nouveaux champs (`director`, `city`, `address`, `phone`,
-`email`, `logo`, `trialEndsAt`) — c'est un ajout de champs optionnels, donc rétro-compatible
-avec l'ancien code encore en ligne. Vérifiez juste que ce n'est pas passé sur un cluster de
-dev isolé par erreur avant de déployer.
+## 0bis. Base de données de production — déjà provisionnée
+
+Un cluster Atlas dédié à ArwaEduc a été fourni et est prêt :
+
+- Cluster : `cluster0.mwoi87g.mongodb.net` (dédié, pas partagé avec tourism/user-service).
+- Base : `arwaeduc`.
+- Schéma Prisma déjà poussé (`npx prisma db push`) — toutes les collections et index existent.
+- Vérifié vide (0 school, 0 user, 0 student) avant tout premier déploiement — aucune donnée de
+  test n'a été écrite dessus, contrairement à la base de dev partagée qui en contient.
+
+Utilisez cette `DATABASE_URL` (avec le mot de passe fourni séparément, jamais commité) comme
+variable d'environnement de la ressource `education-backend` uniquement — **ne la mettez pas
+dans `apps/education-apps/.env` local**, pour que le dev quotidien continue à utiliser la base
+de dev/test partagée et ne touche jamais aux données réelles.
 
 ✅ **Port du frontend** : `apps/education-apps/frontend/package.json` a été corrigé en
 `"start": "next start -p ${PORT:-3001}"` — Coolify (Nixpacks) injecte `$PORT`, qui prime ; en
@@ -48,9 +57,10 @@ local sans `$PORT` défini ça retombe sur `3001` comme avant, donc aucun change
 - Accès à l'instance Coolify déjà utilisée pour `tourism-app`/`gateway` (même projet).
 - Le repo `bestqrov/smartcity` déjà connecté (GitHub App déjà installée, voir
   COOLIFY_NIXPACKS_DEPLOY.md section 5 — pas besoin de le refaire).
-- La `DATABASE_URL` Atlas confirmée (cluster partagé, base `arwaeduc`).
-- Un sous-domaine pointant vers le VPS pour le frontend, par ex. `education.tondomaine.com`
-  ou le domaine existant `appinjahi.techmar.cloud` si c'est celui à réutiliser (voir §0).
+- La `DATABASE_URL` Atlas du cluster dédié ArwaEduc, déjà provisionné et vidé (voir §0bis).
+- Un **nouveau** sous-domaine pointant vers le VPS pour le frontend, par ex.
+  `education.tondomaine.com` ou `app.arwaeduc.com` — PAS `appinjahi.techmar.cloud` (voir §0,
+  ce domaine appartient à l'app client dédiée originale, pas au produit ArwaEduc).
 
 ---
 
@@ -71,7 +81,7 @@ local sans `$PORT` défini ça retombe sur `3001` comme avant, donc aucun change
 ```env
 NODE_ENV=production
 PORT=3010
-DATABASE_URL=<connection string Atlas, base arwaeduc — voir §0>
+DATABASE_URL=<connection string du cluster Atlas dédié ArwaEduc, base arwaeduc — voir §0bis>
 JWT_SECRET=<secret long et aléatoire, dédié à ArwaEduc, PAS le même que JWT_SECRET de tourism/user-service>
 JWT_EXPIRES_IN=7d
 ```
@@ -143,9 +153,8 @@ npm start
 
 ### 3.4 Domaine
 
-Dans **Domains**, ajoutez le domaine confirmé à l'étape 1 des prérequis (ex.
-`https://appinjahi.techmar.cloud` si c'est celui à réutiliser). Activez **HTTPS** / Let's
-Encrypt.
+Dans **Domains**, ajoutez le nouveau domaine confirmé à l'étape 1 des prérequis (PAS
+`appinjahi.techmar.cloud`, voir §0). Activez **HTTPS** / Let's Encrypt.
 
 ---
 
