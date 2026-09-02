@@ -13,6 +13,7 @@ import {
     Loader2
 } from 'lucide-react';
 import api from '@/lib/api';
+import { formationsService, Formation } from '@/lib/services/formations';
 
 interface PricingItem {
     id: string;
@@ -28,34 +29,46 @@ const SOUTIEN_LEVELS = ['Primaire', 'Collège', 'Lycée'];
 
 export default function PrixPage() {
     const [pricing, setPricing] = useState<PricingItem[]>([]);
+    const [formations, setFormations] = useState<Formation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     const [newSoutien, setNewSoutien] = useState({ level: SOUTIEN_LEVELS[0], subject: '', price: '' });
-    const [newFormation, setNewFormation] = useState({ subject: '', price: '' });
+    const [newFormation, setNewFormation] = useState({ name: '', duration: '', price: '' });
 
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editPrice, setEditPrice] = useState('');
     const [busyId, setBusyId] = useState<string | null>(null);
 
+    const [editingFormationId, setEditingFormationId] = useState<string | null>(null);
+    const [editFormation, setEditFormation] = useState({ name: '', duration: '', price: '' });
+
     const fetchPricing = async () => {
-        setLoading(true);
         try {
             const res = await api.get('/pricing');
             if (res.data.success) setPricing(res.data.data);
         } catch (e) {
             setError('Impossible de charger les prix');
-        } finally {
-            setLoading(false);
+        }
+    };
+
+    // Formations Pro are real Formation records (also used by /admin/formation-pro and the
+    // formation inscription form) — NOT pricing entries, so they need their own fetch/service.
+    const fetchFormations = async () => {
+        try {
+            const data = await formationsService.getAll();
+            setFormations(Array.isArray(data) ? data : []);
+        } catch (e) {
+            setError('Impossible de charger les formations');
         }
     };
 
     useEffect(() => {
-        fetchPricing();
+        setLoading(true);
+        Promise.all([fetchPricing(), fetchFormations()]).finally(() => setLoading(false));
     }, []);
 
     const soutienItems = pricing.filter((p) => p.category === 'SOUTIEN');
-    const formationItems = pricing.filter((p) => p.category === 'FORMATION');
 
     const groupedSoutien = soutienItems.reduce((acc, item) => {
         if (!acc[item.level]) acc[item.level] = [];
@@ -83,19 +96,58 @@ export default function PrixPage() {
 
     const handleAddFormation = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newFormation.subject.trim()) return;
+        if (!newFormation.name.trim() || !newFormation.duration.trim()) return;
         setError('');
         try {
-            await api.post('/pricing', {
-                category: 'FORMATION',
-                level: 'FORMATION',
-                subject: newFormation.subject.trim(),
+            await formationsService.create({
+                name: newFormation.name.trim(),
+                duration: newFormation.duration.trim(),
                 price: Number(newFormation.price) || 0,
             });
-            setNewFormation({ subject: '', price: '' });
-            fetchPricing();
+            setNewFormation({ name: '', duration: '', price: '' });
+            fetchFormations();
         } catch (e) {
             setError("Impossible d'ajouter la formation");
+        }
+    };
+
+    const startEditFormation = (formation: Formation) => {
+        setEditingFormationId(formation.id);
+        setEditFormation({ name: formation.name, duration: formation.duration, price: String(formation.price) });
+    };
+
+    const cancelEditFormation = () => {
+        setEditingFormationId(null);
+        setEditFormation({ name: '', duration: '', price: '' });
+    };
+
+    const saveEditFormation = async (id: string) => {
+        setBusyId(id);
+        try {
+            await formationsService.update(id, {
+                name: editFormation.name.trim(),
+                duration: editFormation.duration.trim(),
+                price: Number(editFormation.price) || 0,
+            });
+            setEditingFormationId(null);
+            fetchFormations();
+        } catch (e) {
+            setError('Impossible de mettre à jour la formation');
+        } finally {
+            setBusyId(null);
+        }
+    };
+
+    const handleDeleteFormation = async (id: string) => {
+        if (!confirm('Supprimer cette formation ?')) return;
+        setBusyId(id);
+        try {
+            await formationsService.delete(id);
+            fetchFormations();
+        } catch (e) {
+            setError('Impossible de supprimer la formation');
+        } finally {
+            setBusyId(null);
         }
     };
 
@@ -308,7 +360,7 @@ export default function PrixPage() {
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-gray-800">Formations Professionnelles</h2>
-                                <p className="text-sm text-gray-500">Prix par formation (complète)</p>
+                                <p className="text-sm text-gray-500">Formations réelles — utilisées par le formulaire d'inscription formation</p>
                             </div>
                         </div>
 
@@ -317,47 +369,72 @@ export default function PrixPage() {
                                 <thead>
                                     <tr className="bg-gradient-to-r from-orange-100 to-orange-50 border-b-2 border-orange-200">
                                         <th className="text-left py-3 px-4 font-bold text-gray-700 border border-gray-200">FORMATION</th>
+                                        <th className="text-left py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">DURÉE</th>
                                         <th className="text-right py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">PRIX (DH)</th>
                                         <th className="text-right py-3 px-4 font-bold text-gray-700 border border-gray-200 w-28">ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {formationItems.length === 0 && (
+                                    {formations.length === 0 && (
                                         <tr>
-                                            <td colSpan={3} className="py-6 px-4 text-center text-gray-400 border border-gray-200">
+                                            <td colSpan={4} className="py-6 px-4 text-center text-gray-400 border border-gray-200">
                                                 Aucune formation configurée pour l'instant.
                                             </td>
                                         </tr>
                                     )}
-                                    {formationItems.map((item) => (
-                                        <tr key={item.id} className="hover:bg-orange-50 transition-colors border-b border-gray-100">
-                                            <td className="py-4 px-4 font-medium text-gray-800 border border-gray-200">{item.subject}</td>
-                                            <td className="py-4 px-4 text-right border border-gray-200">
-                                                {editingId === item.id ? (
+                                    {formations.map((formation) => (
+                                        <tr key={formation.id} className="hover:bg-orange-50 transition-colors border-b border-gray-100">
+                                            <td className="py-4 px-4 font-medium text-gray-800 border border-gray-200">
+                                                {editingFormationId === formation.id ? (
                                                     <input
-                                                        type="number"
-                                                        value={editPrice}
-                                                        onChange={(e) => setEditPrice(e.target.value)}
-                                                        className="w-24 px-2 py-1 border-2 border-orange-300 rounded-lg text-right focus:border-orange-500 focus:outline-none"
+                                                        type="text"
+                                                        value={editFormation.name}
+                                                        onChange={(e) => setEditFormation((prev) => ({ ...prev, name: e.target.value }))}
+                                                        className="w-full px-2 py-1 border-2 border-orange-300 rounded-lg focus:border-orange-500 focus:outline-none"
                                                         autoFocus
                                                     />
                                                 ) : (
-                                                    <span className="font-semibold">{item.price} DH</span>
+                                                    formation.name
+                                                )}
+                                            </td>
+                                            <td className="py-4 px-4 text-gray-600 border border-gray-200">
+                                                {editingFormationId === formation.id ? (
+                                                    <input
+                                                        type="text"
+                                                        value={editFormation.duration}
+                                                        onChange={(e) => setEditFormation((prev) => ({ ...prev, duration: e.target.value }))}
+                                                        placeholder="ex: 3 mois"
+                                                        className="w-full px-2 py-1 border-2 border-orange-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                                                    />
+                                                ) : (
+                                                    formation.duration
+                                                )}
+                                            </td>
+                                            <td className="py-4 px-4 text-right border border-gray-200">
+                                                {editingFormationId === formation.id ? (
+                                                    <input
+                                                        type="number"
+                                                        value={editFormation.price}
+                                                        onChange={(e) => setEditFormation((prev) => ({ ...prev, price: e.target.value }))}
+                                                        className="w-24 px-2 py-1 border-2 border-orange-300 rounded-lg text-right focus:border-orange-500 focus:outline-none"
+                                                    />
+                                                ) : (
+                                                    <span className="font-semibold">{formation.price} DH</span>
                                                 )}
                                             </td>
                                             <td className="py-4 px-4 text-right border border-gray-200">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    {editingId === item.id ? (
+                                                    {editingFormationId === formation.id ? (
                                                         <>
                                                             <button
-                                                                onClick={() => saveEdit(item.id)}
-                                                                disabled={busyId === item.id}
+                                                                onClick={() => saveEditFormation(formation.id)}
+                                                                disabled={busyId === formation.id}
                                                                 className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
                                                             >
                                                                 <Check size={14} />
                                                             </button>
                                                             <button
-                                                                onClick={cancelEdit}
+                                                                onClick={cancelEditFormation}
                                                                 className="p-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition-colors"
                                                             >
                                                                 <X size={14} />
@@ -366,14 +443,14 @@ export default function PrixPage() {
                                                     ) : (
                                                         <>
                                                             <button
-                                                                onClick={() => startEdit(item)}
+                                                                onClick={() => startEditFormation(formation)}
                                                                 className="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-colors"
                                                             >
                                                                 <Pencil size={14} />
                                                             </button>
                                                             <button
-                                                                onClick={() => handleDelete(item.id)}
-                                                                disabled={busyId === item.id}
+                                                                onClick={() => handleDeleteFormation(formation.id)}
+                                                                disabled={busyId === formation.id}
                                                                 className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
                                                             >
                                                                 <Trash2 size={14} />
@@ -393,10 +470,20 @@ export default function PrixPage() {
                                 <label className="block text-xs font-bold text-gray-500 mb-1">Formation</label>
                                 <input
                                     type="text"
-                                    value={newFormation.subject}
-                                    onChange={(e) => setNewFormation((prev) => ({ ...prev, subject: e.target.value }))}
+                                    value={newFormation.name}
+                                    onChange={(e) => setNewFormation((prev) => ({ ...prev, name: e.target.value }))}
                                     placeholder="ex: Coiffure"
                                     className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">Durée</label>
+                                <input
+                                    type="text"
+                                    value={newFormation.duration}
+                                    onChange={(e) => setNewFormation((prev) => ({ ...prev, duration: e.target.value }))}
+                                    placeholder="ex: 3 mois"
+                                    className="w-32 px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
                                 />
                             </div>
                             <div>
