@@ -14,16 +14,16 @@ router.use(tenantScopeMiddleware);
 // GET /pricing - Get all pricing (or filter by category)
 router.get('/', getAll);
 
-// POST /pricing - Create new pricing (ADMIN only)
-router.post('/', roleMiddleware('ADMIN'), create);
+// POST /pricing - Create new pricing (ADMIN/OWNER only)
+router.post('/', roleMiddleware('ADMIN', 'OWNER'), create);
 
-// PUT /pricing/bulk - Bulk upsert pricing (ADMIN only)
-router.put('/bulk', roleMiddleware('ADMIN'), bulkUpsert);
+// PUT /pricing/bulk - Bulk upsert pricing (ADMIN/OWNER only)
+router.put('/bulk', roleMiddleware('ADMIN', 'OWNER'), bulkUpsert);
 
-// PUT /pricing/:id - Update pricing (ADMIN only)
-router.put('/:id', roleMiddleware('ADMIN'), update);
+// PUT /pricing/:id - Update pricing (ADMIN/OWNER only)
+router.put('/:id', roleMiddleware('ADMIN', 'OWNER'), update);
 
-// DELETE /pricing/:id - Delete pricing (ADMIN only)
-router.delete('/:id', roleMiddleware('ADMIN'), remove);
+// DELETE /pricing/:id - Delete pricing (ADMIN/OWNER only)
+router.delete('/:id', roleMiddleware('ADMIN', 'OWNER'), remove);
 
 export default router;
