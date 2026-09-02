@@ -171,13 +171,13 @@ export default function RegisterStudentPage() {
                             {/* Header Section */}
                             <div className="text-center mb-8 space-y-2 border-b-2 border-green-600 pb-6">
                                 <div className="flex justify-between text-sm font-bold text-gray-700">
-                                    <span>A {profile?.city || '_______'} Le : {new Date().toLocaleDateString()}</span>
+                                    <span>Le : {new Date().toLocaleDateString()}</span>
                                     <span>ROYAUME DU MAROC</span>
                                 </div>
                                 <h2 className="font-bold text-lg text-gray-800">MINISTERE D'EDUCATION NATIONALE</h2>
                                 <h1 className="font-bold text-3xl tracking-wider text-green-700">{profile?.schoolName || 'Smart School'}</h1>
                                 <div className="mt-4 inline-block border-2 border-green-600 px-6 py-3 font-bold text-lg bg-green-50 rounded-lg">
-                                    FICHE DE RENSEIGNEMENTS INDIVIDUEL
+                                    Fiche de renseignements individuelle
                                 </div>
                             </div>
 

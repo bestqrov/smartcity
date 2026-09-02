@@ -260,11 +260,11 @@ export default function DocumentsPage() {
                                 <div className="p-4 sm:p-0">
                                     {/* Traditional Header */}
                                     <div className="text-center mb-8">
-                                        <p className="text-sm">A {profile?.city || '_______'} Le: {new Date().toLocaleDateString('fr-FR')}</p>
+                                        <p className="text-sm">Le: {new Date().toLocaleDateString('fr-FR')}</p>
                                         <h1 className="text-2xl font-bold mt-4">ROYAUME DU MAROC</h1>
                                         <p className="text-lg font-semibold mt-2">MINISTERE D'EDUCATION NATIONALE</p>
                                         <h2 className="text-xl font-bold mt-8 mb-6 uppercase border-b-2 border-dashed border-gray-400 inline-block pb-1">
-                                            {activeFilter === 'SOUTIEN' ? 'FICHE DE RENSEIGNEMENTS INDIVIDUEL' : 'ATTESTATION D\'INSCRIPTION'}
+                                            {activeFilter === 'SOUTIEN' ? 'Fiche de renseignements individuelle' : 'ATTESTATION D\'INSCRIPTION'}
                                         </h2>
                                     </div>
 
