@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { getStudentById, regenerateStudentToken } from '@/lib/services/students';
+import { getStudentById, regenerateStudentToken, regenerateStudentPortalToken } from '@/lib/services/students';
 import type { Student } from '@/types';
 import QrCodeCard from '@/components/QrCodeCard';
 
@@ -20,6 +20,7 @@ export default function StudentProfilePage() {
     const [student, setStudent] = useState<Student | null>(null);
     const [tab, setTab] = useState<Tab>('attendance');
     const [rawToken, setRawToken] = useState<string | null>(null);
+    const [rawPortalToken, setRawPortalToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -38,6 +39,15 @@ export default function StudentProfilePage() {
         setRawToken(result.rawToken);
     };
 
+    const handleRegeneratePortal = async () => {
+        if (!window.confirm("Ceci invalidera immédiatement l'ancien lien de profil de l'élève. Continuer ?")) {
+            return;
+        }
+        const result = await regenerateStudentPortalToken(id);
+        setStudent(result.student);
+        setRawPortalToken(result.rawToken);
+    };
+
     if (loading) return <div className="p-6">Chargement…</div>;
     if (!student) return <div className="p-6">Élève introuvable</div>;
 
@@ -54,13 +64,28 @@ export default function StudentProfilePage() {
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">{student.schoolLevel || '—'}</p>
                 </div>
-                <button
-                    className="rounded-xl bg-blue-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-                    onClick={handleRegenerate}
-                >
-                    Régénérer le QR de présence
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        className="rounded-xl bg-slate-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-slate-700"
+                        onClick={handleRegeneratePortal}
+                    >
+                        Générer le lien de profil élève
+                    </button>
+                    <button
+                        className="rounded-xl bg-blue-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                        onClick={handleRegenerate}
+                    >
+                        Régénérer le QR de présence
+                    </button>
+                </div>
             </div>
+
+            {rawPortalToken && (
+                <QrCodeCard
+                    title="Nouveau lien de profil élève — à partager avec l'élève, ne sera plus affiché"
+                    url={`${process.env.NEXT_PUBLIC_FRONTEND_URL || ''}/s/${rawPortalToken}`}
+                />
+            )}
 
             {rawToken && (
                 <QrCodeCard

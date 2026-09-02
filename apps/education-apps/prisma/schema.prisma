@@ -161,7 +161,8 @@ model Student {
 
   parentId        String?   @db.ObjectId
   parent          Parent?   @relation(fields: [parentId], references: [id])
-  accessTokenHash String    @unique
+  accessTokenHash String    @unique // Attendance QR — scanned by staff, not shared with the student
+  portalTokenHash String?   @unique // Student's own passwordless profile link (like Parent.accessTokenHash) — separate from the attendance token above
 
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])

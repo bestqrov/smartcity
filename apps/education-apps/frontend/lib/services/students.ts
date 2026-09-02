@@ -35,6 +35,16 @@ export async function regenerateStudentToken(id: string): Promise<{ student: Stu
     return response.data.data;
 }
 
+export async function regenerateStudentPortalToken(id: string): Promise<{ student: Student; rawToken: string }> {
+    const response = await api.post<ApiResponse<{ student: Student; rawToken: string }>>(`/students/${id}/regenerate-portal-token`);
+    return response.data.data;
+}
+
+export async function getPublicStudentProfile(token: string): Promise<Student> {
+    const response = await api.get<ApiResponse<Student>>(`/students/profile/${token}`);
+    return response.data.data;
+}
+
 export async function getStudentAnalytics() {
     const response = await api.get<ApiResponse<{
         totalStudents: number;

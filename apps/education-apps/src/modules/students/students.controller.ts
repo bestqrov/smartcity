@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import prisma from '../../config/database';
 import {
     createStudent,
     getAllStudents,
@@ -7,12 +8,14 @@ import {
     deleteStudent,
     getStudentAnalytics,
     regenerateStudentToken,
+    regenerateStudentPortalToken,
+    getStudentByPortalToken,
 } from './students.service';
 import { sendSuccess, sendError } from '../../utils/response';
 import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
-const stripTokenHash = <T extends { accessTokenHash?: string }>(student: T) => {
-    const { accessTokenHash, ...rest } = student;
+const stripTokenHash = <T extends { accessTokenHash?: string; portalTokenHash?: string | null }>(student: T) => {
+    const { accessTokenHash, portalTokenHash, ...rest } = student;
     return rest;
 };
 
@@ -119,6 +122,34 @@ export const regenerateToken = async (req: TenantRequest, res: Response): Promis
         sendSuccess(res, { student: stripTokenHash(student), rawToken }, 'Token regenerated successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to regenerate token', 400);
+    }
+};
+
+export const regeneratePortalToken = async (req: TenantRequest, res: Response): Promise<void> => {
+    try {
+        const { student, rawToken } = await regenerateStudentPortalToken(req.params.id, req.branchId!);
+        sendSuccess(res, { student: stripTokenHash(student), rawToken }, 'Portal link regenerated successfully', 200);
+    } catch (error: any) {
+        sendError(res, error.message, 'Failed to regenerate portal link', 400);
+    }
+};
+
+export const getPublicProfile = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const student = await getStudentByPortalToken(req.params.token);
+
+        if (!student) {
+            sendError(res, 'Not found', 'Not found', 404);
+            return;
+        }
+
+        await prisma.accessLog.create({
+            data: { studentId: student.id, ip: req.ip },
+        });
+
+        sendSuccess(res, stripTokenHash(student), 'Profile retrieved successfully', 200);
+    } catch (error: any) {
+        sendError(res, 'Not found', 'Not found', 404);
     }
 };
 

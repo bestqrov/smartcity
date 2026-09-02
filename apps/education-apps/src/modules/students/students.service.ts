@@ -70,6 +70,7 @@ export const createStudent = async (data: CreateStudentData & { inscriptionFee?:
                 photo: data.photo,
                 active: data.active ?? true,
                 accessTokenHash: hashToken(generateRawToken()),
+                portalTokenHash: hashToken(generateRawToken()),
             },
         });
 
@@ -194,6 +195,34 @@ export const regenerateStudentToken = async (id: string, branchId: string) => {
     });
 
     return { student, rawToken };
+};
+
+// Separate from regenerateStudentToken above: that one is the attendance QR (scanned by
+// staff), this one is the student's own passwordless profile link (like Parent.accessTokenHash).
+export const regenerateStudentPortalToken = async (id: string, branchId: string) => {
+    const existingStudent = await prisma.student.findFirst({ where: { id, branchId } });
+
+    if (!existingStudent) {
+        throw new Error('Student not found');
+    }
+
+    const rawToken = generateRawToken();
+
+    const student = await prisma.student.update({
+        where: { id },
+        data: { portalTokenHash: hashToken(rawToken) },
+    });
+
+    return { student, rawToken };
+};
+
+export const getStudentByPortalToken = async (rawToken: string) => {
+    const portalTokenHash = hashToken(rawToken);
+
+    return prisma.student.findUnique({
+        where: { portalTokenHash },
+        include: { inscriptions: true, payments: true, attendances: true },
+    });
 };
 
 // Helpers removed as global pricing is deprecated
