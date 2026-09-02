@@ -178,7 +178,7 @@ const TeachersContent = () => {
 
     const filteredTeachers = teachers.filter(t =>
         t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.specialties.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
+        (t.specialties || []).some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     // Dynamic Design Config
@@ -266,7 +266,7 @@ const TeachersContent = () => {
                                 <span>{teacher.phone || 'Non renseigné'}</span>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {teacher.specialties.map((s, idx) => (
+                                {(teacher.specialties || []).map((s, idx) => (
                                     <span key={s} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${['bg-blue-50 text-blue-700 border-blue-100', 'bg-purple-50 text-purple-700 border-purple-100', 'bg-rose-50 text-rose-700 border-rose-100', 'bg-amber-50 text-amber-700 border-amber-100'][idx % 4]
                                         }`}>
                                         {isFormationMode && getSubjectIcon(s)}
