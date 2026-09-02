@@ -102,10 +102,11 @@ npm install && npm run build
 node dist/server.js
 ```
 
-(`npm run build` fait déjà `tsc && cd frontend && npm install && npm run build` d'après
-`package.json` — si Coolify build les deux ressources séparément comme recommandé ici, ce
-build du frontend imbriqué est redondant mais inoffensif ; il sera simplement refait par la
-ressource `education-frontend` elle-même.)
+(`npm run build` est maintenant juste `tsc` — il incluait auparavant
+`cd frontend && npm install && npm run build`, un build Next.js complet imbriqué et
+totalement inutile ici (le backend ne sert jamais le frontend, `education-frontend` le
+build déjà séparément) qui doublait la charge mémoire à chaque déploiement du backend et
+provoquait des échecs de build par manque de RAM sur le VPS. Retiré.)
 
 ### 2.4 Domaine
 
