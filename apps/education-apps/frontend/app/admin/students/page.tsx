@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
     Plus,
     Search,
@@ -18,7 +19,7 @@ import {
     User as UserIcon,
     Shield,
     Calendar,
-    ArrowRight
+    Users2
 } from 'lucide-react';
 import { getStudents, deleteStudent } from '@/lib/services/students';
 import { groupsService } from '@/lib/services/groups'; // Adjust path if needed
@@ -127,34 +128,34 @@ export default function StudentsPage() {
 
             {/* Statistics Row */}
             {!isAddMode && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                            <Users size={24} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <Users size={20} />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-slate-500">Total Élèves</p>
-                            <p className="text-2xl font-black text-slate-900 dark:text-white">{students.length}</p>
+                            <p className="text-xs font-medium text-slate-500">Total Élèves</p>
+                            <p className="text-xl font-black text-slate-900 dark:text-white">{students.length}</p>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                            <Shield size={24} />
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <Shield size={20} />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-slate-500">Élèves Actifs</p>
-                            <p className="text-2xl font-black text-slate-900 dark:text-white">
+                            <p className="text-xs font-medium text-slate-500">Élèves Actifs</p>
+                            <p className="text-xl font-black text-slate-900 dark:text-white">
                                 {students.filter(s => s.active).length}
                             </p>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                            <GraduationCap size={24} />
+                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <GraduationCap size={20} />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-slate-500">Niveaux Gérés</p>
-                            <p className="text-2xl font-black text-slate-900 dark:text-white">3</p>
+                            <p className="text-xs font-medium text-slate-500">Niveaux Gérés</p>
+                            <p className="text-xl font-black text-slate-900 dark:text-white">3</p>
                         </div>
                     </div>
                 </div>
@@ -203,25 +204,25 @@ export default function StudentsPage() {
                             <table className="w-full text-left">
                                 <thead className="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 font-bold text-xs uppercase tracking-wider">
                                     <tr>
-                                        <th className="px-6 py-4 flex items-center gap-2">
+                                        <th className="px-4 py-3 flex items-center gap-2">
                                             <UserIcon size={14} /> Étudiant
                                         </th>
-                                        <th className="px-6 py-4">
+                                        <th className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <GraduationCap size={14} /> Niveau
                                             </div>
                                         </th>
-                                        <th className="px-6 py-4">
+                                        <th className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <Users size={14} /> Tuteur & Contact
                                             </div>
                                         </th>
-                                        <th className="px-6 py-4">
+                                        <th className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <Shield size={14} /> Statut
                                             </div>
                                         </th>
-                                        <th className="px-6 py-4 text-right">Actions</th>
+                                        <th className="px-4 py-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -246,38 +247,38 @@ export default function StudentsPage() {
                                         </tr>
                                     ) : filteredStudents.map((student) => (
                                         <tr key={student.id} className="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-all duration-200 group border-b border-slate-50 dark:border-slate-700/50">
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-4">
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-3">
                                                     <div className="relative">
-                                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:scale-105 transition-transform">
+                                                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold shadow-sm group-hover:scale-105 transition-transform">
                                                             {student.name?.charAt(0).toUpperCase() || '?'}
                                                         </div>
-                                                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 ${student.active ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                                                        <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-800 ${student.active ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
                                                     </div>
                                                     <div>
-                                                        <div className="font-bold text-slate-900 dark:text-white text-base leading-tight">
-                                                            {student.name || (
+                                                        <div className="font-bold text-slate-900 dark:text-white text-sm leading-tight">
+                                                            {student.name ? (
+                                                                <Link href={`/admin/students/${student.id}`} className="hover:text-blue-600 transition-colors">
+                                                                    {student.name} {student.surname}
+                                                                </Link>
+                                                            ) : (
                                                                 <button onClick={() => handleEdit(student)} className="text-slate-400 font-normal italic hover:text-blue-500 transition-colors">Non renseigné</button>
-                                                            )} {student.surname}
+                                                            )}
                                                         </div>
-                                                        <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
+                                                        <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
                                                             <Mail size={12} className="text-slate-400" />
                                                             {student.email || (
                                                                 <button onClick={() => handleEdit(student)} className="text-slate-300 dark:text-slate-600 italic hover:text-blue-500 transition-colors">Pas d'email</button>
                                                             )}
                                                         </div>
-                                                        <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-1">
-                                                            <Calendar size={10} />
-                                                            Inscrit le {new Date(student.createdAt).toLocaleDateString()}
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-5">
+                                            <td className="px-4 py-3">
                                                 <div className="flex flex-col gap-1.5">
-                                                    <span className={`inline-flex items-center px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border-2 shadow-sm ${student.schoolLevel === 'LYCEE' ? 'bg-indigo-50 text-indigo-700 border-indigo-100 shadow-indigo-100/50' :
-                                                            student.schoolLevel === 'COLLEGE' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-emerald-100/50' :
-                                                                student.schoolLevel === 'PRIMAIRE' ? 'bg-amber-50 text-amber-700 border-amber-100 shadow-amber-100/50' :
+                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${student.schoolLevel === 'LYCEE' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                                                            student.schoolLevel === 'COLLEGE' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                                                student.schoolLevel === 'PRIMAIRE' ? 'bg-amber-50 text-amber-700 border-amber-100' :
                                                                     'bg-slate-50 text-slate-400 border-slate-100 italic'
                                                         }`}>
                                                         {student.schoolLevel || (
@@ -303,64 +304,63 @@ export default function StudentsPage() {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-5">
-                                                <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/50 inline-block min-w-[180px]">
-                                                    <div className="flex items-center gap-2 mb-1.5">
-                                                        <div className="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">
-                                                            <UserIcon size={12} className="text-blue-500" />
-                                                        </div>
-                                                        <span className="font-bold text-slate-900 dark:text-white text-sm">
-                                                            {student.parentName || (
-                                                                <button onClick={() => handleEdit(student)} className="text-slate-400 font-normal italic hover:text-blue-500 transition-colors">Non renseigné</button>
-                                                            )}
-                                                        </span>
-                                                        {student.parentRelation && (
-                                                            <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-md text-blue-600 font-black uppercase">
-                                                                {student.parentRelation}
-                                                            </span>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-slate-800 dark:text-white text-sm">
+                                                        {student.parentName ? (
+                                                            student.parentId ? (
+                                                                <Link href={`/admin/parents/${student.parentId}`} className="hover:text-blue-600 transition-colors">
+                                                                    {student.parentName}
+                                                                </Link>
+                                                            ) : student.parentName
+                                                        ) : (
+                                                            <button onClick={() => handleEdit(student)} className="text-slate-400 font-normal italic hover:text-blue-500 transition-colors">Non renseigné</button>
                                                         )}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                                                        <Phone size={12} className="text-slate-400" />
-                                                        <span className="font-medium">
-                                                            {student.parentPhone || (
-                                                                <button onClick={() => handleEdit(student)} className="text-slate-300 dark:text-slate-600 italic hover:text-blue-500 transition-colors">Pas de téléphone</button>
-                                                            )}
+                                                    </span>
+                                                    {student.parentRelation && (
+                                                        <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-md text-blue-600 font-black uppercase">
+                                                            {student.parentRelation}
                                                         </span>
-                                                    </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                                                    <Phone size={11} className="text-slate-400" />
+                                                    {student.parentPhone || (
+                                                        <button onClick={() => handleEdit(student)} className="text-slate-300 dark:text-slate-600 italic hover:text-blue-500 transition-colors">Pas de téléphone</button>
+                                                    )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-5">
-                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider ${student.active
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${student.active
                                                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                                                     : 'bg-red-50 text-red-700 border border-red-100'
                                                     }`}>
-                                                    <span className={`w-2 h-2 rounded-full animate-pulse ${student.active ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${student.active ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
                                                     {student.active ? 'Actif' : 'Inactif'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-5 text-right">
-                                                <div className="flex justify-end gap-1.5 group-hover:translate-x-[-4px] transition-transform">
+                                            <td className="px-4 py-3 text-right">
+                                                <div className="flex justify-end gap-1 group-hover:translate-x-[-4px] transition-transform">
                                                     <button
                                                         onClick={() => handleOpenGroupModal(student)}
-                                                        className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all"
+                                                        className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
                                                         title="Assigner au groupe"
                                                     >
-                                                        <ArrowRight size={18} />
+                                                        <Users2 size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleEdit(student)}
-                                                        className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl transition-all"
+                                                        className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all"
                                                         title="Modifier"
                                                     >
-                                                        <Edit size={18} />
+                                                        <Edit size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(student.id)}
-                                                        className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                                                        className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                                                         title="Supprimer"
                                                     >
-                                                        <Trash2 size={18} />
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 </div>
                                             </td>
