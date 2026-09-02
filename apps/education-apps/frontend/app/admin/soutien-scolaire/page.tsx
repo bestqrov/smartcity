@@ -138,7 +138,7 @@ export default function SoutienDashboard() {
                     <h3 className="text-lg font-bold mb-4">Actions Rapides</h3>
                     <div className="grid grid-cols-2 gap-4">
                         <button
-                            onClick={() => router.push('/admin/students/register')}
+                            onClick={() => router.push('/admin/inscriptions')}
                             className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
                         >
                             <GraduationCap className="mb-3 text-blue-400 group-hover:scale-110 transition-transform" size={24} />
