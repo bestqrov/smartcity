@@ -16,13 +16,22 @@ import {
     GraduationCap,
     Briefcase,
     Building,
-    TrendingUp
+    TrendingUp,
+    Clock,
+    Plus,
+    X
 } from 'lucide-react';
 import { groupsService } from '@/lib/services/groups';
 import { teachersService } from '@/lib/services/teachers';
 import { formationsService } from '@/lib/services/formations';
 
 // Types
+interface TimeSlot {
+    day: string;
+    startTime: string;
+    endTime: string;
+}
+
 interface Group {
     id: string;
     name: string;
@@ -33,8 +42,11 @@ interface Group {
     teacher?: { id: string; name: string };
     whatsappUrl?: string;
     room?: string;
+    timeSlots?: TimeSlot[];
     students: any[];
 }
+
+const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
 interface Teacher {
     id: string;
@@ -94,8 +106,10 @@ const GroupsContent = () => {
         teacherId: '',
         whatsappUrl: '',
         room: '',
+        timeSlots: [] as TimeSlot[],
     };
     const [formData, setFormData] = useState(initialFormData);
+    const [newSlot, setNewSlot] = useState<TimeSlot>({ day: DAYS[0], startTime: '', endTime: '' });
 
     // Initial Load
     useEffect(() => {
@@ -138,11 +152,23 @@ const GroupsContent = () => {
                 teacherId: group.teacher?.id || '',
                 whatsappUrl: group.whatsappUrl || '',
                 room: group.room || '',
+                timeSlots: group.timeSlots || [],
             });
         } else {
             setFormData({ ...initialFormData, type: contextType || 'SOUTIEN' });
         }
+        setNewSlot({ day: DAYS[0], startTime: '', endTime: '' });
         setIsModalOpen(true);
+    };
+
+    const handleAddTimeSlot = () => {
+        if (!newSlot.startTime || !newSlot.endTime) return;
+        setFormData((prev) => ({ ...prev, timeSlots: [...prev.timeSlots, newSlot] }));
+        setNewSlot({ day: newSlot.day, startTime: '', endTime: '' });
+    };
+
+    const handleRemoveTimeSlot = (index: number) => {
+        setFormData((prev) => ({ ...prev, timeSlots: prev.timeSlots.filter((_, i) => i !== index) }));
     };
 
     const handleFormSubmit = async (e: React.FormEvent) => {
@@ -246,6 +272,18 @@ const GroupsContent = () => {
                                         <div className="flex items-center gap-2">
                                             <Briefcase size={14} className="text-gray-400" />
                                             <span>Salle: {group.room}</span>
+                                        </div>
+                                    )}
+                                    {group.timeSlots && group.timeSlots.length > 0 && (
+                                        <div className="flex items-start gap-2">
+                                            <Clock size={14} className="text-gray-400 mt-0.5" />
+                                            <span className="flex flex-wrap gap-x-1.5">
+                                                {group.timeSlots.map((slot, i) => (
+                                                    <span key={i} className="whitespace-nowrap">
+                                                        {slot.day} {slot.startTime}-{slot.endTime}{i < group.timeSlots!.length - 1 ? ',' : ''}
+                                                    </span>
+                                                ))}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -456,6 +494,73 @@ const GroupsContent = () => {
                                     <p className="text-xs text-gray-500 mt-2 ml-1">Ce lien sera accessible directement depuis la liste des groupes.</p>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Section 4: Emploi du Temps */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-amber-500 to-orange-500"></div>
+                            <div className="flex items-center gap-2 mb-6 text-gray-800">
+                                <Clock size={20} className="text-amber-600" />
+                                <h3 className="font-bold text-lg">Emploi du Temps</h3>
+                            </div>
+
+                            {formData.timeSlots.length > 0 && (
+                                <div className="space-y-2 mb-4">
+                                    {formData.timeSlots.map((slot, i) => (
+                                        <div key={i} className="flex items-center justify-between px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-100">
+                                            <span className="text-sm font-medium text-gray-700">
+                                                {slot.day} — {slot.startTime} à {slot.endTime}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveTimeSlot(i)}
+                                                className="p-1 text-red-500 hover:bg-red-50 rounded-lg"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="flex flex-wrap items-end gap-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">Jour</label>
+                                    <select
+                                        className="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
+                                        value={newSlot.day}
+                                        onChange={(e) => setNewSlot((prev) => ({ ...prev, day: e.target.value }))}
+                                    >
+                                        {DAYS.map((d) => <option key={d} value={d}>{d}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">Début</label>
+                                    <input
+                                        type="time"
+                                        className="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
+                                        value={newSlot.startTime}
+                                        onChange={(e) => setNewSlot((prev) => ({ ...prev, startTime: e.target.value }))}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">Fin</label>
+                                    <input
+                                        type="time"
+                                        className="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
+                                        value={newSlot.endTime}
+                                        onChange={(e) => setNewSlot((prev) => ({ ...prev, endTime: e.target.value }))}
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleAddTimeSlot}
+                                    className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-semibold transition-colors"
+                                >
+                                    <Plus size={16} /> Ajouter
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-3 ml-1">Visible par les étudiants du groupe sur leur profil.</p>
                         </div>
 
                         {/* Footer Actions */}

@@ -221,7 +221,12 @@ export const getStudentByPortalToken = async (rawToken: string) => {
 
     return prisma.student.findUnique({
         where: { portalTokenHash },
-        include: { inscriptions: true, payments: true, attendances: true },
+        include: {
+            inscriptions: true,
+            payments: true,
+            attendances: { orderBy: { date: 'desc' } },
+            groups: { include: { teacher: true } },
+        },
     });
 };
 

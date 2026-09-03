@@ -36,8 +36,26 @@ export interface Student {
     inscriptions?: Inscription[];
     payments?: Payment[];
     attendances?: Attendance[];
+    groups?: StudentGroupSummary[];
     createdAt: string;
     updatedAt: string;
+}
+
+// Shape of a Group as embedded in the student portal profile response — a subset of the
+// full Group model (see prisma/schema.prisma), not the legacy `Group` interface below.
+export interface StudentGroupSummary {
+    id: string;
+    name: string;
+    subject?: string;
+    level?: string;
+    room?: string;
+    timeSlots?: { day: string; startTime: string; endTime: string }[];
+    teacher?: {
+        id: string;
+        name: string;
+        phone?: string;
+        email?: string;
+    } | null;
 }
 
 // Parent types
