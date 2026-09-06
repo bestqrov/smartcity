@@ -119,27 +119,40 @@ export default function RecuPage() {
             if (response.data.success) {
                 const apiInscriptions = response.data.data;
                 const schoolAbbrev = getSchoolAbbrev();
-                const mappedReceipts: Receipt[] = apiInscriptions.map((ins: any) => {
+
+                // Assign a clean sequential number per type+month+year (e.g. "ETSS 001/09/2026")
+                // instead of a hex fragment of the Mongo id — inscriptions are processed in
+                // chronological order so the sequence is stable across reloads.
+                const sortedByDate = [...apiInscriptions].sort(
+                    (a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()
+                );
+                const counters: Record<string, number> = {};
+
+                const mappedByDate: Receipt[] = sortedByDate.map((ins: any) => {
                     const insDate = new Date(ins.date);
-                    const suffix = `${String(insDate.getMonth() + 1).padStart(2, '0')}/${insDate.getFullYear()}`;
+                    const mm = String(insDate.getMonth() + 1).padStart(2, '0');
+                    const yyyy = insDate.getFullYear();
+                    const typeSuffix = ins.type === 'SOUTIEN' ? 'SS' : 'FP';
+                    const counterKey = `${typeSuffix}-${mm}-${yyyy}`;
+                    counters[counterKey] = (counters[counterKey] || 0) + 1;
+                    const seq = String(counters[counterKey]).padStart(3, '0');
+
                     return {
-                    id: ins.id,
-                    date: ins.date.substring(0, 10),
-                    time: new Date(ins.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    receiptNumber: ins.type === 'SOUTIEN'
-                        ? `${schoolAbbrev}SS ${String(ins.id).slice(-3)}/${suffix}`
-                        : `${schoolAbbrev}FP ${String(ins.id).slice(-3)}/${suffix}`,
-                    issuedTo: `${ins.student?.name || ''} ${ins.student?.surname || ''}`.trim() || 'Inconnu',
-                    phoneNumber: ins.student?.phone || ins.student?.parentPhone || '',
-                    items: [{ description: ins.category, amount: ins.amount }],
-                    totalAmount: ins.amount,
-                    amountPaid: ins.amount,
-                    paymentMethod: 'Cash',
-                    receiptType: ins.type === 'SOUTIEN' ? 'Soutien' : ins.type === 'FORMATION' ? 'Formation' : 'Other',
-                    notes: ins.note || '',
+                        id: ins.id,
+                        date: ins.date.substring(0, 10),
+                        time: new Date(ins.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                        receiptNumber: `${schoolAbbrev}${typeSuffix} ${seq}/${mm}/${yyyy}`,
+                        issuedTo: `${ins.student?.name || ''} ${ins.student?.surname || ''}`.trim() || 'Inconnu',
+                        phoneNumber: ins.student?.phone || ins.student?.parentPhone || '',
+                        items: [{ description: ins.category, amount: ins.amount }],
+                        totalAmount: ins.amount,
+                        amountPaid: ins.amount,
+                        paymentMethod: 'Cash',
+                        receiptType: ins.type === 'SOUTIEN' ? 'Soutien' : ins.type === 'FORMATION' ? 'Formation' : 'Other',
+                        notes: ins.note || '',
                     };
                 });
-                setReceipts(mappedReceipts);
+                setReceipts(mappedByDate);
             } else {
                 // Fallback to localStorage if API fails or returns no success
                 const stored = localStorage.getItem('receipts');
@@ -197,8 +210,8 @@ export default function RecuPage() {
         const now = new Date();
         const monthYear = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
-        // Filter receipts of the same type (only checking matching prefix to be safe)
-        const relevantReceipts = receipts.filter(r => r.receiptNumber.startsWith(prefix));
+        // Same type AND same month/year — the sequence resets every month, matching loadReceipts.
+        const relevantReceipts = receipts.filter(r => r.receiptNumber.startsWith(prefix) && r.receiptNumber.endsWith(`/${monthYear}`));
 
         let maxNum = 0;
         relevantReceipts.forEach(r => {
