@@ -116,6 +116,8 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
         { label: 'Paiements', path: '/admin/finance/paiements' },
         { label: 'Transactions', path: '/admin/finance/transactions' },
         { label: 'Prix', path: '/admin/finance/prix' },
+        { label: 'Reçus', path: '/admin/finance/recu' },
+        { label: 'Salles', path: '/admin/finance/salles' },
       ]
     },
     {
@@ -130,28 +132,12 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       ]
     },
     {
-      id: 'recus',
-      label: 'Reçus',
-      icon: FileText,
-      path: '/admin/finance/recu',
-      activeColor: 'bg-[#334155]/50 border-[#2DD4BF]',
-      iconColor: 'text-[#2DD4BF]'
-    },
-    {
       id: 'documents',
       label: 'Documents',
       icon: FileText,
       path: '/admin/documents',
       activeColor: 'bg-[#334155]/50 border-[#22D3EE]',
       iconColor: 'text-[#22D3EE]'
-    },
-    {
-      id: 'salles',
-      label: 'Salles',
-      icon: Building,
-      path: '/admin/finance/salles',
-      activeColor: 'bg-[#334155]/50 border-[#FBBF24]',
-      iconColor: 'text-[#FBBF24]'
     },
     {
       id: 'settings',
@@ -275,15 +261,15 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
           background: 'radial-gradient(circle at 0% 0%, #2e3b4e 0%, #1e293b 100%)'
         }}
       >
-        <div className="p-6">
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 shadow-inner backdrop-blur-sm">
+        <div className="p-3.5">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/10 shadow-inner backdrop-blur-sm">
             {profile.logo ? (
-              <div className="w-12 h-12 bg-white rounded-xl p-1.5 shadow-sm flex-shrink-0">
+              <div className="w-9 h-9 bg-white rounded-lg p-1 shadow-sm flex-shrink-0">
                 <img src={profile.logo} alt="Logo" className="w-full h-full object-contain" />
               </div>
             ) : (
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
-                <GraduationCap size={24} className="text-white" />
+              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
+                <GraduationCap size={18} className="text-white" />
               </div>
             )}
             <div className="min-w-0">
@@ -297,8 +283,8 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-4 pb-6 space-y-1 scrollbar-hide">
-          <p className="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 mt-2">Menu Principal</p>
+        <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-0.5 scrollbar-hide">
+          <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Menu Principal</p>
 
           {menuItems.map((item) => {
             const active = isActive(item);
@@ -307,33 +293,33 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
               : 'text-slate-400 hover:bg-white/5 hover:text-white';
 
             return (
-              <li key={item.id} className="list-none mb-1">
+              <li key={item.id} className="list-none">
                 {item.submenu ? (
-                  <div className="space-y-1">
+                  <div>
                     <button
                       onClick={() => toggleMenu(item.id)}
                       className={`
-                        w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
+                        w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 group
                         ${active || expandedMenus.includes(item.id)
                           ? 'bg-white/5 text-white'
                           : 'text-slate-400 hover:bg-white/5 hover:text-white'
                         }
                       `}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg transition-colors ${active || expandedMenus.includes(item.id) ? 'bg-white/10' : 'bg-white/5'}`}>
-                          <item.icon size={18} className={active || expandedMenus.includes(item.id) ? item.iconColor : 'text-slate-500'} />
+                      <div className="flex items-center gap-2.5">
+                        <div className={`p-1.5 rounded-md transition-colors ${active || expandedMenus.includes(item.id) ? 'bg-white/10' : 'bg-white/5'}`}>
+                          <item.icon size={16} className={active || expandedMenus.includes(item.id) ? item.iconColor : 'text-slate-500'} />
                         </div>
-                        <span className="font-semibold text-sm">{item.label}</span>
+                        <span className="font-semibold text-[13px]">{item.label}</span>
                       </div>
                       <ChevronDown
-                        size={16}
+                        size={14}
                         className={`text-slate-500 transition-transform duration-200 ${expandedMenus.includes(item.id) ? 'rotate-180' : ''}`}
                       />
                     </button>
 
                     {expandedMenus.includes(item.id) && (
-                      <ul className="ml-[3.25rem] space-y-1 border-l-2 border-dashed border-[#334155] pl-3 py-1">
+                      <ul className="ml-[2.6rem] border-l-2 border-dashed border-[#334155] pl-2.5 py-0.5">
                         {item.submenu.map((sub: any) => {
                           const isSubActive = currentPath === sub.path;
                           return (
@@ -341,7 +327,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                               <button
                                 onClick={() => handleNavigation(sub.path)}
                                 className={`
-                                  w-full text-left px-3 py-2 rounded-lg text-sm transition-all duration-200 relative
+                                  w-full text-left px-2.5 py-1.5 rounded-md text-[13px] transition-all duration-200 relative
                                   ${isSubActive
                                     ? 'text-white font-bold bg-white/10'
                                     : 'text-slate-500 hover:text-white'
@@ -349,7 +335,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                                 `}
                               >
                                 {isSubActive && (
-                                  <span className={`absolute -left-[19px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full ${item.iconColor.replace('text-', 'bg-')}`}></span>
+                                  <span className={`absolute -left-[16px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${item.iconColor.replace('text-', 'bg-')}`}></span>
                                 )}
                                 {sub.label}
                               </button>
@@ -363,14 +349,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                   <button
                     onClick={() => handleNavigation(item.path!)}
                     className={`
-                      w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden
+                      w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 group relative overflow-hidden
                       ${activeClass}
                     `}
                   >
-                    <div className={`p-2 rounded-lg transition-colors ${active ? 'bg-white/10' : 'bg-white/5 group-hover:bg-white/10'}`}>
-                      <item.icon size={18} className={active ? item.iconColor : 'text-slate-500 group-hover:text-slate-300 transition-transform'} />
+                    <div className={`p-1.5 rounded-md transition-colors ${active ? 'bg-white/10' : 'bg-white/5 group-hover:bg-white/10'}`}>
+                      <item.icon size={16} className={active ? item.iconColor : 'text-slate-500 group-hover:text-slate-300 transition-transform'} />
                     </div>
-                    <span className="font-semibold text-sm">{item.label}</span>
+                    <span className="font-semibold text-[13px]">{item.label}</span>
                   </button>
                 )}
               </li>
@@ -378,13 +364,13 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-[#334155]/50">
+        <div className="p-3 border-t border-[#334155]/50">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-white/5 text-red-400 hover:bg-red-500/10 transition-all group shadow-sm border border-white/5"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-white/5 text-red-400 hover:bg-red-500/10 transition-all group shadow-sm border border-white/5"
           >
-            <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="font-semibold text-sm">Déconnexion</span>
+            <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="font-semibold text-[13px]">Déconnexion</span>
           </button>
         </div>
       </aside>
