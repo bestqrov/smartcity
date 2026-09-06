@@ -132,6 +132,8 @@ model Branch {
   attendanceNotifications AttendanceNotification[]
   formations Formation[]
   settings  Settings[]
+  announcements Announcement[]
+  holidays  Holiday[]
 
   @@map("branches")
 }
@@ -378,6 +380,35 @@ model Transaction {
   branch   Branch @relation(fields: [branchId], references: [id])
 
   @@map("transactions")
+}
+
+model Announcement {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  body      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  @@map("announcements")
+}
+
+model Holiday {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  startDate DateTime
+  endDate   DateTime
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  @@map("holidays")
 }
 
 model Pricing {

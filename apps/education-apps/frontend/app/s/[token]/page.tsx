@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import {
     CalendarDays, Clock, MapPin, User, Phone, Wallet, BookOpen, History,
     LayoutDashboard, GraduationCap, ArrowDownCircle, ArrowUpCircle, Users,
+    Megaphone, CalendarOff,
 } from 'lucide-react';
 import { getPublicStudentProfile } from '@/lib/services/students';
 import type { Student, Attendance } from '@/types';
@@ -190,6 +191,48 @@ export default function StudentPublicProfilePage() {
                                     <p className="text-sm text-slate-500 dark:text-slate-400">Aucune présence enregistrée aujourd'hui</p>
                                 )}
                             </Card>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Card>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Megaphone size={16} className="text-violet-500" />
+                                        <h3 className="font-bold text-slate-900 dark:text-white">Annonces</h3>
+                                    </div>
+                                    {(student.announcements || []).length === 0 ? (
+                                        <p className="text-sm text-slate-400">Aucune annonce pour l'instant.</p>
+                                    ) : (
+                                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                                            {(student.announcements || []).map((a) => (
+                                                <div key={a.id} className="border-b border-slate-50 dark:border-slate-700/50 last:border-0 pb-3 last:pb-0">
+                                                    <p className="font-semibold text-slate-900 dark:text-white text-sm">{a.title}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 whitespace-pre-wrap">{a.body}</p>
+                                                    <p className="text-[11px] text-slate-400 mt-1">{new Date(a.createdAt).toLocaleDateString('fr-FR')}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </Card>
+                                <Card>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <CalendarOff size={16} className="text-violet-500" />
+                                        <h3 className="font-bold text-slate-900 dark:text-white">Prochaines vacances</h3>
+                                    </div>
+                                    {(student.holidays || []).length === 0 ? (
+                                        <p className="text-sm text-slate-400">Aucune période de congé à venir.</p>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {(student.holidays || []).map((h) => (
+                                                <div key={h.id} className="flex items-center justify-between text-sm py-1">
+                                                    <span className="font-medium text-slate-700 dark:text-slate-300">{h.title}</span>
+                                                    <span className="text-xs text-slate-400">
+                                                        {new Date(h.startDate).toLocaleDateString('fr-FR')} – {new Date(h.endDate).toLocaleDateString('fr-FR')}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </Card>
+                            </div>
                         </div>
                     )}
 

@@ -37,6 +37,9 @@ export interface Student {
     payments?: Payment[];
     attendances?: Attendance[];
     groups?: StudentGroupSummary[];
+    // only present on the public portal profile response (not persisted on Student itself)
+    announcements?: Announcement[];
+    holidays?: Holiday[];
     createdAt: string;
     updatedAt: string;
 }
@@ -110,6 +113,27 @@ export interface Attendance {
     status: 'PRESENT' | 'LATE' | 'ABSENT';
     scannedAt?: string;
     groupId?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// Announcement types
+export interface Announcement {
+    id: string;
+    title: string;
+    body: string;
+    active: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// Holiday types
+export interface Holiday {
+    id: string;
+    title: string;
+    startDate: string;
+    endDate: string;
+    active: boolean;
     createdAt: string;
     updatedAt: string;
 }

@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   Building,
-  Calendar
+  Calendar,
+  Megaphone
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
@@ -115,6 +116,17 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
         { label: 'Paiements', path: '/admin/finance/paiements' },
         { label: 'Transactions', path: '/admin/finance/transactions' },
         { label: 'Prix', path: '/admin/finance/prix' },
+      ]
+    },
+    {
+      id: 'communication',
+      label: 'Communication',
+      icon: Megaphone,
+      activeColor: 'bg-[#334155]/50 border-[#F59E0B]',
+      iconColor: 'text-[#F59E0B]',
+      submenu: [
+        { label: 'Annonces', path: '/admin/annonces' },
+        { label: 'Vacances', path: '/admin/vacances' },
       ]
     },
     {

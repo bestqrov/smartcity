@@ -219,7 +219,7 @@ export const regenerateStudentPortalToken = async (id: string, branchId: string)
 export const getStudentByPortalToken = async (rawToken: string) => {
     const portalTokenHash = hashToken(rawToken);
 
-    return prisma.student.findUnique({
+    const student = await prisma.student.findUnique({
         where: { portalTokenHash },
         include: {
             inscriptions: true,
@@ -228,6 +228,22 @@ export const getStudentByPortalToken = async (rawToken: string) => {
             groups: { include: { teacher: true } },
         },
     });
+
+    if (!student) return null;
+
+    const [announcements, holidays] = await Promise.all([
+        prisma.announcement.findMany({
+            where: { branchId: student.branchId, active: true },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+        }),
+        prisma.holiday.findMany({
+            where: { branchId: student.branchId, active: true, endDate: { gte: new Date() } },
+            orderBy: { startDate: 'asc' },
+        }),
+    ]);
+
+    return { ...student, announcements, holidays };
 };
 
 // Helpers removed as global pricing is deprecated
