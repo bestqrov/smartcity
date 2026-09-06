@@ -41,7 +41,7 @@ export default function LoginPage() {
             <div className="hidden lg:flex lg:w-1/2 h-full relative bg-slate-900 items-center justify-center p-12 overflow-hidden group shrink-0">
                 {/* Background gradient */}
                 <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-950 via-slate-900/95 to-slate-900/90"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-900"></div>
                 </div>
 
                 {/* Animated Branding Elements */}
@@ -52,10 +52,10 @@ export default function LoginPage() {
                         </div>
                     </div>
                     <h2 className="text-6xl font-black text-white mb-6 tracking-tight leading-[1.1]">
-                        Smart<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">School</span>
+                        Smart<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300">School</span>
                     </h2>
-                    <div className="h-1.5 w-24 bg-indigo-500 rounded-full mx-auto mb-8 shadow-[0_0_20px_rgba(99,102,241,0.6)]"></div>
-                    <p className="text-indigo-100/60 text-xl font-medium leading-relaxed">
+                    <div className="h-1.5 w-24 bg-emerald-500 rounded-full mx-auto mb-8 shadow-[0_0_20px_rgba(16,185,129,0.6)]"></div>
+                    <p className="text-emerald-100/60 text-xl font-medium leading-relaxed">
                         La plateforme tout-en-un pour piloter votre établissement avec précision et élégance.
                     </p>
                 </div>
@@ -79,7 +79,7 @@ export default function LoginPage() {
                         {/* Welcome Header */}
                         <div className="mb-6 lg:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
                             <h1 className="text-4xl lg:text-5xl font-black tracking-tighter mb-2 text-slate-900 leading-tight">
-                                Espace <span className="text-indigo-600">Connexion</span>
+                                Espace <span className="text-emerald-600">Connexion</span>
                             </h1>
                         </div>
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 autoComplete="off"
-                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-emerald-500 focus:ring-8 focus:ring-emerald-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
                                 placeholder="Adresse e-mail"
                             />
 
@@ -111,12 +111,12 @@ export default function LoginPage() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 autoComplete="new-password"
-                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-emerald-500 focus:ring-8 focus:ring-emerald-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
                                 placeholder="Mot de passe"
                             />
 
                             <div className="pt-4 lg:pt-6">
-                                <Button className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-xl shadow-[0_20px_45px_-10px_rgba(79,70,229,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-4 group">
+                                <Button className="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2rem] font-black text-xl shadow-[0_20px_45px_-10px_rgba(5,150,105,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-4 group">
                                     Accéder au portail
                                     <svg className="w-6 h-6 transform group-hover:translate-x-1.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -131,11 +131,11 @@ export default function LoginPage() {
                         <div className="flex flex-col gap-2 text-slate-400 font-medium text-xs mt-2">
                             <div className="flex items-center justify-center gap-2">
                                 <span>📧 Email :</span>
-                                <a href="mailto:contact@smartecole.com" className="text-indigo-600 hover:underline font-bold">contact@smartecole.com</a>
+                                <a href="mailto:contact@smartecole.com" className="text-emerald-600 hover:underline font-bold">contact@smartecole.com</a>
                             </div>
                             <div className="flex items-center justify-center gap-2">
                                 <span>📱 Gsm / WhatsApp :</span>
-                                <a href="https://wa.me/212608183886" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline font-bold">+212 608183886</a>
+                                <a href="https://wa.me/212608183886" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-bold">+212 608183886</a>
                             </div>
                         </div>
                     </div>
