@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import {
     CalendarDays, Clock, MapPin, User, Phone, Wallet, BookOpen, History,
-    LayoutDashboard, GraduationCap, ArrowDownCircle, ArrowUpCircle,
+    LayoutDashboard, GraduationCap, ArrowDownCircle, ArrowUpCircle, Users,
 } from 'lucide-react';
 import { getPublicStudentProfile } from '@/lib/services/students';
 import type { Student, Attendance } from '@/types';
@@ -17,12 +17,13 @@ const statusBadge = (status: Attendance['status']) => {
     return { label: 'Absent', className: 'bg-red-50 text-red-700 border-red-100' };
 };
 
-type TabKey = 'dashboard' | 'payment' | 'courses' | 'schedule' | 'presence';
+type TabKey = 'dashboard' | 'payment' | 'courses' | 'groups' | 'schedule' | 'presence';
 
 const NAV_ITEMS: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] = [
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { key: 'payment', label: 'Payment Info', icon: Wallet },
     { key: 'courses', label: 'Courses', icon: BookOpen },
+    { key: 'groups', label: 'Mes groupes', icon: Users },
     { key: 'schedule', label: 'Schedule', icon: CalendarDays },
     { key: 'presence', label: 'Présence', icon: History },
 ];
@@ -281,6 +282,60 @@ export default function StudentPublicProfilePage() {
                                             </div>
                                         </div>
                                     ))}
+                                </div>
+                            )}
+                        </Card>
+                    )}
+
+                    {tab === 'groups' && (
+                        <Card>
+                            <div className="flex items-center gap-2 mb-3">
+                                <Users size={16} className="text-violet-500" />
+                                <h2 className="font-bold text-slate-900 dark:text-white">Mes groupes</h2>
+                            </div>
+                            {(student.groups || []).length === 0 ? (
+                                <p className="text-sm text-slate-400">Aucun groupe assigné pour l'instant.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {(student.groups || []).map((g) => {
+                                        const groupSlots = [...(g.timeSlots || [])].sort(
+                                            (a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day) || a.startTime.localeCompare(b.startTime)
+                                        );
+                                        return (
+                                            <div key={g.id} className="border border-slate-100 dark:border-slate-700 rounded-xl p-3">
+                                                <p className="font-semibold text-slate-900 dark:text-white text-sm">
+                                                    {g.subject || g.name} {g.level ? <span className="text-slate-400 font-normal">— {g.level}</span> : null}
+                                                </p>
+                                                <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                                                    {g.teacher && (
+                                                        <span className="flex items-center gap-1"><User size={11} /> {g.teacher.name}</span>
+                                                    )}
+                                                    {g.room && (
+                                                        <span className="flex items-center gap-1"><MapPin size={11} /> {g.room}</span>
+                                                    )}
+                                                    {g.teacher?.phone && (
+                                                        <span className="flex items-center gap-1"><Phone size={11} /> {g.teacher.phone}</span>
+                                                    )}
+                                                </div>
+                                                <div className="mt-3 pt-3 border-t border-slate-50 dark:border-slate-700/50">
+                                                    {groupSlots.length === 0 ? (
+                                                        <p className="text-xs text-slate-400">Aucun horaire configuré pour ce groupe.</p>
+                                                    ) : (
+                                                        <div className="space-y-1">
+                                                            {groupSlots.map((slot, i) => (
+                                                                <div key={i} className="flex items-center justify-between text-xs">
+                                                                    <span className="font-medium text-slate-700 dark:text-slate-300">{slot.day}</span>
+                                                                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                                                        <Clock size={11} /> {slot.startTime} – {slot.endTime}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </Card>
