@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Sun, Moon, Cloud, Bell, Search, Menu, Timer, Sparkles } from 'lucide-react';
+import { Sun, Moon, Cloud, Bell, Menu, Timer, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import useAuthStore from '@/store/useAuthStore';
@@ -92,19 +92,7 @@ export default function TopBar() {
     };
 
     return (
-        <header className="h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 fixed top-0 right-0 left-64 z-20 px-6 flex items-center justify-between transition-all duration-300">
-            {/* Left: Search or Breadcrumbs */}
-            <div className="flex items-center gap-4">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Rechercher..."
-                        className="pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 w-64 transition-all dark:text-white dark:placeholder-gray-400"
-                    />
-                </div>
-            </div>
-
+        <header className="h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 fixed top-0 right-0 left-64 z-20 px-6 flex items-center justify-end transition-all duration-300">
             {/* Right: Actions & Profile */}
             <div className="flex items-center gap-6">
                 {/* Athan Widget */}
