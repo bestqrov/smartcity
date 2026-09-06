@@ -69,9 +69,6 @@ export default function SoutienDashboard() {
                     <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
                         Exporter
                     </button>
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-                        Nouveau Rapport
-                    </button>
                 </div>
             </div>
 
