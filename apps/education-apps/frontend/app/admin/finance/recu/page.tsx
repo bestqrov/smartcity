@@ -282,51 +282,30 @@ export default function RecuPage() {
                     .header { font-size: 17px; margin-bottom: 2px; letter-spacing: 0.5px; }
                     .small { font-size: 10px; color: #444; }
                     .medium { font-size: 11px; }
-                    .accent-bar { height: 3px; background: #16a34a; border-radius: 2px; margin: 8px 0 10px; }
+                    .accent-bar { height: 2px; background: #16a34a; border-radius: 2px; margin: 6px 0 8px; }
                     .title-box {
                         display: inline-block;
                         border: 1px solid #16a34a;
                         border-radius: 4px;
-                        padding: 4px 12px;
+                        padding: 3px 10px;
                         font-size: 12px;
                         font-weight: bold;
                         letter-spacing: 1.5px;
                         text-transform: uppercase;
                         color: #16a34a;
-                        margin: 6px 0 12px;
+                        margin: 6px 0 10px;
                     }
-                    .dashed { border-top: 1px dashed #999; margin: 10px 0; }
+                    .dashed { border-top: 1px dashed #999; margin: 8px 0; }
                     .flex { display: flex; justify-content: space-between; gap: 8px; }
-                    .mt-20 { margin-top: 20px; }
-                    .section-label {
-                        font-size: 9px;
-                        font-weight: bold;
-                        letter-spacing: 1px;
-                        text-transform: uppercase;
-                        color: #16a34a;
-                        margin-bottom: 4px;
-                    }
+                    .mt-20 { margin-top: 16px; }
                     .totals-box {
                         background: #f5f5f5;
                         border-radius: 6px;
-                        padding: 8px 10px;
-                        margin-top: 4px;
+                        padding: 6px 8px;
                     }
                     .remaining {
                         font-size: 13px;
                         color: ${isPaidInFull ? '#16a34a' : '#dc2626'};
-                    }
-                    .status-pill {
-                        display: inline-block;
-                        margin-top: 8px;
-                        padding: 3px 10px;
-                        border-radius: 999px;
-                        font-size: 9px;
-                        font-weight: bold;
-                        letter-spacing: 0.5px;
-                        text-transform: uppercase;
-                        border: 1px solid ${isPaidInFull ? '#16a34a' : '#d97706'};
-                        color: ${isPaidInFull ? '#16a34a' : '#d97706'};
                     }
                 </style>
             </head>
@@ -345,22 +324,20 @@ export default function RecuPage() {
                     <span class="title-box">Reçu de ${receipt.receiptType}</span>
                 </div>
 
-                <div class="flex medium">
-                    <span>Date: ${currentDate} ${currentTime}</span>
-                    <span class="bold">No: ${receipt.receiptNumber}</span>
+                <div class="medium">
+                    <div>Date: ${currentDate} ${currentTime}</div>
+                    <div class="bold">No: ${receipt.receiptNumber}</div>
                 </div>
                 <div class="dashed"></div>
 
                 <div class="medium">
-                    <div class="section-label">Client</div>
-                    <div>${receipt.issuedTo}</div>
+                    <div>Client: ${receipt.issuedTo}</div>
                     <div>Tel: ${receipt.phoneNumber || 'N/A'}</div>
                     <div>Paiement: ${receipt.paymentMethod}</div>
                     ${receipt.paymentMethod === 'Check' && receipt.checkNumber ? `<div>Chèque No: ${receipt.checkNumber}</div>` : ''}
                 </div>
                 <div class="dashed"></div>
 
-                <div class="section-label">Détail</div>
                 <div class="flex bold medium">
                     <span>Description</span>
                     <span>Montant</span>
@@ -376,9 +353,6 @@ export default function RecuPage() {
                     <div class="flex"><span>Total:</span><span class="bold">${receipt.totalAmount.toFixed(2)} MAD</span></div>
                     <div class="flex"><span>Payé:</span><span class="bold">${receipt.amountPaid.toFixed(2)} MAD</span></div>
                     <div class="flex remaining"><span class="bold">Reste:</span><span class="bold">${remaining.toFixed(2)} MAD</span></div>
-                </div>
-                <div class="center">
-                    <span class="status-pill">${isPaidInFull ? 'Payé en totalité' : 'Solde restant'}</span>
                 </div>
 
                 <div class="center medium mt-20">${schoolProfile.schoolName} vous remercie pour votre paiement!</div>
@@ -1054,9 +1028,9 @@ export default function RecuPage() {
                                         </span>
                                     </div>
 
-                                    <div className="flex justify-between text-xs">
-                                        <span>Date: {new Date(viewingReceipt.date).toLocaleDateString('fr-FR')} {viewingReceipt.time || ''}</span>
-                                        <span className="font-bold">No: {viewingReceipt.receiptNumber}</span>
+                                    <div className="text-xs space-y-0.5">
+                                        <div>Date: {new Date(viewingReceipt.date).toLocaleDateString('fr-FR')} {viewingReceipt.time || ''}</div>
+                                        <div className="font-bold">No: {viewingReceipt.receiptNumber}</div>
                                     </div>
 
                                     <div className="border-b border-dashed border-gray-400 my-2"></div>
