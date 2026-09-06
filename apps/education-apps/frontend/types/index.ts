@@ -40,6 +40,7 @@ export interface Student {
     // only present on the public portal profile response (not persisted on Student itself)
     announcements?: Announcement[];
     holidays?: Holiday[];
+    school?: { name: string; logo?: string | null; phone?: string | null; email?: string | null } | null;
     createdAt: string;
     updatedAt: string;
 }

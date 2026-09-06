@@ -82,8 +82,12 @@ export default function StudentPublicProfilePage() {
             {/* Sidebar */}
             <aside className="hidden md:flex flex-col w-64 shrink-0 bg-gradient-to-b from-violet-600 to-violet-700 rounded-r-3xl py-8 px-5">
                 <div className="flex justify-center mb-10">
-                    <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center">
-                        <GraduationCap size={30} className="text-white" />
+                    <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center overflow-hidden">
+                        {student.school?.logo ? (
+                            <img src={student.school.logo} alt={student.school.name} className="w-full h-full object-contain p-1.5" />
+                        ) : (
+                            <GraduationCap size={30} className="text-white" />
+                        )}
                     </div>
                 </div>
                 <nav className="flex-1 space-y-1.5">
@@ -100,6 +104,19 @@ export default function StudentPublicProfilePage() {
                         </button>
                     ))}
                 </nav>
+
+                {student.school?.phone && (
+                    <a
+                        href={`tel:${student.school.phone}`}
+                        className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 text-violet-100 hover:bg-white/20 transition-colors text-sm"
+                    >
+                        <Phone size={18} className="shrink-0" />
+                        <div className="min-w-0">
+                            <p className="font-semibold text-white text-xs">Besoin d'aide ?</p>
+                            <p className="truncate">{student.school.phone}</p>
+                        </div>
+                    </a>
+                )}
             </aside>
 
             {/* Main content */}
