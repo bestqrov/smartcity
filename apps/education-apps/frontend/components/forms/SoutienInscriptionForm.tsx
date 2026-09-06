@@ -278,6 +278,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                 ...formData,
                 subjects: subjects,
                 inscriptionFee: inscriptionFee,
+                subjectsTotal: calculateSubjectsTotal(),
                 amountPaid: total,
             });
 

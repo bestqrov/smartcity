@@ -47,6 +47,7 @@ export const create = async (req: TenantRequest, res: Response): Promise<void> =
         if (subjects) studentData.subjects = subjects;
         if (photo) studentData.photo = photo;
         if (req.body.inscriptionFee) studentData.inscriptionFee = req.body.inscriptionFee;
+        if (req.body.subjectsTotal) studentData.subjectsTotal = req.body.subjectsTotal;
         if (req.body.amountPaid) studentData.amountPaid = req.body.amountPaid;
         if (parentName) studentData.parentName = parentName;
         if (parentPhone) studentData.parentPhone = parentPhone;

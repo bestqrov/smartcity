@@ -45,7 +45,7 @@ interface UpdateStudentData {
     parentId?: string | null;
 }
 
-export const createStudent = async (data: CreateStudentData & { inscriptionFee?: number; amountPaid?: number }) => {
+export const createStudent = async (data: CreateStudentData & { inscriptionFee?: number; subjectsTotal?: number; amountPaid?: number }) => {
     return await prisma.$transaction(async (tx) => {
         // 1. Create Student
         const student = await tx.student.create({
@@ -74,22 +74,25 @@ export const createStudent = async (data: CreateStudentData & { inscriptionFee?:
             },
         });
 
-        // 2. Create Inscription if fee is provided
-        console.log('DEBUG: inscriptionFee is', data.inscriptionFee);
+        // 2. Create Inscription if fee is provided.
+        // The Inscription's amount must reflect the FULL amount owed for this
+        // enrollment (registration fee + first month's subjects), not just the
+        // fee — otherwise it disagrees with the Payment created below (which is
+        // for the full amount), and every balance/receipt reading from
+        // Inscription.amount alone (e.g. "350 paid" showing up as "100") is wrong.
         if (data.inscriptionFee !== undefined) {
-            console.log('DEBUG: Creating inscription...');
+            const totalOwed = data.inscriptionFee + (data.subjectsTotal || 0);
             await tx.inscription.create({
                 data: {
                     studentId: student.id,
                     branchId: data.branchId,
                     type: 'SOUTIEN',
                     category: data.schoolLevel || 'Unknown',
-                    amount: data.inscriptionFee,
+                    amount: totalOwed,
                     date: new Date(),
                     note: 'Inscription initiale',
                 },
             });
-            console.log('DEBUG: Inscription created.');
         }
 
         // 3. Create Payment if amount is provided
