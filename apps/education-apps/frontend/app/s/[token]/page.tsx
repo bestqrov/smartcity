@@ -127,7 +127,14 @@ export default function StudentPublicProfilePage() {
                         <h1 className="md:hidden text-lg font-bold text-slate-900 dark:text-white">
                             {student.name} {student.surname}
                         </h1>
-                        <div className="hidden md:block" />
+                        <div className="hidden md:flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                            {student.school?.name && (
+                                <>
+                                    <span>Rester en contact avec</span>
+                                    <span className="font-semibold text-slate-700 dark:text-slate-200">{student.school.name}</span>
+                                </>
+                            )}
+                        </div>
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-bold text-sm">
                                 {initials}
