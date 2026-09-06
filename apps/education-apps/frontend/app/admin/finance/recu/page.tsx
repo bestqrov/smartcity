@@ -118,11 +118,17 @@ export default function RecuPage() {
             const response = await api.get('/inscriptions');
             if (response.data.success) {
                 const apiInscriptions = response.data.data;
-                const mappedReceipts: Receipt[] = apiInscriptions.map((ins: any) => ({
+                const schoolAbbrev = getSchoolAbbrev();
+                const mappedReceipts: Receipt[] = apiInscriptions.map((ins: any) => {
+                    const insDate = new Date(ins.date);
+                    const suffix = `${String(insDate.getMonth() + 1).padStart(2, '0')}/${insDate.getFullYear()}`;
+                    return {
                     id: ins.id,
                     date: ins.date.substring(0, 10),
                     time: new Date(ins.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    receiptNumber: ins.type === 'SOUTIEN' ? `injahiSS ${String(ins.id).slice(-3)}` : `injahiFP ${String(ins.id).slice(-3)}`,
+                    receiptNumber: ins.type === 'SOUTIEN'
+                        ? `${schoolAbbrev}SS ${String(ins.id).slice(-3)}/${suffix}`
+                        : `${schoolAbbrev}FP ${String(ins.id).slice(-3)}/${suffix}`,
                     issuedTo: `${ins.student?.name || ''} ${ins.student?.surname || ''}`.trim() || 'Inconnu',
                     phoneNumber: ins.student?.phone || ins.student?.parentPhone || '',
                     items: [{ description: ins.category, amount: ins.amount }],
@@ -131,7 +137,8 @@ export default function RecuPage() {
                     paymentMethod: 'Cash',
                     receiptType: ins.type === 'SOUTIEN' ? 'Soutien' : ins.type === 'FORMATION' ? 'Formation' : 'Other',
                     notes: ins.note || '',
-                }));
+                    };
+                });
                 setReceipts(mappedReceipts);
             } else {
                 // Fallback to localStorage if API fails or returns no success
@@ -155,10 +162,40 @@ export default function RecuPage() {
         await loadReceipts();
     };
 
+    const stripAccents = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // Derives a short prefix from the school's own name (e.g. "École Tafoghat" -> "ET"),
+    // instead of the hardcoded "injahi" left over from the original single-school app.
+    const getSchoolAbbrev = () => {
+        let name = schoolProfile.schoolName;
+        try {
+            const saved = localStorage.getItem('school-profile');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.schoolName) name = parsed.schoolName;
+            }
+        } catch {
+            // ignore malformed localStorage value, fall back to state
+        }
+
+        const letters = stripAccents(name || 'Ecole')
+            .trim()
+            .split(/\s+/)
+            .map(w => w[0])
+            .filter(Boolean)
+            .join('')
+            .toUpperCase();
+
+        return letters.slice(0, 4) || 'ETB';
+    };
+
     const generateReceiptNumber = (type: 'Soutien' | 'Formation' | 'Other') => {
-        let prefix = 'recu';
-        if (type === 'Soutien') prefix = 'injahiSS';
-        else if (type === 'Formation') prefix = 'injahiFP';
+        const schoolAbbrev = getSchoolAbbrev();
+        const typeSuffix = type === 'Soutien' ? 'SS' : type === 'Formation' ? 'FP' : 'REC';
+        const prefix = `${schoolAbbrev}${typeSuffix}`;
+
+        const now = new Date();
+        const monthYear = `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
 
         // Filter receipts of the same type (only checking matching prefix to be safe)
         const relevantReceipts = receipts.filter(r => r.receiptNumber.startsWith(prefix));
@@ -167,13 +204,13 @@ export default function RecuPage() {
         relevantReceipts.forEach(r => {
             const parts = r.receiptNumber.split(' ');
             if (parts.length === 2) {
-                const num = parseInt(parts[1]);
+                const num = parseInt(parts[1], 10);
                 if (!isNaN(num) && num > maxNum) maxNum = num;
             }
         });
 
-        // Format: Prefix + Space + 3 digits (e.g., injahiSS 001)
-        return `${prefix} ${String(maxNum + 1).padStart(3, '0')}`;
+        // Format: Prefix + Space + 3 digits + /month/year (e.g., ETSS 001/09/2026)
+        return `${prefix} ${String(maxNum + 1).padStart(3, '0')}/${monthYear}`;
     };
 
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -219,6 +256,8 @@ export default function RecuPage() {
 
         const currentDate = new Date(receipt.date).toLocaleDateString('fr-FR');
         const currentTime = receipt.time || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const remaining = receipt.totalAmount - receipt.amountPaid;
+        const isPaidInFull = remaining <= 0;
         const items = receipt.items.map(item =>
             `<div class="flex"><span>${item.description}</span><span>${item.amount.toFixed(2)} MAD</span></div>`
         ).join('');
@@ -235,63 +274,113 @@ export default function RecuPage() {
                         font-size: 12px;
                         width: 80mm;
                         margin: 0;
-                        padding: 10mm;
+                        padding: 8mm 6mm;
+                        color: #111;
                     }
                     .center { text-align: center; }
                     .bold { font-weight: bold; }
-                    .header { font-size: 18px; margin-bottom: 5px; }
-                    .small { font-size: 10px; }
+                    .header { font-size: 17px; margin-bottom: 2px; letter-spacing: 0.5px; }
+                    .small { font-size: 10px; color: #444; }
                     .medium { font-size: 11px; }
-                    .title { font-size: 14px; margin: 15px 0; }
-                    .dashed { border-top: 1px dashed #000; margin: 10px 0; }
-                    .flex { display: flex; justify-content: space-between; }
+                    .accent-bar { height: 3px; background: #16a34a; border-radius: 2px; margin: 8px 0 10px; }
+                    .title-box {
+                        display: inline-block;
+                        border: 1px solid #16a34a;
+                        border-radius: 4px;
+                        padding: 4px 12px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        letter-spacing: 1.5px;
+                        text-transform: uppercase;
+                        color: #16a34a;
+                        margin: 6px 0 12px;
+                    }
+                    .dashed { border-top: 1px dashed #999; margin: 10px 0; }
+                    .flex { display: flex; justify-content: space-between; gap: 8px; }
                     .mt-20 { margin-top: 20px; }
+                    .section-label {
+                        font-size: 9px;
+                        font-weight: bold;
+                        letter-spacing: 1px;
+                        text-transform: uppercase;
+                        color: #16a34a;
+                        margin-bottom: 4px;
+                    }
+                    .totals-box {
+                        background: #f5f5f5;
+                        border-radius: 6px;
+                        padding: 8px 10px;
+                        margin-top: 4px;
+                    }
+                    .remaining {
+                        font-size: 13px;
+                        color: ${isPaidInFull ? '#16a34a' : '#dc2626'};
+                    }
+                    .status-pill {
+                        display: inline-block;
+                        margin-top: 8px;
+                        padding: 3px 10px;
+                        border-radius: 999px;
+                        font-size: 9px;
+                        font-weight: bold;
+                        letter-spacing: 0.5px;
+                        text-transform: uppercase;
+                        border: 1px solid ${isPaidInFull ? '#16a34a' : '#d97706'};
+                        color: ${isPaidInFull ? '#16a34a' : '#d97706'};
+                    }
                 </style>
             </head>
             <body>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                    ${schoolProfile.logo ? `<img src="${schoolProfile.logo}" style="width: 50px; height: 50px; object-fit: contain;" />` : ''}
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                    ${schoolProfile.logo ? `<img src="${schoolProfile.logo}" style="width: 46px; height: 46px; object-fit: contain;" />` : ''}
                     <div style="text-align: center; flex: 1;">
                         <div class="header bold">${schoolProfile.schoolName}</div>
                         <div class="small">${schoolProfile.address}</div>
                         <div class="small">Tel: ${schoolProfile.phone}</div>
                     </div>
                 </div>
-                
-                <div class="center title bold">Reçu de ${receipt.receiptType}</div>
-                <div class="dashed"></div>
-                
+                <div class="accent-bar"></div>
+
+                <div class="center">
+                    <span class="title-box">Reçu de ${receipt.receiptType}</span>
+                </div>
+
                 <div class="flex medium">
                     <span>Date: ${currentDate} ${currentTime}</span>
-                    <span>No: ${receipt.receiptNumber}</span>
+                    <span class="bold">No: ${receipt.receiptNumber}</span>
                 </div>
                 <div class="dashed"></div>
-                
+
                 <div class="medium">
-                    <div>Client: ${receipt.issuedTo}</div>
+                    <div class="section-label">Client</div>
+                    <div>${receipt.issuedTo}</div>
                     <div>Tel: ${receipt.phoneNumber || 'N/A'}</div>
                     <div>Paiement: ${receipt.paymentMethod}</div>
                     ${receipt.paymentMethod === 'Check' && receipt.checkNumber ? `<div>Chèque No: ${receipt.checkNumber}</div>` : ''}
                 </div>
                 <div class="dashed"></div>
-                
+
+                <div class="section-label">Détail</div>
                 <div class="flex bold medium">
                     <span>Description</span>
                     <span>Montant</span>
                 </div>
                 <div class="dashed"></div>
-                
+
                 <div class="medium">
                     ${items}
                 </div>
                 <div class="dashed"></div>
-                
-                <div class="medium">
+
+                <div class="medium totals-box">
                     <div class="flex"><span>Total:</span><span class="bold">${receipt.totalAmount.toFixed(2)} MAD</span></div>
                     <div class="flex"><span>Payé:</span><span class="bold">${receipt.amountPaid.toFixed(2)} MAD</span></div>
-                    <div class="flex"><span>Reste:</span><span class="bold">${(receipt.totalAmount - receipt.amountPaid).toFixed(2)} MAD</span></div>
+                    <div class="flex remaining"><span class="bold">Reste:</span><span class="bold">${remaining.toFixed(2)} MAD</span></div>
                 </div>
-                
+                <div class="center">
+                    <span class="status-pill">${isPaidInFull ? 'Payé en totalité' : 'Solde restant'}</span>
+                </div>
+
                 <div class="center medium mt-20">${schoolProfile.schoolName} vous remercie pour votre paiement!</div>
             </body>
             </html>
@@ -946,31 +1035,35 @@ export default function RecuPage() {
                             </div>
 
                             <div className="overflow-y-auto p-8 bg-gray-100 flex justify-center">
-                                <div className="bg-white p-4 shadow-sm text-black font-mono text-sm w-[300px]" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
-                                    <div className="flex items-center gap-2 mb-4">
+                                <div className="bg-white p-4 shadow-md rounded-lg text-black font-mono text-sm w-[300px]" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+                                    <div className="flex items-center gap-2 mb-1">
                                         {schoolProfile.logo && (
-                                            <img src={schoolProfile.logo} alt="Logo" className="w-12 h-12 object-contain" />
+                                            <img src={schoolProfile.logo} alt="Logo" className="w-11 h-11 object-contain" />
                                         )}
                                         <div className="flex-1 text-center">
-                                            <div className="font-bold mb-1">{schoolProfile.schoolName}</div>
-                                            <div className="text-xs mb-1">{schoolProfile.address}</div>
-                                            <div className="text-xs">Tel: {schoolProfile.phone}</div>
+                                            <div className="font-bold mb-0.5 tracking-wide">{schoolProfile.schoolName}</div>
+                                            <div className="text-[10px] text-gray-500 mb-0.5">{schoolProfile.address}</div>
+                                            <div className="text-[10px] text-gray-500">Tel: {schoolProfile.phone}</div>
                                         </div>
                                     </div>
+                                    <div className="h-[3px] bg-green-600 rounded-full my-2"></div>
 
-                                    <div className="text-center font-bold text-base mb-2">Reçu de {viewingReceipt.receiptType}</div>
-
-                                    <div className="border-b border-dashed border-black my-2"></div>
+                                    <div className="text-center mb-3">
+                                        <span className="inline-block border border-green-600 text-green-600 rounded px-3 py-1 text-[11px] font-bold uppercase tracking-widest">
+                                            Reçu de {viewingReceipt.receiptType}
+                                        </span>
+                                    </div>
 
                                     <div className="flex justify-between text-xs">
                                         <span>Date: {new Date(viewingReceipt.date).toLocaleDateString('fr-FR')} {viewingReceipt.time || ''}</span>
-                                        <span>No: {viewingReceipt.receiptNumber}</span>
+                                        <span className="font-bold">No: {viewingReceipt.receiptNumber}</span>
                                     </div>
 
-                                    <div className="border-b border-dashed border-black my-2"></div>
+                                    <div className="border-b border-dashed border-gray-400 my-2"></div>
 
+                                    <div className="text-[9px] font-bold uppercase tracking-wider text-green-600 mb-1">Client</div>
                                     <div className="text-xs space-y-1">
-                                        <div>Client: {viewingReceipt.issuedTo}</div>
+                                        <div>{viewingReceipt.issuedTo}</div>
                                         <div>Tel: {viewingReceipt.phoneNumber || 'N/A'}</div>
                                         <div>Paiement: {viewingReceipt.paymentMethod}</div>
                                         {viewingReceipt.paymentMethod === 'Check' && viewingReceipt.checkNumber && (
@@ -978,13 +1071,14 @@ export default function RecuPage() {
                                         )}
                                     </div>
 
-                                    <div className="border-b border-dashed border-black my-2"></div>
+                                    <div className="border-b border-dashed border-gray-400 my-2"></div>
 
+                                    <div className="text-[9px] font-bold uppercase tracking-wider text-green-600 mb-1">Détail</div>
                                     <div className="flex justify-between font-bold text-xs mb-1">
                                         <span>Description</span>
                                         <span>Montant</span>
                                     </div>
-                                    <div className="border-b border-dashed border-black mb-2"></div>
+                                    <div className="border-b border-dashed border-gray-400 mb-2"></div>
 
                                     <div className="space-y-1 mb-2">
                                         {viewingReceipt.items.map((item, i) => (
@@ -995,22 +1089,35 @@ export default function RecuPage() {
                                         ))}
                                     </div>
 
-                                    <div className="border-b border-dashed border-black my-2"></div>
+                                    <div className="border-b border-dashed border-gray-400 my-2"></div>
 
-                                    <div className="text-xs space-y-1">
-                                        <div className="flex justify-between">
-                                            <span>Total:</span>
-                                            <span className="font-bold">{viewingReceipt.totalAmount.toFixed(2)} MAD</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Payé:</span>
-                                            <span className="font-bold">{viewingReceipt.amountPaid.toFixed(2)} MAD</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span>Reste:</span>
-                                            <span className="font-bold">{(viewingReceipt.totalAmount - viewingReceipt.amountPaid).toFixed(2)} MAD</span>
-                                        </div>
-                                    </div>
+                                    {(() => {
+                                        const remaining = viewingReceipt.totalAmount - viewingReceipt.amountPaid;
+                                        const isPaidInFull = remaining <= 0;
+                                        return (
+                                            <>
+                                                <div className="text-xs space-y-1 bg-gray-100 rounded-md px-2.5 py-2">
+                                                    <div className="flex justify-between">
+                                                        <span>Total:</span>
+                                                        <span className="font-bold">{viewingReceipt.totalAmount.toFixed(2)} MAD</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span>Payé:</span>
+                                                        <span className="font-bold">{viewingReceipt.amountPaid.toFixed(2)} MAD</span>
+                                                    </div>
+                                                    <div className={`flex justify-between font-bold ${isPaidInFull ? 'text-green-600' : 'text-red-600'}`}>
+                                                        <span>Reste:</span>
+                                                        <span>{remaining.toFixed(2)} MAD</span>
+                                                    </div>
+                                                </div>
+                                                <div className="text-center mt-2">
+                                                    <span className={`inline-block rounded-full px-3 py-0.5 text-[9px] font-bold uppercase tracking-wide border ${isPaidInFull ? 'border-green-600 text-green-600' : 'border-amber-500 text-amber-600'}`}>
+                                                        {isPaidInFull ? 'Payé en totalité' : 'Solde restant'}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
 
                                     <div className="text-center text-xs mt-6 mb-2">{schoolProfile.schoolName} vous remercie pour votre paiement!</div>
                                 </div>
