@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import {
     CalendarDays, Clock, MapPin, User, Phone, Wallet, BookOpen, History,
     LayoutDashboard, GraduationCap, ArrowDownCircle, ArrowUpCircle, Users,
-    Megaphone, CalendarOff,
+    Megaphone, CalendarOff, MessageCircle,
 } from 'lucide-react';
 import { getPublicStudentProfile } from '@/lib/services/students';
 import type { Student, Attendance } from '@/types';
@@ -127,11 +127,38 @@ export default function StudentPublicProfilePage() {
                         <h1 className="md:hidden text-lg font-bold text-slate-900 dark:text-white">
                             {student.name} {student.surname}
                         </h1>
-                        <div className="hidden md:flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                        <div className="hidden md:flex items-center gap-2.5 text-sm text-slate-500 dark:text-slate-400">
                             {student.school?.name && (
                                 <>
+                                    {student.school.logo && (
+                                        <img
+                                            src={student.school.logo}
+                                            alt={student.school.name}
+                                            className="w-7 h-7 rounded-full object-contain bg-white border border-slate-200 dark:border-slate-700 p-0.5"
+                                        />
+                                    )}
                                     <span>Rester en contact avec</span>
                                     <span className="font-semibold text-slate-700 dark:text-slate-200">{student.school.name}</span>
+                                    {student.school.phone && (
+                                        <span className="flex items-center gap-1.5 ml-1">
+                                            <a
+                                                href={`tel:${student.school.phone}`}
+                                                title="Appeler"
+                                                className="p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 transition-colors"
+                                            >
+                                                <Phone size={14} />
+                                            </a>
+                                            <a
+                                                href={`https://wa.me/${student.school.phone.replace(/[^0-9]/g, '')}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                title="WhatsApp"
+                                                className="p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors"
+                                            >
+                                                <MessageCircle size={14} />
+                                            </a>
+                                        </span>
+                                    )}
                                 </>
                             )}
                         </div>
