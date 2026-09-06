@@ -292,7 +292,7 @@ export default function RecuPage() {
                     }
                     .center { text-align: center; }
                     .bold { font-weight: bold; }
-                    .header { font-size: 17px; margin-bottom: 2px; letter-spacing: 0.5px; }
+                    .header { font-size: 14px; margin-bottom: 2px; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
                     .small { font-size: 10px; color: #444; }
                     .medium { font-size: 11px; }
                     .accent-bar { height: 2px; background: #16a34a; border-radius: 2px; margin: 6px 0 8px; }
@@ -300,13 +300,14 @@ export default function RecuPage() {
                         display: inline-block;
                         border: 1px solid #16a34a;
                         border-radius: 4px;
-                        padding: 3px 10px;
-                        font-size: 12px;
+                        padding: 3px 8px;
+                        font-size: 10px;
                         font-weight: bold;
-                        letter-spacing: 1.5px;
+                        letter-spacing: 1px;
                         text-transform: uppercase;
                         color: #16a34a;
-                        margin: 6px 0 10px;
+                        text-align: center;
+                        white-space: nowrap;
                     }
                     .dashed { border-top: 1px dashed #999; margin: 8px 0; }
                     .flex { display: flex; justify-content: space-between; gap: 8px; }
@@ -323,19 +324,18 @@ export default function RecuPage() {
                 </style>
             </head>
             <body>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                    ${schoolProfile.logo ? `<img src="${schoolProfile.logo}" style="width: 46px; height: 46px; object-fit: contain;" />` : ''}
-                    <div style="text-align: center; flex: 1;">
-                        <div class="header bold">${schoolProfile.schoolName}</div>
-                        <div class="small">${schoolProfile.address}</div>
-                        <div class="small">Tel: ${schoolProfile.phone}</div>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+                        ${schoolProfile.logo ? `<img src="${schoolProfile.logo}" style="width: 40px; height: 40px; object-fit: contain; flex-shrink: 0;" />` : ''}
+                        <div style="min-width: 0;">
+                            <div class="header bold">${schoolProfile.schoolName}</div>
+                            <div class="small">${schoolProfile.address}</div>
+                            <div class="small">Tel: ${schoolProfile.phone}</div>
+                        </div>
                     </div>
+                    <span class="title-box">Reçu de<br/>${receipt.receiptType}</span>
                 </div>
                 <div class="accent-bar"></div>
-
-                <div class="center">
-                    <span class="title-box">Reçu de ${receipt.receiptType}</span>
-                </div>
 
                 <div class="medium">
                     <div>Date: ${currentDate} ${currentTime}</div>
@@ -1023,23 +1023,22 @@ export default function RecuPage() {
 
                             <div className="overflow-y-auto p-8 bg-gray-100 flex justify-center">
                                 <div className="bg-white p-4 shadow-md rounded-lg text-black font-mono text-sm w-[300px]" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        {schoolProfile.logo && (
-                                            <img src={schoolProfile.logo} alt="Logo" className="w-11 h-11 object-contain" />
-                                        )}
-                                        <div className="flex-1 text-center">
-                                            <div className="font-bold mb-0.5 tracking-wide">{schoolProfile.schoolName}</div>
-                                            <div className="text-[10px] text-gray-500 mb-0.5">{schoolProfile.address}</div>
-                                            <div className="text-[10px] text-gray-500">Tel: {schoolProfile.phone}</div>
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            {schoolProfile.logo && (
+                                                <img src={schoolProfile.logo} alt="Logo" className="w-10 h-10 object-contain shrink-0" />
+                                            )}
+                                            <div className="min-w-0">
+                                                <div className="font-bold tracking-wide truncate">{schoolProfile.schoolName}</div>
+                                                <div className="text-[9px] text-gray-500 truncate">{schoolProfile.address}</div>
+                                                <div className="text-[9px] text-gray-500">Tel: {schoolProfile.phone}</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="h-[3px] bg-green-600 rounded-full my-2"></div>
-
-                                    <div className="text-center mb-3">
-                                        <span className="inline-block border border-green-600 text-green-600 rounded px-3 py-1 text-[11px] font-bold uppercase tracking-widest">
-                                            Reçu de {viewingReceipt.receiptType}
+                                        <span className="shrink-0 inline-block border border-green-600 text-green-600 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-center">
+                                            Reçu de<br />{viewingReceipt.receiptType}
                                         </span>
                                     </div>
+                                    <div className="h-[3px] bg-green-600 rounded-full my-2"></div>
 
                                     <div className="text-xs space-y-0.5">
                                         <div>Date: {new Date(viewingReceipt.date).toLocaleDateString('fr-FR')} {viewingReceipt.time || ''}</div>
@@ -1048,7 +1047,6 @@ export default function RecuPage() {
 
                                     <div className="border-b border-dashed border-gray-400 my-2"></div>
 
-                                    <div className="text-[9px] font-bold uppercase tracking-wider text-green-600 mb-1">Client</div>
                                     <div className="text-xs space-y-1">
                                         <div>{viewingReceipt.issuedTo}</div>
                                         <div>Tel: {viewingReceipt.phoneNumber || 'N/A'}</div>
@@ -1060,7 +1058,6 @@ export default function RecuPage() {
 
                                     <div className="border-b border-dashed border-gray-400 my-2"></div>
 
-                                    <div className="text-[9px] font-bold uppercase tracking-wider text-green-600 mb-1">Détail</div>
                                     <div className="flex justify-between font-bold text-xs mb-1">
                                         <span>Description</span>
                                         <span>Montant</span>
@@ -1082,31 +1079,24 @@ export default function RecuPage() {
                                         const remaining = viewingReceipt.totalAmount - viewingReceipt.amountPaid;
                                         const isPaidInFull = remaining <= 0;
                                         return (
-                                            <>
-                                                <div className="text-xs space-y-1 bg-gray-100 rounded-md px-2.5 py-2">
-                                                    <div className="flex justify-between">
-                                                        <span>Total:</span>
-                                                        <span className="font-bold">{viewingReceipt.totalAmount.toFixed(2)} MAD</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span>Payé:</span>
-                                                        <span className="font-bold">{viewingReceipt.amountPaid.toFixed(2)} MAD</span>
-                                                    </div>
-                                                    <div className={`flex justify-between font-bold ${isPaidInFull ? 'text-green-600' : 'text-red-600'}`}>
-                                                        <span>Reste:</span>
-                                                        <span>{remaining.toFixed(2)} MAD</span>
-                                                    </div>
+                                            <div className="text-xs space-y-1 bg-gray-100 rounded-md px-2.5 py-2">
+                                                <div className="flex justify-between">
+                                                    <span>Total:</span>
+                                                    <span className="font-bold">{viewingReceipt.totalAmount.toFixed(2)} MAD</span>
                                                 </div>
-                                                <div className="text-center mt-2">
-                                                    <span className={`inline-block rounded-full px-3 py-0.5 text-[9px] font-bold uppercase tracking-wide border ${isPaidInFull ? 'border-green-600 text-green-600' : 'border-amber-500 text-amber-600'}`}>
-                                                        {isPaidInFull ? 'Payé en totalité' : 'Solde restant'}
-                                                    </span>
+                                                <div className="flex justify-between">
+                                                    <span>Payé:</span>
+                                                    <span className="font-bold">{viewingReceipt.amountPaid.toFixed(2)} MAD</span>
                                                 </div>
-                                            </>
+                                                <div className={`flex justify-between font-bold ${isPaidInFull ? 'text-green-600' : 'text-red-600'}`}>
+                                                    <span>Reste:</span>
+                                                    <span>{remaining.toFixed(2)} MAD</span>
+                                                </div>
+                                            </div>
                                         );
                                     })()}
 
-                                    <div className="text-center text-xs mt-6 mb-2">{schoolProfile.schoolName} vous remercie pour votre paiement!</div>
+                                    <div className="text-center text-xs mt-4 mb-2">{schoolProfile.schoolName} vous remercie pour votre paiement!</div>
                                 </div>
                             </div>
 
