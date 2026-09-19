@@ -1,10 +1,13 @@
 import prisma from '../../config/database';
+import { TransportPricingMode } from '../transport/pricing';
 
 interface UpdateSettingsData {
     schoolName?: string;
     logo?: string;
     academicYear?: string;
     contactInfo?: string;
+    transportPricingMode?: TransportPricingMode;
+    transportUniformPrice?: number | null;
 }
 
 export const getSettings = async (branchId: string) => {
@@ -31,6 +34,8 @@ export const updateSettings = async (branchId: string, data: UpdateSettingsData)
             academicYear: data.academicYear || '2024-2025',
             logo: data.logo || null,
             contactInfo: data.contactInfo || null,
+            ...(data.transportPricingMode !== undefined && { transportPricingMode: data.transportPricingMode }),
+            ...(data.transportUniformPrice !== undefined && { transportUniformPrice: data.transportUniformPrice }),
         },
     });
 };

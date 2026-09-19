@@ -14,13 +14,28 @@ export const get = async (req: TenantRequest, res: Response): Promise<void> => {
 
 export const update = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const { schoolName, logo, academicYear, contactInfo } = req.body;
+        const { schoolName, logo, academicYear, contactInfo, transportPricingMode, transportUniformPrice } = req.body;
+
+        if (transportPricingMode !== undefined && !['ROUTE', 'STOP', 'UNIFORM'].includes(transportPricingMode)) {
+            sendError(res, 'transportPricingMode must be ROUTE, STOP or UNIFORM', 'Validation error', 400);
+            return;
+        }
+        if (
+            transportUniformPrice !== undefined &&
+            transportUniformPrice !== null &&
+            !(typeof transportUniformPrice === 'number' && transportUniformPrice >= 0)
+        ) {
+            sendError(res, 'transportUniformPrice must be a non-negative number', 'Validation error', 400);
+            return;
+        }
 
         const updateData: any = {};
         if (schoolName) updateData.schoolName = schoolName;
         if (logo !== undefined) updateData.logo = logo;
         if (academicYear) updateData.academicYear = academicYear;
         if (contactInfo !== undefined) updateData.contactInfo = contactInfo;
+        if (transportPricingMode !== undefined) updateData.transportPricingMode = transportPricingMode;
+        if (transportUniformPrice !== undefined) updateData.transportUniformPrice = transportUniformPrice;
 
         const settings = await updateSettings(req.branchId!, updateData);
 
