@@ -51,7 +51,7 @@ model User {
   password      String
   role          UserRole
   name          String
-  avatar        String?  // Base64 encoded image or URL
+  avatar        String? // Base64 encoded image or URL
   gsm           String?
   whatsapp      String?
   address       String?
@@ -80,8 +80,8 @@ model Parent {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  students        Student[]
-  notifications   AttendanceNotification[]
+  students      Student[]
+  notifications AttendanceNotification[]
 
   @@map("parents")
 }
@@ -104,8 +104,8 @@ model School {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  branches   Branch[]
-  users      User[]
+  branches Branch[]
+  users    User[]
 
   @@map("schools")
 }
@@ -120,93 +120,99 @@ model Branch {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
-  students  Student[]
-  groups    Group[]
-  teachers  Teacher[]
-  inscriptions Inscription[]
-  payments  Payment[]
-  transactions Transaction[]
-  pricing   Pricing[]
-  attendances Attendance[]
+  users                   User[]
+  students                Student[]
+  groups                  Group[]
+  teachers                Teacher[]
+  inscriptions            Inscription[]
+  payments                Payment[]
+  transactions            Transaction[]
+  pricing                 Pricing[]
+  attendances             Attendance[]
   attendanceNotifications AttendanceNotification[]
-  formations Formation[]
-  settings  Settings[]
-  announcements Announcement[]
-  holidays  Holiday[]
+  formations              Formation[]
+  settings                Settings[]
+  announcements           Announcement[]
+  holidays                Holiday[]
+  vehicles                Vehicle[]
+  drivers                 Driver[]
+  transportRoutes         TransportRoute[]
+  transportStops          TransportStop[]
+  transportSubscriptions  TransportSubscription[]
 
   @@map("branches")
 }
 
 model Student {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  surname       String
-  phone         String?
-  email         String?
-  cin           String?
-  address       String?
-  birthDate     DateTime?
-  birthPlace    String?
-  fatherName    String?
-  motherName    String?
-  parentName    String?
-  parentPhone   String?
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  surname        String
+  phone          String?
+  email          String?
+  cin            String?
+  address        String?
+  birthDate      DateTime?
+  birthPlace     String?
+  fatherName     String?
+  motherName     String?
+  parentName     String?
+  parentPhone    String?
   parentRelation String?
-  schoolLevel   String?
-  currentSchool String?
-  subjects      Json?
-  photo         String? // Base64 encoded image or file path
-  active        Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  schoolLevel    String?
+  currentSchool  String?
+  subjects       Json?
+  photo          String? // Base64 encoded image or file path
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  parentId        String?   @db.ObjectId
-  parent          Parent?   @relation(fields: [parentId], references: [id])
-  accessTokenHash String    @unique // Attendance QR — scanned by staff, not shared with the student
-  portalTokenHash String?   @unique // Student's own passwordless profile link (like Parent.accessTokenHash) — separate from the attendance token above
+  parentId        String? @db.ObjectId
+  parent          Parent? @relation(fields: [parentId], references: [id])
+  accessTokenHash String  @unique // Attendance QR — scanned by staff, not shared with the student
+  portalTokenHash String? @unique // Student's own passwordless profile link (like Parent.accessTokenHash) — separate from the attendance token above
 
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
 
-  inscriptions Inscription[]
-  payments     Payment[]
-  attendances  Attendance[]
-  
-  groupIds     String[] @db.ObjectId
-  groups       Group[]  @relation(fields: [groupIds], references: [id])
+  inscriptions           Inscription[]
+  payments               Payment[]
+  attendances            Attendance[]
+  transportSubscriptions TransportSubscription[]
+
+  groupIds String[] @db.ObjectId
+  groups   Group[]  @relation(fields: [groupIds], references: [id])
 
   @@map("students")
 }
 
 model Group {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  type          InscriptionType @default(SOUTIEN) 
-  
+  id   String          @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  type InscriptionType @default(SOUTIEN)
+
   // Soutien fields
-  level         String? // e.g. LYCEE
-  subject       String? // e.g. MATHS
+  level   String? // e.g. LYCEE
+  subject String? // e.g. MATHS
 
   // Formation fields
-  formationId   String? @db.ObjectId
-  formation     Formation? @relation(fields: [formationId], references: [id])
+  formationId String?    @db.ObjectId
+  formation   Formation? @relation(fields: [formationId], references: [id])
 
-  room          String?
-  whatsappUrl   String?
-  
-  teacherId     String? @db.ObjectId
-  teacher       Teacher? @relation(fields: [teacherId], references: [id])
-  
-  studentIds    String[] @db.ObjectId
-  students      Student[] @relation(fields: [studentIds], references: [id])
+  room        String?
+  whatsappUrl String?
 
-  attendances   Attendance[]
+  teacherId String?  @db.ObjectId
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
 
-  timeSlots     Json? // [{ day: string, startTime: string, endTime: string }]
+  studentIds String[]  @db.ObjectId
+  students   Student[] @relation(fields: [studentIds], references: [id])
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  attendances Attendance[]
+
+  timeSlots Json? // [{ day: string, startTime: string, endTime: string }]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
@@ -215,28 +221,28 @@ model Group {
 }
 
 model Teacher {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  email         String?
-  phone         String?
-  cin           String?
-  dob           DateTime?
-  gender        String?
-  picture       String?
-  status        String   @default("Active")
-  socialMedia   Json?    // { linkedin, twitter, facebook, whatsapp }
-  
-  hourlyRate    Float    @default(0)
-  paymentType   String   @default("HOURLY") // HOURLY, FIXED, PERCENTAGE
-  commission    Float?   // For percentage based payment
-  
-  specialties   String[] // Subjects
-  levels        String[] // Levels
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  email       String?
+  phone       String?
+  cin         String?
+  dob         DateTime?
+  gender      String?
+  picture     String?
+  status      String    @default("Active")
+  socialMedia Json? // { linkedin, twitter, facebook, whatsapp }
 
-  groups        Group[]
+  hourlyRate  Float  @default(0)
+  paymentType String @default("HOURLY") // HOURLY, FIXED, PERCENTAGE
+  commission  Float? // For percentage based payment
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  specialties String[] // Subjects
+  levels      String[] // Levels
+
+  groups Group[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
@@ -246,7 +252,7 @@ model Teacher {
 
 model Inscription {
   id        String          @id @default(auto()) @map("_id") @db.ObjectId
-  studentId String @db.ObjectId
+  studentId String          @db.ObjectId
   student   Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
   type      InscriptionType
   category  String
@@ -264,7 +270,7 @@ model Inscription {
 
 model Payment {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  studentId String @db.ObjectId
+  studentId String   @db.ObjectId
   student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   amount    Float
   method    String
@@ -273,6 +279,10 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  transportSubscriptionId String?                @db.ObjectId
+  transportSubscription   TransportSubscription? @relation(fields: [transportSubscriptionId], references: [id])
+  forMonth                String? // "YYYY-MM", only set on transport payments
+
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
 
@@ -280,16 +290,16 @@ model Payment {
 }
 
 model Attendance {
-  id         String           @id @default(auto()) @map("_id") @db.ObjectId
-  studentId  String           @db.ObjectId
-  student    Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  groupId    String?          @db.ObjectId
-  group      Group?           @relation(fields: [groupId], references: [id])
-  date       DateTime
-  scannedAt  DateTime?
-  status     AttendanceStatus
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  studentId String           @db.ObjectId
+  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  groupId   String?          @db.ObjectId
+  group     Group?           @relation(fields: [groupId], references: [id])
+  date      DateTime
+  scannedAt DateTime?
+  status    AttendanceStatus
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   notifications AttendanceNotification[]
 
@@ -336,6 +346,9 @@ model Settings {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  transportPricingMode  TransportPricingMode? // null is treated as ROUTE
+  transportUniformPrice Float?
+
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
 
@@ -352,7 +365,7 @@ model Formation {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  groups      Group[]
+  groups Group[]
 
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
@@ -364,7 +377,6 @@ enum TransactionType {
   INCOME
   EXPENSE
 }
-
 
 model Transaction {
   id          String          @id @default(auto()) @map("_id") @db.ObjectId
@@ -413,9 +425,9 @@ model Holiday {
 
 model Pricing {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  category    String   // SOUTIEN, FORMATION
-  level       String   // LYCÉE, COLLÈGE, etc.
-  subject     String   // MATHS, PHYSIQUE, etc.
+  category    String // SOUTIEN, FORMATION
+  level       String // LYCÉE, COLLÈGE, etc.
+  subject     String // MATHS, PHYSIQUE, etc.
   price       Float    @default(0)
   description String?
   active      Boolean  @default(true)
@@ -426,4 +438,116 @@ model Pricing {
   branch   Branch @relation(fields: [branchId], references: [id])
 
   @@map("pricing")
+}
+
+enum TransportSubscriptionStatus {
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum TransportPricingMode {
+  ROUTE
+  STOP
+  UNIFORM
+}
+
+model Vehicle {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  plate     String
+  capacity  Int
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  routes TransportRoute[]
+
+  @@map("vehicles")
+}
+
+model Driver {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  phone     String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  routes TransportRoute[]
+
+  @@map("drivers")
+}
+
+model TransportRoute {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  monthlyPrice Float?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  vehicleId String  @db.ObjectId
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+  driverId  String  @db.ObjectId
+  driver    Driver  @relation(fields: [driverId], references: [id])
+
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  stops         TransportStop[]
+  subscriptions TransportSubscription[]
+
+  @@map("transport_routes")
+}
+
+model TransportStop {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  order         Int
+  morningTime   String
+  afternoonTime String
+  monthlyPrice  Float?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  routeId String         @db.ObjectId
+  route   TransportRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  subscriptions TransportSubscription[]
+
+  @@map("transport_stops")
+}
+
+model TransportSubscription {
+  id           String                      @id @default(auto()) @map("_id") @db.ObjectId
+  monthlyPrice Float
+  startDate    DateTime                    @default(now())
+  endDate      DateTime?
+  status       TransportSubscriptionStatus @default(ACTIVE)
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+
+  studentId String         @db.ObjectId
+  student   Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  routeId   String         @db.ObjectId
+  route     TransportRoute @relation(fields: [routeId], references: [id])
+  stopId    String         @db.ObjectId
+  stop      TransportStop  @relation(fields: [stopId], references: [id])
+
+  branchId String @db.ObjectId
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  payments Payment[]
+
+  @@map("transport_subscriptions")
 }

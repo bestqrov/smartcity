@@ -25,12 +25,12 @@ All models have required `branchId` with `@relation` to `Branch`.
 | `Vehicle` | `plate`, `capacity` (Int), `active` |
 | `Driver` | `name`, `phone`, `active` |
 | `TransportRoute` | `name`, `vehicleId`, `driverId`, `monthlyPrice?`, `active` |
-| `TransportStop` | `routeId`, `name`, `order` (Int), `morningTime`, `afternoonTime` (`"HH:mm"` strings), `monthlyPrice?` |
+| `TransportStop` | `routeId`, `name`, `order` (Int), `morningTime`, `afternoonTime` (`"HH:mm"` strings), `monthlyPrice?`, `active` |
 | `TransportSubscription` | `studentId`, `routeId`, `stopId`, `monthlyPrice` (snapshot), `startDate`, `endDate?`, `status` (`ACTIVE` \| `PAUSED` \| `ENDED`) |
 
 `Payment` gains two optional fields: `transportSubscriptionId` and `forMonth` (`"YYYY-MM"`). Existing tuition payments leave them null.
 
-`Settings` (per branch) gains `transportPricingMode` (`ROUTE` \| `STOP` \| `UNIFORM`, default `ROUTE`) and `transportUniformPrice?`.
+`Settings` (per branch) gains `transportPricingMode` (`ROUTE` \| `STOP` \| `UNIFORM`; optional; null ⇒ `ROUTE`) and `transportUniformPrice?`.
 
 ### Pricing
 
@@ -54,17 +54,21 @@ Split into small files (vehicles, drivers, routes/stops, subscriptions, payments
 
 - A student has at most one `ACTIVE` or `PAUSED` subscription at a time.
 - `stopId` must belong to `routeId`.
-- Creating/resuming a subscription is rejected if the route's vehicle already has `capacity` ACTIVE subscriptions.
+- Creating/resuming a subscription is rejected if the route already has as many ACTIVE subscriptions as its vehicle's `capacity`.
 - Deactivating or deleting a vehicle/driver/route/stop referenced by an ACTIVE or PAUSED subscription is rejected.
-- Only one payment per `(transportSubscriptionId, forMonth)`; a second is rejected. Amount defaults to the subscription's `monthlyPrice` and may be overridden.
+- Only one payment per `(transportSubscriptionId, forMonth)`; a second is rejected, enforced by a check inside the same $transaction (no unique index — MongoDB treats null/missing as equal). Amount defaults to the subscription's `monthlyPrice` and may be overridden.
 - Recording a transport payment creates the `Payment` and an `INCOME` `Transaction` (category `Transport`) inside one `prisma.$transaction`, so neither exists without the other.
 - Ending a subscription sets `endDate` and status `ENDED`; dues only consider `ACTIVE` subscriptions whose `startDate` is on or before the month.
 
 ## Frontend
 
-**Admin:** a "Transport" sidebar entry with four tabs — Routes & stops, Vehicles & drivers, Subscriptions, Dues. The student page gets a small transport card (current subscription, subscribe action). Settings gets the pricing-mode selector (and the uniform price field when `UNIFORM`).
+**Admin:** a "Transport" sidebar entry with four tabs — Routes & stops, Vehicles & drivers, Subscriptions, Dues. The student page gets a small transport card (current subscription, subscribe action). The Transport page has a pricing-mode panel (persisted in `Settings`; the uniform price field shows when `UNIFORM`).
 
 **Parent portal (read-only):** a "Transport" card per child showing route, stop, morning/afternoon times, driver name and phone, and current-month paid/unpaid status. Backed by a parent-scoped endpoint that returns only subscriptions of the parent's own students (same derivation `Parent.students[]` used elsewhere).
+
+## Effect on existing payment views
+
+Student balance (admin + student portal), parent portal balance and the documents module read tuition-only payments (`transportSubscriptionId` null). The Finance payments list and monthly received total still include transport payments.
 
 ## Testing
 
