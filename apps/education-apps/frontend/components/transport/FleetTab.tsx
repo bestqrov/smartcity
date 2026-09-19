@@ -14,14 +14,19 @@ export default function FleetTab() {
     const [driverName, setDriverName] = useState('');
     const [driverPhone, setDriverPhone] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
 
     const load = async () => {
+        setError('');
+        setLoading(true);
         try {
             const [v, d] = await Promise.all([transportService.vehicles.list(), transportService.drivers.list()]);
             setVehicles(v);
             setDrivers(d);
         } catch (e) {
             setError(transportErrorMessage(e));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -76,7 +81,8 @@ export default function FleetTab() {
                         </button>
                     </form>
                     <div className="space-y-2">
-                        {vehicles.length === 0 && <p className="text-sm text-gray-400">Aucun véhicule.</p>}
+                        {loading && <p className="text-sm text-gray-400">Chargement…</p>}
+                        {!loading && vehicles.length === 0 && <p className="text-sm text-gray-400">Aucun véhicule.</p>}
                         {vehicles.map((v) => (
                             <div key={v.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                                 <div>
@@ -85,6 +91,7 @@ export default function FleetTab() {
                                 </div>
                                 <button
                                     onClick={() => run(() => transportService.vehicles.remove(v.id))}
+                                    aria-label="Supprimer le véhicule"
                                     className="p-2 rounded-lg text-red-500 hover:bg-red-50"
                                 >
                                     <Trash2 size={16} />
@@ -120,7 +127,8 @@ export default function FleetTab() {
                         </button>
                     </form>
                     <div className="space-y-2">
-                        {drivers.length === 0 && <p className="text-sm text-gray-400">Aucun chauffeur.</p>}
+                        {loading && <p className="text-sm text-gray-400">Chargement…</p>}
+                        {!loading && drivers.length === 0 && <p className="text-sm text-gray-400">Aucun chauffeur.</p>}
                         {drivers.map((d) => (
                             <div key={d.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                                 <div>
@@ -129,6 +137,7 @@ export default function FleetTab() {
                                 </div>
                                 <button
                                     onClick={() => run(() => transportService.drivers.remove(d.id))}
+                                    aria-label="Supprimer le chauffeur"
                                     className="p-2 rounded-lg text-red-500 hover:bg-red-50"
                                 >
                                     <Trash2 size={16} />

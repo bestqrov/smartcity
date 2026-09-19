@@ -239,6 +239,8 @@ export interface SettingsFormData {
     logo?: string;
     academicYear: string;
     contactInfo?: string;
+    transportPricingMode?: TransportPricingMode | null;
+    transportUniformPrice?: number | null;
 }
 
 // Category options

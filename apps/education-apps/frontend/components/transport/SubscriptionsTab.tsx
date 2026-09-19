@@ -23,15 +23,20 @@ export default function SubscriptionsTab() {
     const [routes, setRoutes] = useState<TransportRoute[]>([]);
     const [filter, setFilter] = useState<TransportSubscriptionStatus | ''>('ACTIVE');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
     const [studentId, setStudentId] = useState('');
     const [routeId, setRouteId] = useState('');
     const [stopId, setStopId] = useState('');
     const [payingId, setPayingId] = useState<string | null>(null);
-    const [payMonth, setPayMonth] = useState(currentMonth());
+    const [payMonth, setPayMonth] = useState('');
+    const [payAmount, setPayAmount] = useState('');
+    const [payNote, setPayNote] = useState('');
     const [payMethod, setPayMethod] = useState('Espèces');
     const [paying, setPaying] = useState(false);
 
     const load = async () => {
+        setError('');
+        setLoading(true);
         try {
             const [s, st, r] = await Promise.all([
                 transportService.subscriptions.list(filter || undefined),
@@ -43,8 +48,14 @@ export default function SubscriptionsTab() {
             setRoutes(r);
         } catch (e) {
             setError(transportErrorMessage(e));
+        } finally {
+            setLoading(false);
         }
     };
+
+    useEffect(() => {
+        setPayMonth(currentMonth());
+    }, []);
 
     useEffect(() => {
         load();
@@ -144,7 +155,8 @@ export default function SubscriptionsTab() {
                     </select>
                 </div>
 
-                {subs.length === 0 && <p className="text-sm text-gray-400">Aucun abonnement.</p>}
+                {loading && <p className="text-sm text-gray-400">Chargement…</p>}
+                {!loading && subs.length === 0 && <p className="text-sm text-gray-400">Aucun abonnement.</p>}
                 <div className="space-y-3">
                     {subs.map((sub) => (
                         <div key={sub.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
@@ -161,7 +173,17 @@ export default function SubscriptionsTab() {
                                 <div className="flex flex-wrap gap-2">
                                     {sub.status === 'ACTIVE' && (
                                         <>
-                                            <button className={smallBtnCls} onClick={() => setPayingId(payingId === sub.id ? null : sub.id)}>
+                                            <button className={smallBtnCls} onClick={() => {
+                                                    if (payingId === sub.id) {
+                                                        setPayingId(null);
+                                                        return;
+                                                    }
+                                                    setPayMonth(currentMonth());
+                                                    setPayAmount('');
+                                                    setPayNote('');
+                                                    setPayingId(sub.id);
+                                                }}
+                                            >
                                                 Encaisser
                                             </button>
                                             <button className={smallBtnCls} onClick={() => run(() => transportService.subscriptions.pause(sub.id))}>
@@ -191,13 +213,20 @@ export default function SubscriptionsTab() {
 
                             {payingId === sub.id && (
                                 <form
-                                    className="grid grid-cols-3 gap-2 items-end mt-3"
+                                    className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end mt-3"
                                     onSubmit={(e) => {
                                         e.preventDefault();
                                         if (paying) return;
                                         setPaying(true);
                                         run(async () => {
-                                            await transportService.subscriptions.pay(sub.id, { forMonth: payMonth, method: payMethod });
+                                            await transportService.subscriptions.pay(sub.id, {
+                                                forMonth: payMonth || currentMonth(),
+                                                method: payMethod,
+                                                ...(payAmount !== '' ? { amount: Number(payAmount) } : {}),
+                                                ...(payNote.trim() !== '' ? { note: payNote.trim() } : {}),
+                                            });
+                                            setPayAmount('');
+                                            setPayNote('');
                                             setPayingId(null);
                                         }).finally(() => setPaying(false));
                                     }}
@@ -214,8 +243,24 @@ export default function SubscriptionsTab() {
                                             <option>Chèque</option>
                                         </select>
                                     </div>
+                                    <div>
+                                        <label className={labelCls}>Montant (MAD)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="any"
+                                            className={inputCls}
+                                            placeholder={String(sub.monthlyPrice)}
+                                            value={payAmount}
+                                            onChange={(e) => setPayAmount(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className={labelCls}>Note</label>
+                                        <input className={inputCls} value={payNote} onChange={(e) => setPayNote(e.target.value)} />
+                                    </div>
                                     <button type="submit" disabled={paying} className={primaryBtnCls}>
-                                        {paying ? 'Enregistrement…' : `Valider ${sub.monthlyPrice} MAD`}
+                                        {paying ? 'Enregistrement…' : 'Valider'}
                                     </button>
                                 </form>
                             )}

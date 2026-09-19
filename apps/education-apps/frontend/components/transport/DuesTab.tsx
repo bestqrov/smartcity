@@ -11,16 +11,27 @@ const currentMonth = () => {
 };
 
 export default function DuesTab() {
-    const [month, setMonth] = useState(currentMonth());
+    const [month, setMonth] = useState('');
     const [dues, setDues] = useState<TransportSubscription[]>([]);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setMonth(currentMonth());
+    }, []);
+
+    useEffect(() => {
+        if (!month) return;
         setError('');
+        setLoading(true);
         transportService
             .dues(month)
             .then(setDues)
-            .catch((e) => setError(transportErrorMessage(e)));
+            .catch((e) => {
+                setDues([]);
+                setError(transportErrorMessage(e));
+            })
+            .finally(() => setLoading(false));
     }, [month]);
 
     const total = dues.reduce((sum, sub) => sum + sub.monthlyPrice, 0);
@@ -40,7 +51,10 @@ export default function DuesTab() {
                 </div>
             </div>
             {error && <p className={`${errorCls} mb-3`}>{error}</p>}
-            {dues.length === 0 && !error && <p className="text-sm text-gray-400">Tout est réglé pour ce mois. 🎉</p>}
+            {loading && <p className="text-sm text-gray-400">Chargement…</p>}
+            {!loading && dues.length === 0 && !error && (
+                <p className="text-sm text-gray-400">Tout est réglé pour ce mois. 🎉</p>
+            )}
             <div className="space-y-2">
                 {dues.map((sub) => (
                     <div key={sub.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 text-sm">

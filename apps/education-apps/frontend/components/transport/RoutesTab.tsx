@@ -13,6 +13,7 @@ export default function RoutesTab() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
     const [name, setName] = useState('');
     const [vehicleId, setVehicleId] = useState('');
     const [driverId, setDriverId] = useState('');
@@ -20,6 +21,8 @@ export default function RoutesTab() {
     const [stopForms, setStopForms] = useState<Record<string, typeof emptyStop>>({});
 
     const load = async () => {
+        setError('');
+        setLoading(true);
         try {
             const [r, v, d] = await Promise.all([
                 transportService.routes.list(),
@@ -31,6 +34,8 @@ export default function RoutesTab() {
             setDrivers(d);
         } catch (e) {
             setError(transportErrorMessage(e));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -110,7 +115,8 @@ export default function RoutesTab() {
                 </form>
             </div>
 
-            {routes.length === 0 && <p className="text-sm text-gray-400">Aucune ligne.</p>}
+            {loading && <p className="text-sm text-gray-400">Chargement…</p>}
+            {!loading && routes.length === 0 && <p className="text-sm text-gray-400">Aucune ligne.</p>}
 
             {routes.map((route) => {
                 const form = stopForm(route.id);
@@ -130,6 +136,7 @@ export default function RoutesTab() {
                                         run(() => transportService.routes.remove(route.id));
                                     }
                                 }}
+                                aria-label="Supprimer la ligne"
                                 className="p-2 rounded-lg text-red-500 hover:bg-red-50 shrink-0"
                             >
                                 <Trash2 size={16} />
@@ -153,7 +160,12 @@ export default function RoutesTab() {
                                         </span>
                                     </span>
                                     <button
-                                        onClick={() => run(() => transportService.routes.removeStop(route.id, stop.id))}
+                                        onClick={() => {
+                                            if (window.confirm('Supprimer cet arrêt ?')) {
+                                                run(() => transportService.routes.removeStop(route.id, stop.id));
+                                            }
+                                        }}
+                                        aria-label="Supprimer l'arrêt"
                                         className="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                     >
                                         <Trash2 size={14} />

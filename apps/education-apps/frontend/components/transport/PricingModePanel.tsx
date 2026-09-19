@@ -36,7 +36,7 @@ export default function PricingModePanel() {
             await updateSettings({
                 transportPricingMode: mode,
                 transportUniformPrice: uniformPrice === '' ? null : Number(uniformPrice),
-            } as any);
+            });
             setSaved(true);
         } catch (e) {
             setError(transportErrorMessage(e));
