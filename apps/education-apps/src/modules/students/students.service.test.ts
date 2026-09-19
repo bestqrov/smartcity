@@ -1,5 +1,5 @@
 import prisma from '../../config/database';
-import { regenerateStudentToken, updateStudent, createStudent, getAllStudents, getStudentById } from './students.service';
+import { regenerateStudentToken, updateStudent, createStudent, getAllStudents, getStudentById, getStudentByPortalToken } from './students.service';
 
 jest.mock('../../config/database', () => {
     const student = {
@@ -84,6 +84,34 @@ describe('branch scoping', () => {
 
         expect(prisma.student.findFirst).toHaveBeenCalledWith(
             expect.objectContaining({ where: { id: 's1', branchId: 'b1' } })
+        );
+    });
+});
+
+describe('tuition-only payments', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('getStudentById excludes transport payments from the embedded payments', async () => {
+        (prisma.student.findFirst as jest.Mock).mockResolvedValue({ id: 's1' });
+
+        await getStudentById('s1', 'b1');
+
+        expect(prisma.student.findFirst).toHaveBeenCalledWith(
+            expect.objectContaining({
+                include: expect.objectContaining({ payments: { where: { OR: [{ transportSubscriptionId: null }, { transportSubscriptionId: { isSet: false } }] } } }),
+            })
+        );
+    });
+
+    it('getStudentByPortalToken excludes transport payments from the embedded payments', async () => {
+        (prisma.student.findUnique as jest.Mock).mockResolvedValue(null);
+
+        await getStudentByPortalToken('raw');
+
+        expect(prisma.student.findUnique).toHaveBeenCalledWith(
+            expect.objectContaining({
+                include: expect.objectContaining({ payments: { where: { OR: [{ transportSubscriptionId: null }, { transportSubscriptionId: { isSet: false } }] } } }),
+            })
         );
     });
 });

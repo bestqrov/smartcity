@@ -1,5 +1,6 @@
 import prisma from '../../config/database';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
+import { tuitionPayments } from '../payments/tuitionFilter';
 
 interface CreateStudentData {
     branchId: string;
@@ -139,7 +140,7 @@ export const getStudentById = async (id: string, branchId: string) => {
         where: { id, branchId },
         include: {
             inscriptions: true,
-            payments: true,
+            payments: tuitionPayments,
             attendances: true,
             parent: true,
         },
@@ -226,7 +227,7 @@ export const getStudentByPortalToken = async (rawToken: string) => {
         where: { portalTokenHash },
         include: {
             inscriptions: true,
-            payments: true,
+            payments: tuitionPayments,
             attendances: { orderBy: { date: 'desc' } },
             groups: { include: { teacher: true } },
         },
