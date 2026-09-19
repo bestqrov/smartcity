@@ -286,6 +286,7 @@ model Payment {
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
 
+  @@index([transportSubscriptionId, forMonth])
   @@map("payments")
 }
 
@@ -465,6 +466,7 @@ model Vehicle {
 
   routes TransportRoute[]
 
+  @@index([branchId])
   @@map("vehicles")
 }
 
@@ -481,6 +483,7 @@ model Driver {
 
   routes TransportRoute[]
 
+  @@index([branchId])
   @@map("drivers")
 }
 
@@ -503,6 +506,7 @@ model TransportRoute {
   stops         TransportStop[]
   subscriptions TransportSubscription[]
 
+  @@index([branchId])
   @@map("transport_routes")
 }
 
@@ -510,8 +514,8 @@ model TransportStop {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   order         Int
-  morningTime   String
-  afternoonTime String
+  morningTime   String // "HH:mm"
+  afternoonTime String // "HH:mm"
   monthlyPrice  Float?
   active        Boolean  @default(true)
   createdAt     DateTime @default(now())
@@ -525,6 +529,7 @@ model TransportStop {
 
   subscriptions TransportSubscription[]
 
+  @@index([routeId, order])
   @@map("transport_stops")
 }
 
@@ -549,5 +554,8 @@ model TransportSubscription {
 
   payments Payment[]
 
+  @@index([branchId, status])
+  @@index([routeId, status])
+  @@index([studentId])
   @@map("transport_subscriptions")
 }
