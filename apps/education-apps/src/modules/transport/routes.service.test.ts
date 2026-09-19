@@ -175,3 +175,26 @@ describe('stops', () => {
         expect(prisma.transportStop.update).toHaveBeenCalledWith({ where: { id: 'st1' }, data: { active: false } });
     });
 });
+
+describe('routes service — missing ids', () => {
+    afterEach(() => jest.resetAllMocks());
+
+    it.each([
+        ['vehicleId', 'Vehicle id', () => prisma.vehicle.findFirst],
+        ['driverId', 'Driver id', () => prisma.driver.findFirst],
+    ])('createRoute rejects a missing %s without querying', async (field, label, mockOf) => {
+        const data: any = { name: 'R', vehicleId: 'v1', driverId: 'd1', branchId: 'b1' };
+        delete data[field];
+
+        await expect(createRoute(data)).rejects.toThrow(`${label} is required`);
+        expect(mockOf()).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['vehicleId', 'Vehicle id', () => prisma.vehicle.findFirst],
+        ['driverId', 'Driver id', () => prisma.driver.findFirst],
+    ])('updateRoute rejects a null %s without querying', async (field, label, mockOf) => {
+        await expect(updateRoute('r1', 'b1', { [field]: null } as any)).rejects.toThrow(`${label} is required`);
+        expect(mockOf()).not.toHaveBeenCalled();
+    });
+});

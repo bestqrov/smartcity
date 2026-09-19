@@ -32,14 +32,21 @@ export const getForStudent = (req: TenantRequest, res: Response) =>
 export const create = (req: TenantRequest, res: Response) =>
     respond(
         res,
-        () =>
-            createSubscription({
+        async () => {
+            const raw = req.body.startDate;
+            let startDate: Date | undefined;
+            if (raw !== undefined && raw !== null && raw !== '') {
+                startDate = new Date(raw);
+                if (Number.isNaN(startDate.getTime())) throw new Error('Invalid start date');
+            }
+            return createSubscription({
                 studentId: req.body.studentId,
                 routeId: req.body.routeId,
                 stopId: req.body.stopId,
-                startDate: req.body.startDate ? new Date(req.body.startDate) : undefined,
+                startDate,
                 branchId: req.branchId!,
-            }),
+            });
+        },
         { message: 'Subscription created successfully', status: 201, failure: 'Failed to create subscription' }
     );
 

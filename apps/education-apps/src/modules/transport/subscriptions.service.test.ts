@@ -253,3 +253,19 @@ describe('reads', () => {
         );
     });
 });
+
+describe('createSubscription — missing ids', () => {
+    afterEach(() => jest.resetAllMocks());
+
+    it.each([
+        ['studentId', 'Student id', () => prisma.student.findFirst],
+        ['routeId', 'Route id', () => prisma.transportRoute.findFirst],
+        ['stopId', 'Stop id', () => prisma.transportStop.findFirst],
+    ])('rejects a missing %s without querying', async (field, label, mockOf) => {
+        const data: any = { studentId: 's1', routeId: 'r1', stopId: 'st1', branchId: 'b1' };
+        delete data[field];
+
+        await expect(createSubscription(data)).rejects.toThrow(`${label} is required`);
+        expect(mockOf()).not.toHaveBeenCalled();
+    });
+});

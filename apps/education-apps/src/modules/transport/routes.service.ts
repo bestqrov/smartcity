@@ -1,4 +1,5 @@
 import prisma from '../../config/database';
+import { assertId } from './ids';
 import { countOpenSubscriptions } from './openSubscriptions';
 
 export interface RouteData {
@@ -73,6 +74,8 @@ export const getAllRoutes = async (branchId: string) => {
 };
 
 export const createRoute = async (data: RouteData) => {
+    assertId('Vehicle id', data.vehicleId);
+    assertId('Driver id', data.driverId);
     assertName(data.name);
     assertPrice(data.monthlyPrice);
     await findVehicle(data.vehicleId, data.branchId);
@@ -90,6 +93,8 @@ export const createRoute = async (data: RouteData) => {
 };
 
 export const updateRoute = async (id: string, branchId: string, data: UpdateRouteData) => {
+    if (data.vehicleId !== undefined) assertId('Vehicle id', data.vehicleId);
+    if (data.driverId !== undefined) assertId('Driver id', data.driverId);
     const existing = await prisma.transportRoute.findFirst({ where: { id, branchId } });
     if (!existing) throw new Error('Route not found');
 

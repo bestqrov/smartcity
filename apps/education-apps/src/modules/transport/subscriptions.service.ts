@@ -1,4 +1,5 @@
 import prisma from '../../config/database';
+import { assertId } from './ids';
 import { currentMonth } from './month';
 import { OPEN_STATUSES } from './openSubscriptions';
 import { resolveMonthlyPrice } from './pricing';
@@ -27,6 +28,9 @@ const findOwned = async (id: string, branchId: string) => {
 };
 
 export const createSubscription = async (data: CreateSubscriptionData) => {
+    assertId('Student id', data.studentId);
+    assertId('Route id', data.routeId);
+    assertId('Stop id', data.stopId);
     const { studentId, routeId, stopId, branchId } = data;
 
     const student = await prisma.student.findFirst({ where: { id: studentId, branchId } });
