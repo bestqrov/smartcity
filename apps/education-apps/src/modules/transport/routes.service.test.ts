@@ -153,15 +153,25 @@ describe('stops', () => {
     it('updateStop throws for a stop outside the branch', async () => {
         (prisma.transportStop.findFirst as jest.Mock).mockResolvedValue(null);
 
-        await expect(updateStop('st1', 'b1', { name: 'X' })).rejects.toThrow('Stop not found');
-        expect(prisma.transportStop.findFirst).toHaveBeenCalledWith({ where: { id: 'st1', branchId: 'b1' } });
+        await expect(updateStop('r1', 'st1', 'b1', { name: 'X' })).rejects.toThrow('Stop not found');
+        expect(prisma.transportStop.findFirst).toHaveBeenCalledWith({ where: { id: 'st1', routeId: 'r1', branchId: 'b1' } });
+    });
+
+    it('updateStop/deleteStop treat a stop of another route as not found', async () => {
+        (prisma.transportStop.findFirst as jest.Mock).mockResolvedValue(null);
+
+        await expect(updateStop('other', 'st1', 'b1', { name: 'X' })).rejects.toThrow('Stop not found');
+        await expect(deleteStop('other', 'st1', 'b1')).rejects.toThrow('Stop not found');
+        expect(prisma.transportStop.findFirst).toHaveBeenLastCalledWith({
+            where: { id: 'st1', routeId: 'other', branchId: 'b1' },
+        });
     });
 
     it('deleteStop refuses when open subscriptions use the stop', async () => {
         (prisma.transportStop.findFirst as jest.Mock).mockResolvedValue({ id: 'st1' });
         (open.countOpenSubscriptions as jest.Mock).mockResolvedValue(1);
 
-        await expect(deleteStop('st1', 'b1')).rejects.toThrow('Stop has active subscriptions');
+        await expect(deleteStop('r1', 'st1', 'b1')).rejects.toThrow('Stop has active subscriptions');
         expect(open.countOpenSubscriptions).toHaveBeenCalledWith('b1', { stopId: 'st1' });
     });
 
@@ -170,7 +180,7 @@ describe('stops', () => {
         (open.countOpenSubscriptions as jest.Mock).mockResolvedValue(0);
         (prisma.transportStop.update as jest.Mock).mockResolvedValue({ id: 'st1' });
 
-        await deleteStop('st1', 'b1');
+        await deleteStop('r1', 'st1', 'b1');
 
         expect(prisma.transportStop.update).toHaveBeenCalledWith({ where: { id: 'st1' }, data: { active: false } });
     });

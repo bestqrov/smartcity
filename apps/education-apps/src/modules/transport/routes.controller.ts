@@ -72,7 +72,7 @@ export const editStop = (req: TenantRequest, res: Response) =>
     respond(
         res,
         () =>
-            updateStop(req.params.stopId, req.branchId!, {
+            updateStop(req.params.id, req.params.stopId, req.branchId!, {
                 name: req.body.name,
                 order: req.body.order !== undefined ? Number(req.body.order) : undefined,
                 morningTime: req.body.morningTime,
@@ -84,6 +84,6 @@ export const editStop = (req: TenantRequest, res: Response) =>
 
 export const removeStop = (req: TenantRequest, res: Response) =>
     respond(res, async () => {
-        await deleteStop(req.params.stopId, req.branchId!);
+        await deleteStop(req.params.id, req.params.stopId, req.branchId!);
         return null;
     }, { message: 'Stop deleted successfully', failure: 'Failed to delete stop' });

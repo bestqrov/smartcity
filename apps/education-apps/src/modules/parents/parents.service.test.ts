@@ -65,7 +65,7 @@ describe('parents.service', () => {
                                     },
                                 },
                                 stop: true,
-                                payments: { where: { forMonth: currentMonth() } },
+                                payments: { where: { forMonth: currentMonth() }, select: { id: true } },
                             },
                         },
                     },

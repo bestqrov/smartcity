@@ -165,8 +165,8 @@ export const createStop = async (routeId: string, branchId: string, data: StopDa
     });
 };
 
-export const updateStop = async (id: string, branchId: string, data: UpdateStopData) => {
-    const existing = await prisma.transportStop.findFirst({ where: { id, branchId } });
+export const updateStop = async (routeId: string, id: string, branchId: string, data: UpdateStopData) => {
+    const existing = await prisma.transportStop.findFirst({ where: { id, routeId, branchId } });
     if (!existing) throw new Error('Stop not found');
 
     if (data.name !== undefined) assertName(data.name);
@@ -187,8 +187,8 @@ export const updateStop = async (id: string, branchId: string, data: UpdateStopD
     });
 };
 
-export const deleteStop = async (id: string, branchId: string) => {
-    const existing = await prisma.transportStop.findFirst({ where: { id, branchId } });
+export const deleteStop = async (routeId: string, id: string, branchId: string) => {
+    const existing = await prisma.transportStop.findFirst({ where: { id, routeId, branchId } });
     if (!existing) throw new Error('Stop not found');
 
     if ((await countOpenSubscriptions(branchId, { stopId: id })) > 0) {

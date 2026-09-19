@@ -71,7 +71,7 @@ export const getParentByRawToken = async (rawToken: string) => {
                     inscriptions: true,
                     payments: tuitionPayments,
                     attendances: true,
-                    // Read-only transport summary for the portal: no branch/internal fields, driver limited to name+phone.
+                    // Read-only transport summary for the portal: route/stop/subscription scalars are returned; driver is limited to name+phone, vehicle to plate, payments to id.
                     transportSubscriptions: {
                         where: { status: { in: ['ACTIVE', 'PAUSED'] } },
                         include: {
@@ -82,7 +82,7 @@ export const getParentByRawToken = async (rawToken: string) => {
                                 },
                             },
                             stop: true,
-                            payments: { where: { forMonth: currentMonth() } },
+                            payments: { where: { forMonth: currentMonth() }, select: { id: true } },
                         },
                     },
                 },
