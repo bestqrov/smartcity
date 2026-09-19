@@ -13,8 +13,14 @@ export const respond = async (res: Response, action: () => Promise<unknown>, opt
     try {
         const data = await action();
         sendSuccess(res, data, options.message, options.status ?? 200);
-    } catch (error: any) {
-        const status = /not found$/i.test(error.message) ? 404 : 400;
-        sendError(res, error.message, options.failure, status);
+    } catch (error: unknown) {
+        if (error instanceof Error && error.name.startsWith('PrismaClient')) {
+            console.error(error);
+            sendError(res, 'Internal server error', options.failure, 500);
+            return;
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        const status = /not found$/i.test(message) ? 404 : 400;
+        sendError(res, message, options.failure, status);
     }
 };
