@@ -2493,7 +2493,7 @@ In `src/modules/parents/parents.service.test.ts`, replace the `toHaveBeenCalledW
                 students: {
                     include: {
                         inscriptions: true,
-                        payments: { where: { transportSubscriptionId: null } },
+                        payments: { where: { OR: [{ transportSubscriptionId: null }, { transportSubscriptionId: { isSet: false } }] } },
                         attendances: true,
                         transportSubscriptions: {
                             where: { status: { in: ['ACTIVE', 'PAUSED'] } },
@@ -2528,7 +2528,7 @@ describe('tuition-only payments', () => {
 
         expect(prisma.student.findFirst).toHaveBeenCalledWith(
             expect.objectContaining({
-                include: expect.objectContaining({ payments: { where: { transportSubscriptionId: null } } }),
+                include: expect.objectContaining({ payments: { where: { OR: [{ transportSubscriptionId: null }, { transportSubscriptionId: { isSet: false } }] } } }),
             })
         );
     });
@@ -2540,7 +2540,7 @@ describe('tuition-only payments', () => {
 
         expect(prisma.student.findUnique).toHaveBeenCalledWith(
             expect.objectContaining({
-                include: expect.objectContaining({ payments: { where: { transportSubscriptionId: null } } }),
+                include: expect.objectContaining({ payments: { where: { OR: [{ transportSubscriptionId: null }, { transportSubscriptionId: { isSet: false } }] } } }),
             })
         );
     });
@@ -2558,7 +2558,7 @@ jest.mock('../../config/database', () => ({
     default: { student: { findMany: jest.fn(), findUnique: jest.fn() } },
 }));
 
-const tuitionPayments = { where: { transportSubscriptionId: null }, orderBy: { date: 'desc' } };
+const tuitionPayments = { where: { OR: [{ transportSubscriptionId: null }, { transportSubscriptionId: { isSet: false } }] }, orderBy: { date: 'desc' } };
 
 describe('documents service — tuition-only payments', () => {
     afterEach(() => jest.clearAllMocks());
@@ -2597,7 +2597,7 @@ Expected: FAIL — the new/updated expectations don't match (`payments: true` et
 ```ts
 // Transport fees are stored as Payment rows too (transportSubscriptionId set). Anything that
 // treats a student's payments as tuition — balances, receipts, portals — must use this filter.
-export const tuitionPayments = { where: { transportSubscriptionId: null } };
+export const tuitionPayments = { where: { OR: [{ transportSubscriptionId: null }, { transportSubscriptionId: { isSet: false } }] } };
 ```
 
 `src/modules/students/students.service.ts`: add `import { tuitionPayments } from '../payments/tuitionFilter';` and in both `getStudentById` (include at ~line 142) and `getStudentByPortalToken` (~line 229) replace `payments: true,` with `payments: tuitionPayments,`.
