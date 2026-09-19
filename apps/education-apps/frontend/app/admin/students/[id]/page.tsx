@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { getStudentById, regenerateStudentToken, regenerateStudentPortalToken } from '@/lib/services/students';
 import type { Student } from '@/types';
 import QrCodeCard from '@/components/QrCodeCard';
+import StudentTransportCard from '@/components/transport/StudentTransportCard';
 
 type Tab = 'attendance' | 'finance' | 'inscriptions' | 'info';
 
@@ -210,6 +211,7 @@ export default function StudentProfilePage() {
                     )}
                 </div>
             </div>
+            <StudentTransportCard studentId={id} />
         </div>
     );
 }

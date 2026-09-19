@@ -56,7 +56,7 @@ export default function ParentPublicProfilePage() {
                     <p className="mt-2 font-medium text-slate-900 dark:text-white">
                         Solde total dû : {totalBalanceDue} MAD
                         <span className="block text-xs font-normal text-slate-500 dark:text-slate-400">
-                            N&apos;inclut pas les frais mensuels récurrents — contactez l&apos;établissement pour le
+                            N&apos;inclut pas les frais mensuels récurrents ni le transport (détaillé ci-dessous par enfant) — contactez l&apos;établissement pour le
                             détail complet.
                         </span>
                     </p>
@@ -82,6 +82,39 @@ export default function ParentPublicProfilePage() {
                                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                     Solde dû : {due} MAD
                                 </p>
+                                {(student.transportSubscriptions || []).map((sub) => (
+                                    <div
+                                        key={sub.id}
+                                        className="mt-3 rounded-xl bg-slate-50 p-3 text-sm dark:bg-slate-700/50"
+                                    >
+                                        <p className="font-medium text-slate-900 dark:text-white">
+                                            Transport — {sub.route?.name}
+                                            {sub.status === 'PAUSED' && ' (en pause)'}
+                                        </p>
+                                        <p className="text-slate-500 dark:text-slate-400">
+                                            {sub.stop?.name} · matin {sub.stop?.morningTime} · soir {sub.stop?.afternoonTime}
+                                        </p>
+                                        <p className="text-slate-500 dark:text-slate-400">
+                                            Chauffeur : {sub.route?.driver?.name}{' '}
+                                            {sub.route?.driver?.phone && (
+                                                <a className="text-blue-600 hover:underline" href={`tel:${sub.route.driver.phone}`}>
+                                                    {sub.route.driver.phone}
+                                                </a>
+                                            )}
+                                        </p>
+                                        <p
+                                            className={
+                                                (sub.payments || []).length > 0
+                                                    ? 'font-medium text-emerald-600 dark:text-emerald-400'
+                                                    : 'font-medium text-red-600 dark:text-red-400'
+                                            }
+                                        >
+                                            {(sub.payments || []).length > 0
+                                                ? 'Mois en cours : payé'
+                                                : `Mois en cours : ${sub.monthlyPrice} MAD à régler`}
+                                        </p>
+                                    </div>
+                                ))}
                             </div>
                         );
                     })}
