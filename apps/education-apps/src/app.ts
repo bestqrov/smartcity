@@ -21,6 +21,7 @@ import schoolsRoutes from './modules/schools/schools.routes';
 import branchesRoutes from './modules/branches/branches.routes';
 import announcementsRoutes from './modules/announcements/announcements.routes';
 import holidaysRoutes from './modules/holidays/holidays.routes';
+import transportRoutes from './modules/transport/transport.routes';
 
 const app: Application = express();
 
@@ -54,6 +55,7 @@ apiRouter.use('/schools', schoolsRoutes);
 apiRouter.use('/branches', branchesRoutes);
 apiRouter.use('/announcements', announcementsRoutes);
 apiRouter.use('/holidays', holidaysRoutes);
+apiRouter.use('/transport', transportRoutes);
 
 app.use('/api', apiRouter);
 
