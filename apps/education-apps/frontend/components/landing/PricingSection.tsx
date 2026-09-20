@@ -110,17 +110,13 @@ export default function PricingSection({ m, type, onTypeChange }: Props) {
                 </div>
             )}
 
-            {state.status === 'error' && (
+            {(state.status === 'error' || (state.status === 'ok' && state.packs.length === 0)) && (
                 <div className="mx-auto max-w-md rounded-2xl border border-[#22294a] bg-[#131a30] p-6 text-center">
                     <p className="text-slate-300">{m.packs_error}</p>
                     <Link href={`/signup?type=${type}`} className="mt-4 inline-block rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-5 py-2.5 font-bold text-white">
                         {m.packs_error_cta}
                     </Link>
                 </div>
-            )}
-
-            {state.status === 'ok' && state.packs.length === 0 && (
-                <p className="text-center text-slate-400">{m.packs_error}</p>
             )}
 
             {state.status === 'ok' && state.packs.length > 0 && (

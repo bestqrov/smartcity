@@ -136,12 +136,12 @@ export default function SuperAdminSchoolsPage() {
                                             onChange={(e) => handleAssignPack(school.id, e.target.value)}
                                             className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm disabled:opacity-50"
                                         >
-                                            {!school.packId && <option value="">Aucun pack</option>}
+                                            <option value="">Aucun pack</option>
                                             {packs
-                                                .filter((pack) => pack.active && pack.institutionTypes.includes(school.institutionType ?? DEFAULT_INSTITUTION_TYPE))
+                                                .filter((pack) => (pack.active && pack.institutionTypes.includes(school.institutionType ?? DEFAULT_INSTITUTION_TYPE)) || pack.id === school.packId)
                                                 .map((pack) => (
                                                     <option key={pack.id} value={pack.id}>
-                                                        {pack.name}
+                                                        {pack.active ? pack.name : `${pack.name} (inactif)`}
                                                     </option>
                                                 ))}
                                         </select>

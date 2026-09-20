@@ -25,7 +25,7 @@ export default function LandingNav({ m, lang, onLangChange }: Props) {
                     type="button"
                     onClick={() => onLangChange(lang === 'fr' ? 'ar' : 'fr')}
                     className="rounded-full border border-[#22294a] bg-[#131a30] px-4 py-1.5 text-sm font-semibold text-slate-200 hover:bg-[#1a2342]"
-                    aria-label={lang === 'fr' ? 'العربية' : 'Français'}
+                    aria-label="Changer de langue / تغيير اللغة"
                 >
                     {m.lang_switch}
                 </button>

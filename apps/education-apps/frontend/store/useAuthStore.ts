@@ -89,6 +89,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     logout: () => {
         setActiveBranchId(null);
         clearTokens();
+        try { localStorage.removeItem('school-profile'); } catch {}
         set({ user: null, accessToken: null });
         if (typeof window !== 'undefined') {
             window.location.href = '/login';

@@ -238,9 +238,10 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     ? superAdminMenuItems
     : effectiveRole === 'ADMIN' ? adminMenuItems : secretaryMenuItems;
 
-  const typeConfig = getInstitutionTypeConfig(profile.institutionType);
+  const institutionType = effectiveRole === 'SUPER_ADMIN' ? null : profile.institutionType;
+  const typeConfig = getInstitutionTypeConfig(institutionType);
   const visibleMenuItems: any[] = [
-    ...applyInstitutionType(menuItems as any[], profile.institutionType),
+    ...applyInstitutionType(menuItems as any[], institutionType),
     ...typeConfig.comingSoon.map((entry) => ({
       ...entry,
       icon: BookOpen,
