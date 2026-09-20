@@ -1,6 +1,7 @@
 import prisma from '../../config/database';
 import { createParent, regenerateParentToken, getParentByRawToken } from './parents.service';
 import * as accessToken from '../../utils/accessToken';
+import { currentMonth } from '../transport/month';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
@@ -50,7 +51,24 @@ describe('parents.service', () => {
             where: { accessTokenHash: 'some-hash' },
             include: {
                 students: {
-                    include: { inscriptions: true, payments: true, attendances: true },
+                    include: {
+                        inscriptions: true,
+                        payments: { where: { OR: [{ transportSubscriptionId: null }, { transportSubscriptionId: { isSet: false } }] } },
+                        attendances: true,
+                        transportSubscriptions: {
+                            where: { status: { in: ['ACTIVE', 'PAUSED'] } },
+                            include: {
+                                route: {
+                                    include: {
+                                        driver: { select: { name: true, phone: true } },
+                                        vehicle: { select: { plate: true } },
+                                    },
+                                },
+                                stop: true,
+                                payments: { where: { forMonth: currentMonth() }, select: { id: true } },
+                            },
+                        },
+                    },
                 },
             },
         });

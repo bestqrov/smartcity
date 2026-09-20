@@ -39,6 +39,8 @@ export interface Student {
     groups?: StudentGroupSummary[];
     // only present on the public portal profile response (not persisted on Student itself)
     announcements?: Announcement[];
+    // only present on the parent portal profile response
+    transportSubscriptions?: TransportSubscription[];
     holidays?: Holiday[];
     school?: { name: string; logo?: string | null; phone?: string | null; email?: string | null } | null;
     createdAt: string;
@@ -146,6 +148,8 @@ export interface Settings {
     logo?: string;
     academicYear: string;
     contactInfo?: string;
+    transportPricingMode?: TransportPricingMode | null;
+    transportUniformPrice?: number | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -235,6 +239,8 @@ export interface SettingsFormData {
     logo?: string;
     academicYear: string;
     contactInfo?: string;
+    transportPricingMode?: TransportPricingMode | null;
+    transportUniformPrice?: number | null;
 }
 
 // Category options
@@ -295,4 +301,62 @@ export interface Teacher {
     _count?: {
         groups: number;
     };
+}
+
+// Transport types
+export type TransportPricingMode = 'ROUTE' | 'STOP' | 'UNIFORM';
+export type TransportSubscriptionStatus = 'ACTIVE' | 'PAUSED' | 'ENDED';
+
+export interface Vehicle {
+    id: string;
+    plate: string;
+    capacity: number;
+    active: boolean;
+}
+
+export interface Driver {
+    id: string;
+    name: string;
+    phone: string;
+    active: boolean;
+}
+
+export interface TransportStop {
+    id: string;
+    routeId: string;
+    name: string;
+    order: number;
+    morningTime: string;
+    afternoonTime: string;
+    monthlyPrice?: number | null;
+}
+
+export interface TransportRoute {
+    id: string;
+    name: string;
+    monthlyPrice?: number | null;
+    vehicleId: string;
+    driverId: string;
+    vehicle?: Pick<Vehicle, 'plate'> & Partial<Vehicle>;
+    driver?: Pick<Driver, 'name' | 'phone'> & Partial<Driver>;
+    stops?: TransportStop[];
+}
+
+export interface TransportSubscription {
+    id: string;
+    studentId: string;
+    routeId: string;
+    stopId: string;
+    monthlyPrice: number;
+    startDate: string;
+    endDate?: string | null;
+    status: TransportSubscriptionStatus;
+    student?: Student;
+    route?: TransportRoute;
+    stop?: TransportStop;
+    // parent portal: payments of the current month only
+    payments?: { id: string }[];
+    // student card endpoint
+    currentMonth?: string;
+    paidCurrentMonth?: boolean;
 }

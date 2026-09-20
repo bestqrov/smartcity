@@ -1,5 +1,7 @@
 import prisma from '../../config/database';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
+import { tuitionPayments } from '../payments/tuitionFilter';
+import { currentMonth } from '../transport/month';
 
 export interface CreateParentData {
     name: string;
@@ -65,7 +67,25 @@ export const getParentByRawToken = async (rawToken: string) => {
         where: { accessTokenHash },
         include: {
             students: {
-                include: { inscriptions: true, payments: true, attendances: true },
+                include: {
+                    inscriptions: true,
+                    payments: tuitionPayments,
+                    attendances: true,
+                    // Read-only transport summary for the portal: route/stop/subscription scalars are returned; driver is limited to name+phone, vehicle to plate, payments to id.
+                    transportSubscriptions: {
+                        where: { status: { in: ['ACTIVE', 'PAUSED'] } },
+                        include: {
+                            route: {
+                                include: {
+                                    driver: { select: { name: true, phone: true } },
+                                    vehicle: { select: { plate: true } },
+                                },
+                            },
+                            stop: true,
+                            payments: { where: { forMonth: currentMonth() }, select: { id: true } },
+                        },
+                    },
+                },
             },
         },
     });

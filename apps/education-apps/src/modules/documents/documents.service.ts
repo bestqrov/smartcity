@@ -1,4 +1,5 @@
 import prisma from '../../config/database';
+import { tuitionPayments } from '../payments/tuitionFilter';
 
 export const getStudentsForDocuments = async () => {
     const students = await prisma.student.findMany({
@@ -9,6 +10,7 @@ export const getStudentsForDocuments = async () => {
                 }
             },
             payments: {
+                ...tuitionPayments,
                 orderBy: {
                     date: 'desc'
                 }
@@ -32,6 +34,7 @@ export const getStudentDocument = async (studentId: string) => {
                 }
             },
             payments: {
+                ...tuitionPayments,
                 orderBy: {
                     date: 'desc'
                 }
