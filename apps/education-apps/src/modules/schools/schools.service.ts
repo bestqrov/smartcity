@@ -19,9 +19,12 @@ const TRIAL_DAYS = 15;
 
 // The pack named by the visitor (must be active and serve the type), else the default pack if it
 // serves the type, else none — signup never fails because no default pack exists.
-const resolveSignupPack = async (packCode: string | undefined, type: InstitutionTypeValue) => {
-    if (packCode) {
-        const pack = await prisma.pack.findFirst({ where: { code: packCode, active: true } });
+const resolveSignupPack = async (packCode: unknown, type: InstitutionTypeValue) => {
+    if (packCode !== undefined && packCode !== null && packCode !== '') {
+        // packCode comes from a public request body: never let a non-string reach Prisma.
+        const code = typeof packCode === 'string' ? packCode.trim() : '';
+        if (!code) throw new Error('Unknown or unavailable pack');
+        const pack = await prisma.pack.findFirst({ where: { code, active: true } });
         if (!pack || !pack.institutionTypes.includes(type)) throw new Error('Unknown or unavailable pack');
         return pack;
     }

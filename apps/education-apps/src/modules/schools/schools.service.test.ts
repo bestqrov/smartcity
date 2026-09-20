@@ -181,6 +181,40 @@ describe('signupSchool — institution type and pack', () => {
         );
     });
 
+    it.each([[{}], [42], [['pro']]])('rejects non-string packCode %j before any pack query', async (bad) => {
+        arrangeSignup();
+
+        await expect(signupSchool({ ...baseInput, packCode: bad as any })).rejects.toThrow(
+            'Unknown or unavailable pack'
+        );
+        expect(prisma.pack.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('rejects a blank packCode string that is not empty', async () => {
+        arrangeSignup();
+
+        await expect(signupSchool({ ...baseInput, packCode: '   ' })).rejects.toThrow('Unknown or unavailable pack');
+        expect(prisma.pack.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('trims packCode before the lookup', async () => {
+        arrangeSignup();
+        (prisma.pack.findFirst as jest.Mock).mockResolvedValue(pack({ isDefault: false }));
+
+        await signupSchool({ ...baseInput, packCode: ' pro ' });
+
+        expect(prisma.pack.findFirst).toHaveBeenCalledWith({ where: { code: 'pro', active: true } });
+    });
+
+    it('treats an empty packCode like no code (default pack lookup)', async () => {
+        arrangeSignup();
+        (prisma.pack.findFirst as jest.Mock).mockResolvedValue(pack());
+
+        await signupSchool({ ...baseInput, packCode: '' });
+
+        expect(prisma.pack.findFirst).toHaveBeenCalledWith({ where: { isDefault: true, active: true } });
+    });
+
     it('rejects an unknown or inactive packCode', async () => {
         arrangeSignup();
         (prisma.pack.findFirst as jest.Mock).mockResolvedValue(null);
