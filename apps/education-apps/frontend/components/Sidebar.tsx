@@ -15,7 +15,8 @@ import {
   Building,
   Calendar,
   Megaphone,
-  Bus
+  Bus,
+  Package
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
@@ -217,6 +218,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       path: '/admin/schools',
       activeColor: 'bg-[#334155]/50 border-[#F87171]',
       iconColor: 'text-[#F87171]'
+    },
+    {
+      id: 'packs',
+      label: 'Packs',
+      icon: Package,
+      path: '/admin/packs',
+      activeColor: 'bg-[#334155]/50 border-[#FBBF24]',
+      iconColor: 'text-[#FBBF24]'
     },
     ...adminMenuItems
   ];
