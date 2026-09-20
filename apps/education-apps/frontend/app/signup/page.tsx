@@ -16,6 +16,7 @@ export default function SignupPage() {
         ownerName: '',
         ownerEmail: '',
         password: '',
+        institutionType: 'PRIVATE_SCHOOL',
     });
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);

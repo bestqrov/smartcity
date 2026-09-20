@@ -1,10 +1,13 @@
 import api from '../api';
 import type { ApiResponse, User } from '@/types';
+import type { InstitutionType } from '../institutionTypes';
 
 export interface SignupSchoolData {
     ownerName: string;
     ownerEmail: string;
     password: string;
+    institutionType: InstitutionType;
+    packCode?: string;
 }
 
 export interface SignupSchoolResponse {
@@ -31,6 +34,17 @@ export interface SchoolProfileData {
     phone?: string | null;
     email?: string | null;
     logo?: string | null;
+    institutionType?: InstitutionType | null;
+    pack?: {
+        id: string;
+        code: string;
+        name: string;
+        monthlyPrice: number;
+        yearlyPrice: number;
+        maxStudents: number | null;
+        maxBranches: number | null;
+        features: string[];
+    } | null;
 }
 
 export async function getMySchool(): Promise<SchoolProfileData> {
@@ -60,6 +74,9 @@ export interface SchoolListItem {
     status: SchoolStatus;
     trialEndsAt: string | null;
     createdAt: string;
+    institutionType?: InstitutionType | null;
+    packId?: string | null;
+    pack?: { id: string; code: string; name: string } | null;
 }
 
 export async function getAllSchools(): Promise<SchoolListItem[]> {
