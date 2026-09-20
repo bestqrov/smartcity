@@ -79,7 +79,7 @@ Replaces the dev redirect. Dark style "B" from the mockup, brand "Smart School".
 - **Bilingual:** messages live in one typed file (`lib/landing/messages.ts`, `fr` and `ar` objects with identical keys, enforced by TypeScript). Default language: Arabic if `navigator.language` starts with `ar`, otherwise French; the choice is saved in `localStorage` (wrapped in try/catch). `dir="rtl"` and the Cairo font apply to the landing root only when Arabic is active; layout uses logical properties (`start`/`end`, `ms-`/`me-`) so RTL needs no separate styles. Arabic copy is Modern Standard Arabic; the mockup's Arabic strings are the reference.
 - **Pricing section:** fetches `GET /api/packs/public` on the client (skeleton while loading). Each card shows name, price (monthly or yearly per the toggle; yearly shows the yearly price and a "2 months free" note only when `yearlyPrice < 12 × monthlyPrice`), limits from `maxStudents`/`maxBranches` (`null` → "unlimited"), the base inclusions (students/enrolment/payments, attendance/receipts) plus one line per feature key, "recommended" badge on `recommended`, and a CTA to `/signup?pack=<code>`. If the request fails or returns nothing, the section shows a short message with a plain CTA to `/signup`; the rest of the page is unaffected.
 - **Already logged in:** if an access token/user is present, redirect to the role's home using the same rules as `app/login/page.tsx` (OWNER → `/admin/select-branch`, ADMIN/SUPER_ADMIN → `/admin`, SECRETARY → `/secretary`) instead of showing the landing.
-- **WhatsApp button:** number from `NEXT_PUBLIC_WHATSAPP_NUMBER`; hidden when unset.
+- **WhatsApp button:** links to `https://wa.me/<number>`. The number comes from `NEXT_PUBLIC_WHATSAPP_NUMBER` and **temporarily defaults to `0608183886`** (stored and used in international format `212608183886`); replace it via the env var when the final number is known.
 - **Accessibility/performance:** semantic headings and landmarks, labelled language switch and billing toggle (`aria-pressed`), sufficient contrast on the dark theme, no layout shift on language change, images limited to the inline SVG.
 
 ### Signup page (`app/signup/page.tsx`)
@@ -97,4 +97,4 @@ Backend (TDD, jest, mocked prisma): pack service — unique/invalid `code`, pric
 
 ## Rollout
 
-Additive schema change except dropping `School.packTier` (dev data only; no production data exists). Run `prisma db push`, then the seed script. The landing needs no new env beyond the optional `NEXT_PUBLIC_WHATSAPP_NUMBER`; it reuses the existing `NEXT_PUBLIC_API_URL`.
+Additive schema change except dropping `School.packTier` (dev data only; no production data exists). Run `prisma db push`, then the seed script. The landing needs no new env (the optional `NEXT_PUBLIC_WHATSAPP_NUMBER` overrides the temporary default number `0608183886`); it reuses the existing `NEXT_PUBLIC_API_URL`.
