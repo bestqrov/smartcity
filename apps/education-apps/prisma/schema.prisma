@@ -90,7 +90,7 @@ model School {
   id          String       @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   status      SchoolStatus @default(PENDING)
-  packTier    String
+  packTier    String?
   ownerName   String
   ownerEmail  String
   ownerPhone  String?
@@ -107,6 +107,11 @@ model School {
   branches Branch[]
   users    User[]
 
+  institutionType InstitutionType? // null is treated as PRIVATE_SCHOOL
+  packId          String?          @db.ObjectId
+  pack            Pack?            @relation(fields: [packId], references: [id])
+
+  @@index([packId])
   @@map("schools")
 }
 
@@ -558,4 +563,34 @@ model TransportSubscription {
   @@index([routeId, status])
   @@index([studentId])
   @@map("transport_subscriptions")
+}
+
+enum InstitutionType {
+  PRIVATE_SCHOOL
+  TUTORING_CENTER
+  VOCATIONAL_TRAINING
+  LANGUAGE_CENTER
+  CRECHE
+}
+
+model Pack {
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  code             String            @unique
+  monthlyPrice     Float
+  yearlyPrice      Float
+  maxStudents      Int?
+  maxBranches      Int?
+  features         String[]
+  institutionTypes InstitutionType[]
+  isDefault        Boolean           @default(false)
+  active           Boolean           @default(true)
+  sortOrder        Int               @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  schools School[]
+
+  @@index([active, sortOrder])
+  @@map("packs")
 }
