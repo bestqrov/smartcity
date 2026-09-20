@@ -41,7 +41,7 @@ h2{font-size:30px;text-align:center;margin:0 0 8px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .feat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
 .feat .ic{font-size:26px}.feat h3{margin:10px 0 4px;font-size:17px}.feat p{margin:0;color:var(--muted);font-size:14px}
-.feat.wide{grid-column:1/-1;display:flex;gap:16px;align-items:center;border-color:var(--brand)}.feat.wide .ic{font-size:34px}.toggle{display:flex;justify-content:center;gap:8px;margin-bottom:26px}
+.feat.wide{grid-column:span 2;display:flex;gap:16px;align-items:center;border-color:var(--brand)}.feat.wide .ic{font-size:34px}.soon{display:inline-block;vertical-align:middle;background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent);border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700}.toggle{display:flex;justify-content:center;gap:8px;margin-bottom:26px}
 .toggle .pill.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .price{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;position:relative}
 .price.pop{border:2px solid var(--brand);transform:translateY(-6px)}
@@ -58,7 +58,7 @@ footer{padding:30px 0;color:var(--muted);text-align:center;font-size:13px}
 .wa{position:fixed;inset-inline-end:18px;bottom:18px;background:#22c55e;color:#fff;border-radius:999px;padding:12px 18px;font-weight:700;box-shadow:0 10px 30px rgba(34,197,94,.45)}
 .switch{position:fixed;inset-inline-start:14px;bottom:14px;z-index:9;background:#111827;color:#fff;border-radius:12px;padding:8px;display:flex;gap:6px;font-size:12px}
 .switch button{border:0;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700}
-@media(max-width:820px){.hero .wrap,.grid3,.steps{grid-template-columns:1fr}h1{font-size:32px}.mock{order:2}.price.pop{transform:none}}
+@media(max-width:820px){.feat.wide{grid-column:auto}.hero .wrap,.grid3,.steps{grid-template-columns:1fr}h1{font-size:32px}.mock{order:2}.price.pop{transform:none}}
 </style>
 </head>
 <body>
@@ -178,6 +178,7 @@ footer{padding:30px 0;color:var(--muted);text-align:center;font-size:13px}
       <div class="feat"><div class="ic">💰</div><h3 data-t="f4t"></h3><p data-t="f4d"></p></div>
       <div class="feat"><div class="ic">🏫</div><h3 data-t="f5t"></h3><p data-t="f5d"></p></div>
       <div class="feat"><div class="ic">📢</div><h3 data-t="f6t"></h3><p data-t="f6d"></p></div>
+      <div class="feat"><div class="ic">🍽️</div><h3><span data-t="f8t"></span> <span class="soon" data-t="soon"></span></h3><p data-t="f8d"></p></div>
       <div class="feat wide"><div class="ic">📍</div><div><h3 data-t="f7t"></h3><p data-t="f7d"></p></div></div>
     </div>
   </section>
@@ -247,6 +248,7 @@ f3t:"Transport scolaire",f3d:"Lignes, arrêts, horaires, chauffeurs et abonnemen
 f4t:"Paiements & finances",f4d:"Inscriptions, mensualités, reçus et suivi des impayés.",
 f5t:"Multi-établissements",f5d:"Plusieurs sites, une seule vue d'ensemble pour le propriétaire.",
 f6t:"Annonces & vacances",f6d:"Informez élèves et parents en un clic.",
+f8t:"Cantine scolaire",f8d:"Menus, inscriptions et paiements de la cantine.",soon:"Bientôt",
 f7t:"Inscrivez votre école sur SmartCities Maroc",f7d:"Rejoignez l'annuaire SmartCities Maroc et gagnez en visibilité auprès des familles.",
 p_title:"Des tarifs clairs en dirhams",p_sub:"Choisissez selon la taille de votre école. Changez à tout moment.",
 monthly:"Mensuel",yearly:"Annuel (2 mois offerts)",popular:"Le plus choisi",
@@ -268,6 +270,7 @@ f3t:"النقل المدرسي",f3d:"الخطوط والمحطات والأوق�
 f4t:"المدفوعات والمالية",f4d:"التسجيل والمستحقات الشهرية والإيصالات ومتابعة المتأخرات.",
 f5t:"تعدد المؤسسات",f5d:"عدة فروع مع رؤية شاملة واحدة للمالك.",
 f6t:"الإعلانات والعطل",f6d:"أبلغ التلاميذ وأولياء الأمور بنقرة واحدة.",
+f8t:"المطعم المدرسي",f8d:"قوائم الوجبات وتسجيل التلاميذ ومدفوعات المطعم المدرسي.",soon:"قريبًا",
 f7t:"سجّل مدرستك في SmartCities المغرب",f7d:"انضم إلى دليل SmartCities المغرب لتصل إلى مزيد من الأسر وتزداد مدرستك ظهورًا.",
 p_title:"أسعار واضحة بالدرهم",p_sub:"اختر حسب حجم مدرستك، ويمكنك التغيير في أي وقت.",
 monthly:"شهري",yearly:"سنوي (شهران مجانًا)",popular:"الأكثر اختيارًا",
