@@ -12,6 +12,7 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts",
+    "prisma:seed-packs": "ts-node prisma/seed-packs.ts",
     "test": "jest"
   },
   "keywords": [
