@@ -1,0 +1,70 @@
+<svg viewBox="0 0 560 400" width="560" height="400" xmlns="http://www.w3.org/2000/svg" font-family="Inter,Cairo,sans-serif">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#818cf8"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
+  </defs>
+  <!-- window -->
+  <rect x="0" y="0" width="560" height="400" rx="18" style="fill:#131a30"/>
+  <circle cx="22" cy="20" r="5" style="fill:#22294a"/><circle cx="40" cy="20" r="5" style="fill:#22294a"/><circle cx="58" cy="20" r="5" style="fill:#22294a"/>
+  <!-- sidebar -->
+  <rect x="0" y="40" width="112" height="360" style="fill:#0b1020"/>
+  <rect x="16" y="56" width="26" height="26" rx="8" fill="url(#g)"/>
+  <rect x="50" y="63" width="46" height="12" rx="6" style="fill:#22294a"/>
+  <rect x="12" y="102" width="88" height="30" rx="9" fill="url(#g)"/><circle cx="28" cy="117" r="6" fill="#fff" opacity=".9"/><rect x="42" y="113" width="46" height="8" rx="4" fill="#fff" opacity=".85"/>
+  <g style="fill:#22294a">
+    <circle cx="28" cy="153" r="6"/><rect x="42" y="149" width="40" height="8" rx="4"/>
+    <circle cx="28" cy="189" r="6"/><rect x="42" y="185" width="52" height="8" rx="4"/>
+    <circle cx="28" cy="225" r="6"/><rect x="42" y="221" width="36" height="8" rx="4"/>
+    <circle cx="28" cy="261" r="6"/><rect x="42" y="257" width="48" height="8" rx="4"/>
+  </g>
+  <!-- header -->
+  <rect x="130" y="54" width="120" height="12" rx="6" style="fill:#f1f5f9" opacity=".85"/>
+  <rect x="130" y="74" width="80" height="8" rx="4" style="fill:#22294a"/>
+  <circle cx="520" cy="66" r="14" fill="url(#g)"/>
+  <!-- stat cards -->
+  <g>
+    <rect x="130" y="98" width="128" height="72" rx="12" style="fill:#0b1020"/>
+    <text x="144" y="122" font-size="18">🎓</text>
+    <text x="144" y="154" font-size="22" font-weight="800" style="fill:#f1f5f9">1 240</text>
+    <rect x="212" y="112" width="34" height="14" rx="7" fill="#10b981" opacity=".18"/><text x="218" y="123" font-size="9" font-weight="700" fill="#10b981">+8%</text>
+
+    <rect x="270" y="98" width="128" height="72" rx="12" style="fill:#0b1020"/>
+    <text x="284" y="122" font-size="18">✅</text>
+    <text x="284" y="154" font-size="22" font-weight="800" style="fill:#f1f5f9">96%</text>
+    <rect x="352" y="112" width="34" height="14" rx="7" fill="#10b981" opacity=".18"/><text x="358" y="123" font-size="9" font-weight="700" fill="#10b981">+2%</text>
+
+    <rect x="410" y="98" width="140" height="72" rx="12" style="fill:#0b1020"/>
+    <text x="424" y="122" font-size="18">💰</text>
+    <text x="424" y="154" font-size="20" font-weight="800" style="fill:#f1f5f9">184 500</text>
+    <rect x="502" y="112" width="34" height="14" rx="7" fill="#10b981" opacity=".18"/><text x="508" y="123" font-size="9" font-weight="700" fill="#10b981">+12%</text>
+  </g>
+  <!-- bar chart -->
+  <rect x="130" y="184" width="238" height="200" rx="12" style="fill:#0b1020"/>
+  <rect x="146" y="200" width="70" height="10" rx="5" style="fill:#f1f5f9" opacity=".8"/>
+  <g style="stroke:#22294a" stroke-width="1"><line x1="146" y1="270" x2="352" y2="270"/><line x1="146" y1="310" x2="352" y2="310"/><line x1="146" y1="350" x2="352" y2="350"/></g>
+  <g fill="url(#bar)">
+    <rect x="152" y="300" width="20" height="50" rx="5"/>
+    <rect x="182" y="282" width="20" height="68" rx="5"/>
+    <rect x="212" y="292" width="20" height="58" rx="5"/>
+    <rect x="242" y="262" width="20" height="88" rx="5"/>
+    <rect x="272" y="244" width="20" height="106" rx="5"/>
+    <rect x="302" y="226" width="20" height="124" rx="5" fill="url(#g)"/>
+    <rect x="332" y="254" width="20" height="96" rx="5"/>
+  </g>
+  <polyline points="162,296 192,276 222,286 252,254 282,236 312,218 342,246" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="312" cy="218" r="4.5" fill="#f59e0b"/>
+  <!-- attendance list -->
+  <rect x="380" y="184" width="170" height="96" rx="12" style="fill:#0b1020"/>
+  <g>
+    <circle cx="398" cy="205" r="9" fill="#a5b4fc"/><rect x="414" y="199" width="54" height="8" rx="4" style="fill:#f1f5f9" opacity=".7"/><rect x="500" y="199" width="36" height="12" rx="6" fill="#10b981" opacity=".22"/><circle cx="518" cy="205" r="3" fill="#10b981"/>
+    <circle cx="398" cy="235" r="9" fill="#fcd34d"/><rect x="414" y="229" width="46" height="8" rx="4" style="fill:#f1f5f9" opacity=".7"/><rect x="500" y="229" width="36" height="12" rx="6" fill="#f59e0b" opacity=".22"/><circle cx="518" cy="235" r="3" fill="#f59e0b"/>
+    <circle cx="398" cy="265" r="9" fill="#fda4af"/><rect x="414" y="259" width="58" height="8" rx="4" style="fill:#f1f5f9" opacity=".7"/><rect x="500" y="259" width="36" height="12" rx="6" fill="#ef4444" opacity=".22"/><circle cx="518" cy="265" r="3" fill="#ef4444"/>
+  </g>
+  <!-- bus route -->
+  <rect x="380" y="292" width="170" height="92" rx="12" style="fill:#0b1020"/>
+  <text x="394" y="316" font-size="16">🚌</text>
+  <rect x="418" y="306" width="60" height="8" rx="4" style="fill:#f1f5f9" opacity=".7"/>
+  <path d="M398 350 C 430 330, 450 372, 482 350 S 524 336, 534 352" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-dasharray="5 5" stroke-linecap="round"/>
+  <circle cx="398" cy="350" r="5" fill="#10b981"/><circle cx="466" cy="358" r="5" fill="#6366f1"/><circle cx="534" cy="352" r="5" fill="#f59e0b"/>
+  <rect x="394" y="366" width="24" height="7" rx="3.5" style="fill:#22294a"/><rect x="454" y="370" width="24" height="7" rx="3.5" style="fill:#22294a"/>
+</svg>
