@@ -16,11 +16,13 @@ import {
   Calendar,
   Megaphone,
   Bus,
-  Package
+  Package,
+  BookOpen
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import useAuthStore from '@/store/useAuthStore';
+import { applyInstitutionType, getInstitutionTypeConfig } from '@/lib/institutionTypes';
 
 interface SidebarProps {
   currentPath: string;
@@ -236,6 +238,18 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     ? superAdminMenuItems
     : effectiveRole === 'ADMIN' ? adminMenuItems : secretaryMenuItems;
 
+  const typeConfig = getInstitutionTypeConfig(profile.institutionType);
+  const visibleMenuItems: any[] = [
+    ...applyInstitutionType(menuItems as any[], profile.institutionType),
+    ...typeConfig.comingSoon.map((entry) => ({
+      ...entry,
+      icon: BookOpen,
+      activeColor: 'bg-[#334155]/50 border-[#FBBF24]',
+      iconColor: 'text-[#FBBF24]',
+      comingSoon: true,
+    })),
+  ];
+
   const handleNavigation = (path: string) => {
     router.push(path);
     setIsMobileMenuOpen(false);
@@ -304,7 +318,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
         <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-0.5 scrollbar-hide">
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Menu Principal</p>
 
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const active = isActive(item);
             const activeClass = active
               ? `${item.activeColor.split(' ')[0]} text-white shadow-md border-r-4 ${item.activeColor.split(' ')[1].replace('border-', 'border-')}`
@@ -365,16 +379,20 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                   </div>
                 ) : (
                   <button
-                    onClick={() => handleNavigation(item.path!)}
+                    onClick={() => !item.comingSoon && handleNavigation(item.path!)}
+                    disabled={item.comingSoon}
                     className={`
                       w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 group relative overflow-hidden
-                      ${activeClass}
+                      ${item.comingSoon ? 'opacity-60 cursor-not-allowed text-slate-400' : activeClass}
                     `}
                   >
                     <div className={`p-1.5 rounded-md transition-colors ${active ? 'bg-white/10' : 'bg-white/5 group-hover:bg-white/10'}`}>
                       <item.icon size={16} className={active ? item.iconColor : 'text-slate-500 group-hover:text-slate-300 transition-transform'} />
                     </div>
                     <span className="font-semibold text-[13px]">{item.label}</span>
+                    {item.comingSoon && (
+                      <span className="ml-auto rounded-full bg-amber-400/20 text-amber-300 px-2 py-0.5 text-[10px] font-bold">Bientôt</span>
+                    )}
                   </button>
                 )}
               </li>

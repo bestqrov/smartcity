@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { getAccessToken } from '@/store/useAuthStore';
+import type { InstitutionType } from '@/lib/institutionTypes';
 
 export interface SchoolProfile {
     schoolName: string;
@@ -13,6 +14,7 @@ export interface SchoolProfile {
     city?: string;
     status?: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
     trialEndsAt?: string | null;
+    institutionType?: InstitutionType | null;
 }
 
 const DEFAULT_PROFILE: SchoolProfile = {
@@ -60,6 +62,7 @@ export function useSchoolProfile() {
                 city: school.city || '',
                 status: school.status,
                 trialEndsAt: school.trialEndsAt,
+                institutionType: school.institutionType ?? null,
             };
             setProfile(next);
             localStorage.setItem('school-profile', JSON.stringify(next));
