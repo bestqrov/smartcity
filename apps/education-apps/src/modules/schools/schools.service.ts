@@ -1,5 +1,7 @@
 import prisma from '../../config/database';
 import { hashPassword } from '../../utils/bcrypt';
+import { assertId } from '../transport/ids';
+import { DEFAULT_INSTITUTION_TYPE, InstitutionTypeValue, isInstitutionType } from '../packs/packs.constants';
 
 export interface SignupSchoolData {
     schoolName?: string;
@@ -9,12 +11,30 @@ export interface SignupSchoolData {
     password: string;
     branchName?: string;
     branchCity?: string;
-    packTier?: string;
+    institutionType: InstitutionTypeValue;
+    packCode?: string;
 }
 
 const TRIAL_DAYS = 15;
 
+// The pack named by the visitor (must be active and serve the type), else the default pack if it
+// serves the type, else none — signup never fails because no default pack exists.
+const resolveSignupPack = async (packCode: string | undefined, type: InstitutionTypeValue) => {
+    if (packCode) {
+        const pack = await prisma.pack.findFirst({ where: { code: packCode, active: true } });
+        if (!pack || !pack.institutionTypes.includes(type)) throw new Error('Unknown or unavailable pack');
+        return pack;
+    }
+
+    const defaultPack = await prisma.pack.findFirst({ where: { isDefault: true, active: true } });
+    return defaultPack && defaultPack.institutionTypes.includes(type) ? defaultPack : null;
+};
+
 export const signupSchool = async (data: SignupSchoolData) => {
+    if (!isInstitutionType(data.institutionType)) {
+        throw new Error('institutionType is required and must be valid');
+    }
+
     const email = data.ownerEmail.toLowerCase();
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -22,12 +42,13 @@ export const signupSchool = async (data: SignupSchoolData) => {
         throw new Error('Email already exists');
     }
 
+    const pack = await resolveSignupPack(data.packCode, data.institutionType);
+
     const hashedPassword = await hashPassword(data.password);
 
     const schoolName = data.schoolName || `École de ${data.ownerName}`;
     const branchName = data.branchName || 'Établissement principal';
     const branchCity = data.branchCity ?? '';
-    const packTier = data.packTier || 'basic';
 
     const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
@@ -37,7 +58,8 @@ export const signupSchool = async (data: SignupSchoolData) => {
                 data: {
                     name: schoolName,
                     status: 'PENDING',
-                    packTier,
+                    institutionType: data.institutionType,
+                    packId: pack?.id ?? null,
                     ownerName: data.ownerName,
                     ownerEmail: email,
                     ownerPhone: data.ownerPhone,
@@ -74,7 +96,7 @@ export const signupSchool = async (data: SignupSchoolData) => {
 };
 
 export const getSchoolBySchoolId = async (schoolId: string) => {
-    const school = await prisma.school.findUnique({ where: { id: schoolId } });
+    const school = await prisma.school.findUnique({ where: { id: schoolId }, include: { pack: true } });
     if (!school) {
         throw new Error('School not found');
     }
@@ -104,6 +126,9 @@ export const listSchools = async () => {
             status: true,
             trialEndsAt: true,
             createdAt: true,
+            institutionType: true,
+            packId: true,
+            pack: { select: { id: true, code: true, name: true } },
         },
         orderBy: { createdAt: 'desc' },
     });
@@ -111,4 +136,20 @@ export const listSchools = async () => {
 
 export const updateSchoolStatus = async (id: string, status: 'PENDING' | 'ACTIVE' | 'SUSPENDED') => {
     return prisma.school.update({ where: { id }, data: { status } });
+};
+
+export const assignPackToSchool = async (schoolId: string, packId: string) => {
+    assertId('School id', schoolId);
+    assertId('Pack id', packId);
+
+    const school = await prisma.school.findUnique({ where: { id: schoolId } });
+    if (!school) throw new Error('School not found');
+
+    const pack = await prisma.pack.findFirst({ where: { id: packId, active: true } });
+    if (!pack) throw new Error('Pack not found');
+
+    const type = school.institutionType ?? DEFAULT_INSTITUTION_TYPE;
+    if (!pack.institutionTypes.includes(type)) throw new Error('Pack does not serve this institution type');
+
+    return prisma.school.update({ where: { id: schoolId }, data: { packId }, include: { pack: true } });
 };

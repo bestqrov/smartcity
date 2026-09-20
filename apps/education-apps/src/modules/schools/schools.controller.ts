@@ -5,9 +5,11 @@ import {
     updateSchoolProfile,
     listSchools,
     updateSchoolStatus,
+    assignPackToSchool,
 } from './schools.service';
 import { generateToken } from '../../utils/jwt';
 import { sendSuccess, sendError } from '../../utils/response';
+import { respond } from '../transport/http';
 import { AuthRequest } from '../../middlewares/auth.middleware';
 
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -20,7 +22,8 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
             password,
             branchName,
             branchCity,
-            packTier,
+            institutionType,
+            packCode,
         } = req.body;
 
         if (!ownerName || !ownerEmail || !password) {
@@ -41,7 +44,8 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
             password,
             branchName,
             branchCity,
-            packTier,
+            institutionType,
+            packCode,
         });
 
         const token = generateToken({
@@ -120,3 +124,9 @@ export const updateStatus = async (req: AuthRequest, res: Response): Promise<voi
         sendError(res, error.message, 'Failed to update school status', 400);
     }
 };
+
+export const assignPack = (req: AuthRequest, res: Response) =>
+    respond(res, () => assignPackToSchool(req.params.id, req.body?.packId), {
+        message: 'School pack updated',
+        failure: 'Failed to update school pack',
+    });
