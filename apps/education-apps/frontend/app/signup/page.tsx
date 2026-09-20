@@ -1,36 +1,73 @@
 'use client';
-import React, { useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import useAuthStore, { setActiveBranchId } from '../../store/useAuthStore';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signupSchool, SignupSchoolData } from '../../lib/services/schools';
 import { GraduationCap, X } from 'lucide-react';
+import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, isInstitutionType, type InstitutionType } from '../../lib/institutionTypes';
+import { fetchPublicPacks, type PublicPack } from '../../lib/services/packs';
 
-export default function SignupPage() {
+function SignupForm() {
     const router = useRouter();
     const setUser = useAuthStore((state) => state.setUser);
     const setAccessTokenState = useAuthStore((state) => state.setAccessToken);
 
-    const [form, setForm] = useState<SignupSchoolData>({
-        ownerName: '',
-        ownerEmail: '',
-        password: '',
-        institutionType: 'PRIVATE_SCHOOL',
-    });
+    const searchParams = useSearchParams();
+    const initialType = searchParams.get('type');
+    const [form, setForm] = useState({ ownerName: '', ownerEmail: '', password: '' });
+    const [institutionType, setInstitutionType] = useState<InstitutionType | ''>(
+        isInstitutionType(initialType) ? initialType : ''
+    );
+    const [packCode, setPackCode] = useState<string>(searchParams.get('pack') ?? '');
+    const [packs, setPacks] = useState<PublicPack[]>([]);
+
+    // Load the packs that serve the chosen type; keep the requested pack if valid, else the recommended one.
+    useEffect(() => {
+        if (!institutionType) {
+            setPacks([]);
+            return;
+        }
+        let cancelled = false;
+        fetchPublicPacks(institutionType)
+            .then((list) => {
+                if (cancelled) return;
+                setPacks(list);
+                setPackCode((current) =>
+                    list.some((pack) => pack.code === current)
+                        ? current
+                        : list.find((pack) => pack.recommended)?.code ?? list[0]?.code ?? ''
+                );
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setPacks([]);
+                    setPackCode('');
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [institutionType]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const update = (field: keyof SignupSchoolData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const update = (field: 'ownerName' | 'ownerEmail' | 'password') => (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        if (!institutionType) { setError("Choisissez le type de votre établissement."); return; }
         setLoading(true);
         try {
-            const { token, user, branch } = await signupSchool(form);
+            const { token, user, branch } = await signupSchool({
+                ...form,
+                institutionType,
+                ...(packCode ? { packCode } : {}),
+            });
             setAccessTokenState(token);
             setUser(user);
             setActiveBranchId(branch.id);
@@ -102,6 +139,59 @@ export default function SignupPage() {
 
                     {/* Signup Form */}
                     <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 pb-8">
+                        <div className="space-y-3">
+                            <label className="block text-sm font-bold text-slate-600" htmlFor="institutionType">
+                                Type de votre établissement
+                            </label>
+                            <select
+                                id="institutionType"
+                                value={institutionType}
+                                onChange={(e) => setInstitutionType(e.target.value as InstitutionType | '')}
+                                required
+                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:outline-none font-bold text-lg shadow-sm"
+                            >
+                                <option value="">Choisir…</option>
+                                {INSTITUTION_TYPES.map((type) => (
+                                    <option key={type} value={type}>
+                                        {INSTITUTION_TYPE_LABELS[type]}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {packs.length > 0 && (
+                                <div className="grid gap-2" role="radiogroup" aria-label="Pack">
+                                    {packs.map((pack) => (
+                                        <label
+                                            key={pack.code}
+                                            className={`flex cursor-pointer items-center justify-between rounded-2xl border-2 px-5 py-3 ${
+                                                packCode === pack.code ? 'border-indigo-500 bg-indigo-50' : 'border-slate-100 bg-slate-50'
+                                            }`}
+                                        >
+                                            <span className="flex items-center gap-3 font-bold text-slate-800">
+                                                <input
+                                                    type="radio"
+                                                    name="pack"
+                                                    value={pack.code}
+                                                    checked={packCode === pack.code}
+                                                    onChange={() => setPackCode(pack.code)}
+                                                />
+                                                {pack.name}
+                                                {pack.recommended && (
+                                                    <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                                                        Recommandé
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <span className="text-sm font-semibold text-slate-500">
+                                                {pack.monthlyPrice} MAD / mois
+                                            </span>
+                                        </label>
+                                    ))}
+                                    <p className="text-xs text-slate-400">15 jours d&apos;essai gratuit, sans carte bancaire.</p>
+                                </div>
+                            )}
+                        </div>
+
                         <Input
                             type="text"
                             value={form.ownerName}
@@ -188,5 +278,14 @@ export default function SignupPage() {
                 }
             `}</style>
         </div>
+    );
+}
+
+export default function SignupPage() {
+    // useSearchParams needs a Suspense boundary during the production build.
+    return (
+        <Suspense fallback={null}>
+            <SignupForm />
+        </Suspense>
     );
 }
