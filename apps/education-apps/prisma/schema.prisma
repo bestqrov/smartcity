@@ -90,7 +90,6 @@ model School {
   id          String       @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   status      SchoolStatus @default(PENDING)
-  packTier    String?
   ownerName   String
   ownerEmail  String
   ownerPhone  String?
