@@ -41,7 +41,7 @@ h2{font-size:30px;text-align:center;margin:0 0 8px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .feat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px}
 .feat .ic{font-size:26px}.feat h3{margin:10px 0 4px;font-size:17px}.feat p{margin:0;color:var(--muted);font-size:14px}
-.toggle{display:flex;justify-content:center;gap:8px;margin-bottom:26px}
+.feat.wide{grid-column:1/-1;display:flex;gap:16px;align-items:center;border-color:var(--brand)}.feat.wide .ic{font-size:34px}.toggle{display:flex;justify-content:center;gap:8px;margin-bottom:26px}
 .toggle .pill.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .price{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;position:relative}
 .price.pop{border:2px solid var(--brand);transform:translateY(-6px)}
@@ -168,12 +168,6 @@ footer{padding:30px 0;color:var(--muted);text-align:center;font-size:13px}
 </header>
 
 <div class="wrap">
-  <div class="stats">
-    <div><b>15</b><span data-t="s1"></span></div>
-    <div><b>QR</b><span data-t="s2"></span></div>
-    <div><b>AR · FR</b><span data-t="s3"></span></div>
-    <div><b>MAD</b><span data-t="s4"></span></div>
-  </div>
 
   <section id="features">
     <h2 data-t="f_title"></h2><p class="sub" data-t="f_sub"></p>
@@ -184,6 +178,7 @@ footer{padding:30px 0;color:var(--muted);text-align:center;font-size:13px}
       <div class="feat"><div class="ic">💰</div><h3 data-t="f4t"></h3><p data-t="f4d"></p></div>
       <div class="feat"><div class="ic">🏫</div><h3 data-t="f5t"></h3><p data-t="f5d"></p></div>
       <div class="feat"><div class="ic">📢</div><h3 data-t="f6t"></h3><p data-t="f6d"></p></div>
+      <div class="feat wide"><div class="ic">📍</div><div><h3 data-t="f7t"></h3><p data-t="f7d"></p></div></div>
     </div>
   </section>
 
@@ -233,7 +228,7 @@ footer{padding:30px 0;color:var(--muted);text-align:center;font-size:13px}
     <h2 style="color:#fff" data-t="fin_t"></h2><p data-t="fin_d"></p>
     <a class="btn" href="#pricing" data-t="cta1"></a>
   </div></section>
-  <footer>© Smart School · <span data-t="foot"></span></footer>
+  <footer>© Smart School</footer>
 </div>
 <a class="wa" href="https://wa.me/212608183886">💬 WhatsApp</a>
 
@@ -244,7 +239,7 @@ h1:"Gérez votre école simplement, de l'inscription au transport.",
 lead:"Élèves, paiements, présences par QR, transport scolaire et portail parents — dans une seule plateforme, en arabe et en français.",
 cta1:"Essayer 15 jours gratuits",cta2:"Voir les fonctionnalités",nocard:"Sans carte bancaire · Sans engagement",
 present:"Présent",late:"En retard",absent:"Absent",
-s1:"jours d'essai",s2:"présence par QR",s3:"bilingue",s4:"tarifs en dirhams",
+
 f_title:"Tout ce dont votre école a besoin",f_sub:"Des outils pensés pour les écoles privées et centres de soutien au Maroc.",
 f1t:"Portail parents",f1d:"Présence, solde et transport de leur enfant, via un simple lien.",
 f2t:"Présence par QR",f2d:"Scannez, c'est noté. Les absences sont visibles tout de suite.",
@@ -252,19 +247,20 @@ f3t:"Transport scolaire",f3d:"Lignes, arrêts, horaires, chauffeurs et abonnemen
 f4t:"Paiements & finances",f4d:"Inscriptions, mensualités, reçus et suivi des impayés.",
 f5t:"Multi-établissements",f5d:"Plusieurs sites, une seule vue d'ensemble pour le propriétaire.",
 f6t:"Annonces & vacances",f6d:"Informez élèves et parents en un clic.",
+f7t:"Inscrivez votre école sur SmartCities Maroc",f7d:"Rejoignez l'annuaire SmartCities Maroc et gagnez en visibilité auprès des familles.",
 p_title:"Des tarifs clairs en dirhams",p_sub:"Choisissez selon la taille de votre école. Changez à tout moment.",
 monthly:"Mensuel",yearly:"Annuel (2 mois offerts)",popular:"Le plus choisi",
 l1:"Jusqu'à 100 élèves · 1 établissement",l2:"Jusqu'à 300 élèves · 2 établissements",l3:"Élèves illimités · multi-établissements",
 a1:"Élèves, inscriptions, paiements",a2:"Présences & reçus",a3:"Portail parents & élèves",a4:"Présence QR & finance avancée",a5:"Transport scolaire",
 try:"Essayer 15 jours",p_note:"Pro + Transport disponible sur demande.",
 h_title:"Démarrez en 3 étapes",st1t:"Créez votre école",st1d:"Inscription en 1 minute.",st2t:"Ajoutez vos élèves",st2d:"Saisie ou import simple.",st3t:"Encaissez et suivez",st3d:"Paiements, présences, transport.",
-fin_t:"Prêt à simplifier la gestion de votre école ?",fin_d:"15 jours gratuits, sans carte bancaire.",foot:"Fait au Maroc 🇲🇦",per_m:" / mois",per_y:" / an"},
+fin_t:"Prêt à simplifier la gestion de votre école ?",fin_d:"15 jours gratuits, sans carte bancaire.",per_m:" / mois",per_y:" / an"},
 ar:{nav_pricing:"الأسعار",nav_login:"تسجيل الدخول",badge:"تجربة مجانية لمدة 15 يومًا",
 h1:"أدِر مدرستك بسهولة، من التسجيل إلى النقل المدرسي.",
 lead:"التلاميذ والمدفوعات والحضور بالرمز QR والنقل المدرسي وبوابة أولياء الأمور، كل ذلك في منصة واحدة وباللغتين العربية والفرنسية.",
 cta1:"جرّب مجانًا لمدة 15 يومًا",cta2:"اكتشف المميزات",nocard:"بدون بطاقة مصرفية · بدون التزام",
 present:"حاضر",late:"متأخر",absent:"غائب",
-s1:"يومًا تجربة مجانية",s2:"حضور بالرمز QR",s3:"ثنائية اللغة",s4:"أسعار بالدرهم",
+
 f_title:"كل ما تحتاجه مدرستك",f_sub:"أدوات مصمَّمة للمدارس الخاصة ومراكز الدعم التربوي في المغرب.",
 f1t:"بوابة أولياء الأمور",f1d:"يتابعون حضور أبنائهم ورصيدهم ونقلهم المدرسي عبر رابط بسيط.",
 f2t:"الحضور بالرمز QR",f2d:"امسح الرمز فيُسجَّل الحضور فورًا، وتظهر الغيابات مباشرة.",
@@ -272,13 +268,14 @@ f3t:"النقل المدرسي",f3d:"الخطوط والمحطات والأوق�
 f4t:"المدفوعات والمالية",f4d:"التسجيل والمستحقات الشهرية والإيصالات ومتابعة المتأخرات.",
 f5t:"تعدد المؤسسات",f5d:"عدة فروع مع رؤية شاملة واحدة للمالك.",
 f6t:"الإعلانات والعطل",f6d:"أبلغ التلاميذ وأولياء الأمور بنقرة واحدة.",
+f7t:"سجّل مدرستك في SmartCities المغرب",f7d:"انضم إلى دليل SmartCities المغرب لتصل إلى مزيد من الأسر وتزداد مدرستك ظهورًا.",
 p_title:"أسعار واضحة بالدرهم",p_sub:"اختر حسب حجم مدرستك، ويمكنك التغيير في أي وقت.",
 monthly:"شهري",yearly:"سنوي (شهران مجانًا)",popular:"الأكثر اختيارًا",
 l1:"حتى 100 تلميذ · مؤسسة واحدة",l2:"حتى 300 تلميذ · مؤسستان",l3:"عدد غير محدود من التلاميذ · مؤسسات متعددة",
 a1:"التلاميذ والتسجيل والمدفوعات",a2:"الحضور والإيصالات",a3:"بوابة أولياء الأمور والتلاميذ",a4:"حضور QR ومالية متقدمة",a5:"النقل المدرسي",
 try:"جرّب 15 يومًا",p_note:"باقة Pro مع النقل المدرسي متاحة عند الطلب.",
 h_title:"ابدأ في ثلاث خطوات",st1t:"أنشئ مدرستك",st1d:"التسجيل في دقيقة واحدة.",st2t:"أضف التلاميذ",st2d:"إدخال أو استيراد بسيط.",st3t:"حصّل المدفوعات وتابع",st3d:"المدفوعات والحضور والنقل.",
-fin_t:"هل أنت مستعد لتبسيط إدارة مدرستك؟",fin_d:"15 يومًا مجانًا، بدون بطاقة مصرفية.",foot:"صُنع في المغرب 🇲🇦",per_m:" / شهر",per_y:" / سنة"}
+fin_t:"هل أنت مستعد لتبسيط إدارة مدرستك؟",fin_d:"15 يومًا مجانًا، بدون بطاقة مصرفية.",per_m:" / شهر",per_y:" / سنة"}
 };
 let lang='fr',billing='m';
 function render(){
