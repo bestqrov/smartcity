@@ -190,22 +190,30 @@ footer{padding:30px 0;color:var(--muted);text-align:center;font-size:13px}
   <section id="types">
     <h2 data-t="t_title"></h2><p class="sub" data-t="t_sub"></p>
     <div class="grid3">
-      <div class="type"><div class="ic">🏫</div><h3 data-t="ty1"></h3><div class="tags"><span data-t="tg_enrol"></span><span data-t="tg_parents"></span><span data-t="tg_transport"></span></div></div>
-      <div class="type"><div class="ic">📝</div><h3 data-t="ty2"></h3><div class="tags"><span data-t="tg_groups"></span><span data-t="tg_qr"></span><span data-t="tg_monthly"></span></div></div>
-      <div class="type"><div class="ic">🛠️</div><h3 data-t="ty3"></h3><div class="tags"><span data-t="tg_formations"></span><span data-t="tg_docs"></span><span data-t="tg_monthly"></span></div></div>
-      <div class="type"><div class="ic">🗣️</div><h3 data-t="ty4"></h3><div class="tags"><span data-t="tg_groups"></span><span data-t="tg_student"></span><span data-t="tg_monthly"></span></div></div>
-      <div class="type"><div class="ic">🧸</div><h3 data-t="ty5"></h3><div class="tags"><span data-t="tg_parents"></span><span data-t="tg_qr"></span><span data-t="tg_transport"></span></div></div>
+      <div class="type" style="cursor:pointer" onclick="pickType('school',true)"><div class="ic">🏫</div><h3 data-t="ty1"></h3><div class="tags"><span data-t="tg_enrol"></span><span data-t="tg_parents"></span><span data-t="tg_transport"></span></div></div>
+      <div class="type" style="cursor:pointer" onclick="pickType('tutoring',true)"><div class="ic">📝</div><h3 data-t="ty2"></h3><div class="tags"><span data-t="tg_groups"></span><span data-t="tg_qr"></span><span data-t="tg_monthly"></span></div></div>
+      <div class="type" style="cursor:pointer" onclick="pickType('vocational',true)"><div class="ic">🛠️</div><h3 data-t="ty3"></h3><div class="tags"><span data-t="tg_formations"></span><span data-t="tg_docs"></span><span data-t="tg_monthly"></span></div></div>
+      <div class="type" style="cursor:pointer" onclick="pickType('language',true)"><div class="ic">🗣️</div><h3 data-t="ty4"></h3><div class="tags"><span data-t="tg_groups"></span><span data-t="tg_student"></span><span data-t="tg_monthly"></span></div></div>
+      <div class="type" style="cursor:pointer" onclick="pickType('creche',true)"><div class="ic">🧸</div><h3 data-t="ty5"></h3><div class="tags"><span data-t="tg_parents"></span><span data-t="tg_qr"></span><span data-t="tg_transport"></span></div></div>
       <div class="type"><div class="ic">🏢</div><h3 data-t="ty6"></h3><div class="tags"><span data-t="tg_sites"></span><span data-t="tg_owner"></span><span data-t="tg_finance"></span></div></div>
     </div>
   </section>
 
   <section id="pricing">
     <h2 data-t="p_title"></h2><p class="sub" data-t="p_sub"></p>
+    <p class="sub" style="margin-bottom:10px" data-t="pick_type"></p>
+    <div class="toggle types-pills" style="flex-wrap:wrap">
+      <button class="pill on" data-type="school" onclick="pickType('school')" data-t="ty1"></button>
+      <button class="pill" data-type="tutoring" onclick="pickType('tutoring')" data-t="ty2"></button>
+      <button class="pill" data-type="vocational" onclick="pickType('vocational')" data-t="ty3"></button>
+      <button class="pill" data-type="language" onclick="pickType('language')" data-t="ty4"></button>
+      <button class="pill" data-type="creche" onclick="pickType('creche')" data-t="ty5"></button>
+    </div>
     <div class="toggle">
       <button class="pill on" id="bm" onclick="setBilling('m')" data-t="monthly"></button>
       <button class="pill" id="by" onclick="setBilling('y')" data-t="yearly"></button>
     </div>
-    <div class="grid3">
+    <div class="grid3 general-packs">
       <div class="price">
         <h3>Essentiel</h3>
         <div class="amount"><span class="pv" data-m="250" data-y="2500">250</span> <small>MAD<span class="per"></span></small></div>
@@ -227,6 +235,16 @@ footer{padding:30px 0;color:var(--muted);text-align:center;font-size:13px}
         <div class="limit" data-t="l3"></div>
         <ul><li data-t="a1"></li><li data-t="a2"></li><li data-t="a3"></li><li data-t="a4"></li><li data-t="a5"></li></ul>
         <a class="btn ghost" style="width:100%;text-align:center" href="#" data-t="try"></a>
+      </div>
+    </div>
+    <div class="creche-packs" style="display:none;max-width:360px;margin:0 auto">
+      <div class="price pop">
+        <span class="tag" data-t="popular"></span>
+        <h3>Crèche</h3>
+        <div class="amount"><span class="pv" data-m="200" data-y="2000">200</span> <small>MAD<span class="per"></span></small></div>
+        <div class="limit" data-t="l4"></div>
+        <ul><li data-t="c1"></li><li data-t="c2"></li><li data-t="c3"></li><li class="off"><span data-t="c4"></span> <span class="soon" data-t="soon"></span></li></ul>
+        <a class="btn" href="#" data-t="try"></a>
       </div>
     </div>
     <p class="sub" style="margin-top:18px" data-t="p_note"></p>
@@ -268,6 +286,7 @@ f9t:"Portail élève",f9d:"Chaque élève consulte son profil, ses présences et
 f11t:"Gestion du personnel",f11d:"Enseignants, secrétaires, rôles d'accès et suivi des salaires.",
 f10t:"Gestion des formations",f10d:"Catalogue de formations, inscriptions, groupes et suivi des paiements.",
 t_title:"Une solution pour chaque type d'établissement",t_sub:"Écoles, centres de soutien, formation professionnelle, langues : activez ce dont vous avez besoin.",
+pick_type:"Choisissez votre type d'établissement :",l4:"Jusqu'à 40 enfants · 1 établissement",c1:"Enfants, présence, paiements",c2:"Portail parents",c3:"Reçus et suivi des mensualités",c4:"Journal quotidien",
 ty1:"Écoles privées",ty2:"Centres de soutien scolaire",ty3:"Formation professionnelle",ty4:"Centres de langues",ty5:"Crèches et maternelles",ty6:"Réseaux d'établissements",
 tg_enrol:"Inscriptions",tg_parents:"Portail parents",tg_transport:"Transport",tg_groups:"Groupes et niveaux",tg_qr:"Présence QR",tg_monthly:"Mensualités",tg_formations:"Formations",tg_docs:"Attestations",tg_student:"Portail élève",tg_sites:"Multi-sites",tg_owner:"Vue propriétaire",tg_finance:"Finances",
 f8t:"Cantine scolaire",f8d:"Menus, inscriptions et paiements de la cantine.",soon:"Bientôt",
@@ -296,6 +315,7 @@ f9t:"بوابة التلميذ",f9d:"يطّلع كل تلميذ على ملفه 
 f11t:"تدبير الموظفين",f11d:"الأساتذة والكتّاب وصلاحيات الولوج ومتابعة الأجور.",
 f10t:"تدبير التكوينات",f10d:"لائحة التكوينات والتسجيل والمجموعات ومتابعة المدفوعات.",
 t_title:"حل مناسب لكل أنواع المؤسسات التعليمية",t_sub:"مدارس ومراكز دعم وتكوين مهني ولغات: فعّل ما تحتاجه فقط.",
+pick_type:"اختر نوع مؤسستك:",l4:"حتى 40 طفلًا · مؤسسة واحدة",c1:"الأطفال والحضور والمدفوعات",c2:"بوابة أولياء الأمور",c3:"الإيصالات ومتابعة المستحقات الشهرية",c4:"السجل اليومي",
 ty1:"المدارس الخاصة",ty2:"مراكز الدعم التربوي",ty3:"مراكز التكوين المهني",ty4:"معاهد اللغات",ty5:"الحضانات والتعليم الأولي",ty6:"شبكات المؤسسات",
 tg_enrol:"التسجيل",tg_parents:"بوابة الأولياء",tg_transport:"النقل",tg_groups:"المجموعات والمستويات",tg_qr:"حضور QR",tg_monthly:"المستحقات الشهرية",tg_formations:"التكوينات",tg_docs:"الشهادات",tg_student:"بوابة التلميذ",tg_sites:"فروع متعددة",tg_owner:"رؤية المالك",tg_finance:"المالية",
 f8t:"المطعم المدرسي",f8d:"قوائم الوجبات وتسجيل التلاميذ ومدفوعات المطعم المدرسي.",soon:"قريبًا",
@@ -317,6 +337,12 @@ function render(){
   document.querySelectorAll('.per').forEach(e=>e.textContent=billing==='m'?d.per_m:d.per_y);
   document.getElementById('lang').textContent=lang==='fr'?'العربية':'Français';
 }
+let type='school';
+function pickType(t,scroll){type=t;
+  document.querySelectorAll('.types-pills .pill').forEach(b=>b.classList.toggle('on',b.dataset.type===t));
+  document.querySelector('.general-packs').style.display=t==='creche'?'none':'';
+  document.querySelector('.creche-packs').style.display=t==='creche'?'block':'none';
+  if(scroll)document.getElementById('pricing').scrollIntoView({behavior:'smooth'});}
 function toggleLang(){lang=lang==='fr'?'ar':'fr';render()}
 function setBilling(b){billing=b;bm.classList.toggle('on',b==='m');by.classList.toggle('on',b==='y');render()}
 function setStyle(s){document.body.classList.remove('dark','center');if(s==='dark')document.body.classList.add('dark');if(s==='center')document.body.classList.add('center')}
