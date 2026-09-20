@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import useAuthStore from '@/store/useAuthStore';
 import { getAllSchools, updateSchoolStatus, SchoolListItem } from '@/lib/services/schools';
 import { Building2, CheckCircle } from 'lucide-react';
+import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
+import { apiErrorMessage, assignSchoolPack, getAllPacks, type AdminPack } from '@/lib/services/packs';
 
 export default function SuperAdminSchoolsPage() {
     const router = useRouter();
@@ -13,6 +15,8 @@ export default function SuperAdminSchoolsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [activatingId, setActivatingId] = useState<string | null>(null);
+    const [packs, setPacks] = useState<AdminPack[]>([]);
+    const [assigningId, setAssigningId] = useState<string | null>(null);
 
     useEffect(() => {
         if (user && user.role !== 'SUPER_ADMIN') {
@@ -29,8 +33,9 @@ export default function SuperAdminSchoolsPage() {
         setLoading(true);
         setError('');
         try {
-            const data = await getAllSchools();
+            const [data, allPacks] = await Promise.all([getAllSchools(), getAllPacks()]);
             setSchools(data);
+            setPacks(allPacks);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Échec du chargement des écoles');
         } finally {
@@ -47,6 +52,20 @@ export default function SuperAdminSchoolsPage() {
             setError(err.response?.data?.message || "Échec de l'activation");
         } finally {
             setActivatingId(null);
+        }
+    };
+
+    const handleAssignPack = async (schoolId: string, packId: string) => {
+        if (!packId) return;
+        setAssigningId(schoolId);
+        setError('');
+        try {
+            await assignSchoolPack(schoolId, packId);
+            await fetchSchools();
+        } catch (err) {
+            setError(apiErrorMessage(err));
+        } finally {
+            setAssigningId(null);
         }
     };
 
@@ -81,6 +100,8 @@ export default function SuperAdminSchoolsPage() {
                                 <th className="px-6 py-4">Email propriétaire</th>
                                 <th className="px-6 py-4">Statut</th>
                                 <th className="px-6 py-4">Fin essai</th>
+                                <th className="px-6 py-4">Type</th>
+                                <th className="px-6 py-4">Pack</th>
                                 <th className="px-6 py-4">Action</th>
                             </tr>
                         </thead>
@@ -104,6 +125,26 @@ export default function SuperAdminSchoolsPage() {
                                     </td>
                                     <td className="px-6 py-4 text-gray-600">
                                         {school.trialEndsAt ? new Date(school.trialEndsAt).toLocaleDateString('fr-FR') : '—'}
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-600">
+                                        {INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE]}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <select
+                                            value={school.packId ?? ''}
+                                            disabled={assigningId === school.id}
+                                            onChange={(e) => handleAssignPack(school.id, e.target.value)}
+                                            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm disabled:opacity-50"
+                                        >
+                                            {!school.packId && <option value="">Aucun pack</option>}
+                                            {packs
+                                                .filter((pack) => pack.active && pack.institutionTypes.includes(school.institutionType ?? DEFAULT_INSTITUTION_TYPE))
+                                                .map((pack) => (
+                                                    <option key={pack.id} value={pack.id}>
+                                                        {pack.name}
+                                                    </option>
+                                                ))}
+                                        </select>
                                     </td>
                                     <td className="px-6 py-4">
                                         {school.status === 'PENDING' && (
