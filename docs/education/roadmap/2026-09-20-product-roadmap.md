@@ -28,7 +28,8 @@
 
 ## 3. الترتيب المقترح للبناء
 
-### المرحلة 1: الكتالوج والـ landing (spec مكتوب، الخطة التقنية ما تكتبتش)
+### المرحلة 1: الكتالوج والـ landing (spec وخطتان تقنيتان مكتوبين، باقي التنفيذ)
+- الخطط: `docs/superpowers/plans/2026-09-20-education-packs-backend.md` (8 tasks) و`docs/superpowers/plans/2026-09-20-education-packs-frontend.md` (8 tasks). الـ backend أولا.
 - **1.1 كتالوج الـ packs + ربط المدارس:** جدول `Pack`، `packId` فـ `School` (كيعوض `packTier`)، API للـ Super Admin، صفحة `/admin/packs`، عمود Pack فـ `/admin/schools`، seed للـ 3 packs. *أساس لكل ما بعده.*
 - **1.2 الـ endpoint العمومي `GET /api/packs/public?type=`** و`institutionType` + `packCode` فـ الـ signup (النوع إجباري).
 - **1.3 الـ landing `/`:** hero + رسم dashboard، 10 بطاقات مميزات (بوابة الأولياء، بوابة التلميذ، QR، النقل، المدفوعات، التكوينات، الموظفين، الفروع، الإعلانات، المطعم "قريبًا") + بطاقة SmartCities، قسم "لكل أنواع المؤسسات"، الأسعار (شهري/سنوي)، 3 خطوات، وزر WhatsApp.
