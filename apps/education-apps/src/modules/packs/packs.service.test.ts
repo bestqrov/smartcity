@@ -198,8 +198,33 @@ describe('setDefaultPack', () => {
         const result = await setDefaultPack('p1');
 
         expect(prisma.$transaction).toHaveBeenCalled();
-        expect(tx.pack.updateMany).toHaveBeenCalledWith({ where: { isDefault: true }, data: { isDefault: false } });
+        expect(tx.pack.updateMany).toHaveBeenCalledWith({
+            where: { isDefault: true, id: { not: 'p1' }, institutionTypes: { hasSome: ['PRIVATE_SCHOOL'] } },
+            data: { isDefault: false },
+        });
         expect(tx.pack.update).toHaveBeenCalledWith({ where: { id: 'p1' }, data: { isDefault: true } });
         expect(result).toEqual(expect.objectContaining({ isDefault: true }));
+    });
+
+    it('only clears defaults of packs that share a type with the new default', async () => {
+        (prisma.pack.findUnique as jest.Mock).mockResolvedValue({
+            ...stored,
+            id: 'p2',
+            institutionTypes: ['TUTORING_CENTER', 'LANGUAGE_CENTER'],
+            isDefault: false,
+        });
+        (prisma.$transaction as jest.Mock).mockImplementation((cb: any) => cb(tx));
+        tx.pack.update.mockResolvedValue({});
+
+        await setDefaultPack('p2');
+
+        expect(tx.pack.updateMany).toHaveBeenCalledWith({
+            where: {
+                isDefault: true,
+                id: { not: 'p2' },
+                institutionTypes: { hasSome: ['TUTORING_CENTER', 'LANGUAGE_CENTER'] },
+            },
+            data: { isDefault: false },
+        });
     });
 });

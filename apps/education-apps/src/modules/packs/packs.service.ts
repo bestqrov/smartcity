@@ -73,7 +73,11 @@ export const setDefaultPack = async (id: string) => {
     if (!pack.active) throw new Error('An inactive pack cannot be the default');
 
     return prisma.$transaction(async (tx) => {
-        await tx.pack.updateMany({ where: { isDefault: true }, data: { isDefault: false } });
+        // "Default" is per institution type: only packs that share a type with this one lose the flag.
+        await tx.pack.updateMany({
+            where: { isDefault: true, id: { not: id }, institutionTypes: { hasSome: pack.institutionTypes } },
+            data: { isDefault: false },
+        });
         return tx.pack.update({ where: { id }, data: { isDefault: true } });
     });
 };
