@@ -29,8 +29,10 @@ const resolveSignupPack = async (packCode: unknown, type: InstitutionTypeValue) 
         return pack;
     }
 
-    const defaultPack = await prisma.pack.findFirst({ where: { isDefault: true, active: true } });
-    return defaultPack && defaultPack.institutionTypes.includes(type) ? defaultPack : null;
+    // Each institution type has its own default pack; none means signup proceeds without a pack.
+    return prisma.pack.findFirst({
+        where: { isDefault: true, active: true, institutionTypes: { has: type } },
+    });
 };
 
 export const signupSchool = async (data: SignupSchoolData) => {

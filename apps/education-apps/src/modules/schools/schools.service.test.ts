@@ -212,7 +212,7 @@ describe('signupSchool — institution type and pack', () => {
 
         await signupSchool({ ...baseInput, packCode: '' });
 
-        expect(prisma.pack.findFirst).toHaveBeenCalledWith({ where: { isDefault: true, active: true } });
+        expect(prisma.pack.findFirst).toHaveBeenCalledWith({ where: { isDefault: true, active: true, institutionTypes: { has: 'PRIVATE_SCHOOL' } } });
     });
 
     it('rejects an unknown or inactive packCode', async () => {
@@ -237,18 +237,21 @@ describe('signupSchool — institution type and pack', () => {
 
         await signupSchool(baseInput);
 
-        expect(prisma.pack.findFirst).toHaveBeenCalledWith({ where: { isDefault: true, active: true } });
+        expect(prisma.pack.findFirst).toHaveBeenCalledWith({ where: { isDefault: true, active: true, institutionTypes: { has: 'PRIVATE_SCHOOL' } } });
         expect(txClient.school.create).toHaveBeenCalledWith(
             expect.objectContaining({ data: expect.objectContaining({ packId: 'pack1' }) })
         );
     });
 
-    it('leaves packId null when the default pack does not serve the type, and still succeeds', async () => {
+    it('leaves packId null when the chosen type has no default pack, and still succeeds', async () => {
         const { txClient } = arrangeSignup();
-        (prisma.pack.findFirst as jest.Mock).mockResolvedValue(pack());
+        (prisma.pack.findFirst as jest.Mock).mockResolvedValue(null);
 
         await signupSchool({ ...baseInput, institutionType: 'CRECHE' });
 
+        expect(prisma.pack.findFirst).toHaveBeenCalledWith({
+            where: { isDefault: true, active: true, institutionTypes: { has: 'CRECHE' } },
+        });
         expect(txClient.school.create).toHaveBeenCalledWith(
             expect.objectContaining({
                 data: expect.objectContaining({ institutionType: 'CRECHE', packId: null }),
