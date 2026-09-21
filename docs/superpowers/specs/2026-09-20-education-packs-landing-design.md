@@ -14,7 +14,7 @@ Reference visual: `docs/superpowers/specs/assets/2026-09-20-smart-school-landing
 - SUPER_ADMIN can assign any active pack to a school from the existing schools page.
 - The landing page shows the active packs from the catalogue (editing a pack changes the landing without a deploy), with a monthly/yearly toggle, and every card leads to signup with that pack preselected.
 - New schools get the pack they picked (or the default pack) together with the existing 15-day free trial.
-- A school states its **institution type** first (private school, tutoring centre, vocational training, language centre, crèche). Packs are filtered by type, and the app adapts its menus and wording to the type. Crèches have their own pack.
+- A school states its **institution type** first (private school, tutoring centre, vocational training, language centre, crèche). Packs are filtered by type, every type has its own packs with its own prices and limits, and the app adapts its menus and wording to the type.
 - The landing page is modern, dark, mobile-friendly, and fully bilingual with correct RTL; Arabic copy is Modern Standard Arabic (fusha), not Moroccan dialect.
 
 ## Non-Goals
@@ -38,7 +38,7 @@ New `Pack` model (platform-level: **no `branchId`**, no tenant scoping):
 | `maxStudents`, `maxBranches` | Int?, `null` = unlimited, otherwise ≥ 1 |
 | `features` | `String[]` of keys from the fixed list below |
 | `institutionTypes` | `InstitutionType[]`, at least one: the types this pack is sold to |
-| `isDefault` | at most one pack is default (used only when a signup names no pack; it must serve the school's type, otherwise none is applied) |
+| `isDefault` | **at most one default pack per institution type**: making a pack the default clears `isDefault` on the other packs that share any of its types. Used only when a signup names no pack (the default that serves the school's type, otherwise none) and as the landing's "recommended" badge |
 | `active` | inactive packs are hidden from the landing/signup and cannot be assigned |
 | `sortOrder` | Int, ascending display order |
 
@@ -50,14 +50,19 @@ New enum `InstitutionType`: `PRIVATE_SCHOOL`, `TUTORING_CENTER`, `VOCATIONAL_TRA
 
 ### Seed (idempotent script, upserts by `code`)
 
-| code | name | types | monthly / yearly | maxStudents | maxBranches | features |
-|---|---|---|---|---|---|---|
-| `essentiel` | Essentiel | the four non-crèche types | 250 / 2500 | 100 | 1 | — |
-| `pro` (default) | Pro | the four non-crèche types | 400 / 4000 | 300 | 2 | PARENT_PORTAL, STUDENT_PORTAL, QR_ATTENDANCE, ANNOUNCEMENTS, FINANCE_ANALYTICS |
-| `premium` | Premium | the four non-crèche types | 800 / 8000 | null | null | all six, including TRANSPORT |
-| `creche` | Crèche | `CRECHE` only | 200 / 2000 | 40 | 1 | PARENT_PORTAL, DAILY_LOG |
+Every institution type has its own Essentiel / Pro / Premium (prices in MAD; yearly = 10 × monthly; students limit; `maxBranches` 1 / 2 / unlimited for the three tiers). Pro is the default of each type; Crèche is the default of its type. Features: Essentiel none; Pro `PARENT_PORTAL`, `STUDENT_PORTAL`, `QR_ATTENDANCE`, `ANNOUNCEMENTS`, `FINANCE_ANALYTICS`; Premium the same five, plus `TRANSPORT` **only for private schools** (the other types rarely run buses).
 
-The seed also sets `packId` to the default pack on every existing school that has none (they are dev data; `packTier` is dropped). Running it twice changes nothing.
+| type | codes | Essentiel | Pro | Premium |
+|---|---|---|---|---|
+| `PRIVATE_SCHOOL` | `essentiel`, `pro`, `premium` | 250 (100 students) | 400 (300) | 800 (unlimited, + TRANSPORT) |
+| `TUTORING_CENTER` | `essentiel-soutien`, `pro-soutien`, `premium-soutien` | 200 (150) | 350 (400) | 600 (unlimited) |
+| `VOCATIONAL_TRAINING` | `essentiel-formation`, `pro-formation`, `premium-formation` | 300 (80) | 500 (250) | 900 (unlimited) |
+| `LANGUAGE_CENTER` | `essentiel-langues`, `pro-langues`, `premium-langues` | 200 (120) | 350 (350) | 650 (unlimited) |
+| `CRECHE` | `creche` | 200 / 2000 yearly, 40 children, 1 branch, `PARENT_PORTAL` + `DAILY_LOG` | | |
+
+Because packs are seeded with `update: {}` (a Super Admin's edits are never overwritten), the seed also runs a one-time normalisation: the original `essentiel`/`pro`/`premium` packs, which were first seeded for four types, are narrowed to `PRIVATE_SCHOOL` only when their types still equal that original list exactly.
+
+The seed also sets `packId` to the default pack of the school's type on every existing school that has none (they are dev data; `packTier` is dropped). Running it twice changes nothing.
 
 ## Backend API
 
@@ -74,7 +79,7 @@ New module `src/modules/packs/` (routes / controller / service / tests), same st
 
 Changes to existing endpoints:
 - `GET /api/schools` (SUPER_ADMIN list) and `GET /api/schools/me` include the school's pack (`id`, `code`, `name`, prices, limits, `features`).
-- `POST /api/schools/signup` requires `institutionType` (missing or invalid → `400`) and accepts an optional `packCode`: an unknown or inactive code, or a pack that does not serve the chosen type → `400`; omitted → the default pack if it serves the type (otherwise `packId` stays `null` and signup still succeeds). The old `packTier` input is removed (controller + service + tests). `trialEndsAt` = 15 days, unchanged.
+- `POST /api/schools/signup` requires `institutionType` (missing or invalid → `400`) and accepts an optional `packCode`: an unknown or inactive code, or a pack that does not serve the chosen type → `400`; omitted → the default pack of that type (if the type has none, `packId` stays `null` and signup still succeeds). The old `packTier` input is removed (controller + service + tests). `trialEndsAt` = 15 days, unchanged.
 
 Validation (service level, messages in English like the rest of the API): `name` and `code` required; `code` matches `^[a-z0-9-]+$` and is unique; prices are numbers ≥ 0; `maxStudents`/`maxBranches` are `null` or positive integers; every `features` entry is in the fixed list (duplicates removed); `institutionTypes` is a non-empty list of valid types; the default pack cannot be deactivated (set another default first); a missing id never reaches a `findFirst` (reuse the `assertId` idea from the transport module).
 
