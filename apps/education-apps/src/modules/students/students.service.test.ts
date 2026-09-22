@@ -115,3 +115,56 @@ describe('tuition-only payments', () => {
         );
     });
 });
+
+describe('crèche fields passthrough', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('createStudent passes crèche fields through when given', async () => {
+        (prisma.student.create as jest.Mock).mockResolvedValue({ id: 's1' });
+
+        await createStudent({
+            branchId: 'b1',
+            name: 'A',
+            surname: 'B',
+            crecheSection: 'GRANDE',
+            healthNotes: 'Allergie arachides',
+            authorizedPickup: [{ name: 'Tata', phone: '0600000000', relation: 'Tante' }],
+            massarNumber: 'M123456',
+        } as any);
+
+        expect(prisma.student.create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    crecheSection: 'GRANDE',
+                    healthNotes: 'Allergie arachides',
+                    authorizedPickup: [{ name: 'Tata', phone: '0600000000', relation: 'Tante' }],
+                    massarNumber: 'M123456',
+                }),
+            })
+        );
+    });
+
+    it('createStudent omits crèche fields from the record when not given', async () => {
+        (prisma.student.create as jest.Mock).mockResolvedValue({ id: 's1' });
+
+        await createStudent({ branchId: 'b1', name: 'A', surname: 'B' } as any);
+
+        const data = (prisma.student.create as jest.Mock).mock.calls[0][0].data;
+        expect(data.crecheSection).toBeUndefined();
+        expect(data.healthNotes).toBeUndefined();
+        expect(data.authorizedPickup).toBeUndefined();
+        expect(data.massarNumber).toBeUndefined();
+    });
+
+    it('updateStudent passes crèche fields through when given', async () => {
+        (prisma.student.findFirst as jest.Mock).mockResolvedValue({ id: 's1' });
+        (prisma.student.update as jest.Mock).mockResolvedValue({ id: 's1' });
+
+        await updateStudent('s1', 'b1', { crecheSection: 'MOYENNE', healthNotes: 'RAS' } as any);
+
+        expect(prisma.student.update).toHaveBeenCalledWith({
+            where: { id: 's1' },
+            data: { crecheSection: 'MOYENNE', healthNotes: 'RAS' },
+        });
+    });
+});

@@ -24,7 +24,8 @@ export const create = async (req: TenantRequest, res: Response): Promise<void> =
         const {
             name, surname, phone, email, cin, address, birthDate,
             birthPlace, fatherName, motherName, schoolLevel, currentSchool, subjects, photo,
-            parentName, parentPhone, parentRelation
+            parentName, parentPhone, parentRelation,
+            crecheSection, healthNotes, authorizedPickup, massarNumber
         } = req.body;
 
         // Validate required fields
@@ -44,6 +45,10 @@ export const create = async (req: TenantRequest, res: Response): Promise<void> =
         if (motherName) studentData.motherName = motherName;
         if (schoolLevel) studentData.schoolLevel = schoolLevel;
         if (currentSchool) studentData.currentSchool = currentSchool;
+        if (crecheSection) studentData.crecheSection = crecheSection;
+        if (healthNotes) studentData.healthNotes = healthNotes;
+        if (authorizedPickup) studentData.authorizedPickup = authorizedPickup;
+        if (massarNumber) studentData.massarNumber = massarNumber;
         if (subjects) studentData.subjects = subjects;
         if (photo) studentData.photo = photo;
         if (req.body.inscriptionFee) studentData.inscriptionFee = req.body.inscriptionFee;
@@ -86,7 +91,8 @@ export const update = async (req: TenantRequest, res: Response): Promise<void> =
         const {
             name, surname, phone, email, cin, address, birthDate,
             birthPlace, fatherName, motherName, schoolLevel, currentSchool, subjects, photo,
-            parentName, parentPhone, parentRelation, parentId
+            parentName, parentPhone, parentRelation, parentId,
+            crecheSection, healthNotes, authorizedPickup, massarNumber
         } = req.body;
 
         const updateData: any = {};
@@ -102,6 +108,10 @@ export const update = async (req: TenantRequest, res: Response): Promise<void> =
         if (motherName !== undefined) updateData.motherName = motherName;
         if (schoolLevel !== undefined) updateData.schoolLevel = schoolLevel;
         if (currentSchool !== undefined) updateData.currentSchool = currentSchool;
+        if (crecheSection !== undefined) updateData.crecheSection = crecheSection;
+        if (healthNotes !== undefined) updateData.healthNotes = healthNotes;
+        if (authorizedPickup !== undefined) updateData.authorizedPickup = authorizedPickup;
+        if (massarNumber !== undefined) updateData.massarNumber = massarNumber;
         if (subjects !== undefined) updateData.subjects = subjects;
         if (photo !== undefined) updateData.photo = photo;
         if (parentName !== undefined) updateData.parentName = parentName;

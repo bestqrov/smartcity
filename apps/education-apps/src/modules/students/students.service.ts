@@ -19,6 +19,10 @@ interface CreateStudentData {
     parentRelation?: string;
     schoolLevel?: string;
     currentSchool?: string;
+    crecheSection?: string;
+    healthNotes?: string;
+    authorizedPickup?: any;
+    massarNumber?: string;
     subjects?: any;
     photo?: string;
     active?: boolean;
@@ -40,6 +44,10 @@ interface UpdateStudentData {
     parentRelation?: string;
     schoolLevel?: string;
     currentSchool?: string;
+    crecheSection?: string;
+    healthNotes?: string;
+    authorizedPickup?: any;
+    massarNumber?: string;
     subjects?: any;
     photo?: string;
     active?: boolean;
@@ -67,6 +75,10 @@ export const createStudent = async (data: CreateStudentData & { inscriptionFee?:
                 parentRelation: data.parentRelation,
                 schoolLevel: data.schoolLevel,
                 currentSchool: data.currentSchool,
+                crecheSection: data.crecheSection,
+                healthNotes: data.healthNotes,
+                authorizedPickup: data.authorizedPickup,
+                massarNumber: data.massarNumber,
                 subjects: data.subjects,
                 photo: data.photo,
                 active: data.active ?? true,
