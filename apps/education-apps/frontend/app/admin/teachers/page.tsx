@@ -483,7 +483,7 @@ const TeachersContent = () => {
                             </div>
 
                             <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
-                                <Button type="button" onClick={() => setIsModalOpen(false)} className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">Annuler</Button>
+                                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Annuler</Button>
                                 <Button type="submit" className={`${buttonClass}`}>Enregistrer</Button>
                             </div>
                         </form>
