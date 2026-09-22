@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { teachersService } from '@/lib/services/teachers';
 import { formationsService } from '@/lib/services/formations';
+import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import { Teacher } from '@/types';
 
 // Use global Teacher interface from @/types
@@ -52,6 +53,8 @@ const TeachersContent = () => {
     const searchParams = useSearchParams();
     const type = searchParams.get('type') as 'FORMATION' | 'SOUTIEN' | null;
     const isFormationMode = type === 'FORMATION';
+    const { profile } = useSchoolProfile();
+    const isCrecheMode = profile.institutionType === 'CRECHE';
 
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [formations, setFormations] = useState<string[]>([]);
@@ -205,10 +208,10 @@ const TeachersContent = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
-                        {isFormationMode ? 'Formateurs & Instructeurs' : 'Gestion des Professeurs'}
+                        {isFormationMode ? 'Formateurs & Instructeurs' : isCrecheMode ? 'Gestion du Personnel' : 'Gestion des Professeurs'}
                     </h1>
                     <p className="text-gray-500 mt-1">
-                        {isFormationMode ? 'Gérez les experts de vos formations professionnelles' : 'Gérez votre équipe pédagogique'}
+                        {isFormationMode ? 'Gérez les experts de vos formations professionnelles' : isCrecheMode ? "Gérez l'équipe de la crèche" : 'Gérez votre équipe pédagogique'}
                     </p>
                 </div>
                 <Button
@@ -216,7 +219,7 @@ const TeachersContent = () => {
                     className={`${buttonClass} hover:opacity-90 transition-opacity`}
                 >
                     <PlusCircle size={18} className="mr-2" />
-                    {isFormationMode ? 'Nouveau Formateur' : 'Nouveau Professeur'}
+                    {isFormationMode ? 'Nouveau Formateur' : isCrecheMode ? 'Nouvelle Éducatrice' : 'Nouveau Professeur'}
                 </Button>
             </div>
 
@@ -227,7 +230,7 @@ const TeachersContent = () => {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
-                            placeholder={isFormationMode ? "Rechercher un instructeur..." : "Rechercher par nom ou matière..."}
+                            placeholder={isFormationMode ? "Rechercher un instructeur..." : isCrecheMode ? "Rechercher par nom..." : "Rechercher par nom ou matière..."}
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 border-none rounded-lg focus:ring-0 outline-none"
@@ -302,10 +305,10 @@ const TeachersContent = () => {
                         <div className={`px-6 py-5 bg-gradient-to-r ${headerGradient}`}>
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                 {isFormationMode ? <Briefcase className="text-white/80" /> : <User className="text-white/80" />}
-                                {editingTeacher ? 'Modifier le Formateur' : 'Nouveau Formateur'}
+                                {isFormationMode ? (editingTeacher ? 'Modifier le Formateur' : 'Nouveau Formateur') : isCrecheMode ? (editingTeacher ? "Modifier l'Éducatrice" : 'Nouvelle Éducatrice') : (editingTeacher ? 'Modifier le Formateur' : 'Nouveau Formateur')}
                             </h2>
                             <p className="text-white/80 text-sm mt-1">
-                                {isFormationMode ? 'Information professionnelle et spécialités' : 'Détails du professeur'}
+                                {isFormationMode ? 'Information professionnelle et spécialités' : isCrecheMode ? "Détails de l'éducatrice" : 'Détails du professeur'}
                             </p>
                         </div>
 
@@ -423,39 +426,41 @@ const TeachersContent = () => {
                                     </div>
                                 </div>
 
-                                <div className="col-span-2">
-                                    <label className="label font-bold text-blue-700 dark:text-yellow-400 mb-3 block flex items-center gap-2">
-                                        <BookOpen size={16} className={isFormationMode ? "text-indigo-500" : "text-amber-500"} />
-                                        {isFormationMode ? 'Compétences (Formations)' : 'Matières enseignées'}
-                                    </label>
+                                {!isCrecheMode && (
+                                    <div className="col-span-2">
+                                        <label className="label font-bold text-blue-700 dark:text-yellow-400 mb-3 block flex items-center gap-2">
+                                            <BookOpen size={16} className={isFormationMode ? "text-indigo-500" : "text-amber-500"} />
+                                            {isFormationMode ? 'Compétences (Formations)' : 'Matières enseignées'}
+                                        </label>
 
-                                    {isFormationMode && subjectsList.length === 0 ? (
-                                        <div className="p-4 bg-orange-50 text-orange-600 rounded-lg text-sm mb-2">
-                                            Aucune formation trouvée. Veuillez d'abord créer des formations.
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-xl border border-gray-100 max-h-40 overflow-y-auto">
-                                            {subjectsList.map(s => (
-                                                <button
-                                                    key={s}
-                                                    type="button"
-                                                    onClick={() => toggleSelection('specialties', s)}
-                                                    className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 flex items-center gap-2 ${formData.specialties.includes(s)
-                                                        ? isFormationMode
-                                                            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30 transform scale-105'
-                                                            : 'bg-amber-100 text-amber-700 border-amber-200'
-                                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
-                                                        }`}
-                                                >
-                                                    {isFormationMode && getSubjectIcon(s)}
-                                                    {s}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
+                                        {isFormationMode && subjectsList.length === 0 ? (
+                                            <div className="p-4 bg-orange-50 text-orange-600 rounded-lg text-sm mb-2">
+                                                Aucune formation trouvée. Veuillez d'abord créer des formations.
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-xl border border-gray-100 max-h-40 overflow-y-auto">
+                                                {subjectsList.map(s => (
+                                                    <button
+                                                        key={s}
+                                                        type="button"
+                                                        onClick={() => toggleSelection('specialties', s)}
+                                                        className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 flex items-center gap-2 ${formData.specialties.includes(s)
+                                                            ? isFormationMode
+                                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30 transform scale-105'
+                                                                : 'bg-amber-100 text-amber-700 border-amber-200'
+                                                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                                                            }`}
+                                                    >
+                                                        {isFormationMode && getSubjectIcon(s)}
+                                                        {s}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
-                                {!isFormationMode && (
+                                {!isFormationMode && !isCrecheMode && (
                                     <div className="col-span-2">
                                         <label className="label font-bold text-blue-700 dark:text-yellow-400 mb-2 block">Niveaux</label>
                                         <div className="flex flex-wrap gap-2">
