@@ -1,8 +1,9 @@
 import prisma from '../../config/database';
 import { tuitionPayments } from '../payments/tuitionFilter';
 
-export const getStudentsForDocuments = async () => {
+export const getStudentsForDocuments = async (branchId: string) => {
     const students = await prisma.student.findMany({
+        where: { branchId },
         include: {
             inscriptions: {
                 orderBy: {
@@ -24,9 +25,9 @@ export const getStudentsForDocuments = async () => {
     return students;
 };
 
-export const getStudentDocument = async (studentId: string) => {
-    const student = await prisma.student.findUnique({
-        where: { id: studentId },
+export const getStudentDocument = async (studentId: string, branchId: string) => {
+    const student = await prisma.student.findFirst({
+        where: { id: studentId, branchId },
         include: {
             inscriptions: {
                 orderBy: {
