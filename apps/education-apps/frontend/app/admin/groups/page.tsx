@@ -242,7 +242,7 @@ const GroupsContent = () => {
                     onClick={() => handleOpenModal(null)}
                     className={`bg-gradient-to-r ${headerGradient} text-white shadow-lg`}
                 >
-                    <PlusCircle size={18} className="mr-2" /> Nouveau Groupe
+                    <PlusCircle size={18} className="mr-2" /> {isCrecheMode ? 'Nouvelle Section' : 'Nouveau Groupe'}
                 </Button>
             </div>
 
@@ -328,13 +328,13 @@ const GroupsContent = () => {
                                     <ThemeIcon size={24} className="text-white" />
                                 </div>
                                 <h2 className="text-3xl font-bold tracking-tight">
-                                    {editingGroup ? 'Modifier le Groupe' : 'Créer un Nouveau Groupe'}
+                                    {editingGroup ? 'Modifier le Groupe' : (isCrecheMode ? 'Créer une Nouvelle Section' : 'Créer un Nouveau Groupe')}
                                 </h2>
                             </div>
                             <p className="text-white/90 font-medium ml-1 text-lg">
                                 {isFormationMode
                                     ? 'Configurez une nouvelle cohorte de formation professionnelle'
-                                    : 'Organisez une nouvelle classe de soutien scolaire'}
+                                    : (isCrecheMode ? 'Organisez une nouvelle section de la crèche' : 'Organisez une nouvelle classe de soutien scolaire')}
                             </p>
                         </div>
                     </div>
@@ -585,7 +585,7 @@ const GroupsContent = () => {
                                 type="submit"
                                 className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg bg-gradient-to-r ${headerGradient} transform hover:-translate-y-1 transition-all duration-200`}
                             >
-                                {editingGroup ? 'Enregistrer les Modifications' : 'Créer le Groupe'}
+                                {editingGroup ? 'Enregistrer les Modifications' : (isCrecheMode ? 'Créer la Section' : 'Créer le Groupe')}
                             </button>
                         </div>
                     </form>
