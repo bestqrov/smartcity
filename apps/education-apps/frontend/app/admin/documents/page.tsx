@@ -28,6 +28,7 @@ interface Student {
 
 export default function DocumentsPage() {
     const { profile } = useSchoolProfile();
+    const isCrecheMode = profile.institutionType === 'CRECHE';
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -53,7 +54,7 @@ export default function DocumentsPage() {
     const filteredStudents = students.filter(student => {
         const matchesSearch = `${student.name} ${student.surname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
             student.cin?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesType = student.inscriptions?.some(ins => ins.type === activeFilter);
+        const matchesType = isCrecheMode ? true : student.inscriptions?.some(ins => ins.type === activeFilter);
         return matchesSearch && matchesType;
     });
 
@@ -134,7 +135,7 @@ export default function DocumentsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800">Documents</h1>
-                    <p className="text-gray-600 mt-1">Générer des fiches de renseignements pour les élèves</p>
+                    <p className="text-gray-600 mt-1">{isCrecheMode ? 'Générer des fiches de renseignements pour les enfants' : 'Générer des fiches de renseignements pour les élèves'}</p>
                 </div>
                 <div className="bg-blue-100 p-3 rounded-lg">
                     <FileText className="text-blue-600" size={32} />
@@ -144,20 +145,22 @@ export default function DocumentsPage() {
             {!selectedStudent ? (
                 <>
                     {/* Filter Tabs */}
-                    <div className="flex gap-4 bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
-                        <button
-                            onClick={() => setActiveFilter('SOUTIEN')}
-                            className={`flex-1 py-3 px-6 rounded-xl font-bold transition-all ${activeFilter === 'SOUTIEN' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-500 hover:bg-gray-50'}`}
-                        >
-                            Soutien Scolaire
-                        </button>
-                        <button
-                            onClick={() => setActiveFilter('FORMATION')}
-                            className={`flex-1 py-3 px-6 rounded-xl font-bold transition-all ${activeFilter === 'FORMATION' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'text-gray-500 hover:bg-gray-50'}`}
-                        >
-                            Formation Pro
-                        </button>
-                    </div>
+                    {!isCrecheMode && (
+                        <div className="flex gap-4 bg-white p-2 rounded-2xl shadow-sm border border-gray-200">
+                            <button
+                                onClick={() => setActiveFilter('SOUTIEN')}
+                                className={`flex-1 py-3 px-6 rounded-xl font-bold transition-all ${activeFilter === 'SOUTIEN' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-500 hover:bg-gray-50'}`}
+                            >
+                                Soutien Scolaire
+                            </button>
+                            <button
+                                onClick={() => setActiveFilter('FORMATION')}
+                                className={`flex-1 py-3 px-6 rounded-xl font-bold transition-all ${activeFilter === 'FORMATION' ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'text-gray-500 hover:bg-gray-50'}`}
+                            >
+                                Formation Pro
+                            </button>
+                        </div>
+                    )}
 
                     {/* Search */}
                     <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
@@ -165,7 +168,7 @@ export default function DocumentsPage() {
                             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                             <Input
                                 type="text"
-                                placeholder={`Rechercher un élève de ${activeFilter === 'SOUTIEN' ? 'Soutien' : 'Formation'}...`}
+                                placeholder={isCrecheMode ? 'Rechercher un enfant...' : `Rechercher un élève de ${activeFilter === 'SOUTIEN' ? 'Soutien' : 'Formation'}...`}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-12"
@@ -176,7 +179,7 @@ export default function DocumentsPage() {
                     {/* Students List */}
                     <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
                         <h2 className="text-xl font-bold text-gray-800 mb-4">
-                            Élèves de {activeFilter === 'SOUTIEN' ? 'Soutien Scolaire' : 'Formation Professionnelle'}
+                            {isCrecheMode ? 'Enfants' : `Élèves de ${activeFilter === 'SOUTIEN' ? 'Soutien Scolaire' : 'Formation Professionnelle'}`}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredStudents.map((student) => (
@@ -192,7 +195,7 @@ export default function DocumentsPage() {
                             ))}
                         </div>
                         {filteredStudents.length === 0 && (
-                            <p className="text-center text-gray-500 py-8">Aucun élève trouvé</p>
+                            <p className="text-center text-gray-500 py-8">{isCrecheMode ? 'Aucun enfant trouvé' : 'Aucun élève trouvé'}</p>
                         )}
                     </div>
                 </>
@@ -264,7 +267,7 @@ export default function DocumentsPage() {
                                         <h1 className="text-2xl font-bold mt-4">ROYAUME DU MAROC</h1>
                                         <p className="text-lg font-semibold mt-2">MINISTERE D'EDUCATION NATIONALE</p>
                                         <h2 className="text-xl font-bold mt-8 mb-6 uppercase border-b-2 border-dashed border-gray-400 inline-block pb-1">
-                                            {activeFilter === 'SOUTIEN' ? 'Fiche de renseignements individuelle' : 'ATTESTATION D\'INSCRIPTION'}
+                                            {isCrecheMode || activeFilter === 'SOUTIEN' ? 'Fiche de renseignements individuelle' : 'ATTESTATION D\'INSCRIPTION'}
                                         </h2>
                                     </div>
 
@@ -285,7 +288,7 @@ export default function DocumentsPage() {
                                             </div>
                                         </div>
 
-                                        {activeFilter === 'SOUTIEN' && (
+                                        {(activeFilter === 'SOUTIEN' || isCrecheMode) && (
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <span className="font-semibold">Date de naissance:</span>
@@ -302,7 +305,7 @@ export default function DocumentsPage() {
                                             </div>
                                         )}
 
-                                        {activeFilter === 'SOUTIEN' && (
+                                        {(activeFilter === 'SOUTIEN' || isCrecheMode) && (
                                             <div>
                                                 <span className="font-semibold">Fille ou fils de:</span>
                                                 <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
@@ -354,7 +357,7 @@ export default function DocumentsPage() {
                                         )}
                                     </div>
 
-                                    {activeFilter === 'SOUTIEN' ? (
+                                    {isCrecheMode ? null : activeFilter === 'SOUTIEN' ? (
                                         <div className="mb-8">
                                             <h3 className="font-bold mb-4">Les Cours de Soutien</h3>
                                             <table className="w-full border-collapse border border-gray-400">
