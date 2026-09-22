@@ -24,6 +24,7 @@ import {
 import { groupsService } from '@/lib/services/groups';
 import { teachersService } from '@/lib/services/teachers';
 import { formationsService } from '@/lib/services/formations';
+import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 
 // Types
 interface TimeSlot {
@@ -75,6 +76,8 @@ const GroupsContent = () => {
     // Deterministic type from URL or null (view all/soutien default?)
     // If type=FORMATION, we lock the UI to Formation mode
     const contextType = searchParams.get('type') as 'FORMATION' | 'SOUTIEN' | null;
+    const { profile } = useSchoolProfile();
+    const isCrecheMode = profile.institutionType === 'CRECHE';
 
     const [groups, setGroups] = useState<Group[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -221,12 +224,18 @@ const GroupsContent = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
-                        {isFormationMode ? 'Gestion des Groupes (Formation Pro)' : 'Gestion des Groupes'}
+                        {isFormationMode
+                            ? 'Gestion des Groupes (Formation Pro)'
+                            : isCrecheMode
+                                ? 'Gestion des Sections'
+                                : 'Gestion des Groupes'}
                     </h1>
                     <p className="text-gray-500 mt-1">
                         {isFormationMode
                             ? 'Gérez vos cohortes de formation professionnelle'
-                            : 'Organisez vos étudiants en groupes par matière et niveau'}
+                            : isCrecheMode
+                                ? 'Organisez les enfants en sections par âge'
+                                : 'Organisez vos étudiants en groupes par matière et niveau'}
                     </p>
                 </div>
                 <Button
@@ -341,7 +350,7 @@ const GroupsContent = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Nom du Groupe <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">{isCrecheMode ? 'Nom de la Section' : 'Nom du Groupe'} <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <input
                                             required
@@ -349,7 +358,7 @@ const GroupsContent = () => {
                                             className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-medium"
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            placeholder="Ex : Groupe Excellence 2024"
+                                            placeholder={isCrecheMode ? 'Ex : Section Moyenne A' : 'Ex : Groupe Excellence 2024'}
                                         />
                                         <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                     </div>
@@ -382,7 +391,7 @@ const GroupsContent = () => {
                         </div>
 
                         {/* Section 2: Détails Académiques (Only for Soutien) */}
-                        {!isFormationMode && (
+                        {!isFormationMode && !isCrecheMode && (
                             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
                                 <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-cyan-500"></div>
                                 <div className="flex items-center gap-2 mb-6 text-gray-800">
@@ -440,7 +449,7 @@ const GroupsContent = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Professeur Attitré</label>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">{isCrecheMode ? 'Éducatrice / Encadrant(e)' : 'Professeur Attitré'}</label>
                                     <div className="relative">
                                         <select
                                             className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none bg-white font-medium"
