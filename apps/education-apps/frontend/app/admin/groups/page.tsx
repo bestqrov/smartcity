@@ -591,11 +591,6 @@ const GroupsContent = () => {
                     </form>
                 </div>
             )}
-
-            <style jsx>{`
-                .label { @apply block text-sm font-medium text-gray-700 mb-1.5; }
-                .input-field { @apply w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-${themeColor}-500/20 focus:border-${themeColor}-500 outline-none transition-all; }
-            `}</style>
         </div>
     );
 };

@@ -315,13 +315,13 @@ const TeachersContent = () => {
                         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="col-span-2">
-                                    <label className="label font-bold text-blue-700 dark:text-yellow-400">Nom Complet *</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Nom Complet *</label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         <input
                                             required
                                             type="text"
-                                            className="input pl-10"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10"
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
                                             placeholder="Ex: Ahmed Bennani"
@@ -331,28 +331,28 @@ const TeachersContent = () => {
                                 </div>
 
                                 <div>
-                                    <label className="label font-bold text-blue-700 dark:text-yellow-400">Email</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Email</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                        <input type="email" className="input pl-10" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                                        <input type="email" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="label font-bold text-blue-700 dark:text-yellow-400">Téléphone</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Téléphone</label>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                        <input type="tel" className="input pl-10" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                                        <input type="tel" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="label font-bold text-blue-700 dark:text-yellow-400">CIN</label>
-                                    <input type="text" className="input" value={formData.cin} onChange={e => setFormData({ ...formData, cin: e.target.value })} placeholder="Numéro CIN" />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">CIN</label>
+                                    <input type="text" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.cin} onChange={e => setFormData({ ...formData, cin: e.target.value })} placeholder="Numéro CIN" />
                                 </div>
 
                                 <div>
-                                    <label className="label font-bold text-blue-700 dark:text-yellow-400">Genre</label>
-                                    <select className="input" value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })}>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Genre</label>
+                                    <select className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })}>
                                         <option value="Male">Homme</option>
                                         <option value="Female">Femme</option>
                                     </select>
@@ -365,11 +365,11 @@ const TeachersContent = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">WhatsApp</label>
-                                            <input type="text" className="input py-1.5" value={formData.socialMedia.whatsapp} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, whatsapp: e.target.value } })} placeholder="Numéro" />
+                                            <input type="text" className="w-full px-4 py-1.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.socialMedia.whatsapp} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, whatsapp: e.target.value } })} placeholder="Numéro" />
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Facebook</label>
-                                            <input type="text" className="input py-1.5" value={formData.socialMedia.facebook} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, facebook: e.target.value } })} placeholder="Pseudo/Lien" />
+                                            <input type="text" className="w-full px-4 py-1.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.socialMedia.facebook} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, facebook: e.target.value } })} placeholder="Pseudo/Lien" />
                                         </div>
                                     </div>
                                 </div>
@@ -380,9 +380,9 @@ const TeachersContent = () => {
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="label text-xs uppercase tracking-wide text-gray-500">Type de Paiement</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1 text-xs uppercase tracking-wide text-gray-500">Type de Paiement</label>
                                             <select
-                                                className="input"
+                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                                                 value={formData.paymentType}
                                                 onChange={e => setFormData({ ...formData, paymentType: e.target.value as any })}
                                             >
@@ -394,12 +394,12 @@ const TeachersContent = () => {
 
                                         {formData.paymentType === 'PERCENTAGE' ? (
                                             <div>
-                                                <label className="label text-xs uppercase tracking-wide text-gray-500">Commission (%)</label>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1 text-xs uppercase tracking-wide text-gray-500">Commission (%)</label>
                                                 <div className="relative">
                                                     <Percent className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                     <input
                                                         type="number"
-                                                        className="input pl-10"
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10"
                                                         value={formData.commission}
                                                         onChange={e => setFormData({ ...formData, commission: parseFloat(e.target.value) })}
                                                         placeholder="Ex: 30"
@@ -409,14 +409,14 @@ const TeachersContent = () => {
                                             </div>
                                         ) : (
                                             <div>
-                                                <label className="label text-xs uppercase tracking-wide text-gray-500">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1 text-xs uppercase tracking-wide text-gray-500">
                                                     {formData.paymentType === 'HOURLY' ? 'Taux Horaire (MAD/h)' : 'Salaire Fixe (MAD)'}
                                                 </label>
                                                 <div className="relative">
                                                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                     <input
                                                         type="number"
-                                                        className="input pl-10"
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10"
                                                         value={formData.hourlyRate}
                                                         onChange={e => setFormData({ ...formData, hourlyRate: parseFloat(e.target.value) })}
                                                     />
@@ -428,7 +428,7 @@ const TeachersContent = () => {
 
                                 {!isCrecheMode && (
                                     <div className="col-span-2">
-                                        <label className="label font-bold text-blue-700 dark:text-yellow-400 mb-3 block flex items-center gap-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400 mb-3 block flex items-center gap-2">
                                             <BookOpen size={16} className={isFormationMode ? "text-indigo-500" : "text-amber-500"} />
                                             {isFormationMode ? 'Compétences (Formations)' : 'Matières enseignées'}
                                         </label>
@@ -462,7 +462,7 @@ const TeachersContent = () => {
 
                                 {!isFormationMode && !isCrecheMode && (
                                     <div className="col-span-2">
-                                        <label className="label font-bold text-blue-700 dark:text-yellow-400 mb-2 block">Niveaux</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400 mb-2 block">Niveaux</label>
                                         <div className="flex flex-wrap gap-2">
                                             {NIVEAUX_SCOLAIRE.map(n => (
                                                 <button
@@ -490,11 +490,6 @@ const TeachersContent = () => {
                     </div>
                 </div>
             )}
-
-            <style jsx>{`
-                .label { @apply block text-sm font-medium text-gray-700 mb-1; }
-                .input { @apply w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all; }
-            `}</style>
         </div>
     );
 };
