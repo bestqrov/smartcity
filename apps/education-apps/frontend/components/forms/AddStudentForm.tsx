@@ -33,6 +33,9 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
         massarNumber: ''
     });
     const [authorizedPickup, setAuthorizedPickup] = useState<{ name: string; phone: string; relation: string }[]>([]);
+    const [inscriptionFee, setInscriptionFee] = useState<string>('');
+    const [monthlyFee, setMonthlyFee] = useState<string>('');
+    const [amountPaid, setAmountPaid] = useState<string>('');
     const institutionType = profile.institutionType;
 
     useEffect(() => {
@@ -70,7 +73,14 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
         e.preventDefault();
         setLoading(true);
         try {
-            const payload: any = { ...formData, ...(institutionType === 'CRECHE' ? { authorizedPickup } : {}) };
+            const feePayload: any = {};
+            if (institutionType === 'CRECHE' && !initialData) {
+                feePayload.schoolLevel = 'Crèche';
+                if (inscriptionFee) feePayload.inscriptionFee = Number(inscriptionFee) || 0;
+                if (monthlyFee) feePayload.subjectsTotal = Number(monthlyFee) || 0;
+                if (amountPaid && Number(amountPaid) > 0) feePayload.amountPaid = Number(amountPaid);
+            }
+            const payload: any = { ...formData, ...(institutionType === 'CRECHE' ? { authorizedPickup } : {}), ...feePayload };
             if (initialData?.id) {
                 await updateStudent(initialData.id, payload);
             } else {
@@ -355,6 +365,47 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                                 </div>
                             ))}
                         </div>
+
+                        {!initialData && (
+                        <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-600 ml-1">Frais d&apos;inscription (MAD)</label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={inscriptionFee}
+                                    onChange={(e) => setInscriptionFee(e.target.value)}
+                                    placeholder="Ex: 300"
+                                    className="rounded-xl border-slate-200 focus:ring-emerald-500/20 focus:border-emerald-500 bg-slate-50/50"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-600 ml-1">Frais mensuel (MAD)</label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={monthlyFee}
+                                    onChange={(e) => setMonthlyFee(e.target.value)}
+                                    placeholder="Ex: 800"
+                                    className="rounded-xl border-slate-200 focus:ring-emerald-500/20 focus:border-emerald-500 bg-slate-50/50"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-600 ml-1">Montant payé maintenant (MAD)</label>
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={amountPaid}
+                                    onChange={(e) => setAmountPaid(e.target.value)}
+                                    placeholder="0"
+                                    className="rounded-xl border-slate-200 focus:ring-emerald-500/20 focus:border-emerald-500 bg-slate-50/50"
+                                />
+                            </div>
+                        </div>
+                        )}
+                        {!initialData && (
+                        <p className="text-xs text-slate-400 mt-3">Le premier mois est inclus dans les frais dus à l&apos;inscription (inscription + mensualité).</p>
+                        )}
                     </div>
                 )}
 

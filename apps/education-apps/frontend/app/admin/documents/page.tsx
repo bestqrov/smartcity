@@ -19,6 +19,8 @@ interface Student {
     birthPlace?: string;
     fatherName?: string;
     motherName?: string;
+    parentName?: string;
+    parentRelation?: string;
     schoolLevel?: string;
     currentSchool?: string;
     subjects?: any;
@@ -306,16 +308,29 @@ export default function DocumentsPage() {
                                         )}
 
                                         {(activeFilter === 'SOUTIEN' || isCrecheMode) && (
-                                            <div>
-                                                <span className="font-semibold">Fille ou fils de:</span>
-                                                <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
-                                                    {selectedStudent.fatherName || ''}
-                                                </span>
-                                                <span className="ml-4 font-semibold">Et de:</span>
-                                                <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
-                                                    {selectedStudent.motherName || ''}
-                                                </span>
-                                            </div>
+                                            isCrecheMode ? (
+                                                <div>
+                                                    <span className="font-semibold">Tuteur légal:</span>
+                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
+                                                        {selectedStudent.parentName || ''}
+                                                    </span>
+                                                    <span className="ml-4 font-semibold">Lien:</span>
+                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
+                                                        {selectedStudent.parentRelation || ''}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <span className="font-semibold">Fille ou fils de:</span>
+                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
+                                                        {selectedStudent.fatherName || ''}
+                                                    </span>
+                                                    <span className="ml-4 font-semibold">Et de:</span>
+                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
+                                                        {selectedStudent.motherName || ''}
+                                                    </span>
+                                                </div>
+                                            )
                                         )}
 
                                         <div>
