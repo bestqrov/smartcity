@@ -210,7 +210,7 @@ export default function StudentProfilePage() {
                         </div>
                     )}
 
-                    {(student.crecheSection || student.healthNotes || (student.authorizedPickup && student.authorizedPickup.length > 0)) && (
+                    {tab === 'info' && (student.crecheSection || student.healthNotes || (student.authorizedPickup && student.authorizedPickup.length > 0)) && (
                         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                             <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">Crèche</h2>
                             <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
