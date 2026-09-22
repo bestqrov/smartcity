@@ -27,8 +27,13 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
         schoolLevel: 'LYCEE', // Default
         parentName: '',
         parentPhone: '',
-        parentRelation: ''
+        parentRelation: '',
+        crecheSection: '',
+        healthNotes: '',
+        massarNumber: ''
     });
+    const [authorizedPickup, setAuthorizedPickup] = useState<{ name: string; phone: string; relation: string }[]>([]);
+    const institutionType = profile.institutionType;
 
     useEffect(() => {
         if (initialData) {
@@ -43,8 +48,12 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                 schoolLevel: initialData.schoolLevel || 'LYCEE',
                 parentName: initialData.parentName || '',
                 parentPhone: initialData.parentPhone || '',
-                parentRelation: initialData.parentRelation || ''
+                parentRelation: initialData.parentRelation || '',
+                crecheSection: initialData.crecheSection || '',
+                healthNotes: initialData.healthNotes || '',
+                massarNumber: initialData.massarNumber || ''
             });
+            setAuthorizedPickup(initialData.authorizedPickup || []);
         }
     }, [initialData]);
 
@@ -52,14 +61,20 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const addPickupPerson = () => setAuthorizedPickup((prev) => [...prev, { name: '', phone: '', relation: '' }]);
+    const removePickupPerson = (index: number) => setAuthorizedPickup((prev) => prev.filter((_, i) => i !== index));
+    const updatePickupPerson = (index: number, field: 'name' | 'phone' | 'relation', value: string) =>
+        setAuthorizedPickup((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
+            const payload: any = { ...formData, ...(institutionType === 'CRECHE' ? { authorizedPickup } : {}) };
             if (initialData?.id) {
-                await updateStudent(initialData.id, formData);
+                await updateStudent(initialData.id, payload);
             } else {
-                await createStudent(formData);
+                await createStudent(payload);
             }
             onSuccess();
         } catch (error) {
@@ -183,6 +198,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                 </div>
 
                 {/* Academic & Location Card - Emerald Theme */}
+                {institutionType !== 'CRECHE' && (
                 <div className="group bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500 group-hover:w-2 transition-all"></div>
 
@@ -238,6 +254,109 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         </div>
                     </div>
                 </div>
+                )}
+
+                {institutionType === 'CRECHE' && (
+                    <div className="group bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500 group-hover:w-2 transition-all"></div>
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="bg-emerald-50 p-3 rounded-2xl text-emerald-600 group-hover:scale-110 transition-transform">
+                                <Users size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-800">Informations de la crèche</h3>
+                                <p className="text-sm text-slate-500">Section, santé et personnes autorisées</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-600 ml-1">Section</label>
+                                <select
+                                    name="crecheSection"
+                                    value={formData.crecheSection || ''}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-medium text-slate-700"
+                                >
+                                    <option value="">Sélectionner...</option>
+                                    <option value="NOURRISSON">Nourrisson</option>
+                                    <option value="MOYENNE">Moyenne section</option>
+                                    <option value="GRANDE">Grande section</option>
+                                </select>
+                            </div>
+
+                            {formData.crecheSection === 'GRANDE' && (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-600 ml-1">Numéro Massar</label>
+                                    <Input
+                                        name="massarNumber"
+                                        value={formData.massarNumber || ''}
+                                        onChange={handleChange}
+                                        placeholder="Numéro Massar (le cas échéant)"
+                                        className="rounded-xl border-slate-200 focus:ring-emerald-500/20 focus:border-emerald-500 bg-slate-50/50"
+                                    />
+                                </div>
+                            )}
+
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-sm font-bold text-slate-600 ml-1">Allergies / Notes de santé</label>
+                                <textarea
+                                    name="healthNotes"
+                                    value={formData.healthNotes || ''}
+                                    onChange={handleChange as any}
+                                    rows={3}
+                                    placeholder="Allergies, régime alimentaire, notes de santé"
+                                    className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all font-medium text-slate-700"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-8 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-bold text-slate-600">Personnes autorisées à récupérer l&apos;enfant</label>
+                                <button
+                                    type="button"
+                                    onClick={addPickupPerson}
+                                    className="text-sm font-bold text-emerald-600 hover:text-emerald-700"
+                                >
+                                    + Ajouter une personne
+                                </button>
+                            </div>
+                            {authorizedPickup.length === 0 && (
+                                <p className="text-sm text-slate-400">Aucune personne ajoutée.</p>
+                            )}
+                            {authorizedPickup.map((person, index) => (
+                                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+                                    <Input
+                                        value={person.name}
+                                        onChange={(e) => updatePickupPerson(index, 'name', e.target.value)}
+                                        placeholder="Nom"
+                                        className="rounded-xl border-slate-200 bg-slate-50/50"
+                                    />
+                                    <Input
+                                        value={person.phone}
+                                        onChange={(e) => updatePickupPerson(index, 'phone', e.target.value)}
+                                        placeholder="Téléphone"
+                                        className="rounded-xl border-slate-200 bg-slate-50/50"
+                                    />
+                                    <Input
+                                        value={person.relation}
+                                        onChange={(e) => updatePickupPerson(index, 'relation', e.target.value)}
+                                        placeholder="Lien (ex: Tante, Voisine)"
+                                        className="rounded-xl border-slate-200 bg-slate-50/50"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removePickupPerson(index)}
+                                        className="text-sm font-bold text-red-500 hover:text-red-600 justify-self-start"
+                                    >
+                                        Retirer
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Parent/Guardian Card - Amber Theme */}
                 <div className="group bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">

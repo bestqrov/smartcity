@@ -29,6 +29,10 @@ export interface Student {
     parentRelation?: string;
     schoolLevel?: string;
     currentSchool?: string;
+    crecheSection?: 'NOURRISSON' | 'MOYENNE' | 'GRANDE';
+    healthNotes?: string;
+    authorizedPickup?: { name: string; phone: string; relation: string }[];
+    massarNumber?: string;
     subjects?: any; // JSON
     active: boolean;
     parentId?: string;
@@ -201,6 +205,10 @@ export interface StudentFormData {
     parentRelation?: string;
     schoolLevel?: string;
     currentSchool?: string;
+    crecheSection?: 'NOURRISSON' | 'MOYENNE' | 'GRANDE';
+    healthNotes?: string;
+    authorizedPickup?: { name: string; phone: string; relation: string }[];
+    massarNumber?: string;
     subjects?: any;
 }
 

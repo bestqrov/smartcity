@@ -82,6 +82,36 @@ export default function ParentPublicProfilePage() {
                                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                     Solde dû : {due} MAD
                                 </p>
+                                {(student.crecheSection || student.healthNotes || (student.authorizedPickup && student.authorizedPickup.length > 0)) && (
+                                    <div className="mt-3 rounded-xl bg-slate-50 p-3 text-sm dark:bg-slate-700/50">
+                                        <p className="font-medium text-slate-900 dark:text-white">Crèche</p>
+                                        {student.crecheSection && (
+                                            <p className="text-slate-500 dark:text-slate-400">
+                                                Section : {student.crecheSection}
+                                            </p>
+                                        )}
+                                        {student.massarNumber && (
+                                            <p className="text-slate-500 dark:text-slate-400">
+                                                Massar : {student.massarNumber}
+                                            </p>
+                                        )}
+                                        {student.healthNotes && (
+                                            <p className="text-slate-500 dark:text-slate-400">
+                                                Santé : {student.healthNotes}
+                                            </p>
+                                        )}
+                                        {student.authorizedPickup && student.authorizedPickup.length > 0 && (
+                                            <div className="text-slate-500 dark:text-slate-400">
+                                                Personnes autorisées :
+                                                <ul className="mt-1 list-disc list-inside">
+                                                    {student.authorizedPickup.map((p, i) => (
+                                                        <li key={i}>{p.name} — {p.phone} ({p.relation})</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                                 {(student.transportSubscriptions || []).map((sub) => (
                                     <div
                                         key={sub.id}

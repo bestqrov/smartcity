@@ -209,6 +209,33 @@ export default function StudentProfilePage() {
                             )}
                         </div>
                     )}
+
+                    {(student.crecheSection || student.healthNotes || (student.authorizedPickup && student.authorizedPickup.length > 0)) && (
+                        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                            <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">Crèche</h2>
+                            <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+                                {student.crecheSection && (
+                                    <p><span className="text-slate-500">Section : </span>{student.crecheSection}</p>
+                                )}
+                                {student.massarNumber && (
+                                    <p><span className="text-slate-500">Massar : </span>{student.massarNumber}</p>
+                                )}
+                                {student.healthNotes && (
+                                    <p><span className="text-slate-500">Santé : </span>{student.healthNotes}</p>
+                                )}
+                                {student.authorizedPickup && student.authorizedPickup.length > 0 && (
+                                    <div>
+                                        <span className="text-slate-500">Personnes autorisées : </span>
+                                        <ul className="mt-1 list-disc list-inside">
+                                            {student.authorizedPickup.map((p, i) => (
+                                                <li key={i}>{p.name} — {p.phone} ({p.relation})</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
             <StudentTransportCard studentId={id} />
