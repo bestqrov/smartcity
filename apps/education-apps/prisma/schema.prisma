@@ -148,27 +148,31 @@ model Branch {
 }
 
 model Student {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
-  surname        String
-  phone          String?
-  email          String?
-  cin            String?
-  address        String?
-  birthDate      DateTime?
-  birthPlace     String?
-  fatherName     String?
-  motherName     String?
-  parentName     String?
-  parentPhone    String?
-  parentRelation String?
-  schoolLevel    String?
-  currentSchool  String?
-  subjects       Json?
-  photo          String? // Base64 encoded image or file path
-  active         Boolean   @default(true)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  surname          String
+  phone            String?
+  email            String?
+  cin              String?
+  address          String?
+  birthDate        DateTime?
+  birthPlace       String?
+  fatherName       String?
+  motherName       String?
+  parentName       String?
+  parentPhone      String?
+  parentRelation   String?
+  schoolLevel      String?
+  currentSchool    String?
+  crecheSection    String? // NOURRISSON | MOYENNE | GRANDE — crèche only
+  healthNotes      String? // allergies / health notes — crèche only
+  authorizedPickup Json? // [{ name, phone, relation }] — crèche only
+  massarNumber     String? // set only when crecheSection = GRANDE
+  subjects         Json?
+  photo            String? // Base64 encoded image or file path
+  active           Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   parentId        String? @db.ObjectId
   parent          Parent? @relation(fields: [parentId], references: [id])
