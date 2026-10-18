@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { getAccessToken } from '@/store/useAuthStore';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import type { UserRole } from '@/types';
 
@@ -14,9 +15,16 @@ interface RequireRoleProps {
 export function RequireRole({ children, allowedRoles }: RequireRoleProps) {
     const router = useRouter();
     const { user, isLoading, isAuthenticated } = useAuth();
+    const [hydrated, setHydrated] = useState(false);
+    useEffect(() => setHydrated(true), []);
+
+    // After a page reload the token is restored from localStorage but the user is only known once
+    // /auth/me answers — until then we are still loading, not logged out (a failed /auth/me clears
+    // the token itself). `hydrated` keeps the first client render identical to the server one.
+    const waiting = !hydrated || isLoading || (!!getAccessToken() && !user);
 
     useEffect(() => {
-        if (!isLoading) {
+        if (!waiting) {
             if (!isAuthenticated) {
                 router.push('/login');
             } else if (user && !allowedRoles.includes(user.role) && user.role !== 'SUPER_ADMIN') {
@@ -30,9 +38,9 @@ export function RequireRole({ children, allowedRoles }: RequireRoleProps) {
                 }
             }
         }
-    }, [user, isLoading, isAuthenticated, allowedRoles, router]);
+    }, [user, waiting, isAuthenticated, allowedRoles, router]);
 
-    if (isLoading) {
+    if (waiting) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <LoadingSpinner size="lg" />

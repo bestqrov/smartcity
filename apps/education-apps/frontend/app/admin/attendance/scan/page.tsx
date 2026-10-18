@@ -31,7 +31,7 @@ export default function AttendanceScanPage() {
         const scanner = new Html5Qrcode('qr-reader');
         scannerRef.current = scanner;
 
-        scanner
+        const started = scanner
             .start(
                 { facingMode: 'environment' },
                 { fps: 10, qrbox: 250 },
@@ -61,10 +61,18 @@ export default function AttendanceScanPage() {
                     // ignore per-frame decode failures — expected while camera searches for a code
                 }
             )
-            .catch(() => setCameraError("Impossible de démarrer la caméra. Vérifiez les autorisations."));
+            .then(() => true)
+            .catch(() => {
+                setCameraError("Impossible de démarrer la caméra. Vérifiez les autorisations.");
+                return false;
+            });
 
+        // stop() throws synchronously when the scanner never started (camera denied), which
+        // crashed the whole app on navigation — only stop once start() has actually succeeded.
         return () => {
-            scanner.stop().catch(() => undefined);
+            started.then((running) => {
+                if (running) scanner.stop().catch(() => undefined);
+            });
         };
     }, [selectedGroupId]);
 
