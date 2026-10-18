@@ -174,9 +174,9 @@ export const remove = async (req: TenantRequest, res: Response): Promise<void> =
     }
 };
 
-export const getAnalytics = async (req: Request, res: Response): Promise<void> => {
+export const getAnalytics = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const analytics = await getStudentAnalytics();
+        const analytics = await getStudentAnalytics(req.branchId!);
         sendSuccess(res, analytics, 'Analytics retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve analytics', 500);

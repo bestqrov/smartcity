@@ -80,9 +80,9 @@ export const deleteTeacher = async (id: string, branchId: string) => {
     });
 };
 
-export const calculateMonthlyTeacherExpenses = async () => {
-    // Aggregate across all branches — intentionally left unscoped, see plan notes.
+export const calculateMonthlyTeacherExpenses = async (branchId: string) => {
     const teachers = await prisma.teacher.findMany({
+        where: { branchId },
         include: {
             groups: {
                 include: {

@@ -271,21 +271,21 @@ export const getStudentByPortalToken = async (rawToken: string) => {
 
 // Helpers removed as global pricing is deprecated
 
-export const getStudentAnalytics = async () => {
+export const getStudentAnalytics = async (branchId: string) => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     // Set endOfMonth to end of the day
     endOfMonth.setHours(23, 59, 59, 999);
 
-    const totalStudents = await prisma.student.count();
+    const totalStudents = await prisma.student.count({ where: { branchId } });
     const totalInscriptions = await prisma.inscription.count({
-        where: { type: 'SOUTIEN' }
+        where: { branchId, type: 'SOUTIEN' }
     });
 
     // 1. Calculate Recurring Monthly Revenue from ALL Students
     // We assume all students in the database are "Active"
-    const allStudents = await prisma.student.findMany();
+    const allStudents = await prisma.student.findMany({ where: { branchId } });
 
     let monthlyRevenue = 0;
 
@@ -314,6 +314,7 @@ export const getStudentAnalytics = async () => {
     // (New students joining this month usually pay an inscription fee)
     const monthlyInscriptions = await prisma.inscription.findMany({
         where: {
+            branchId,
             type: 'SOUTIEN',
             createdAt: {
                 gte: startOfMonth,
@@ -329,7 +330,7 @@ export const getStudentAnalytics = async () => {
 
     // Get recent inscriptions
     const recentInscriptions = await prisma.inscription.findMany({
-        where: { type: 'SOUTIEN' },
+        where: { branchId, type: 'SOUTIEN' },
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {

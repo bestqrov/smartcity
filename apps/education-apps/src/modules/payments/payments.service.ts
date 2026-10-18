@@ -77,7 +77,7 @@ export const getPaymentById = async (id: string, branchId: string) => {
     return payment;
 };
 
-export const getPaymentAnalytics = async () => {
+export const getPaymentAnalytics = async (branchId: string) => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -85,6 +85,7 @@ export const getPaymentAnalytics = async () => {
 
     const paymentsThisMonth = await prisma.payment.aggregate({
         where: {
+            branchId,
             date: {
                 gte: startOfMonth,
                 lte: endOfMonth
@@ -97,8 +98,8 @@ export const getPaymentAnalytics = async () => {
 
     const totalReceived = paymentsThisMonth._sum.amount || 0;
 
-    const transactionStats = await getMonthlyTransactionStats();
-    const teacherExpenses = await calculateMonthlyTeacherExpenses();
+    const transactionStats = await getMonthlyTransactionStats(branchId);
+    const teacherExpenses = await calculateMonthlyTeacherExpenses(branchId);
     const totalExpenses = transactionStats.totalExpense;
 
     return {

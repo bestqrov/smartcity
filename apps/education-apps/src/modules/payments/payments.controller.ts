@@ -53,9 +53,9 @@ export const getById = async (req: TenantRequest, res: Response): Promise<void> 
     }
 };
 
-export const getAnalytics = async (req: Request, res: Response): Promise<void> => {
+export const getAnalytics = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const analytics = await getPaymentAnalytics();
+        const analytics = await getPaymentAnalytics(req.branchId!);
         sendSuccess(res, analytics, 'Payment analytics retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve payment analytics', 500);

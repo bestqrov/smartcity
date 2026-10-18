@@ -58,8 +58,7 @@ export const getTransactionStats = async (branchId: string) => {
     };
 };
 
-export const getMonthlyTransactionStats = async () => {
-    // Aggregate across all branches — intentionally left unscoped, accepted debt.
+export const getMonthlyTransactionStats = async (branchId: string) => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -67,6 +66,7 @@ export const getMonthlyTransactionStats = async () => {
 
     const transactions = await prisma.transaction.findMany({
         where: {
+            branchId,
             date: {
                 gte: startOfMonth,
                 lte: endOfMonth

@@ -154,13 +154,14 @@ export const deleteInscription = async (id: string, branchId: string) => {
     return { message: 'Inscription deleted successfully' };
 };
 
-export const getInscriptionAnalytics = async () => {
+export const getInscriptionAnalytics = async (branchId: string) => {
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const dailyInscriptions = await prisma.inscription.findMany({
         where: {
+            branchId,
             createdAt: {
                 gte: startOfDay,
             },
@@ -174,6 +175,7 @@ export const getInscriptionAnalytics = async () => {
 
     const monthlyInscriptions = await prisma.inscription.findMany({
         where: {
+            branchId,
             createdAt: {
                 gte: startOfMonth,
             },

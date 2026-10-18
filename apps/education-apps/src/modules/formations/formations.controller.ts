@@ -61,7 +61,7 @@ export const deleteFormationHandler = async (req: TenantRequest, res: Response) 
 
 export const getAnalytics = async (req: TenantRequest, res: Response) => {
     try {
-        const analytics = await getFormationAnalytics();
+        const analytics = await getFormationAnalytics(req.branchId!);
         res.json(analytics);
     } catch (error) {
         console.error('Analytics error:', error);

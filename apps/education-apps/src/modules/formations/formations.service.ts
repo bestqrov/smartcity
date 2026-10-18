@@ -53,14 +53,13 @@ export const deleteFormation = async (id: string, branchId: string) => {
     await prisma.formation.delete({ where: { id } });
 };
 
-export const getFormationAnalytics = async () => {
-    // Aggregate across all branches — intentionally left unscoped, accepted debt.
-    const totalFormations = await prisma.formation.count();
+export const getFormationAnalytics = async (branchId: string) => {
+    const totalFormations = await prisma.formation.count({ where: { branchId } });
     const totalInscriptions = await prisma.inscription.count({
-        where: { type: 'FORMATION' }
+        where: { branchId, type: 'FORMATION' }
     });
     const revenue = await prisma.inscription.aggregate({
-        where: { type: 'FORMATION' },
+        where: { branchId, type: 'FORMATION' },
         _sum: { amount: true }
     });
 
@@ -71,6 +70,7 @@ export const getFormationAnalytics = async () => {
 
     const monthlyRevenue = await prisma.inscription.aggregate({
         where: {
+            branchId,
             type: 'FORMATION',
             createdAt: {
                 gte: startOfMonth,
@@ -81,7 +81,7 @@ export const getFormationAnalytics = async () => {
     });
 
     const recentInscriptions = await prisma.inscription.findMany({
-        where: { type: 'FORMATION' },
+        where: { branchId, type: 'FORMATION' },
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {
