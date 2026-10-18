@@ -2,12 +2,14 @@ import { Router } from 'express';
 import { create, getAll, getById, update, remove, getSecretariesController, updateSecretaryController } from './users.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
+import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
 
 const router = Router();
 
-// All routes require authentication and ADMIN role
+// Staff accounts of the selected branch, managed by its admin or by the school owner
 router.use(authMiddleware);
-router.use(roleMiddleware('ADMIN'));
+router.use(roleMiddleware('ADMIN', 'OWNER'));
+router.use(tenantScopeMiddleware);
 
 // Secretary-specific routes
 router.get('/secretaries', getSecretariesController);

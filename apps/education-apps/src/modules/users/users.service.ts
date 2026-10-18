@@ -7,7 +7,23 @@ interface CreateUserData {
     password: string;
     name: string;
     role: UserRole;
+    // Omitted only by the one-time /auth/register-admin bootstrap, which predates branches.
+    branchId?: string;
 }
+
+// Every lookup below is restricted to the caller's branch, and only ADMIN/SECRETARY accounts can be
+// managed here — never an OWNER or SUPER_ADMIN (changing their password would hand over the account).
+const MANAGEABLE_ROLES: UserRole[] = ['ADMIN', 'SECRETARY'];
+
+const findManageableUser = async (id: string, branchId: string) => {
+    const user = await prisma.user.findFirst({
+        where: { id, branchId, role: { in: MANAGEABLE_ROLES } },
+    });
+    if (!user) {
+        throw new Error('User not found');
+    }
+    return user;
+};
 
 interface UpdateUserData {
     email?: string;
@@ -18,7 +34,7 @@ interface UpdateUserData {
 
 export const createUser = async (data: CreateUserData) => {
     const email = data.email.toLowerCase();
-    const { password, name, role } = data;
+    const { password, name, role, branchId } = data;
 
     // Check if email already exists
     const existingUser = await prisma.user.findUnique({
@@ -27,6 +43,11 @@ export const createUser = async (data: CreateUserData) => {
 
     if (existingUser) {
         throw new Error('Email already exists');
+    }
+
+    const branch = branchId ? await prisma.branch.findUnique({ where: { id: branchId } }) : null;
+    if (branchId && !branch) {
+        throw new Error('Branch not found');
     }
 
     // Hash password
@@ -39,6 +60,7 @@ export const createUser = async (data: CreateUserData) => {
             password: hashedPassword,
             name,
             role,
+            ...(branch ? { branchId: branch.id, schoolId: branch.schoolId } : {}),
         },
         select: {
             id: true,
@@ -52,8 +74,9 @@ export const createUser = async (data: CreateUserData) => {
     return user;
 };
 
-export const getAllUsers = async () => {
+export const getAllUsers = async (branchId: string) => {
     const users = await prisma.user.findMany({
+        where: { branchId },
         select: {
             id: true,
             email: true,
@@ -75,9 +98,9 @@ export const getAllUsers = async () => {
     return users;
 };
 
-export const getUserById = async (id: string) => {
-    const user = await prisma.user.findUnique({
-        where: { id },
+export const getUserById = async (id: string, branchId: string) => {
+    const user = await prisma.user.findFirst({
+        where: { id, branchId },
         select: {
             id: true,
             email: true,
@@ -100,15 +123,8 @@ export const getUserById = async (id: string) => {
     return user;
 };
 
-export const updateUser = async (id: string, data: UpdateUserData) => {
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-        where: { id },
-    });
-
-    if (!existingUser) {
-        throw new Error('User not found');
-    }
+export const updateUser = async (id: string, branchId: string, data: UpdateUserData) => {
+    const existingUser = await findManageableUser(id, branchId);
 
     // If email is being updated, check for duplicates
     if (data.email) {
@@ -152,15 +168,8 @@ export const updateUser = async (id: string, data: UpdateUserData) => {
     return user;
 };
 
-export const deleteUser = async (id: string) => {
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-        where: { id },
-    });
-
-    if (!existingUser) {
-        throw new Error('User not found');
-    }
+export const deleteUser = async (id: string, branchId: string) => {
+    await findManageableUser(id, branchId);
 
     await prisma.user.delete({
         where: { id },
@@ -170,9 +179,9 @@ export const deleteUser = async (id: string) => {
 };
 
 // Secretary-specific functions
-export const getSecretaries = async () => {
+export const getSecretaries = async (branchId: string) => {
     const secretaries = await prisma.user.findMany({
-        where: { role: 'SECRETARY' },
+        where: { branchId, role: 'SECRETARY' },
         select: {
             id: true,
             email: true,
@@ -194,7 +203,7 @@ export const getSecretaries = async () => {
     return secretaries;
 };
 
-export const updateSecretary = async (id: string, data: {
+export const updateSecretary = async (id: string, branchId: string, data: {
     email?: string;
     password?: string;
     name?: string;
@@ -205,17 +214,12 @@ export const updateSecretary = async (id: string, data: {
     schoolLevel?: string;
     certification?: string;
 }) => {
-    // Check if user exists and is a secretary
-    const existingUser = await prisma.user.findUnique({
-        where: { id },
+    const existingUser = await prisma.user.findFirst({
+        where: { id, branchId, role: 'SECRETARY' },
     });
 
     if (!existingUser) {
         throw new Error('Secretary not found');
-    }
-
-    if (existingUser.role !== 'SECRETARY') {
-        throw new Error('User is not a secretary');
     }
 
     // If email is being updated, check for duplicates
