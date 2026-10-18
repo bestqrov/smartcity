@@ -1,5 +1,6 @@
 import prisma from '../../config/database';
 import { getBranchesForSchool, getBranchSummary } from './branches.service';
+import { tuitionPayments } from '../payments/tuitionFilter';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
@@ -43,5 +44,24 @@ describe('branches.service', () => {
         expect(result.branches[0]).toEqual(
             expect.objectContaining({ studentCount: 10, balanceDue: 600 })
         );
+    });
+});
+
+describe('branch summary balance', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('leaves transport payments out of the tuition balance', async () => {
+        (prisma.branch.findMany as jest.Mock).mockResolvedValue([{ id: 'b1', name: 'Branch 1' }]);
+        (prisma.student.count as jest.Mock).mockResolvedValue(0);
+        (prisma.attendance.count as jest.Mock).mockResolvedValue(0);
+        (prisma.inscription.aggregate as jest.Mock).mockResolvedValue({ _sum: { amount: 0 } });
+        (prisma.payment.aggregate as jest.Mock).mockResolvedValue({ _sum: { amount: 0 } });
+
+        await getBranchSummary('school1');
+
+        expect(prisma.payment.aggregate).toHaveBeenCalledWith({
+            where: { branchId: 'b1', ...tuitionPayments.where },
+            _sum: { amount: true },
+        });
     });
 });

@@ -1,4 +1,5 @@
 import prisma from '../../config/database';
+import { tuitionPayments } from '../payments/tuitionFilter';
 
 export const getBranchesForSchool = async (schoolId: string) => {
     return prisma.branch.findMany({
@@ -24,7 +25,7 @@ export const getBranchSummary = async (schoolId: string) => {
                     where: { branchId: branch.id, date: today, status: { in: ['PRESENT', 'LATE'] } },
                 }),
                 prisma.inscription.aggregate({ where: { branchId: branch.id }, _sum: { amount: true } }),
-                prisma.payment.aggregate({ where: { branchId: branch.id }, _sum: { amount: true } }),
+                prisma.payment.aggregate({ where: { branchId: branch.id, ...tuitionPayments.where }, _sum: { amount: true } }),
             ]);
 
             const balanceDue = (inscriptionTotal._sum.amount || 0) - (paymentTotal._sum.amount || 0);
