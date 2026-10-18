@@ -87,14 +87,17 @@ export const createStudent = async (data: CreateStudentData & { inscriptionFee?:
             },
         });
 
-        // 2. Create Inscription if fee is provided.
+        // 2. Create Inscription if fee or first month is provided.
         // The Inscription's amount must reflect the FULL amount owed for this
         // enrollment (registration fee + first month's subjects), not just the
         // fee — otherwise it disagrees with the Payment created below (which is
         // for the full amount), and every balance/receipt reading from
         // Inscription.amount alone (e.g. "350 paid" showing up as "100") is wrong.
-        if (data.inscriptionFee !== undefined) {
-            const totalOwed = data.inscriptionFee + (data.subjectsTotal || 0);
+        // A first month with no registration fee (common in crèches, or a Soutien fee
+        // of 0 that the controller drops as falsy) still owes something, so it gets
+        // an inscription too.
+        const totalOwed = (data.inscriptionFee || 0) + (data.subjectsTotal || 0);
+        if (data.inscriptionFee !== undefined || totalOwed > 0) {
             await tx.inscription.create({
                 data: {
                     studentId: student.id,

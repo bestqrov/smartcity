@@ -168,3 +168,25 @@ describe('crèche fields passthrough', () => {
         });
     });
 });
+
+describe('initial inscription', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('records the first month owed even when there is no registration fee', async () => {
+        (prisma.student.create as jest.Mock).mockResolvedValue({ id: 's1' });
+
+        await createStudent({ branchId: 'b1', name: 'A', surname: 'B', schoolLevel: 'Crèche', subjectsTotal: 800 } as any);
+
+        expect(prisma.inscription.create).toHaveBeenCalledWith(
+            expect.objectContaining({ data: expect.objectContaining({ amount: 800, category: 'Crèche' }) })
+        );
+    });
+
+    it('creates no inscription when nothing is owed', async () => {
+        (prisma.student.create as jest.Mock).mockResolvedValue({ id: 's1' });
+
+        await createStudent({ branchId: 'b1', name: 'A', surname: 'B' } as any);
+
+        expect(prisma.inscription.create).not.toHaveBeenCalled();
+    });
+});
