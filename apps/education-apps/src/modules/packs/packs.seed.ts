@@ -38,8 +38,8 @@ interface TypePricing {
 }
 
 const TYPE_PRICING: TypePricing[] = [
-    { type: 'PRIVATE_SCHOOL', codeSuffix: '', monthly: [250, 400, 800], students: [100, 300, null], transport: true },
-    { type: 'TUTORING_CENTER', codeSuffix: '-soutien', monthly: [200, 350, 600], students: [150, 400, null], transport: false },
+    { type: 'PRIVATE_SCHOOL', codeSuffix: '', monthly: [200, 350, 499], students: [100, 300, null], transport: true },
+    { type: 'TUTORING_CENTER', codeSuffix: '-soutien', monthly: [170, 300, 399], students: [150, 400, null], transport: false },
     { type: 'VOCATIONAL_TRAINING', codeSuffix: '-formation', monthly: [300, 500, 900], students: [80, 250, null], transport: false },
     { type: 'LANGUAGE_CENTER', codeSuffix: '-langues', monthly: [200, 350, 650], students: [120, 350, null], transport: false },
 ];
@@ -65,16 +65,28 @@ export const DEFAULT_PACKS: SeedPack[] = [
             sortOrder: index + 1,
         }))
     ),
+    // Crèches pay a single flat price that depends only on size: under 100 children, or 100 and more.
     {
         code: 'creche',
         name: 'Crèche',
-        monthlyPrice: 200,
-        yearlyPrice: 2000,
-        maxStudents: 40,
+        monthlyPrice: 150,
+        yearlyPrice: 1500,
+        maxStudents: 99,
         maxBranches: 1,
         features: ['PARENT_PORTAL', 'DAILY_LOG'],
         institutionTypes: ['CRECHE'],
         sortOrder: 1,
+    },
+    {
+        code: 'creche-plus',
+        name: 'Crèche Plus',
+        monthlyPrice: 200,
+        yearlyPrice: 2000,
+        maxStudents: null,
+        maxBranches: 1,
+        features: ['PARENT_PORTAL', 'DAILY_LOG'],
+        institutionTypes: ['CRECHE'],
+        sortOrder: 2,
     },
 ];
 

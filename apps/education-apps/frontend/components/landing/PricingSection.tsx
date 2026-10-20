@@ -120,7 +120,7 @@ export default function PricingSection({ m, type, onTypeChange }: Props) {
             )}
 
             {state.status === 'ok' && state.packs.length > 0 && (
-                <div className={`mx-auto grid gap-4 ${state.packs.length === 1 ? 'max-w-sm' : 'md:grid-cols-3'}`}>
+                <div className={`mx-auto grid gap-4 ${state.packs.length === 1 ? 'max-w-sm' : state.packs.length === 2 ? 'max-w-3xl md:grid-cols-2' : 'md:grid-cols-3'}`}>
                     {state.packs.map((pack) => {
                         const baseLines = type === 'CRECHE' ? [m.c1, m.c3] : [m.a1, m.a2];
                         return (
