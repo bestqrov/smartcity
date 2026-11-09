@@ -7,7 +7,7 @@ jest.mock('../../config/database', () => ({
     default: {
         branch: { findMany: jest.fn() },
         student: { count: jest.fn() },
-        attendance: { count: jest.fn() },
+        attendance: { findMany: jest.fn() },
         inscription: { aggregate: jest.fn() },
         payment: { aggregate: jest.fn() },
     },
@@ -32,7 +32,7 @@ describe('branches.service', () => {
             { id: 'b2', name: 'Branch 2' },
         ]);
         (prisma.student.count as jest.Mock).mockResolvedValueOnce(10).mockResolvedValueOnce(5);
-        (prisma.attendance.count as jest.Mock).mockResolvedValue(0);
+        (prisma.attendance.findMany as jest.Mock).mockResolvedValue([]);
         (prisma.inscription.aggregate as jest.Mock).mockResolvedValue({ _sum: { amount: 1000 } });
         (prisma.payment.aggregate as jest.Mock).mockResolvedValue({ _sum: { amount: 400 } });
 
@@ -53,7 +53,7 @@ describe('branch summary balance', () => {
     it('leaves transport payments out of the tuition balance', async () => {
         (prisma.branch.findMany as jest.Mock).mockResolvedValue([{ id: 'b1', name: 'Branch 1' }]);
         (prisma.student.count as jest.Mock).mockResolvedValue(0);
-        (prisma.attendance.count as jest.Mock).mockResolvedValue(0);
+        (prisma.attendance.findMany as jest.Mock).mockResolvedValue([]);
         (prisma.inscription.aggregate as jest.Mock).mockResolvedValue({ _sum: { amount: 0 } });
         (prisma.payment.aggregate as jest.Mock).mockResolvedValue({ _sum: { amount: 0 } });
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { getStudentById, regenerateStudentToken, regenerateStudentPortalToken } from '@/lib/services/students';
 import type { Student } from '@/types';
+import { ATTENDANCE_META, formatTime } from '@/lib/attendanceStatus';
 import QrCodeCard from '@/components/QrCodeCard';
 import StudentTransportCard from '@/components/transport/StudentTransportCard';
 
@@ -123,8 +124,15 @@ export default function StudentProfilePage() {
                                     key={a.id}
                                     className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-900 px-4 py-2"
                                 >
-                                    <span>{new Date(a.date).toLocaleDateString()}</span>
-                                    <span className="font-medium">{a.status}</span>
+                                    <span>
+                                        {new Date(a.date).toLocaleDateString('fr-FR')}
+                                        {a.slotStart && <span className="text-slate-500"> · {a.slotStart}</span>}
+                                        {a.scannedAt && <span className="text-slate-500"> (scanné à {formatTime(a.scannedAt)})</span>}
+                                        {a.note && <span className="block text-xs text-slate-500">« {a.note} »</span>}
+                                    </span>
+                                    <span className={`px-2 py-0.5 rounded-md text-xs font-medium border ${ATTENDANCE_META[a.status].badge}`}>
+                                        {ATTENDANCE_META[a.status].label}
+                                    </span>
                                 </li>
                             ))}
                         </ul>

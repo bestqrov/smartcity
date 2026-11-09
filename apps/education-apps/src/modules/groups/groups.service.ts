@@ -1,3 +1,4 @@
+import { timetableError } from '../../utils/attendanceStatus';
 import prisma from '../../config/database';
 import { InscriptionType, Prisma } from '@prisma/client';
 
@@ -56,10 +57,16 @@ const assertFormationInBranch = async (formationId: string | undefined, branchId
     }
 };
 
+const assertValidTimetable = (timeSlots: unknown) => {
+    const error = timetableError(timeSlots);
+    if (error) throw new Error(error);
+};
+
 export const createGroup = async (data: CreateGroupData) => {
     if (data.type === 'FORMATION' && !data.formationId) {
         throw new Error('Formation Group requires a formationId');
     }
+    assertValidTimetable(data.timeSlots);
 
     await assertStudentsInBranch(data.studentIds, data.branchId);
     await assertTeacherInBranch(data.teacherId, data.branchId);
@@ -126,6 +133,7 @@ export const updateGroup = async (id: string, branchId: string, data: UpdateGrou
     const existing = await prisma.group.findFirst({ where: { id, branchId } });
     if (!existing) throw new Error('Group not found');
 
+    assertValidTimetable(data.timeSlots);
     await assertStudentsInBranch(data.studentIds, branchId);
     await assertTeacherInBranch(data.teacherId, branchId);
     await assertFormationInBranch(data.formationId, branchId);

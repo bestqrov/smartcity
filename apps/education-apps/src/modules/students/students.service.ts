@@ -243,7 +243,7 @@ export const getStudentByPortalToken = async (rawToken: string) => {
         include: {
             inscriptions: true,
             payments: tuitionPayments,
-            attendances: { orderBy: { date: 'desc' } },
+            attendances: { orderBy: [{ date: 'desc' }, { slotStart: 'desc' }] },
             groups: { include: { teacher: true } },
         },
     });

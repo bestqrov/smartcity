@@ -32,6 +32,13 @@ enum AttendanceStatus {
   PRESENT
   LATE
   ABSENT
+  JUSTIFIED // absent with a valid excuse (medical note, family reason...) — not counted against the student
+}
+
+enum AttendanceSource {
+  SCAN // student's QR card scanned at the door
+  MANUAL // set by staff from the weekly attendance grid
+  AUTO // absence sweep: nobody scanned before the session ended
 }
 
 enum NotificationChannel {
@@ -299,23 +306,31 @@ model Payment {
 }
 
 model Attendance {
-  id        String           @id @default(auto()) @map("_id") @db.ObjectId
-  studentId String           @db.ObjectId
-  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  groupId   String?          @db.ObjectId
-  group     Group?           @relation(fields: [groupId], references: [id])
-  date      DateTime
-  scannedAt DateTime?
-  status    AttendanceStatus
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  studentId  String           @db.ObjectId
+  student    Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  groupId    String?          @db.ObjectId
+  group      Group?           @relation(fields: [groupId], references: [id])
+  date       DateTime
+  // "HH:MM" start of the group's session this record is for — a group can meet several
+  // times the same day (schools), so (student, group, date) alone is not one session.
+  // Null on records created before sessions were tracked.
+  slotStart  String?
+  scannedAt  DateTime?
+  status     AttendanceStatus
+  source     AttendanceSource @default(MANUAL)
+  note       String?
+  markedById String?          @db.ObjectId
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
   notifications AttendanceNotification[]
 
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
 
-  @@unique([studentId, groupId, date])
+  @@unique([studentId, groupId, date, slotStart])
+  @@index([groupId, date])
   @@map("attendances")
 }
 

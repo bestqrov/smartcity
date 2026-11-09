@@ -4,13 +4,12 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { getPublicParentProfile } from '@/lib/services/parents';
 import type { Parent, Student, Attendance } from '@/types';
+import { ATTENDANCE_META } from '@/lib/attendanceStatus';
 
-const statusBadge = (status: Attendance['status'] | undefined) => {
-    if (status === 'PRESENT') return { label: 'Présent', className: 'text-emerald-600 dark:text-emerald-400' };
-    if (status === 'LATE') return { label: 'En retard', className: 'text-amber-600 dark:text-amber-400' };
-    if (status === 'ABSENT') return { label: 'Absent', className: 'text-red-600 dark:text-red-400' };
-    return { label: 'Aucune présence enregistrée aujourd’hui', className: 'text-slate-500 dark:text-slate-400' };
-};
+const statusBadge = (status: Attendance['status'] | undefined) =>
+    status
+        ? { label: ATTENDANCE_META[status].label, className: ATTENDANCE_META[status].text }
+        : { label: 'Aucune présence enregistrée aujourd’hui', className: 'text-slate-500 dark:text-slate-400' };
 
 const studentBalance = (student: Student) =>
     (student.inscriptions || []).reduce((sum, i) => sum + i.amount, 0) -

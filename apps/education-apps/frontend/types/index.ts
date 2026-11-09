@@ -112,16 +112,58 @@ export interface Payment {
 }
 
 // Attendance types
+export type AttendanceStatus = 'PRESENT' | 'LATE' | 'ABSENT' | 'JUSTIFIED';
+export type AttendanceSource = 'SCAN' | 'MANUAL' | 'AUTO';
+
 export interface Attendance {
     id: string;
     studentId: string;
     student?: Student;
     date: string;
-    status: 'PRESENT' | 'LATE' | 'ABSENT';
+    slotStart?: string | null; // "HH:MM" start of the group's session
+    status: AttendanceStatus;
+    source?: AttendanceSource;
+    note?: string | null;
     scannedAt?: string;
     groupId?: string;
+    group?: { id: string; name: string } | null;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface WeeklyAttendanceRecord {
+    id: string;
+    studentId: string;
+    date: string; // YYYY-MM-DD
+    slotStart: string | null;
+    status: AttendanceStatus;
+    source: AttendanceSource;
+    scannedAt: string | null;
+    note: string | null;
+}
+
+export interface WeeklyAttendance {
+    group: { id: string; name: string; type: string; room: string | null; teacherName: string | null };
+    weekStart: string; // Monday, YYYY-MM-DD
+    days: { date: string; holiday: string | null; slots: { startTime: string; endTime: string }[] }[];
+    students: { id: string; name: string; surname: string }[];
+    records: WeeklyAttendanceRecord[];
+}
+
+export interface AttendanceSessionData {
+    groupId: string;
+    date: string; // YYYY-MM-DD
+    slotStart: string; // HH:MM
+    entries: { studentId: string; status: AttendanceStatus; note?: string | null }[];
+}
+
+export interface AttendanceMarkData {
+    studentId: string;
+    groupId: string;
+    date: string; // YYYY-MM-DD
+    slotStart: string; // HH:MM
+    status: AttendanceStatus;
+    note?: string | null;
 }
 
 // Announcement types
@@ -227,12 +269,6 @@ export interface PaymentFormData {
     method: string;
     note?: string;
     date?: string;
-}
-
-export interface AttendanceFormData {
-    studentId: string;
-    date: string;
-    status: 'PRESENT' | 'LATE' | 'ABSENT';
 }
 
 export interface UserFormData {
