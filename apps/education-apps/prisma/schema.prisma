@@ -90,6 +90,13 @@ model Parent {
   students      Student[]
   notifications AttendanceNotification[]
 
+  // The branch (school site) this parent belongs to: only that branch's staff can see,
+  // edit or re-issue the parent's access link. Null only on parents created before
+  // scoping that had no child to infer it from — invisible to everyone until fixed.
+  branchId String? @db.ObjectId
+  branch   Branch? @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
   @@map("parents")
 }
 
@@ -133,6 +140,7 @@ model Branch {
 
   users                   User[]
   students                Student[]
+  parents                 Parent[]
   groups                  Group[]
   teachers                Teacher[]
   inscriptions            Inscription[]

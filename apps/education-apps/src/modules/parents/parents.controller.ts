@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 import prisma from '../../config/database';
 import {
     createParent,
@@ -10,7 +11,7 @@ import {
 } from './parents.service';
 import { sendSuccess, sendError } from '../../utils/response';
 
-export const create = async (req: Request, res: Response): Promise<void> => {
+export const create = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { name, phone, whatsapp, email, cin, address } = req.body;
 
@@ -19,7 +20,7 @@ export const create = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const { parent, rawToken } = await createParent({ name, phone, whatsapp, email, cin, address });
+        const { parent, rawToken } = await createParent({ name, phone, whatsapp, email, cin, address, branchId: req.branchId! });
         sendSuccess(res, { parent: stripTokenHashes(parent), rawToken }, 'Parent created successfully', 201);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to create parent', 400);
@@ -37,36 +38,36 @@ const stripTokenHashes = (parent: any) => {
     return { ...safeParent, students: safeStudents };
 };
 
-export const getAll = async (_req: Request, res: Response): Promise<void> => {
+export const getAll = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const parents = await getAllParents();
+        const parents = await getAllParents(req.branchId!);
         sendSuccess(res, parents.map(stripTokenHashes), 'Parents retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve parents', 400);
     }
 };
 
-export const getById = async (req: Request, res: Response): Promise<void> => {
+export const getById = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const parent = await getParentById(req.params.id);
+        const parent = await getParentById(req.params.id, req.branchId!);
         sendSuccess(res, stripTokenHashes(parent), 'Parent retrieved successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to retrieve parent', 404);
     }
 };
 
-export const update = async (req: Request, res: Response): Promise<void> => {
+export const update = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const parent = await updateParent(req.params.id, req.body);
+        const parent = await updateParent(req.params.id, req.branchId!, req.body || {});
         sendSuccess(res, stripTokenHashes(parent), 'Parent updated successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to update parent', 400);
     }
 };
 
-export const regenerateToken = async (req: Request, res: Response): Promise<void> => {
+export const regenerateToken = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const { parent, rawToken } = await regenerateParentToken(req.params.id);
+        const { parent, rawToken } = await regenerateParentToken(req.params.id, req.branchId!);
         sendSuccess(res, { parent: stripTokenHashes(parent), rawToken }, 'Token regenerated successfully', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to regenerate token', 400);

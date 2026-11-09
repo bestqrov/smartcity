@@ -10,6 +10,7 @@ import {
 } from './parents.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
+import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
 
 const router = Router();
 
@@ -24,7 +25,9 @@ const publicProfileLimiter = rateLimit({
 router.get('/profile/:token', publicProfileLimiter, getPublicProfile);
 
 router.use(authMiddleware);
-router.use(roleMiddleware('ADMIN', 'SECRETARY', 'SUPER_ADMIN'));
+// Branch staff only: parents are scoped to the branch their children study in.
+router.use(roleMiddleware('ADMIN', 'SECRETARY', 'OWNER'));
+router.use(tenantScopeMiddleware);
 
 router.post('/', create);
 router.get('/', getAll);
