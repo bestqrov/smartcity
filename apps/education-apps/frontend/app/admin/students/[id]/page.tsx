@@ -6,6 +6,7 @@ import { getStudentById, regenerateStudentToken, regenerateStudentPortalToken } 
 import type { Student } from '@/types';
 import { ATTENDANCE_META, formatTime } from '@/lib/attendanceStatus';
 import QrCodeCard from '@/components/QrCodeCard';
+import { publicUrl } from '@/lib/publicUrl';
 import StudentTransportCard from '@/components/transport/StudentTransportCard';
 
 type Tab = 'attendance' | 'finance' | 'inscriptions' | 'info';
@@ -85,7 +86,7 @@ export default function StudentProfilePage() {
             {rawPortalToken && (
                 <QrCodeCard
                     title="Nouveau lien de profil élève — à partager avec l'élève, ne sera plus affiché"
-                    url={`${process.env.NEXT_PUBLIC_FRONTEND_URL || ''}/s/${rawPortalToken}`}
+                    url={publicUrl(`/s/${rawPortalToken}`)}
                 />
             )}
 
