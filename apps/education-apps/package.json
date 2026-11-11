@@ -14,6 +14,7 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:seed-packs": "ts-node prisma/seed-packs.ts",
     "prisma:seed-sales-agents": "ts-node prisma/seed-sales-agents.ts",
+    "prisma:migrate-agent-rates": "ts-node prisma/migrate-agent-rates.ts",
     "test": "jest"
   },
   "keywords": [
