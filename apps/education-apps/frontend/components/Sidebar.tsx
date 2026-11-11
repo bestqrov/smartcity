@@ -17,6 +17,7 @@ import {
   Megaphone,
   Bus,
   Package,
+  Briefcase,
   BookOpen
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -228,6 +229,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       path: '/admin/packs',
       activeColor: 'bg-[#334155]/50 border-[#FBBF24]',
       iconColor: 'text-[#FBBF24]'
+    },
+    {
+      id: 'sales-agents',
+      label: 'Commerciaux',
+      icon: Briefcase,
+      path: '/admin/sales-agents',
+      activeColor: 'bg-[#334155]/50 border-[#34D399]',
+      iconColor: 'text-[#34D399]'
     },
     ...adminMenuItems
   ];
