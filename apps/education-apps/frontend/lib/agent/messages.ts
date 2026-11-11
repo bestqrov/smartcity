@@ -189,6 +189,14 @@ const fr = {
     cash_note: 'Vos commissions vous seront remises en espèces.',
     save: 'Enregistrer',
     profile_saved: 'Profil enregistré.',
+    photo_change: 'Changer la photo',
+    photo_add: 'Ajouter une photo',
+    photo_remove: 'Supprimer la photo',
+    photo_saved: 'Photo enregistrée.',
+    photo_removed: 'Photo supprimée.',
+    photo_invalid: 'La photo doit être une image PNG, JPEG ou WEBP.',
+    photo_unreadable: "Impossible de lire cette image. Essayez un autre fichier.",
+    photo_too_big: 'La photo est trop lourde. Choisissez une image plus petite.',
     pwd_title: 'Changer le mot de passe',
     pwd_current: 'Mot de passe actuel',
     pwd_new: 'Nouveau mot de passe',
@@ -200,6 +208,7 @@ const fr = {
 
     // known backend errors (English) -> localized text
     api_errors: {
+        'Photo must be a PNG, JPEG or WEBP image under 500 KB': 'La photo doit être une image PNG, JPEG ou WEBP de moins de 500 Ko.',
         'RIB must be exactly 24 digits': 'Le RIB doit comporter exactement 24 chiffres.',
         'Current password is incorrect': 'Le mot de passe actuel est incorrect.',
         'This field can only be changed by an administrator': 'Ce champ ne peut être modifié que par un administrateur.',
@@ -378,6 +387,14 @@ const ar: AgentMessages = {
     cash_note: 'ستُسلَّم إليك عمولاتك نقدًا.',
     save: 'حفظ',
     profile_saved: 'تم حفظ الملف الشخصي.',
+    photo_change: 'تغيير الصورة',
+    photo_add: 'إضافة صورة',
+    photo_remove: 'حذف الصورة',
+    photo_saved: 'تم حفظ الصورة.',
+    photo_removed: 'تم حذف الصورة.',
+    photo_invalid: 'يجب أن تكون الصورة بصيغة PNG أو JPEG أو WEBP.',
+    photo_unreadable: 'تعذّرت قراءة هذه الصورة. جرّب ملفًا آخر.',
+    photo_too_big: 'حجم الصورة كبير جدًا. اختر صورة أصغر.',
     pwd_title: 'تغيير كلمة المرور',
     pwd_current: 'كلمة المرور الحالية',
     pwd_new: 'كلمة المرور الجديدة',
@@ -388,6 +405,7 @@ const ar: AgentMessages = {
     pwd_submit: 'تغيير كلمة المرور',
 
     api_errors: {
+        'Photo must be a PNG, JPEG or WEBP image under 500 KB': 'يجب أن تكون الصورة بصيغة PNG أو JPEG أو WEBP وأن يقل حجمها عن 500 كيلوبايت.',
         'RIB must be exactly 24 digits': 'يجب أن يتكوّن رقم RIB من 24 رقمًا بالضبط.',
         'Current password is incorrect': 'كلمة المرور الحالية غير صحيحة.',
         'This field can only be changed by an administrator': 'لا يمكن تعديل هذا الحقل إلا من طرف المسؤول.',

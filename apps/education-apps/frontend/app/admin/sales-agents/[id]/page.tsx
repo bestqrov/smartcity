@@ -1,5 +1,6 @@
 'use client';
 
+import { AgentAvatar } from '@/components/agent/AgentAvatar';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -157,10 +158,13 @@ export default function SalesAgentDetailPage() {
                 <p className="text-gray-500">Chargement…</p>
             ) : !report ? null : (
                 <>
-                    <h1 className="text-3xl font-bold text-gray-800">
-                        {report.agent.name}
-                        {report.agent.isHouse && <span className="ml-3 align-middle px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>}
-                    </h1>
+                    <div className="flex items-center gap-4">
+                        <AgentAvatar src={report.agent.avatar} name={report.agent.name} size={64} className="bg-indigo-100 text-indigo-700" />
+                        <h1 className="text-3xl font-bold text-gray-800">
+                            {report.agent.name}
+                            {report.agent.isHouse && <span className="ml-3 align-middle px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>}
+                        </h1>
+                    </div>
 
                     {!report.agent.isHouse && (
                         <div className="flex flex-wrap gap-2">

@@ -44,6 +44,7 @@ export interface SalesAgentListItem extends AgentRates {
     isHouse: boolean;
     active: boolean;
     email: string | null;
+    avatar: string | null;
     totals: AgentTotals;
 }
 
@@ -95,6 +96,7 @@ export interface AgentReport {
         isHouse: boolean;
         active: boolean;
         email: string | null;
+        avatar: string | null;
         referralPath: string;
     };
     totals: AgentTotals & { statusCounts: StatusCounts };
@@ -229,6 +231,7 @@ export async function getMyAgentReport(): Promise<AgentReport> {
 
 export interface ProfileInput {
     phone?: string;
+    avatar?: string | null;
     payoutMethod?: PayoutMethod | null;
     bankName?: string;
     rib?: string;

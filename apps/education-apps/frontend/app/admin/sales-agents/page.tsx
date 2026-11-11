@@ -10,6 +10,7 @@ import AgentRatesFields, { emptyRatesForm, ratesPayload, type RatesForm } from '
 import { apiErrorMessage, getAllPacks, type AdminPack } from '@/lib/services/packs';
 import { formatRates } from '@/lib/salesAgentLabels';
 import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
+import { AgentAvatar } from '@/components/agent/AgentAvatar';
 import { ClientStatusBadge } from '@/components/agent/StatusBadge';
 import {
     createSalesAgent,
@@ -181,13 +182,18 @@ export default function SalesAgentsPage() {
                                 <Fragment key={agent.id}>
                                 <tr className="border-t border-gray-100 hover:bg-gray-50">
                                     <td className="px-6 py-4">
-                                        <Link href={`/admin/sales-agents/${agent.id}`} className="font-semibold text-indigo-700 hover:underline">
-                                            {agent.name}
-                                        </Link>
-                                        {agent.isHouse && (
-                                            <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>
-                                        )}
-                                        <div className="text-xs text-gray-500">{agent.email ?? '—'}</div>
+                                        <div className="flex items-center gap-2">
+                                            <AgentAvatar src={agent.avatar} name={agent.name} size={28} className="bg-indigo-100 text-indigo-700" />
+                                            <div className="min-w-0">
+                                                <Link href={`/admin/sales-agents/${agent.id}`} className="font-semibold text-indigo-700 hover:underline">
+                                                    {agent.name}
+                                                </Link>
+                                                {agent.isHouse && (
+                                                    <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>
+                                                )}
+                                                <div className="text-xs text-gray-500">{agent.email ?? '—'}</div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 font-mono font-bold">{agent.code}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">

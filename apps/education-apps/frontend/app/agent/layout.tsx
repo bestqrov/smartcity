@@ -3,10 +3,11 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Briefcase, CreditCard, LayoutDashboard, LogOut, Moon, Percent, Receipt, Sun, UserCircle, Users } from 'lucide-react';
+import { CreditCard, LayoutDashboard, LogOut, Moon, Percent, Receipt, Sun, UserCircle, Users } from 'lucide-react';
 import { RequireRole } from '@/components/auth/RequireRole';
 import useAuthStore from '@/store/useAuthStore';
 import { AgentPrefsProvider, useAgentPrefs, type AgentSection } from '@/lib/agent/prefs';
+import { AgentAvatar } from '@/components/agent/AgentAvatar';
 import type { AgentMessages } from '@/lib/agent/messages';
 
 const CREDIT = 'Powered by Ariss BH Multiservice';
@@ -29,6 +30,12 @@ function Shell({ children }: { children: React.ReactNode }) {
     const user = useAuthStore((state) => state.user);
     const { lang, setLang, m, theme, toggleTheme, section, goToSection } = useAgentPrefs();
     const onProfile = pathname?.startsWith('/agent/profile');
+
+    // The login response carries no photo: fetch the full profile once when it is missing.
+    const needsProfile = !!user && user.avatar === undefined;
+    useEffect(() => {
+        if (needsProfile) useAuthStore.getState().getMe();
+    }, [needsProfile]);
 
     useEffect(() => {
         if (user?.role === 'SUPER_ADMIN') router.replace('/admin/sales-agents');
@@ -78,9 +85,7 @@ function Shell({ children }: { children: React.ReactNode }) {
                 {/* ---- desktop sidebar (inline start: right in Arabic) */}
                 <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-espresso-800 py-5 text-espresso-50 dark:bg-espresso-ink lg:flex">
                     <div className="flex flex-col items-center gap-2 px-4 text-center">
-                        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-espresso-50 text-espresso-800 dark:bg-espresso-200 dark:text-espresso-950">
-                            <Briefcase size={26} aria-hidden="true" />
-                        </span>
+                        <AgentAvatar src={user?.avatar} name={user?.name} size={56} className="bg-espresso-50 text-espresso-800 dark:bg-espresso-200 dark:text-espresso-950" />
                         <div className="text-sm font-extrabold">{m.brand}</div>
                         {user?.name && <div className="max-w-full truncate text-xs text-espresso-200">{user.name}</div>}
                     </div>
@@ -115,9 +120,7 @@ function Shell({ children }: { children: React.ReactNode }) {
                     <header className="sticky top-0 z-30 bg-espresso-800 text-espresso-50 shadow-sm dark:bg-espresso-ink lg:hidden">
                         <div className="flex items-center justify-between gap-2 px-4 py-2">
                             <div className="flex min-w-0 items-center gap-2">
-                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-espresso-50 text-espresso-800 dark:bg-espresso-200 dark:text-espresso-950">
-                                    <Briefcase size={16} aria-hidden="true" />
-                                </span>
+                                <AgentAvatar src={user?.avatar} name={user?.name} size={32} className="bg-espresso-50 text-espresso-800 dark:bg-espresso-200 dark:text-espresso-950" />
                                 <div className="min-w-0 leading-tight">
                                     <div className="truncate text-sm font-extrabold">{m.brand}</div>
                                     {user?.name && <div className="truncate text-[11px] text-espresso-200">{user.name}</div>}

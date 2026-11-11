@@ -8,6 +8,7 @@ export interface User {
     surname?: string;
     role: UserRole;
     schoolId?: string | null;
+    avatar?: string | null;
     createdAt: string;
 }
 

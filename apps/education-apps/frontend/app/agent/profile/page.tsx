@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { CheckCircle2, AlertCircle, KeyRound, Wallet, Contact } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { CheckCircle2, AlertCircle, KeyRound, Wallet, Contact, Camera, Trash2 } from 'lucide-react';
 import { apiErrorMessage } from '@/lib/services/packs';
 import {
     changeMyPassword,
@@ -15,6 +15,9 @@ import {
 } from '@/lib/services/salesAgents';
 import { useAgentPrefs } from '@/lib/agent/prefs';
 import { localizeApiError } from '@/lib/agent/messages';
+import { AvatarImageError, resizeAvatar } from '@/lib/agent/image';
+import { AgentAvatar } from '@/components/agent/AgentAvatar';
+import useAuthStore from '@/store/useAuthStore';
 
 type Notice = { type: 'ok' | 'error'; text: string } | null;
 
@@ -53,6 +56,9 @@ export default function AgentProfilePage() {
     const [pwd, setPwd] = useState({ current: '', next: '', confirm: '' });
     const [pwdNotice, setPwdNotice] = useState<{ type: 'ok' | 'error'; raw: string } | null>(null);
     const [busy, setBusy] = useState(false);
+    const [photoBusy, setPhotoBusy] = useState(false);
+    const [photoNotice, setPhotoNotice] = useState<{ type: 'ok' | 'error'; raw: string } | null>(null);
+    const fileInput = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         getMyAgentReport()
@@ -75,6 +81,11 @@ export default function AgentProfilePage() {
         '@saved': m.profile_saved,
         '@pwd_changed': m.pwd_changed,
         '@pwd_mismatch': m.pwd_mismatch,
+        '@photo_saved': m.photo_saved,
+        '@photo_removed': m.photo_removed,
+        '@photo_invalid': m.photo_invalid,
+        '@photo_unreadable': m.photo_unreadable,
+        '@photo_too_big': m.photo_too_big,
     };
     const toNotice = (n: { type: 'ok' | 'error'; raw: string } | null): Notice => (n ? { type: n.type, text: LOCAL[n.raw] ?? localizeApiError(m, n.raw) } : null);
 
@@ -99,6 +110,34 @@ export default function AgentProfilePage() {
             setProfileNotice({ type: 'error', raw: apiErrorMessage(err) });
         } finally {
             setBusy(false);
+        }
+    };
+
+    const savePhoto = async (avatar: string | null) => {
+        setPhotoBusy(true);
+        setPhotoNotice(null);
+        try {
+            await updateMyProfile({ avatar });
+            setAgent((current) => (current ? { ...current, avatar } : current));
+            const { user, setUser } = useAuthStore.getState();
+            if (user) setUser({ ...user, avatar });
+            setPhotoNotice({ type: 'ok', raw: avatar ? '@photo_saved' : '@photo_removed' });
+        } catch (err) {
+            const status = (err as { response?: { status?: number } })?.response?.status;
+            setPhotoNotice({ type: 'error', raw: status === 413 ? '@photo_too_big' : apiErrorMessage(err) });
+        } finally {
+            setPhotoBusy(false);
+        }
+    };
+
+    const onPickPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        try {
+            await savePhoto(await resizeAvatar(file));
+        } catch (err) {
+            setPhotoNotice({ type: 'error', raw: err instanceof AvatarImageError && err.code === 'type' ? '@photo_invalid' : '@photo_unreadable' });
         }
     };
 
@@ -150,6 +189,36 @@ export default function AgentProfilePage() {
                     <h1 className="text-lg font-extrabold sm:text-2xl">{m.profile_title}</h1>
                 </div>
             </header>
+
+            <section className={`${cardClass} flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-5`}>
+                <AgentAvatar src={agent.avatar} name={agent.name} size={96} className="bg-espresso-100 text-espresso-800 dark:bg-espresso-700 dark:text-espresso-50" />
+                <div className="flex w-full flex-1 flex-col items-center gap-2 sm:items-start">
+                    <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                        <input ref={fileInput} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={onPickPhoto} />
+                        <button
+                            type="button"
+                            disabled={photoBusy}
+                            onClick={() => fileInput.current?.click()}
+                            className="inline-flex items-center gap-2 rounded-lg bg-espresso-800 px-4 py-2 text-sm font-semibold text-white hover:bg-espresso-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-espresso-400 focus-visible:ring-offset-2 disabled:opacity-50 dark:bg-espresso-200 dark:text-espresso-950 dark:hover:bg-espresso-100 dark:focus-visible:ring-offset-espresso-900"
+                        >
+                            <Camera size={16} aria-hidden="true" /> {agent.avatar ? m.photo_change : m.photo_add}
+                        </button>
+                        {agent.avatar && (
+                            <button
+                                type="button"
+                                disabled={photoBusy}
+                                onClick={() => savePhoto(null)}
+                                className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300 disabled:opacity-50 dark:border-red-800/60 dark:text-red-200 dark:hover:bg-red-900/30"
+                            >
+                                <Trash2 size={16} aria-hidden="true" /> {m.photo_remove}
+                            </button>
+                        )}
+                    </div>
+                    <div className="w-full">
+                        <NoticeBox notice={toNotice(photoNotice)} />
+                    </div>
+                </div>
+            </section>
 
             <form onSubmit={saveProfile} className={`${cardClass} space-y-5`}>
                 <section className="space-y-3">
