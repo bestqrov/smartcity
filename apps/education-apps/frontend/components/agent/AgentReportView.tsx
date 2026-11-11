@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { Copy, Check, Trash2, TrendingUp, ChevronDown, ChevronRight } from 'lucide-react';
-import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
+import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
 import {
     BASE_RATE_FIELDS,
     CLIENT_STATUS_META,
     CLIENT_STATUS_ORDER,
+    PERIODS,
     PERIOD_LABELS,
-    packLabel,
 } from '@/lib/salesAgentLabels';
-import { formatDate, formatDay, formatLastPayment, formatMAD, referralUrl, type AgentReport } from '@/lib/services/salesAgents';
+import { formatDate, formatDay, formatLastPayment, formatMAD, referralUrl, type AgentReport, type RateTableRow, type SubscriptionPeriod } from '@/lib/services/salesAgents';
 import { ClientStatusBadge, PayoutStatusBadge, StatusLegend } from './StatusBadge';
 
 type Tab = 'schools' | 'commissions' | 'payouts';
@@ -20,6 +20,73 @@ interface Props {
     onDeletePayout?: (payoutId: string) => void; // admin only
     busy?: boolean;
     ratesTitle?: string; // "Mes taux" in the agent space
+}
+
+// Example commission in MAD for one cell; null when the pack has no price.
+const exampleCommission = (row: RateTableRow, period: SubscriptionPeriod): number | null => {
+    const price = period === 'YEARLY' ? row.yearlyPrice : row.monthlyPrice;
+    if (!price) return null;
+    const base = period === 'SEMIANNUAL' ? price * 6 : price;
+    return (base * row.rates[period]) / 100;
+};
+
+function RateTable({ rows }: { rows: RateTableRow[] }) {
+    const groups = INSTITUTION_TYPES.map((type) => ({ type, rows: rows.filter((row) => row.institutionTypes.includes(type)) })).filter(
+        (group) => group.rows.length > 0
+    );
+    if (groups.length === 0) return null;
+    const hasException = rows.some((row) => PERIODS.some((period) => row.exceptions[period]));
+
+    return (
+        <div className="space-y-4">
+            {groups.map((group) => (
+                <div key={group.type}>
+                    <div className="text-xs font-semibold text-gray-500 uppercase mb-1">{INSTITUTION_TYPE_LABELS[group.type]}</div>
+                    <div className="overflow-x-auto rounded-xl border border-gray-200">
+                        <table className="w-full text-left text-sm min-w-[480px]">
+                            <thead className="bg-gray-50 text-gray-600 text-xs">
+                                <tr>
+                                    <th className="px-3 py-2">Pack</th>
+                                    {PERIODS.map((period) => (
+                                        <th key={period} className="px-3 py-2">{PERIOD_LABELS[period]}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {group.rows.map((row) => (
+                                    <tr key={row.packId}>
+                                        <td className="px-3 py-2 font-medium text-gray-800">{row.packName}</td>
+                                        {PERIODS.map((period) => {
+                                            const example = exampleCommission(row, period);
+                                            const special = row.exceptions[period];
+                                            return (
+                                                <td key={period} className={`px-3 py-2 ${special ? 'bg-amber-50' : ''}`}>
+                                                    <div className="font-semibold text-gray-800">
+                                                        {special && <span className="text-amber-600 mr-1" aria-label="Taux spécifique à ce pack">★</span>}
+                                                        {row.rates[period]} %
+                                                    </div>
+                                                    {example !== null && (
+                                                        <div className="text-xs text-gray-500">
+                                                            {period === 'SEMIANNUAL' ? '≈ ' : ''}
+                                                            {formatMAD(example)}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            ))}
+            <p className="text-xs text-gray-500">
+                {hasException && <span className="mr-3"><span className="text-amber-600">★</span> Taux spécifique à ce pack</span>}
+                Montants : commission sur un paiement au prix catalogue du pack (semestriel : 6 mois, approximatif).
+            </p>
+        </div>
+    );
 }
 
 export default function AgentReportView({ report, onDeletePayout, busy, ratesTitle = 'Taux' }: Props) {
@@ -87,20 +154,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                         </span>
                     ))}
                 </div>
-                {report.agent.packRates.length > 0 ? (
-                    <div>
-                        <div className="text-xs text-gray-500 mb-1">Exceptions par pack</div>
-                        <ul className="text-sm text-gray-700 space-y-0.5">
-                            {report.agent.packRates.map((rate) => (
-                                <li key={`${rate.packId}-${rate.period}`}>
-                                    {packLabel(rate)} · {PERIOD_LABELS[rate.period]} : <b>{rate.rate} %</b>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ) : (
-                    <p className="text-xs text-gray-500">Pas d&apos;exception par pack.</p>
-                )}
+                <RateTable rows={report.rateTable ?? []} />
             </div>
 
             <div className="space-y-3">

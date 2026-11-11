@@ -11,6 +11,10 @@ import {
     sanitizePayout,
     type AgentUpdateData,
     type PackRateData,
+    type PeriodValue,
+    type RateSource,
+    PERIODS,
+    resolveCommissionRate,
 } from './salesAgents.validation';
 import { allocatePayouts, clientStatus, countStatuses, type Allocation } from './salesAgents.statuses';
 
@@ -176,6 +180,33 @@ export const updateAgent = async (id: string, input: Record<string, unknown>) =>
     return updated;
 };
 
+// One row per active pack with the rate the agent would get on each period (exception or base rate).
+const buildRateTable = async (agent: RateSource) => {
+    const packs = await prisma.pack.findMany({
+        where: { active: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+        select: { id: true, name: true, code: true, institutionTypes: true, monthlyPrice: true, yearlyPrice: true },
+    });
+    const perPeriod = <T>(compute: (period: PeriodValue) => T) =>
+        Object.fromEntries(PERIODS.map((period) => [period, compute(period)])) as Record<PeriodValue, T>;
+    const rows = packs.map((pack) => ({
+        packId: pack.id,
+        packName: pack.name,
+        packCode: pack.code,
+        institutionTypes: pack.institutionTypes,
+        monthlyPrice: pack.monthlyPrice,
+        yearlyPrice: pack.yearlyPrice,
+        rates: perPeriod((period) => resolveCommissionRate(agent, pack.id, period)),
+        exceptions: perPeriod((period) => agent.packRates.some((rate) => rate.packId === pack.id && rate.period === period)),
+    }));
+    // Grouped by institution type (first type of the pack) so the display order is stable; sortOrder kept within a type.
+    const typeOrder = (row: (typeof rows)[number]) => row.institutionTypes[0] ?? '';
+    return rows
+        .map((row, index) => ({ row, index }))
+        .sort((a, b) => typeOrder(a.row).localeCompare(typeOrder(b.row)) || a.index - b.index)
+        .map(({ row }) => row);
+};
+
 const NO_ALLOCATION: Allocation = { payoutStatus: 'NONE', paidAmount: 0 };
 
 const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
@@ -219,6 +250,7 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
     if (!agent) throw new Error('Sales agent not found');
 
     const labels = await packLabels([agent.packRates]);
+    const rateTable = await buildRateTable(agent);
     const totals = buildTotals(agent.schools, agent.payments, agent.payouts);
     const allocation = allocatePayouts(agent.payments, totals.totalPayouts);
     const schools = agent.schools.map(({ pack, ...school }) => {
@@ -256,6 +288,7 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
             email: agent.user?.email ?? null,
             referralPath: `/signup?ref=${agent.code}`,
         },
+        rateTable,
         totals: { ...totals, statusCounts: countStatuses(schools.map((school) => school.clientStatus)) },
         schools,
         commissions: agent.payments.map(({ school, schoolId: _schoolId, createdAt: _createdAt, ...payment }) => ({

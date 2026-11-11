@@ -47,7 +47,19 @@ export interface SalesAgentListItem extends AgentRates {
     totals: AgentTotals;
 }
 
+export interface RateTableRow {
+    packId: string;
+    packName: string;
+    packCode: string;
+    institutionTypes: InstitutionType[];
+    monthlyPrice: number | null;
+    yearlyPrice: number | null;
+    rates: Record<SubscriptionPeriod, number>;
+    exceptions: Record<SubscriptionPeriod, boolean>;
+}
+
 export interface AgentReport {
+    rateTable: RateTableRow[];
     agent: AgentRates & {
         id: string;
         name: string;

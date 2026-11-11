@@ -385,8 +385,59 @@ describe('agent report', () => {
         payouts: [{ id: 'o1', paidAt: new Date('2026-03-05'), amount: 300, note: null }],
     };
 
+    const activePacks = [
+        { id: PACK_A, name: 'Crèche', code: 'creche', institutionTypes: ['CRECHE'], monthlyPrice: 100, yearlyPrice: 1000 },
+        { id: PACK_B, name: 'Pro', code: 'pro', institutionTypes: ['PRIVATE_SCHOOL'], monthlyPrice: 300, yearlyPrice: 3000 },
+    ];
+
+    // Labels are looked up by id; the rate table asks for the active packs.
     beforeEach(() => {
-        (prisma.pack.findMany as jest.Mock).mockResolvedValue([{ id: PACK_A, name: 'Crèche', code: 'creche' }]);
+        (prisma.pack.findMany as jest.Mock).mockImplementation(async (args: any) =>
+            args?.where?.active === true ? activePacks : [{ id: PACK_A, name: 'Crèche', code: 'creche' }]
+        );
+    });
+
+    it('builds a full rate table over active packs: exception vs base rate', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(stored);
+
+        const report = await getAgentReport('a1');
+
+        expect(prisma.pack.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({ where: { active: true }, orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }] })
+        );
+        expect(report.rateTable).toEqual([
+            {
+                packId: PACK_A,
+                packName: 'Crèche',
+                packCode: 'creche',
+                institutionTypes: ['CRECHE'],
+                monthlyPrice: 100,
+                yearlyPrice: 1000,
+                rates: { MONTHLY: 10, SEMIANNUAL: 15, YEARLY: 20 },
+                exceptions: { MONTHLY: false, SEMIANNUAL: false, YEARLY: true },
+            },
+            {
+                packId: PACK_B,
+                packName: 'Pro',
+                packCode: 'pro',
+                institutionTypes: ['PRIVATE_SCHOOL'],
+                monthlyPrice: 300,
+                yearlyPrice: 3000,
+                rates: { MONTHLY: 10, SEMIANNUAL: 15, YEARLY: 25 },
+                exceptions: { MONTHLY: false, SEMIANNUAL: false, YEARLY: false },
+            },
+        ]);
+    });
+
+    it('excludes inactive packs from the rate table even when they have an exception', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({
+            ...stored,
+            packRates: [{ packId: 'inactive0000000000000000', period: 'MONTHLY', rate: 50 }],
+        });
+
+        const report = await getAgentReport('a1');
+
+        expect(report.rateTable.map((row) => row.packId)).toEqual([PACK_A, PACK_B]);
     });
 
     it('builds the report for an agent id, with rates, statuses and oldest-first payout allocation', async () => {
@@ -472,12 +523,13 @@ describe('agent report', () => {
         expect(args.include.schools.select.payments).toBeUndefined();
     });
 
-    it('does not query packs for an agent without exceptions', async () => {
+    it('only queries the active packs for an agent without exceptions', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ ...stored, packRates: [] });
 
         const report = await getAgentReport('a1');
 
-        expect(prisma.pack.findMany).not.toHaveBeenCalled();
+        expect(prisma.pack.findMany).toHaveBeenCalledTimes(1);
+        expect((prisma.pack.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ active: true });
         expect(report.agent.packRates).toEqual([]);
     });
 
