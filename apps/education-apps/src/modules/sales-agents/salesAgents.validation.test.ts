@@ -127,12 +127,12 @@ describe('sanitizePayout', () => {
 });
 
 describe('date strictness', () => {
-    it.each(['1', '2026-02-31', '2026-13-01', '11/01/2026'])('rejects %s', (bad) => {
+    it.each(['1', '2026-02-31', '2026-13-01', '11/01/2026', '0000-01-01', '1999-12-31', '2101-01-01', '2026-11-10T08:30:00.000Z'])('rejects %s', (bad) => {
         expect(() => sanitizePayment({ amount: 10, period: 'MONTHLY', paidAt: bad })).toThrow('Payment date must be a valid date');
         expect(() => sanitizePayout({ amount: 10, paidAt: bad })).toThrow('Payout date must be a valid date');
     });
-    it('accepts a date with a time part and a Date instance', () => {
-        expect(sanitizePayout({ amount: 10, paidAt: '2026-11-10T08:30:00.000Z' }).paidAt).toEqual(new Date('2026-11-10T08:30:00.000Z'));
+    it('accepts a plain date and a Date instance', () => {
+        expect(sanitizePayout({ amount: 10, paidAt: '2026-11-10' }).paidAt).toEqual(new Date('2026-11-10'));
         const d = new Date('2026-11-10');
         expect(sanitizePayout({ amount: 10, paidAt: d }).paidAt).toEqual(d);
     });

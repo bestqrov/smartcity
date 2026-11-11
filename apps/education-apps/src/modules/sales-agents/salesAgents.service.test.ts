@@ -1,5 +1,5 @@
 import prisma from '../../config/database';
-import { resolveReferralCode, isReferralCodeValid, listAgents, createAgent, updateAgent, getAgentReport, getAgentReportForUser, recordPayout, deletePayout } from './salesAgents.service';
+import { buildTotals, resolveReferralCode, isReferralCodeValid, listAgents, createAgent, updateAgent, getAgentReport, getAgentReportForUser, recordPayout, deletePayout } from './salesAgents.service';
 import * as bcryptUtil from '../../utils/bcrypt';
 
 jest.mock('../../config/database', () => {
@@ -91,6 +91,18 @@ describe('listAgents', () => {
     });
 });
 
+describe('buildTotals', () => {
+    it('gives a negative balance when payouts exceed commissions', () => {
+        expect(buildTotals([{ status: 'ACTIVE' }], [{ commissionAmount: 52.5 }], [{ amount: 100 }])).toEqual({
+            schools: 1,
+            activeSchools: 1,
+            totalCommissions: 52.5,
+            totalPayouts: 100,
+            balance: -47.5,
+        });
+    });
+});
+
 describe('createAgent', () => {
     const input = { name: 'Youssef', email: 'Y@example.com', password: 'secret123', code: 'youssef22', commissionRate: 15 };
 
@@ -104,6 +116,7 @@ describe('createAgent', () => {
     afterEach(() => jest.restoreAllMocks());
 
     it('creates the SALES_AGENT user and the agent in one transaction', async () => {
+        tx.salesAgent.create.mockResolvedValue({ id: 'a1', code: 'YOUSSEF22', userId: 'u1' });
         await expect(createAgent(input)).resolves.toEqual({ id: 'a1', code: 'YOUSSEF22' });
 
         expect(tx.user.create).toHaveBeenCalledWith({
@@ -134,9 +147,9 @@ describe('createAgent', () => {
 describe('updateAgent', () => {
     it('updates editable fields', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', isHouse: false });
-        (prisma.salesAgent.update as jest.Mock).mockResolvedValue({ id: 'a1', commissionRate: 20 });
+        (prisma.salesAgent.update as jest.Mock).mockResolvedValue({ id: 'a1', commissionRate: 20, userId: 'u1' });
 
-        await updateAgent('a1', { commissionRate: 20 });
+        await expect(updateAgent('a1', { commissionRate: 20 })).resolves.toEqual({ id: 'a1', commissionRate: 20 });
 
         expect(prisma.salesAgent.update).toHaveBeenCalledWith({ where: { id: 'a1' }, data: { commissionRate: 20 } });
     });
@@ -177,19 +190,13 @@ describe('agent report', () => {
                 ownerName: 'Owner',
                 ownerPhone: '0611',
                 pack: { name: 'Pro' },
-                payments: [{ amount: 350 }, { amount: 350 }],
             },
         ],
         payments: [
-            {
-                id: 'p1',
-                paidAt: new Date('2026-03-01'),
-                amount: 350,
-                period: 'MONTHLY',
-                commissionRate: 15,
-                commissionAmount: 52.5,
-                school: { name: 'Ecole A' },
-            },
+            { id: 'p1', schoolId: 's1', paidAt: new Date('2026-03-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 26.25, school: { name: 'Ecole A' } },
+            { id: 'p2', schoolId: 's1', paidAt: new Date('2026-02-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 26.25, school: { name: 'Ecole A' } },
+            // A school that moved to another agent: still credited as a commission, but not in this agent's schools.
+            { id: 'p3', schoolId: 's9', paidAt: new Date('2026-01-01'), amount: 999, period: 'YEARLY', commissionRate: 15, commissionAmount: 0, school: { name: 'Ecole Z' } },
         ],
         payouts: [{ id: 'o1', paidAt: new Date('2026-03-05'), amount: 50, note: null }],
     };
@@ -233,15 +240,9 @@ describe('agent report', () => {
             },
         ]);
         expect(report.commissions).toEqual([
-            {
-                id: 'p1',
-                paidAt: new Date('2026-03-01'),
-                amount: 350,
-                period: 'MONTHLY',
-                commissionRate: 15,
-                commissionAmount: 52.5,
-                schoolName: 'Ecole A',
-            },
+            { id: 'p1', paidAt: new Date('2026-03-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 26.25, schoolName: 'Ecole A' },
+            { id: 'p2', paidAt: new Date('2026-02-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 26.25, schoolName: 'Ecole A' },
+            { id: 'p3', paidAt: new Date('2026-01-01'), amount: 999, period: 'YEARLY', commissionRate: 15, commissionAmount: 0, schoolName: 'Ecole Z' },
         ]);
         expect(report.payouts).toEqual(stored.payouts);
     });
@@ -255,7 +256,8 @@ describe('agent report', () => {
         expect(args.where).toEqual({ userId: 'u1' });
         // Commissions come from the agent's own `payments` relation (SchoolPayment.salesAgentId),
         // so a payment made before the school moved to another agent stays with this agent.
-        expect(args.include.payments).toBeDefined();
+        expect(args.include.payments.select).toEqual(expect.objectContaining({ commissionAmount: true, schoolId: true }));
+        expect(args.include.schools.select.payments).toBeUndefined();
     });
 
     it('404s when no agent matches', async () => {

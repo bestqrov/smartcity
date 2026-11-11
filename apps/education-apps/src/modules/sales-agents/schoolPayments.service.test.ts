@@ -80,6 +80,14 @@ describe('recordSchoolPayment', () => {
         });
     });
 
+    it('an inactive agent still earns', async () => {
+        tx.school.findUnique.mockResolvedValue({ id: 's1', salesAgent: { id: 'a1', commissionRate: 15, active: false } });
+        await recordSchoolPayment('s1', input);
+        expect(tx.schoolPayment.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ salesAgentId: 'a1', commissionAmount: 52.5 }),
+        });
+    });
+
     it('records a zero commission when the school has no agent', async () => {
         tx.school.findUnique.mockResolvedValue({ id: 's1', salesAgent: null });
 
@@ -94,7 +102,9 @@ describe('recordSchoolPayment', () => {
         tx.school.findUnique.mockResolvedValue(null);
         await expect(recordSchoolPayment('zz', input)).rejects.toThrow('School not found');
 
+        jest.clearAllMocks();
         await expect(recordSchoolPayment('s1', { ...input, amount: 0 })).rejects.toThrow('Amount must be greater than 0');
+        expect(prisma.$transaction).not.toHaveBeenCalled();
         expect(tx.schoolPayment.create).not.toHaveBeenCalled();
     });
 });

@@ -73,7 +73,7 @@ export const createAgent = async (input: Record<string, unknown>) => {
     const password = await hashPassword(data.password);
 
     try {
-        return await prisma.$transaction(async (tx) => {
+        const { userId: _userId, ...created } = await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
                 data: { email: data.email, password, name: data.name, role: 'SALES_AGENT', gsm: data.phone },
             });
@@ -87,6 +87,7 @@ export const createAgent = async (input: Record<string, unknown>) => {
                 },
             });
         });
+        return created;
     } catch (error) {
         if ((error as { code?: string })?.code === 'P2002') throw new Error('Email or code already exists');
         throw error;
@@ -101,7 +102,8 @@ export const updateAgent = async (id: string, input: Record<string, unknown>) =>
     if (!existing) throw new Error('Sales agent not found');
     if (existing.isHouse && data.active === false) throw new Error('The company code cannot be deactivated');
 
-    return prisma.salesAgent.update({ where: { id }, data });
+    const { userId: _userId, ...updated } = await prisma.salesAgent.update({ where: { id }, data });
+    return updated;
 };
 
 const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
@@ -121,7 +123,6 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
                     ownerName: true,
                     ownerPhone: true,
                     pack: { select: { name: true } },
-                    payments: { select: { amount: true } },
                 },
             },
             // Payments credited to this agent (frozen on the payment), not payments of its current schools.
@@ -129,6 +130,7 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
                 orderBy: { paidAt: 'desc' },
                 select: {
                     id: true,
+                    schoolId: true,
                     paidAt: true,
                     amount: true,
                     period: true,
@@ -155,12 +157,13 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
             referralPath: `/signup?ref=${agent.code}`,
         },
         totals: buildTotals(agent.schools, agent.payments, agent.payouts),
-        schools: agent.schools.map(({ pack, payments, ...school }) => ({
+        schools: agent.schools.map(({ pack, ...school }) => ({
             ...school,
             packName: pack?.name ?? null,
-            totalPaid: sum(payments.map((payment) => payment.amount)),
+            // Only payments credited to this agent count.
+            totalPaid: sum(agent.payments.filter((payment) => payment.schoolId === school.id).map((payment) => payment.amount)),
         })),
-        commissions: agent.payments.map(({ school, ...payment }) => ({ ...payment, schoolName: school.name })),
+        commissions: agent.payments.map(({ school, schoolId: _schoolId, ...payment }) => ({ ...payment, schoolName: school.name })),
         payouts: agent.payouts,
     };
 };
