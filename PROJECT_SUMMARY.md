@@ -215,7 +215,7 @@ Lancé automatiquement par `prisma db seed` :
 Copier `.env.example` en `.env` à la racine et dans chaque service (`services/user-service`, `services/tourism-service`, `services/gateway`). La base de données actuellement configurée est :
 
 ```env
-DATABASE_URL="mongodb+srv://smartcityio:w5WyzPl1BkdZ66X9@cluster0.jgzxinu.mongodb.net/smartcity?appName=Cluster0"
+DATABASE_URL="mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/smartcity?appName=Cluster0"
 REDIS_URL="redis://localhost:6379"
 JWT_SECRET="dev-jwt-secret-change-in-production"
 JWT_REFRESH_SECRET="dev-jwt-refresh-secret-change-in-production"
