@@ -13,6 +13,7 @@
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:seed-packs": "ts-node prisma/seed-packs.ts",
+    "prisma:seed-sales-agents": "ts-node prisma/seed-sales-agents.ts",
     "test": "jest"
   },
   "keywords": [
