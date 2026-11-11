@@ -3,7 +3,29 @@ import type { ApiResponse } from '@/types';
 import type { InstitutionType } from '../institutionTypes';
 import type { SchoolStatus } from './schools';
 
-export type SubscriptionPeriod = 'MONTHLY' | 'YEARLY';
+export type SubscriptionPeriod = 'MONTHLY' | 'SEMIANNUAL' | 'YEARLY';
+export type ClientStatus = 'PENDING' | 'ACTIVE_UNPAID' | 'CONFIRMED' | 'CANCELLED';
+export type PayoutStatus = 'PAID' | 'PARTIAL' | 'DUE' | 'NONE';
+export type StatusCounts = Record<ClientStatus, number>;
+
+export interface PackRateInput {
+    packId: string;
+    period: SubscriptionPeriod;
+    rate: number;
+}
+
+// As returned by the API: the pack's current name and code are looked up (null if the pack is gone).
+export interface PackRate extends PackRateInput {
+    packName: string | null;
+    packCode: string | null;
+}
+
+export interface AgentRates {
+    monthlyRate: number;
+    semiannualRate: number;
+    yearlyRate: number;
+    packRates: PackRate[];
+}
 
 export interface AgentTotals {
     schools: number;
@@ -13,12 +35,11 @@ export interface AgentTotals {
     balance: number;
 }
 
-export interface SalesAgentListItem {
+export interface SalesAgentListItem extends AgentRates {
     id: string;
     name: string;
     phone: string | null;
     code: string;
-    commissionRate: number;
     isHouse: boolean;
     active: boolean;
     email: string | null;
@@ -26,24 +47,24 @@ export interface SalesAgentListItem {
 }
 
 export interface AgentReport {
-    agent: {
+    agent: AgentRates & {
         id: string;
         name: string;
         phone: string | null;
         code: string;
-        commissionRate: number;
         isHouse: boolean;
         active: boolean;
         email: string | null;
         referralPath: string;
     };
-    totals: AgentTotals;
+    totals: AgentTotals & { statusCounts: StatusCounts };
     schools: {
         id: string;
         name: string;
         city: string | null;
         institutionType: InstitutionType | null;
         status: SchoolStatus;
+        clientStatus: ClientStatus;
         createdAt: string;
         ownerName: string;
         ownerPhone: string | null;
@@ -55,26 +76,34 @@ export interface AgentReport {
         paidAt: string;
         amount: number;
         period: SubscriptionPeriod;
+        packName: string | null;
         commissionRate: number;
         commissionAmount: number;
         schoolName: string;
+        payoutStatus: PayoutStatus;
+        paidAmount: number;
     }[];
     payouts: { id: string; paidAt: string; amount: number; note: string | null }[];
 }
 
-export interface NewAgentInput {
+export interface BaseRatesInput {
+    monthlyRate: number;
+    semiannualRate: number;
+    yearlyRate: number;
+    packRates: PackRateInput[];
+}
+
+export interface NewAgentInput extends BaseRatesInput {
     name: string;
     email: string;
     password: string;
     phone?: string;
     code: string;
-    commissionRate: number;
 }
 
-export interface AgentUpdateInput {
+export interface AgentUpdateInput extends Partial<BaseRatesInput> {
     name?: string;
     phone?: string;
-    commissionRate?: number;
     active?: boolean;
 }
 
@@ -84,6 +113,7 @@ export interface SchoolPaymentItem {
     period: SubscriptionPeriod;
     paidAt: string;
     note: string | null;
+    packName: string | null; // null on payments recorded before v2
     commissionRate: number;
     commissionAmount: number;
     salesAgent: { id: string; name: string; code: string } | null;
