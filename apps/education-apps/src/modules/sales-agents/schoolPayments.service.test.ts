@@ -22,6 +22,19 @@ jest.mock('../../config/database', () => {
 
 const tx = (prisma as any).__tx;
 
+const PACK_A = '6ab050b281878c35b0f00752';
+
+const agent = {
+    id: 'a1',
+    active: true,
+    monthlyRate: 10,
+    semiannualRate: 15,
+    yearlyRate: 25,
+    packRates: [{ packId: PACK_A, period: 'YEARLY', rate: 20 }],
+};
+
+const crecheSchool = { id: 's1', packId: PACK_A, pack: { id: PACK_A, name: 'Crèche' }, salesAgent: agent };
+
 afterEach(() => jest.clearAllMocks());
 
 describe('assignSchoolAgent', () => {
@@ -57,53 +70,94 @@ describe('assignSchoolAgent', () => {
 });
 
 describe('recordSchoolPayment', () => {
-    const input = { amount: 350, period: 'MONTHLY', paidAt: '2026-11-01' };
+    beforeEach(() => tx.schoolPayment.create.mockResolvedValue({ id: 'p1' }));
 
-    it("freezes the school's current agent and rate on the payment", async () => {
-        tx.school.findUnique.mockResolvedValue({ id: 's1', salesAgent: { id: 'a1', commissionRate: 15 } });
-        tx.schoolPayment.create.mockResolvedValue({ id: 'p1' });
+    it("freezes the agent, the resolved exception rate and the school's pack on the payment", async () => {
+        tx.school.findUnique.mockResolvedValue(crecheSchool);
 
-        await recordSchoolPayment('s1', input);
+        await recordSchoolPayment('s1', { amount: 1500, period: 'YEARLY', paidAt: '2026-11-01' });
 
-        expect(tx.school.findUnique).toHaveBeenCalledWith({ where: { id: 's1' }, include: { salesAgent: true } });
+        expect(tx.school.findUnique).toHaveBeenCalledWith({
+            where: { id: 's1' },
+            include: { salesAgent: true, pack: { select: { id: true, name: true } } },
+        });
         expect(tx.schoolPayment.create).toHaveBeenCalledWith({
             data: {
-                amount: 350,
-                period: 'MONTHLY',
+                amount: 1500,
+                period: 'YEARLY',
                 paidAt: new Date('2026-11-01'),
                 note: undefined,
                 schoolId: 's1',
                 salesAgentId: 'a1',
-                commissionRate: 15,
-                commissionAmount: 52.5,
+                packId: PACK_A,
+                packName: 'Crèche',
+                commissionRate: 20,
+                commissionAmount: 300,
             },
         });
     });
 
-    it('an inactive agent still earns', async () => {
-        tx.school.findUnique.mockResolvedValue({ id: 's1', salesAgent: { id: 'a1', commissionRate: 15, active: false } });
-        await recordSchoolPayment('s1', input);
+    it('uses the base rate of the period when the pack has no exception for it', async () => {
+        tx.school.findUnique.mockResolvedValue(crecheSchool);
+
+        await recordSchoolPayment('s1', { amount: 150, period: 'MONTHLY', paidAt: '2026-11-01' });
+
         expect(tx.schoolPayment.create).toHaveBeenCalledWith({
-            data: expect.objectContaining({ salesAgentId: 'a1', commissionAmount: 52.5 }),
+            data: expect.objectContaining({ period: 'MONTHLY', commissionRate: 10, commissionAmount: 15, packName: 'Crèche' }),
         });
     });
 
-    it('records a zero commission when the school has no agent', async () => {
-        tx.school.findUnique.mockResolvedValue({ id: 's1', salesAgent: null });
+    it('accepts a semi-annual payment', async () => {
+        tx.school.findUnique.mockResolvedValue(crecheSchool);
 
-        await recordSchoolPayment('s1', input);
+        await recordSchoolPayment('s1', { amount: 1500, period: 'SEMIANNUAL', paidAt: '2026-11-01' });
 
         expect(tx.schoolPayment.create).toHaveBeenCalledWith({
-            data: expect.objectContaining({ salesAgentId: null, commissionRate: 0, commissionAmount: 0 }),
+            data: expect.objectContaining({ period: 'SEMIANNUAL', commissionRate: 15, commissionAmount: 225 }),
+        });
+    });
+
+    it('uses the base rate and stores no pack for a school without a pack', async () => {
+        tx.school.findUnique.mockResolvedValue({ id: 's1', packId: null, pack: null, salesAgent: agent });
+
+        await recordSchoolPayment('s1', { amount: 1000, period: 'YEARLY', paidAt: '2026-11-01' });
+
+        expect(tx.schoolPayment.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ packId: null, packName: null, commissionRate: 25, commissionAmount: 250 }),
+        });
+    });
+
+    it('an inactive agent still earns', async () => {
+        tx.school.findUnique.mockResolvedValue({ ...crecheSchool, salesAgent: { ...agent, active: false } });
+
+        await recordSchoolPayment('s1', { amount: 150, period: 'MONTHLY', paidAt: '2026-11-01' });
+
+        expect(tx.schoolPayment.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ salesAgentId: 'a1', commissionAmount: 15 }),
+        });
+    });
+
+    it('records a zero commission when the school has no agent, but still snapshots the pack', async () => {
+        tx.school.findUnique.mockResolvedValue({ ...crecheSchool, salesAgent: null });
+
+        await recordSchoolPayment('s1', { amount: 350, period: 'MONTHLY', paidAt: '2026-11-01' });
+
+        expect(tx.schoolPayment.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ salesAgentId: null, commissionRate: 0, commissionAmount: 0, packId: PACK_A, packName: 'Crèche' }),
         });
     });
 
     it('404s an unknown school and validates input before touching the database', async () => {
         tx.school.findUnique.mockResolvedValue(null);
-        await expect(recordSchoolPayment('zz', input)).rejects.toThrow('School not found');
+        await expect(recordSchoolPayment('zz', { amount: 350, period: 'MONTHLY', paidAt: '2026-11-01' })).rejects.toThrow('School not found');
 
         jest.clearAllMocks();
-        await expect(recordSchoolPayment('s1', { ...input, amount: 0 })).rejects.toThrow('Amount must be greater than 0');
+        await expect(recordSchoolPayment('s1', { amount: 0, period: 'MONTHLY', paidAt: '2026-11-01' })).rejects.toThrow(
+            'Amount must be greater than 0'
+        );
+        await expect(recordSchoolPayment('s1', { amount: 10, period: 'WEEKLY', paidAt: '2026-11-01' })).rejects.toThrow(
+            'Period must be MONTHLY, SEMIANNUAL or YEARLY'
+        );
         expect(prisma.$transaction).not.toHaveBeenCalled();
         expect(tx.schoolPayment.create).not.toHaveBeenCalled();
     });

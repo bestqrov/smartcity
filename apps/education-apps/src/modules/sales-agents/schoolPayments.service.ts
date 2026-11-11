@@ -1,6 +1,6 @@
 import prisma from '../../config/database';
 import { assertId } from '../transport/ids';
-import { computeCommission, sanitizePayment } from './salesAgents.validation';
+import { computeCommission, resolveCommissionRate, sanitizePayment } from './salesAgents.validation';
 
 // Changing a school's agent only affects payments recorded afterwards: past payments keep their frozen agent.
 export const assignSchoolAgent = async (schoolId: string, salesAgentId: unknown) => {
@@ -35,21 +35,29 @@ export const listSchoolPayments = async (schoolId: string) => {
     });
 };
 
+// The school's current agent, the rate resolved for (pack, period) and the pack itself are frozen on the
+// payment: later changes to the agent's rates, the school's agent or its pack never touch it.
 // An inactive agent still earns: deactivation only stops new signups with the code.
 export const recordSchoolPayment = async (schoolId: string, input: Record<string, unknown>) => {
     assertId('School id', schoolId);
     const data = sanitizePayment(input);
 
     return prisma.$transaction(async (tx) => {
-        const school = await tx.school.findUnique({ where: { id: schoolId }, include: { salesAgent: true } });
+        const school = await tx.school.findUnique({
+            where: { id: schoolId },
+            include: { salesAgent: true, pack: { select: { id: true, name: true } } },
+        });
         if (!school) throw new Error('School not found');
 
-        const rate = school.salesAgent?.commissionRate ?? 0;
+        const packId = school.pack?.id ?? null;
+        const rate = resolveCommissionRate(school.salesAgent, packId, data.period);
         return tx.schoolPayment.create({
             data: {
                 ...data,
                 schoolId,
                 salesAgentId: school.salesAgent?.id ?? null,
+                packId,
+                packName: school.pack?.name ?? null,
                 commissionRate: rate,
                 commissionAmount: computeCommission(data.amount, rate),
             },
