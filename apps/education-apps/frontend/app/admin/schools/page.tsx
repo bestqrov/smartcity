@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/store/useAuthStore';
 import { getAllSchools, updateSchoolStatus, SchoolListItem } from '@/lib/services/schools';
-import { Building2, CheckCircle } from 'lucide-react';
+import { Building2, CheckCircle, Wallet } from 'lucide-react';
+import SchoolPaymentsModal from '@/components/admin/SchoolPaymentsModal';
+import { assignSchoolAgent, getSalesAgents, type SalesAgentListItem } from '@/lib/services/salesAgents';
 import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
 import { apiErrorMessage, assignSchoolPack, getAllPacks, type AdminPack } from '@/lib/services/packs';
 
@@ -17,6 +19,8 @@ export default function SuperAdminSchoolsPage() {
     const [activatingId, setActivatingId] = useState<string | null>(null);
     const [packs, setPacks] = useState<AdminPack[]>([]);
     const [assigningId, setAssigningId] = useState<string | null>(null);
+    const [agents, setAgents] = useState<SalesAgentListItem[]>([]);
+    const [paymentsSchool, setPaymentsSchool] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
         if (user && user.role !== 'SUPER_ADMIN') {
@@ -33,9 +37,10 @@ export default function SuperAdminSchoolsPage() {
         setLoading(true);
         setError('');
         try {
-            const [data, allPacks] = await Promise.all([getAllSchools(), getAllPacks()]);
+            const [data, allPacks, allAgents] = await Promise.all([getAllSchools(), getAllPacks(), getSalesAgents()]);
             setSchools(data);
             setPacks(allPacks);
+            setAgents(allAgents);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Échec du chargement des écoles');
         } finally {
@@ -61,6 +66,19 @@ export default function SuperAdminSchoolsPage() {
         setError('');
         try {
             await assignSchoolPack(schoolId, packId);
+            await fetchSchools();
+        } catch (err) {
+            setError(apiErrorMessage(err));
+        } finally {
+            setAssigningId(null);
+        }
+    };
+
+    const handleAssignAgent = async (schoolId: string, agentId: string) => {
+        setAssigningId(schoolId);
+        setError('');
+        try {
+            await assignSchoolAgent(schoolId, agentId || null);
             await fetchSchools();
         } catch (err) {
             setError(apiErrorMessage(err));
@@ -102,6 +120,7 @@ export default function SuperAdminSchoolsPage() {
                                 <th className="px-6 py-4">Fin essai</th>
                                 <th className="px-6 py-4">Type</th>
                                 <th className="px-6 py-4">Pack</th>
+                                <th className="px-6 py-4">Commercial</th>
                                 <th className="px-6 py-4">Action</th>
                             </tr>
                         </thead>
@@ -147,6 +166,22 @@ export default function SuperAdminSchoolsPage() {
                                         </select>
                                     </td>
                                     <td className="px-6 py-4">
+                                        <select
+                                            value={school.salesAgentId ?? ''}
+                                            disabled={assigningId === school.id}
+                                            onChange={(e) => handleAssignAgent(school.id, e.target.value)}
+                                            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm disabled:opacity-50"
+                                        >
+                                            <option value="">Aucun commercial</option>
+                                            {agents.map((agent) => (
+                                                <option key={agent.id} value={agent.id}>
+                                                    {agent.name} ({agent.code}){agent.active ? '' : ' — inactif'}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2">
                                         {school.status === 'PENDING' && (
                                             <button
                                                 onClick={() => handleActivate(school.id)}
@@ -157,6 +192,13 @@ export default function SuperAdminSchoolsPage() {
                                                 {activatingId === school.id ? 'Activation…' : 'Activer'}
                                             </button>
                                         )}
+                                            <button
+                                                onClick={() => setPaymentsSchool({ id: school.id, name: school.name })}
+                                                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-semibold text-sm"
+                                            >
+                                                <Wallet size={16} /> Paiements
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -164,6 +206,7 @@ export default function SuperAdminSchoolsPage() {
                     </table>
                 )}
             </div>
+            <SchoolPaymentsModal school={paymentsSchool} onClose={() => setPaymentsSchool(null)} />
         </div>
     );
 }
