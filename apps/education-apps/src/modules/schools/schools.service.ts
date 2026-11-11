@@ -1,9 +1,11 @@
+import { resolveReferralCode } from '../sales-agents/salesAgents.service';
 import prisma from '../../config/database';
 import { hashPassword } from '../../utils/bcrypt';
 import { assertId } from '../transport/ids';
 import { DEFAULT_INSTITUTION_TYPE, InstitutionTypeValue, isInstitutionType } from '../packs/packs.constants';
 
 export interface SignupSchoolData {
+    referralCode?: unknown; // required; typed loosely because it comes straight from a public request body
     schoolName?: string;
     ownerName: string;
     ownerEmail: string;
@@ -40,6 +42,8 @@ export const signupSchool = async (data: SignupSchoolData) => {
         throw new Error('institutionType is required and must be valid');
     }
 
+    const agent = await resolveReferralCode(data.referralCode);
+
     const email = data.ownerEmail.toLowerCase();
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -65,6 +69,7 @@ export const signupSchool = async (data: SignupSchoolData) => {
                     status: 'PENDING',
                     institutionType: data.institutionType,
                     packId: pack?.id ?? null,
+                    salesAgentId: agent.id,
                     ownerName: data.ownerName,
                     ownerEmail: email,
                     ownerPhone: data.ownerPhone,

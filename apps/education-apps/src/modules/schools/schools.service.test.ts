@@ -15,6 +15,7 @@ jest.mock('../../config/database', () => ({
         user: { findUnique: jest.fn() },
         school: { findUnique: jest.fn(), update: jest.fn(), findMany: jest.fn() },
         pack: { findFirst: jest.fn() },
+        salesAgent: { findFirst: jest.fn() },
         $transaction: jest.fn(),
     },
 }));
@@ -24,6 +25,7 @@ const baseInput = {
     ownerEmail: 'owner@example.com',
     password: 'secret123',
     institutionType: 'PRIVATE_SCHOOL' as const,
+    referralCode: 'YOUSSEF22',
 };
 
 const arrangeSignup = () => {
@@ -52,8 +54,39 @@ const pack = (over: Record<string, unknown> = {}) => ({
     ...over,
 });
 
+const agent = { id: 'agent1', code: 'YOUSSEF22', active: true, commissionRate: 15 };
+
+beforeEach(() => {
+    jest.clearAllMocks();
+    (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(agent);
+});
+
 describe('signupSchool', () => {
     afterEach(() => jest.restoreAllMocks());
+
+    it('rejects a signup without a referral code', async () => {
+        arrangeSignup();
+        await expect(signupSchool({ ...baseInput, referralCode: '' })).rejects.toThrow('Referral code is required');
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('rejects an unknown or inactive referral code', async () => {
+        arrangeSignup();
+        (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(null);
+        await expect(signupSchool({ ...baseInput, referralCode: 'NOPE' })).rejects.toThrow('Invalid referral code');
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('attributes the school to the agent behind the code (case and spaces ignored)', async () => {
+        const { txClient } = arrangeSignup();
+
+        await signupSchool({ ...baseInput, referralCode: '  youssef22 ' });
+
+        expect(prisma.salesAgent.findFirst).toHaveBeenCalledWith({ where: { code: 'YOUSSEF22', active: true } });
+        expect(txClient.school.create).toHaveBeenCalledWith(
+            expect.objectContaining({ data: expect.objectContaining({ salesAgentId: 'agent1' }) })
+        );
+    });
 
     it('throws if the owner email is already registered', async () => {
         (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'existing' });
