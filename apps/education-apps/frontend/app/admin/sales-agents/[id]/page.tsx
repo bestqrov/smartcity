@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, KeyRound } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
 import useAuthStore from '@/store/useAuthStore';
 import AgentReportView from '@/components/agent/AgentReportView';
 import AgentRatesFields, { emptyRatesForm, ratesFormFrom, ratesPayload, type RatesForm } from '@/components/admin/AgentRatesFields';
@@ -16,6 +17,7 @@ import {
     todayLocal,
     getSalesAgentReport,
     recordAgentPayout,
+    resetAgentPassword,
     updateSalesAgent,
     type AgentReport,
 } from '@/lib/services/salesAgents';
@@ -31,6 +33,9 @@ export default function SalesAgentDetailPage() {
     const [rates, setRates] = useState<RatesForm>(emptyRatesForm);
     const [payout, setPayout] = useState({ amount: '', paidAt: todayLocal(), note: '' });
     const [busy, setBusy] = useState(false);
+    const [pwdOpen, setPwdOpen] = useState(false);
+    const [pwd, setPwd] = useState({ next: '', confirm: '' });
+    const [pwdNotice, setPwdNotice] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
 
     const load = async () => {
         setError('');
@@ -89,6 +94,29 @@ export default function SalesAgentDetailPage() {
         run(() => deleteAgentPayout(id, payoutId));
     };
 
+    const closePwd = () => {
+        setPwdOpen(false);
+        setPwd({ next: '', confirm: '' });
+        setPwdNotice(null);
+    };
+
+    const submitPwd = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPwdNotice(null);
+        if (pwd.next.length < 8) return setPwdNotice({ type: 'error', text: 'Le mot de passe doit contenir au moins 8 caractères.' });
+        if (pwd.next !== pwd.confirm) return setPwdNotice({ type: 'error', text: 'Les deux mots de passe ne correspondent pas.' });
+        setBusy(true);
+        try {
+            await resetAgentPassword(id, pwd.next);
+            setPwd({ next: '', confirm: '' });
+            setPwdNotice({ type: 'ok', text: 'Mot de passe modifié. Communiquez-le au commercial.' });
+        } catch (err) {
+            setPwdNotice({ type: 'error', text: apiErrorMessage(err) });
+        } finally {
+            setBusy(false);
+        }
+    };
+
     if (!user || user.role !== 'SUPER_ADMIN') return null;
 
     const inputClass = 'px-3 py-2 border border-gray-200 rounded-lg';
@@ -109,6 +137,16 @@ export default function SalesAgentDetailPage() {
                         {report.agent.name}
                         {report.agent.isHouse && <span className="ml-3 align-middle px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>}
                     </h1>
+
+                    {!report.agent.isHouse && (
+                        <button
+                            type="button"
+                            onClick={() => setPwdOpen(true)}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                            <KeyRound size={16} aria-hidden="true" /> Réinitialiser le mot de passe
+                        </button>
+                    )}
 
                     <div className="grid md:grid-cols-2 gap-4 items-start">
                         <form onSubmit={saveAgent} className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
@@ -162,6 +200,22 @@ export default function SalesAgentDetailPage() {
                             </div>
                         )}
                     </div>
+
+                    <Modal isOpen={pwdOpen} onClose={closePwd} title="Réinitialiser le mot de passe" size="sm">
+                        <form onSubmit={submitPwd} className="space-y-3">
+                            <input className={`${inputClass} w-full`} type="password" autoComplete="new-password" aria-label="Nouveau mot de passe" placeholder="Nouveau mot de passe (8 caractères min.)" value={pwd.next} onChange={(e) => setPwd({ ...pwd, next: e.target.value })} required />
+                            <input className={`${inputClass} w-full`} type="password" autoComplete="new-password" aria-label="Confirmer le mot de passe" placeholder="Confirmer le mot de passe" value={pwd.confirm} onChange={(e) => setPwd({ ...pwd, confirm: e.target.value })} required />
+                            {pwdNotice && (
+                                <div role={pwdNotice.type === 'error' ? 'alert' : 'status'} className={`p-3 rounded-lg text-sm border ${pwdNotice.type === 'ok' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                                    {pwdNotice.text}
+                                </div>
+                            )}
+                            <div className="flex justify-end gap-2">
+                                <button type="button" onClick={closePwd} className="px-4 py-2 border border-gray-200 rounded-lg text-gray-700">Fermer</button>
+                                <button disabled={busy} className="px-4 py-2 bg-gray-800 text-white rounded-lg font-semibold disabled:opacity-50">Modifier</button>
+                            </div>
+                        </form>
+                    </Modal>
 
                     <AgentReportView report={report} onDeletePayout={removePayout} busy={busy} />
                 </>

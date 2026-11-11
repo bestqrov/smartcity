@@ -12,6 +12,7 @@ import {
     deletePayout,
     updateOwnProfile,
     changeOwnPassword,
+    resetAgentPassword,
 } from './salesAgents.service';
 import * as bcryptUtil from '../../utils/bcrypt';
 
@@ -655,5 +656,32 @@ describe('changeOwnPassword', () => {
     it('rejects a short new password before reading the user', async () => {
         await expect(changeOwnPassword('u1', { currentPassword: 'x', newPassword: 'short' })).rejects.toThrow('Password must be at least 8 characters');
         expect(prisma.user.findUnique).not.toHaveBeenCalled();
+    });
+});
+
+describe('resetAgentPassword', () => {
+    it('hashes the new password onto the linked user and never returns it', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', isHouse: false, userId: 'u1' });
+        jest.spyOn(bcryptUtil, 'hashPassword').mockResolvedValue('new-hash');
+
+        await expect(resetAgentPassword('6ab050b281878c35b0f00752', { newPassword: 'newpass123' })).resolves.toEqual({ changed: true });
+
+        expect(prisma.user.update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { password: 'new-hash' } });
+    });
+
+    it('rejects a short password before reading', async () => {
+        await expect(resetAgentPassword('6ab050b281878c35b0f00752', { newPassword: 'short' })).rejects.toThrow('Password must be at least 8 characters');
+        expect(prisma.salesAgent.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('400s for the house agent, which has no login', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', isHouse: true, userId: null });
+        await expect(resetAgentPassword('6ab050b281878c35b0f00752', { newPassword: 'newpass123' })).rejects.toThrow('The company code has no login');
+        expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('404s for an unknown agent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(null);
+        await expect(resetAgentPassword('6ab050b281878c35b0f00752', { newPassword: 'newpass123' })).rejects.toThrow('Sales agent not found');
     });
 });

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
-import { check, list, create, detail, update, addPayout, removePayout } from './salesAgents.controller';
+import { check, list, create, detail, update, addPayout, removePayout, resetPassword } from './salesAgents.controller';
 
 const router = Router();
 
@@ -23,6 +23,7 @@ router.get('/', list);
 router.post('/', create);
 router.get('/:id', detail);
 router.patch('/:id', update);
+router.patch('/:id/password', resetPassword);
 router.post('/:id/payouts', addPayout);
 router.delete('/:id/payouts/:payoutId', removePayout);
 

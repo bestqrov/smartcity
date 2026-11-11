@@ -12,6 +12,7 @@ import {
     deletePayout,
     updateOwnProfile,
     changeOwnPassword,
+    resetAgentPassword,
 } from './salesAgents.service';
 import {
     assignSchoolAgent,
@@ -59,6 +60,12 @@ export const removePayout = (req: Request, res: Response) =>
     respond(res, () => deletePayout(req.params.id, req.params.payoutId), {
         message: 'Payout deleted',
         failure: 'Failed to delete payout',
+    });
+
+export const resetPassword = (req: Request, res: Response) =>
+    respond(res, () => resetAgentPassword(req.params.id, req.body ?? {}), {
+        message: 'Password reset',
+        failure: 'Failed to reset password',
     });
 
 export const me = (req: AuthRequest, res: Response) =>

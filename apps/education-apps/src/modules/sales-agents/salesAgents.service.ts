@@ -360,3 +360,14 @@ export const changeOwnPassword = async (userId: string, input: Record<string, un
     await prisma.user.update({ where: { id: userId }, data: { password: await hashPassword(newPassword) } });
     return { changed: true };
 };
+
+// Super admin sets a new password on the agent's login account. The house agent has no login.
+export const resetAgentPassword = async (agentId: string, input: Record<string, unknown>) => {
+    assertId('Sales agent id', agentId);
+    const newPassword = sanitizeNewPassword(input.newPassword);
+    const agent = await prisma.salesAgent.findUnique({ where: { id: agentId } });
+    if (!agent) throw new Error('Sales agent not found');
+    if (agent.isHouse || !agent.userId) throw new Error('The company code has no login');
+    await prisma.user.update({ where: { id: agent.userId }, data: { password: await hashPassword(newPassword) } });
+    return { changed: true };
+};
