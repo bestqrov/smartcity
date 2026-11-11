@@ -53,6 +53,13 @@ describe('isReferralCodeValid', () => {
         await expect(isReferralCodeValid('NOPE')).resolves.toBe(false);
         await expect(isReferralCodeValid('')).resolves.toBe(false);
     });
+
+    it('surfaces infrastructure errors instead of calling the code invalid', async () => {
+        (prisma.salesAgent.findFirst as jest.Mock).mockRejectedValueOnce(
+            Object.assign(new Error('db down'), { name: 'PrismaClientKnownRequestError' })
+        );
+        await expect(isReferralCodeValid('ARWA')).rejects.toThrow('db down');
+    });
 });
 
 describe('listAgents', () => {
@@ -193,10 +200,10 @@ describe('agent report', () => {
             },
         ],
         payments: [
-            { id: 'p1', schoolId: 's1', paidAt: new Date('2026-03-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 26.25, school: { name: 'Ecole A' } },
-            { id: 'p2', schoolId: 's1', paidAt: new Date('2026-02-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 26.25, school: { name: 'Ecole A' } },
+            { id: 'p1', schoolId: 's1', paidAt: new Date('2026-03-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 52.5, school: { name: 'Ecole A' } },
+            { id: 'p2', schoolId: 's1', paidAt: new Date('2026-02-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 52.5, school: { name: 'Ecole A' } },
             // A school that moved to another agent: still credited as a commission, but not in this agent's schools.
-            { id: 'p3', schoolId: 's9', paidAt: new Date('2026-01-01'), amount: 999, period: 'YEARLY', commissionRate: 15, commissionAmount: 0, school: { name: 'Ecole Z' } },
+            { id: 'p3', schoolId: 's9', paidAt: new Date('2026-01-01'), amount: 999, period: 'YEARLY', commissionRate: 15, commissionAmount: 149.85, school: { name: 'Ecole Z' } },
         ],
         payouts: [{ id: 'o1', paidAt: new Date('2026-03-05'), amount: 50, note: null }],
     };
@@ -221,9 +228,9 @@ describe('agent report', () => {
         expect(report.totals).toEqual({
             schools: 1,
             activeSchools: 1,
-            totalCommissions: 52.5,
+            totalCommissions: 254.85,
             totalPayouts: 50,
-            balance: 2.5,
+            balance: 204.85,
         });
         expect(report.schools).toEqual([
             {
@@ -240,9 +247,9 @@ describe('agent report', () => {
             },
         ]);
         expect(report.commissions).toEqual([
-            { id: 'p1', paidAt: new Date('2026-03-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 26.25, schoolName: 'Ecole A' },
-            { id: 'p2', paidAt: new Date('2026-02-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 26.25, schoolName: 'Ecole A' },
-            { id: 'p3', paidAt: new Date('2026-01-01'), amount: 999, period: 'YEARLY', commissionRate: 15, commissionAmount: 0, schoolName: 'Ecole Z' },
+            { id: 'p1', paidAt: new Date('2026-03-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 52.5, schoolName: 'Ecole A' },
+            { id: 'p2', paidAt: new Date('2026-02-01'), amount: 350, period: 'MONTHLY', commissionRate: 15, commissionAmount: 52.5, schoolName: 'Ecole A' },
+            { id: 'p3', paidAt: new Date('2026-01-01'), amount: 999, period: 'YEARLY', commissionRate: 15, commissionAmount: 149.85, schoolName: 'Ecole Z' },
         ]);
         expect(report.payouts).toEqual(stored.payouts);
     });

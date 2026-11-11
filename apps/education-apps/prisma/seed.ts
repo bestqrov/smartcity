@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { seedHouseAgent } from '../src/modules/sales-agents/salesAgents.seed';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -148,6 +149,9 @@ async function main() {
             console.log(`Pricing already exists: ${item.level} - ${item.subject}`);
         }
     }
+
+    console.log('\nEnsuring house referral code...');
+    await seedHouseAgent(prisma);
 
     console.log('\n✅ Database seed completed!');
 }

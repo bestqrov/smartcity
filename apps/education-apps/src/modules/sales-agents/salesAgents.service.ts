@@ -23,8 +23,11 @@ export const isReferralCodeValid = async (raw: unknown): Promise<boolean> => {
     try {
         await resolveReferralCode(raw);
         return true;
-    } catch {
-        return false;
+    } catch (error) {
+        if (error instanceof Error && (error.message === 'Referral code is required' || error.message === 'Invalid referral code')) {
+            return false;
+        }
+        throw error;
     }
 };
 
