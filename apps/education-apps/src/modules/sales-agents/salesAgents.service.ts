@@ -100,7 +100,7 @@ export const listAgents = async () => {
     const agents = await prisma.salesAgent.findMany({
         orderBy: [{ isHouse: 'desc' }, { createdAt: 'asc' }],
         include: {
-            user: { select: { email: true } },
+            user: { select: { email: true, avatar: true } },
             schools: { select: { status: true } },
             payments: { select: { commissionAmount: true } },
             payouts: { select: { amount: true } },
@@ -112,6 +112,7 @@ export const listAgents = async () => {
         ...agent,
         packRates: withPackNames(packRates, labels),
         email: user?.email ?? null,
+        avatar: user?.avatar ?? null,
         totals: buildTotals(schools, payments, payouts),
     }));
 };
@@ -216,7 +217,7 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
     const agent = await prisma.salesAgent.findUnique({
         where,
         include: {
-            user: { select: { email: true } },
+            user: { select: { email: true, avatar: true } },
             schools: {
                 orderBy: { createdAt: 'desc' },
                 select: {
@@ -289,6 +290,7 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
             isHouse: agent.isHouse,
             active: agent.active,
             email: agent.user?.email ?? null,
+            avatar: agent.user?.avatar ?? null,
             referralPath: `/signup?ref=${agent.code}`,
             payoutMethod: agent.payoutMethod,
             bankName: agent.bankName,
@@ -336,7 +338,7 @@ export const deletePayout = async (agentId: string, payoutId: string) => {
     return { id: payoutId };
 };
 
-// The agent edits their own phone and payout method. The phone is mirrored on the login account.
+// The agent edits their own phone, photo and payout method. The phone and the photo live on the login account.
 export const updateOwnProfile = async (userId: string, input: Record<string, unknown>) => {
     assertId('User id', userId);
     const data = sanitizeAgentSelfUpdate(input);
@@ -344,8 +346,12 @@ export const updateOwnProfile = async (userId: string, input: Record<string, unk
     if (!agent) throw new Error('Sales agent not found');
 
     const { userId: _userId, ...updated } = await prisma.$transaction(async (tx) => {
-        const result = await tx.salesAgent.update({ where: { id: agent.id }, data });
-        if (data.phone !== undefined) await tx.user.update({ where: { id: userId }, data: { gsm: data.phone } });
+        const { avatar, ...agentData } = data;
+        const result = await tx.salesAgent.update({ where: { id: agent.id }, data: agentData });
+        const userData: { gsm?: string | null; avatar?: string | null } = {};
+        if (data.phone !== undefined) userData.gsm = data.phone;
+        if (avatar !== undefined) userData.avatar = avatar;
+        if (Object.keys(userData).length > 0) await tx.user.update({ where: { id: userId }, data: userData });
         return result;
     });
     return updated;

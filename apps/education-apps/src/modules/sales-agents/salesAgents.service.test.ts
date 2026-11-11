@@ -94,7 +94,7 @@ describe('listAgents', () => {
         isHouse: false,
         active: true,
         userId: 'u1',
-        user: { email: 'y@example.com' },
+        user: { email: 'y@example.com', avatar: 'data:image/png;base64,AAAA' },
         schools: [{ status: 'ACTIVE' }, { status: 'PENDING' }],
         payments: [{ commissionAmount: 52.5 }, { commissionAmount: 30.25 }],
         payouts: [{ amount: 50 }],
@@ -124,6 +124,7 @@ describe('listAgents', () => {
             isHouse: false,
             active: true,
             email: 'y@example.com',
+            avatar: 'data:image/png;base64,AAAA',
             totals: { schools: 2, activeSchools: 1, totalCommissions: 82.75, totalPayouts: 50, balance: 32.75 },
         });
     });
@@ -375,7 +376,7 @@ describe('agent report', () => {
         userId: 'u1',
         createdAt: new Date('2026-01-01'),
         updatedAt: new Date('2026-01-01'),
-        user: { email: 'y@example.com' },
+        user: { email: 'y@example.com', avatar: 'data:image/png;base64,AAAA' },
         schools: [
             school('s1', 'Ecole A', 'ACTIVE'), // has credited payments -> CONFIRMED
             school('s2', 'Ecole B', 'PENDING'),
@@ -484,6 +485,7 @@ describe('agent report', () => {
             isHouse: false,
             active: true,
             email: 'y@example.com',
+            avatar: 'data:image/png;base64,AAAA',
             referralPath: '/signup?ref=YOUSSEF22',
             payoutMethod: null,
             bankName: null,
@@ -621,6 +623,27 @@ describe('updateOwnProfile', () => {
         await updateOwnProfile('u1', { payoutMethod: 'CASH' });
 
         expect(tx.user.update).not.toHaveBeenCalled();
+    });
+
+    it('stores the photo on the login account only, in the same transaction', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', userId: 'u1' });
+        tx.salesAgent.update.mockResolvedValue({ id: 'a1', userId: 'u1' });
+        const photo = 'data:image/jpeg;base64,AAAA';
+
+        await updateOwnProfile('u1', { avatar: photo });
+
+        expect(tx.user.update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { avatar: photo } });
+        expect(tx.salesAgent.update).toHaveBeenCalledWith({ where: { id: 'a1' }, data: {} });
+    });
+
+    it('removes the photo and syncs phone with it', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', userId: 'u1' });
+        tx.salesAgent.update.mockResolvedValue({ id: 'a1', userId: 'u1' });
+
+        await updateOwnProfile('u1', { avatar: null, phone: '06' });
+
+        expect(tx.user.update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { gsm: '06', avatar: null } });
+        expect(tx.salesAgent.update).toHaveBeenCalledWith({ where: { id: 'a1' }, data: { phone: '06' } });
     });
 
     it('rejects admin-only fields before reading anything', async () => {

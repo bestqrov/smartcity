@@ -199,11 +199,12 @@ export type PayoutMethodValue = (typeof PAYOUT_METHODS)[number];
 export const WALLET_PROVIDERS = ['INWI_MONEY', 'ORANGE_MONEY'] as const;
 export type WalletProviderValue = (typeof WALLET_PROVIDERS)[number];
 
-const SELF_FIELDS = ['phone', 'payoutMethod', 'bankName', 'rib', 'accountHolder', 'payoutPhone', 'walletProvider'] as const;
+const SELF_FIELDS = ['phone', 'avatar', 'payoutMethod', 'bankName', 'rib', 'accountHolder', 'payoutPhone', 'walletProvider'] as const;
 const PAYOUT_DETAIL_FIELDS = ['bankName', 'rib', 'accountHolder', 'payoutPhone', 'walletProvider'] as const;
 
 export interface AgentSelfUpdateData {
     phone?: string | null;
+    avatar?: string | null;
     payoutMethod?: PayoutMethodValue | null;
     bankName?: string | null;
     rib?: string | null;
@@ -214,12 +215,24 @@ export interface AgentSelfUpdateData {
 
 // What an agent may change on their own profile: phone and payout method. Everything else is admin-only.
 // A payout update is always complete: the fields of the other methods are cleared.
+const AVATAR_PATTERN = /^data:image\/(png|jpeg|webp);base64,/;
+const AVATAR_MAX_LENGTH = 700_000;
+
+const sanitizeAvatar = (value: unknown): string | null => {
+    if (value === null || value === '') return null;
+    if (typeof value !== 'string' || value.length > AVATAR_MAX_LENGTH || !AVATAR_PATTERN.test(value)) {
+        throw new Error('Photo must be a PNG, JPEG or WEBP image under 500 KB');
+    }
+    return value;
+};
+
 export const sanitizeAgentSelfUpdate = (input: Record<string, unknown>): AgentSelfUpdateData => {
     if (Object.keys(input).some((key) => !(SELF_FIELDS as readonly string[]).includes(key))) {
         throw new Error('This field can only be changed by an administrator');
     }
     const data: AgentSelfUpdateData = {};
     if (input.phone !== undefined) data.phone = optionalText(input.phone) ?? null;
+    if (input.avatar !== undefined) data.avatar = sanitizeAvatar(input.avatar);
 
     const hasDetails = PAYOUT_DETAIL_FIELDS.some((field) => input[field] !== undefined);
     if (input.payoutMethod === undefined) {

@@ -264,6 +264,31 @@ describe('sanitizeAgentSelfUpdate', () => {
         expect(sanitizeAgentSelfUpdate({ phone: '  ' })).toEqual({ phone: null });
     });
 
+    describe('avatar', () => {
+        const PHOTO_ERROR = 'Photo must be a PNG, JPEG or WEBP image under 500 KB';
+        it('accepts png, jpeg and webp data urls', () => {
+            for (const type of ['png', 'jpeg', 'webp']) {
+                const url = `data:image/${type};base64,AAAA`;
+                expect(sanitizeAgentSelfUpdate({ avatar: url })).toEqual({ avatar: url });
+            }
+        });
+        it('clears the photo with null or an empty string', () => {
+            expect(sanitizeAgentSelfUpdate({ avatar: null })).toEqual({ avatar: null });
+            expect(sanitizeAgentSelfUpdate({ avatar: '' })).toEqual({ avatar: null });
+        });
+        it('rejects other formats, plain urls, non strings and oversized photos', () => {
+            expect(() => sanitizeAgentSelfUpdate({ avatar: 'data:image/gif;base64,AAAA' })).toThrow(PHOTO_ERROR);
+            expect(() => sanitizeAgentSelfUpdate({ avatar: 'data:image/svg+xml;base64,AAAA' })).toThrow(PHOTO_ERROR);
+            expect(() => sanitizeAgentSelfUpdate({ avatar: 'https://x.test/a.png' })).toThrow(PHOTO_ERROR);
+            expect(() => sanitizeAgentSelfUpdate({ avatar: 42 })).toThrow(PHOTO_ERROR);
+            expect(() => sanitizeAgentSelfUpdate({ avatar: 'data:image/png;base64,' + 'A'.repeat(700_000) })).toThrow(PHOTO_ERROR);
+        });
+        it('allows a photo of exactly 700000 characters', () => {
+            const url = 'data:image/png;base64,' + 'A'.repeat(700_000 - 22);
+            expect(sanitizeAgentSelfUpdate({ avatar: url })).toEqual({ avatar: url });
+        });
+    });
+
     it.each(['name', 'email', 'monthlyRate', 'packRates', 'code', 'active', 'isHouse', 'password', 'userId'])(
         'rejects %s',
         (key) => {
