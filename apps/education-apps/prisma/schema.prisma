@@ -24,6 +24,12 @@ enum SchoolStatus {
   SUSPENDED
 }
 
+enum PayoutMethod {
+  BANK_TRANSFER
+  MONEY_TRANSFER
+  CASH
+}
+
 enum SubscriptionPeriod {
   MONTHLY
   SEMIANNUAL
@@ -624,6 +630,12 @@ model SalesAgent {
   packRates      AgentPackRate[]
   isHouse        Boolean         @default(false)
   active         Boolean         @default(true)
+  // How the agent wants to be paid, filled by the agent. Only the fields of the chosen method are set.
+  payoutMethod   PayoutMethod?
+  bankName       String?
+  rib            String? // 24 digits, no spaces
+  accountHolder  String?
+  payoutPhone    String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 

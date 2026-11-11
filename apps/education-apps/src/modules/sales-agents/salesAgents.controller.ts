@@ -10,6 +10,8 @@ import {
     getAgentReportForUser,
     recordPayout,
     deletePayout,
+    updateOwnProfile,
+    changeOwnPassword,
 } from './salesAgents.service';
 import {
     assignSchoolAgent,
@@ -63,6 +65,18 @@ export const me = (req: AuthRequest, res: Response) =>
     respond(res, () => getAgentReportForUser(req.user!.id), {
         message: 'Agent dashboard retrieved',
         failure: 'Failed to retrieve agent dashboard',
+    });
+
+export const updateMe = (req: AuthRequest, res: Response) =>
+    respond(res, () => updateOwnProfile(req.user!.id, req.body ?? {}), {
+        message: 'Profile updated',
+        failure: 'Failed to update profile',
+    });
+
+export const changeMyPassword = (req: AuthRequest, res: Response) =>
+    respond(res, () => changeOwnPassword(req.user!.id, req.body ?? {}), {
+        message: 'Password changed',
+        failure: 'Failed to change password',
     });
 
 export const assignAgent = (req: Request, res: Response) =>

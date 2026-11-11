@@ -8,6 +8,8 @@ import {
     sanitizePackRates,
     sanitizePayment,
     sanitizePayout,
+    sanitizeAgentSelfUpdate,
+    sanitizeNewPassword,
     resolveCommissionRate,
     LEGACY_RATE_ERROR,
 } from './salesAgents.validation';
@@ -250,5 +252,64 @@ describe('resolveCommissionRate', () => {
     });
     it('an exception at 0 % wins over a non-zero base rate', () => {
         expect(resolveCommissionRate({ ...agent, packRates: [{ packId: PACK_B, period: 'MONTHLY', rate: 0 }] }, PACK_B, 'MONTHLY')).toBe(0);
+    });
+});
+
+describe('sanitizeAgentSelfUpdate', () => {
+    const RIB = '123456789012345678901234';
+    const FORBIDDEN = 'This field can only be changed by an administrator';
+
+    it('trims the phone and clears it when empty', () => {
+        expect(sanitizeAgentSelfUpdate({ phone: ' 0600 ' })).toEqual({ phone: '0600' });
+        expect(sanitizeAgentSelfUpdate({ phone: '  ' })).toEqual({ phone: null });
+    });
+
+    it.each(['name', 'email', 'monthlyRate', 'packRates', 'code', 'active', 'isHouse', 'password', 'userId'])(
+        'rejects %s',
+        (key) => {
+            expect(() => sanitizeAgentSelfUpdate({ [key]: 'x' })).toThrow(FORBIDDEN);
+        }
+    );
+
+    it('requires bank name, holder and a 24-digit RIB for a bank transfer, and stores digits only', () => {
+        expect(
+            sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', bankName: ' CIH ', accountHolder: ' Ali ', rib: '1234 5678 9012 3456 7890 1234' })
+        ).toEqual({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', accountHolder: 'Ali', rib: RIB, payoutPhone: null });
+        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', accountHolder: 'Ali', rib: RIB })).toThrow('Bank name is required');
+        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', rib: RIB })).toThrow('Account holder is required');
+        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', accountHolder: 'Ali', rib: '123' })).toThrow('RIB must be exactly 24 digits');
+        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', accountHolder: 'Ali', rib: RIB + '1' })).toThrow('RIB must be exactly 24 digits');
+        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', accountHolder: 'Ali', rib: 'abcd' + RIB.slice(4) })).toThrow('RIB must be exactly 24 digits');
+    });
+
+    it('requires holder and phone for a money transfer and clears the bank fields', () => {
+        expect(
+            sanitizeAgentSelfUpdate({ payoutMethod: 'MONEY_TRANSFER', accountHolder: ' Ali ', payoutPhone: ' 0611 ', bankName: 'CIH', rib: RIB })
+        ).toEqual({ payoutMethod: 'MONEY_TRANSFER', accountHolder: 'Ali', payoutPhone: '0611', bankName: null, rib: null });
+        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'MONEY_TRANSFER', payoutPhone: '0611' })).toThrow('Account holder is required');
+        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'MONEY_TRANSFER', accountHolder: 'Ali' })).toThrow('Payout phone is required');
+    });
+
+    it('clears every other payout field for cash, and for a null method', () => {
+        const cleared = { bankName: null, rib: null, accountHolder: null, payoutPhone: null };
+        expect(sanitizeAgentSelfUpdate({ payoutMethod: 'CASH', bankName: 'CIH', payoutPhone: '06' })).toEqual({ payoutMethod: 'CASH', ...cleared });
+        expect(sanitizeAgentSelfUpdate({ payoutMethod: null })).toEqual({ payoutMethod: null, ...cleared });
+    });
+
+    it('rejects an unknown method and payout fields without a method', () => {
+        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'PAYPAL' })).toThrow('Payout method must be BANK_TRANSFER, MONEY_TRANSFER or CASH');
+        expect(() => sanitizeAgentSelfUpdate({ rib: RIB })).toThrow('Payout method is required');
+    });
+
+    it('rejects an empty update', () => {
+        expect(() => sanitizeAgentSelfUpdate({})).toThrow('Nothing to update');
+    });
+});
+
+describe('sanitizeNewPassword', () => {
+    it('requires at least 8 characters', () => {
+        expect(sanitizeNewPassword('12345678')).toBe('12345678');
+        expect(() => sanitizeNewPassword('1234567')).toThrow('Password must be at least 8 characters');
+        expect(() => sanitizeNewPassword(undefined)).toThrow('Password must be at least 8 characters');
     });
 });

@@ -193,3 +193,60 @@ export const sanitizePayout = (input: Record<string, unknown>): PayoutData => ({
     paidAt: parseDate('Payout date', input.paidAt),
     note: optionalText(input.note),
 });
+
+export const PAYOUT_METHODS = ['BANK_TRANSFER', 'MONEY_TRANSFER', 'CASH'] as const;
+export type PayoutMethodValue = (typeof PAYOUT_METHODS)[number];
+
+const SELF_FIELDS = ['phone', 'payoutMethod', 'bankName', 'rib', 'accountHolder', 'payoutPhone'] as const;
+const PAYOUT_DETAIL_FIELDS = ['bankName', 'rib', 'accountHolder', 'payoutPhone'] as const;
+
+export interface AgentSelfUpdateData {
+    phone?: string | null;
+    payoutMethod?: PayoutMethodValue | null;
+    bankName?: string | null;
+    rib?: string | null;
+    accountHolder?: string | null;
+    payoutPhone?: string | null;
+}
+
+// What an agent may change on their own profile: phone and payout method. Everything else is admin-only.
+// A payout update is always complete: the fields of the other methods are cleared.
+export const sanitizeAgentSelfUpdate = (input: Record<string, unknown>): AgentSelfUpdateData => {
+    if (Object.keys(input).some((key) => !(SELF_FIELDS as readonly string[]).includes(key))) {
+        throw new Error('This field can only be changed by an administrator');
+    }
+    const data: AgentSelfUpdateData = {};
+    if (input.phone !== undefined) data.phone = optionalText(input.phone) ?? null;
+
+    const hasDetails = PAYOUT_DETAIL_FIELDS.some((field) => input[field] !== undefined);
+    if (input.payoutMethod === undefined) {
+        if (hasDetails) throw new Error('Payout method is required');
+    } else {
+        const method = input.payoutMethod;
+        const cleared = { bankName: null, rib: null, accountHolder: null, payoutPhone: null };
+        if (method === null) {
+            Object.assign(data, { payoutMethod: null, ...cleared });
+        } else if (!PAYOUT_METHODS.includes(method as PayoutMethodValue)) {
+            throw new Error('Payout method must be BANK_TRANSFER, MONEY_TRANSFER or CASH');
+        } else if (method === 'BANK_TRANSFER') {
+            const rib = typeof input.rib === 'string' ? input.rib.replace(/\s+/g, '') : '';
+            const bankName = requireText('Bank name', input.bankName);
+            const accountHolder = requireText('Account holder', input.accountHolder);
+            if (!/^\d{24}$/.test(rib)) throw new Error('RIB must be exactly 24 digits');
+            Object.assign(data, { payoutMethod: method, ...cleared, bankName, accountHolder, rib });
+        } else if (method === 'MONEY_TRANSFER') {
+            const accountHolder = requireText('Account holder', input.accountHolder);
+            const payoutPhone = requireText('Payout phone', input.payoutPhone);
+            Object.assign(data, { payoutMethod: method, ...cleared, accountHolder, payoutPhone });
+        } else {
+            Object.assign(data, { payoutMethod: method, ...cleared });
+        }
+    }
+    if (Object.keys(data).length === 0) throw new Error('Nothing to update');
+    return data;
+};
+
+export const sanitizeNewPassword = (value: unknown): string => {
+    if (typeof value !== 'string' || value.length < 8) throw new Error('Password must be at least 8 characters');
+    return value;
+};

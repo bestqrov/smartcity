@@ -10,6 +10,8 @@ import {
     getAgentReportForUser,
     recordPayout,
     deletePayout,
+    updateOwnProfile,
+    changeOwnPassword,
 } from './salesAgents.service';
 import * as bcryptUtil from '../../utils/bcrypt';
 
@@ -19,7 +21,7 @@ jest.mock('../../config/database', () => {
         __esModule: true,
         default: {
             salesAgent: { findFirst: jest.fn(), findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn() },
-            user: { findUnique: jest.fn() },
+            user: { findUnique: jest.fn(), update: jest.fn() },
             pack: { findMany: jest.fn(), count: jest.fn() },
             agentPayout: { create: jest.fn(), findFirst: jest.fn(), delete: jest.fn() },
             $transaction: jest.fn((cb: any) => cb(tx)),
@@ -363,6 +365,11 @@ describe('agent report', () => {
         packRates: [{ packId: PACK_A, period: 'YEARLY', rate: 20 }],
         isHouse: false,
         active: true,
+        payoutMethod: null,
+        bankName: null,
+        rib: null,
+        accountHolder: null,
+        payoutPhone: null,
         userId: 'u1',
         createdAt: new Date('2026-01-01'),
         updatedAt: new Date('2026-01-01'),
@@ -440,6 +447,23 @@ describe('agent report', () => {
         expect(report.rateTable.map((row) => row.packId)).toEqual([PACK_A, PACK_B]);
     });
 
+    it('exposes the payout method fields on the agent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({
+            ...stored,
+            payoutMethod: 'BANK_TRANSFER',
+            bankName: 'CIH',
+            rib: '1'.repeat(24),
+            accountHolder: 'Youssef A',
+            payoutPhone: null,
+        });
+
+        const report = await getAgentReport('a1');
+
+        expect(report.agent).toEqual(
+            expect.objectContaining({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', rib: '1'.repeat(24), accountHolder: 'Youssef A', payoutPhone: null })
+        );
+    });
+
     it('builds the report for an agent id, with rates, statuses and oldest-first payout allocation', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(stored);
 
@@ -459,6 +483,11 @@ describe('agent report', () => {
             active: true,
             email: 'y@example.com',
             referralPath: '/signup?ref=YOUSSEF22',
+            payoutMethod: null,
+            bankName: null,
+            rib: null,
+            accountHolder: null,
+            payoutPhone: null,
         });
         expect(report.totals).toEqual({
             schools: 4,
@@ -564,5 +593,67 @@ describe('payouts', () => {
         expect(prisma.agentPayout.delete).toHaveBeenCalledWith({ where: { id: 'o1' } });
 
         await expect(deletePayout('a2', 'o1')).rejects.toThrow('Payout not found');
+    });
+});
+
+describe('updateOwnProfile', () => {
+    it('updates the payout method on the agent of the logged-in user and syncs the phone to the login account', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', userId: 'u1' });
+        tx.salesAgent.update.mockResolvedValue({ id: 'a1', userId: 'u1', phone: '0600', payoutMethod: 'CASH' });
+
+        const result = await updateOwnProfile('u1', { phone: ' 0600 ', payoutMethod: 'CASH' });
+
+        expect(prisma.salesAgent.findUnique).toHaveBeenCalledWith({ where: { userId: 'u1' } });
+        expect(tx.salesAgent.update).toHaveBeenCalledWith({
+            where: { id: 'a1' },
+            data: { phone: '0600', payoutMethod: 'CASH', bankName: null, rib: null, accountHolder: null, payoutPhone: null },
+        });
+        expect(tx.user.update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { gsm: '0600' } });
+        expect(result).toEqual({ id: 'a1', phone: '0600', payoutMethod: 'CASH' });
+    });
+
+    it('does not touch the login account when the phone is not sent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', userId: 'u1' });
+        tx.salesAgent.update.mockResolvedValue({ id: 'a1', userId: 'u1' });
+
+        await updateOwnProfile('u1', { payoutMethod: 'CASH' });
+
+        expect(tx.user.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects admin-only fields before reading anything', async () => {
+        await expect(updateOwnProfile('u1', { monthlyRate: 99 })).rejects.toThrow('This field can only be changed by an administrator');
+        expect(prisma.salesAgent.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('404s when the user has no agent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(null);
+        await expect(updateOwnProfile('u9', { phone: '06' })).rejects.toThrow('Sales agent not found');
+    });
+});
+
+describe('changeOwnPassword', () => {
+    it('verifies the current password then stores the new hash', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', password: 'old-hash' });
+        const compare = jest.spyOn(bcryptUtil, 'comparePassword').mockResolvedValue(true);
+        jest.spyOn(bcryptUtil, 'hashPassword').mockResolvedValue('new-hash');
+
+        await expect(changeOwnPassword('u1', { currentPassword: 'oldpass12', newPassword: 'newpass123' })).resolves.toEqual({ changed: true });
+
+        expect(compare).toHaveBeenCalledWith('oldpass12', 'old-hash');
+        expect(prisma.user.update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { password: 'new-hash' } });
+    });
+
+    it('rejects a wrong current password without saving', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', password: 'old-hash' });
+        jest.spyOn(bcryptUtil, 'comparePassword').mockResolvedValue(false);
+
+        await expect(changeOwnPassword('u1', { currentPassword: 'bad', newPassword: 'newpass123' })).rejects.toThrow('Current password is incorrect');
+        expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects a short new password before reading the user', async () => {
+        await expect(changeOwnPassword('u1', { currentPassword: 'x', newPassword: 'short' })).rejects.toThrow('Password must be at least 8 characters');
+        expect(prisma.user.findUnique).not.toHaveBeenCalled();
     });
 });

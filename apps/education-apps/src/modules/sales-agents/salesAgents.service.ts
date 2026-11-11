@@ -1,12 +1,14 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '../../config/database';
-import { hashPassword } from '../../utils/bcrypt';
+import { comparePassword, hashPassword } from '../../utils/bcrypt';
 import { assertId } from '../transport/ids';
 import {
     CODE_PATTERN,
     normalizeCode,
     roundMoney,
+    sanitizeAgentSelfUpdate,
     sanitizeAgentUpdate,
+    sanitizeNewPassword,
     sanitizeNewAgent,
     sanitizePayout,
     type AgentUpdateData,
@@ -287,6 +289,11 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
             active: agent.active,
             email: agent.user?.email ?? null,
             referralPath: `/signup?ref=${agent.code}`,
+            payoutMethod: agent.payoutMethod,
+            bankName: agent.bankName,
+            rib: agent.rib,
+            accountHolder: agent.accountHolder,
+            payoutPhone: agent.payoutPhone,
         },
         rateTable,
         totals: { ...totals, statusCounts: countStatuses(schools.map((school) => school.clientStatus)) },
@@ -325,4 +332,30 @@ export const deletePayout = async (agentId: string, payoutId: string) => {
     if (!payout) throw new Error('Payout not found');
     await prisma.agentPayout.delete({ where: { id: payoutId } });
     return { id: payoutId };
+};
+
+// The agent edits their own phone and payout method. The phone is mirrored on the login account.
+export const updateOwnProfile = async (userId: string, input: Record<string, unknown>) => {
+    assertId('User id', userId);
+    const data = sanitizeAgentSelfUpdate(input);
+    const agent = await prisma.salesAgent.findUnique({ where: { userId } });
+    if (!agent) throw new Error('Sales agent not found');
+
+    const { userId: _userId, ...updated } = await prisma.$transaction(async (tx) => {
+        const result = await tx.salesAgent.update({ where: { id: agent.id }, data });
+        if (data.phone !== undefined) await tx.user.update({ where: { id: userId }, data: { gsm: data.phone } });
+        return result;
+    });
+    return updated;
+};
+
+export const changeOwnPassword = async (userId: string, input: Record<string, unknown>) => {
+    assertId('User id', userId);
+    const newPassword = sanitizeNewPassword(input.newPassword);
+    const currentPassword = typeof input.currentPassword === 'string' ? input.currentPassword : '';
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+    if (!(await comparePassword(currentPassword, user.password))) throw new Error('Current password is incorrect');
+    await prisma.user.update({ where: { id: userId }, data: { password: await hashPassword(newPassword) } });
+    return { changed: true };
 };
