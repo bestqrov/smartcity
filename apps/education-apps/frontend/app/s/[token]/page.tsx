@@ -9,14 +9,14 @@ import {
 } from 'lucide-react';
 import { getPublicStudentProfile } from '@/lib/services/students';
 import type { Student, Attendance } from '@/types';
+import { ATTENDANCE_META } from '@/lib/attendanceStatus';
 
 const DAY_ORDER = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-const statusBadge = (status: Attendance['status']) => {
-    if (status === 'PRESENT') return { label: 'Présent', className: 'bg-emerald-50 text-emerald-700 border-emerald-100' };
-    if (status === 'LATE') return { label: 'En retard', className: 'bg-amber-50 text-amber-700 border-amber-100' };
-    return { label: 'Absent', className: 'bg-red-50 text-red-700 border-red-100' };
-};
+const statusBadge = (status: Attendance['status']) => ({
+    label: ATTENDANCE_META[status].label,
+    className: ATTENDANCE_META[status].badge,
+});
 
 type TabKey = 'dashboard' | 'payment' | 'courses' | 'groups' | 'schedule' | 'presence';
 
@@ -473,6 +473,7 @@ export default function StudentPublicProfilePage() {
                                         <div key={a.id} className="flex items-center justify-between text-sm py-1">
                                             <span className="text-slate-600 dark:text-slate-300">
                                                 {new Date(a.date).toLocaleDateString('fr-FR')}
+                                                {a.slotStart && <span className="text-slate-400"> · {a.slotStart}</span>}
                                             </span>
                                             <span className={`px-2 py-0.5 rounded-md text-xs font-medium border ${statusBadge(a.status).className}`}>
                                                 {statusBadge(a.status).label}

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { create, getByStudent, scan } from './attendance.controller';
+import { getByStudent, mark, markWholeSession, scan, week } from './attendance.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
@@ -11,8 +11,10 @@ router.use(authMiddleware);
 router.use(roleMiddleware('ADMIN', 'SECRETARY', 'OWNER'));
 router.use(tenantScopeMiddleware);
 
-router.post('/', create);
 router.post('/scan', scan);
+router.get('/week', week);
+router.put('/mark', mark);
+router.put('/session', markWholeSession);
 router.get('/student/:id', getByStudent);
 
 export default router;

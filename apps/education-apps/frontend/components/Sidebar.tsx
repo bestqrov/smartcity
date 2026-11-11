@@ -95,7 +95,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       activeColor: 'bg-[#334155]/50 border-[#F472B6]',
       iconColor: 'text-[#F472B6]',
       submenu: [
-        { label: 'Etat Présence', path: '/admin/presence' },
+        { label: 'Présence de la semaine', path: '/admin/presence' },
         { label: 'Scanner QR', path: '/admin/attendance/scan' },
       ]
     },
@@ -193,6 +193,17 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       iconColor: 'text-[#818CF8]',
       submenu: [
         { label: 'Inscriptions', path: '/secretary/inscriptions' },
+      ]
+    },
+    {
+      id: 'presence',
+      label: 'Présence',
+      icon: Calendar,
+      activeColor: 'bg-[#334155]/50 border-[#F472B6]',
+      iconColor: 'text-[#F472B6]',
+      submenu: [
+        { label: 'Présence de la semaine', path: '/secretary/presence' },
+        { label: 'Scanner QR', path: '/secretary/attendance/scan' },
       ]
     },
     {

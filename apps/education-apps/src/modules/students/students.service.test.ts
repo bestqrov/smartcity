@@ -10,6 +10,7 @@ jest.mock('../../config/database', () => {
         findFirst: jest.fn(),
     };
     const inscription = { create: jest.fn() };
+    const parent = { findFirst: jest.fn() };
     const payment = { create: jest.fn() };
 
     return {
@@ -18,6 +19,7 @@ jest.mock('../../config/database', () => {
             student,
             inscription,
             payment,
+            parent,
             $transaction: jest.fn((cb: any) => cb({ student, inscription, payment })),
         },
     };
@@ -42,6 +44,7 @@ describe('regenerateStudentToken', () => {
 describe('updateStudent', () => {
     it('forwards parentId to the Prisma update call', async () => {
         (prisma.student.findFirst as jest.Mock).mockResolvedValue({ id: 's1' });
+        (prisma.parent.findFirst as jest.Mock).mockResolvedValue({ id: 'p1', branchId: 'b1' });
         (prisma.student.update as jest.Mock).mockResolvedValue({ id: 's1', parentId: 'p1' });
 
         await updateStudent('s1', 'b1', { parentId: 'p1' });
@@ -51,6 +54,18 @@ describe('updateStudent', () => {
             where: { id: 's1' },
             data: { parentId: 'p1' },
         });
+    });
+
+    it('refuses to link a child to another school’s parent', async () => {
+        (prisma.student.findFirst as jest.Mock).mockResolvedValue({ id: 's1' });
+        (prisma.parent.findFirst as jest.Mock).mockResolvedValue(null);
+        (prisma.student.update as jest.Mock).mockClear();
+
+        await expect(updateStudent('s1', 'b1', { parentId: 'p-other' })).rejects.toThrow('Parent not found');
+        expect(prisma.parent.findFirst).toHaveBeenCalledWith(
+            expect.objectContaining({ where: { id: 'p-other', branchId: 'b1' } })
+        );
+        expect(prisma.student.update).not.toHaveBeenCalled();
     });
 });
 

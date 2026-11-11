@@ -12,7 +12,11 @@ export interface CreateParentData {
     address?: string;
 }
 
-export const createParent = async (data: CreateParentData) => {
+// Every staff-side parent operation is limited to the caller's branch: a parent's access link
+// opens their children's attendance, payments and transport details, so another school must
+// never be able to list, edit or re-issue it.
+
+export const createParent = async (data: CreateParentData & { branchId: string }) => {
     const rawToken = generateRawToken();
 
     const parent = await prisma.parent.create({
@@ -25,18 +29,24 @@ export const createParent = async (data: CreateParentData) => {
     return { parent, rawToken };
 };
 
-export const getAllParents = async () => {
+export const getAllParents = async (branchId: string) => {
     return prisma.parent.findMany({
-        include: { students: true },
+        where: { branchId },
+        include: { students: { where: { branchId } } },
         orderBy: { createdAt: 'desc' },
     });
 };
 
-export const getParentById = async (id: string) => {
-    const parent = await prisma.parent.findUnique({
-        where: { id },
-        include: { students: true },
-    });
+const findOwnParent = async (id: string, branchId: string) => {
+    let parent;
+    try {
+        parent = await prisma.parent.findFirst({
+            where: { id, branchId },
+            include: { students: { where: { branchId } } },
+        });
+    } catch {
+        parent = null; // malformed ObjectId
+    }
 
     if (!parent) {
         throw new Error('Parent not found');
@@ -45,11 +55,16 @@ export const getParentById = async (id: string) => {
     return parent;
 };
 
-export const updateParent = async (id: string, data: Partial<CreateParentData>) => {
-    return prisma.parent.update({ where: { id }, data });
+export const getParentById = async (id: string, branchId: string) => findOwnParent(id, branchId);
+
+export const updateParent = async (id: string, branchId: string, data: Partial<CreateParentData>) => {
+    await findOwnParent(id, branchId);
+    const { name, phone, whatsapp, email, cin, address } = data;
+    return prisma.parent.update({ where: { id }, data: { name, phone, whatsapp, email, cin, address } });
 };
 
-export const regenerateParentToken = async (id: string) => {
+export const regenerateParentToken = async (id: string, branchId: string) => {
+    await findOwnParent(id, branchId);
     const rawToken = generateRawToken();
 
     const parent = await prisma.parent.update({
@@ -58,6 +73,12 @@ export const regenerateParentToken = async (id: string) => {
     });
 
     return { parent, rawToken };
+};
+
+/** Throws unless the parent exists in this branch — used before linking a student to it. */
+export const assertParentInBranch = async (parentId: string | null | undefined, branchId: string) => {
+    if (!parentId) return;
+    await findOwnParent(parentId, branchId);
 };
 
 export const getParentByRawToken = async (rawToken: string) => {

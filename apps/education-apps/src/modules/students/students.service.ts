@@ -1,3 +1,4 @@
+import { assertParentInBranch } from '../parents/parents.service';
 import prisma from '../../config/database';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
 import { tuitionPayments } from '../payments/tuitionFilter';
@@ -176,6 +177,9 @@ export const updateStudent = async (id: string, branchId: string, data: UpdateSt
         throw new Error('Student not found');
     }
 
+    // Linking to another school's parent would show this child in that parent's portal.
+    await assertParentInBranch(data.parentId, branchId);
+
     const student = await prisma.student.update({
         where: { id },
         data,
@@ -243,7 +247,7 @@ export const getStudentByPortalToken = async (rawToken: string) => {
         include: {
             inscriptions: true,
             payments: tuitionPayments,
-            attendances: { orderBy: { date: 'desc' } },
+            attendances: { orderBy: [{ date: 'desc' }, { slotStart: 'desc' }] },
             groups: { include: { teacher: true } },
         },
     });

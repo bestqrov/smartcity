@@ -48,6 +48,9 @@ interface Group {
 }
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+// Same window the API enforces (src/utils/attendanceStatus.ts).
+const SESSION_DAY_START = '08:00';
+const SESSION_DAY_END = '23:30';
 
 interface Teacher {
     id: string;
@@ -113,6 +116,7 @@ const GroupsContent = () => {
     };
     const [formData, setFormData] = useState(initialFormData);
     const [newSlot, setNewSlot] = useState<TimeSlot>({ day: DAYS[0], startTime: '', endTime: '' });
+    const [slotError, setSlotError] = useState<string | null>(null);
 
     // Initial Load
     useEffect(() => {
@@ -161,13 +165,40 @@ const GroupsContent = () => {
             setFormData({ ...initialFormData, type: contextType || 'SOUTIEN' });
         }
         setNewSlot({ day: DAYS[0], startTime: '', endTime: '' });
+        setSlotError(null);
         setIsModalOpen(true);
     };
 
     const handleAddTimeSlot = () => {
-        if (!newSlot.startTime || !newSlot.endTime) return;
-        setFormData((prev) => ({ ...prev, timeSlots: [...prev.timeSlots, newSlot] }));
-        setNewSlot({ day: newSlot.day, startTime: '', endTime: '' });
+        const { day, startTime, endTime } = newSlot;
+        if (!startTime || !endTime) {
+            setSlotError('Indiquez l\'heure de début et de fin.');
+            return;
+        }
+        if (startTime < SESSION_DAY_START || endTime > SESSION_DAY_END) {
+            setSlotError(`Les séances doivent être entre ${SESSION_DAY_START} et ${SESSION_DAY_END}.`);
+            return;
+        }
+        if (endTime <= startTime) {
+            setSlotError('La fin doit être après le début.');
+            return;
+        }
+        const clash = formData.timeSlots.find(
+            (s) => s.day === day && s.startTime < endTime && startTime < s.endTime
+        );
+        if (clash) {
+            setSlotError(`Chevauche la séance ${clash.day} ${clash.startTime}-${clash.endTime}.`);
+            return;
+        }
+        setSlotError(null);
+        setFormData((prev) => ({
+            ...prev,
+            timeSlots: [...prev.timeSlots, newSlot].sort(
+                (a, b) => DAYS.indexOf(a.day) - DAYS.indexOf(b.day) || a.startTime.localeCompare(b.startTime)
+            ),
+        }));
+        // Next session usually starts when this one ends (e.g. 08:00-10:00 then 10:00-12:00).
+        setNewSlot({ day, startTime: endTime, endTime: '' });
     };
 
     const handleRemoveTimeSlot = (index: number) => {
@@ -186,7 +217,7 @@ const GroupsContent = () => {
             setIsModalOpen(false);
             setEditingGroup(null);
         } catch (error) {
-            alert('Erreur lors de l\'enregistrement');
+            alert((error as any)?.response?.data?.error || 'Erreur lors de l\'enregistrement');
             console.error(error);
         }
     };
@@ -549,6 +580,8 @@ const GroupsContent = () => {
                                         type="time"
                                         className="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
                                         value={newSlot.startTime}
+                                        min={SESSION_DAY_START}
+                                        max={SESSION_DAY_END}
                                         onChange={(e) => setNewSlot((prev) => ({ ...prev, startTime: e.target.value }))}
                                     />
                                 </div>
@@ -558,6 +591,8 @@ const GroupsContent = () => {
                                         type="time"
                                         className="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
                                         value={newSlot.endTime}
+                                        min={SESSION_DAY_START}
+                                        max={SESSION_DAY_END}
                                         onChange={(e) => setNewSlot((prev) => ({ ...prev, endTime: e.target.value }))}
                                     />
                                 </div>
@@ -569,7 +604,10 @@ const GroupsContent = () => {
                                     <Plus size={16} /> Ajouter
                                 </button>
                             </div>
-                            <p className="text-xs text-gray-500 mt-3 ml-1">Visible par les étudiants du groupe sur leur profil.</p>
+                            {slotError && <p className="text-sm font-medium text-red-600 mt-3 ml-1">{slotError}</p>}
+                            <p className="text-xs text-gray-500 mt-3 ml-1">
+                                Séances entre {SESSION_DAY_START} et {SESSION_DAY_END}, plusieurs par jour possibles. La présence se fait sur ces séances. Visible par les étudiants du groupe sur leur profil.
+                            </p>
                         </div>
 
                         {/* Footer Actions */}

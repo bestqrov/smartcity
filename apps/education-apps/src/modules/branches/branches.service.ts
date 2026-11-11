@@ -21,9 +21,14 @@ export const getBranchSummary = async (schoolId: string) => {
 
             const [studentCount, presentToday, inscriptionTotal, paymentTotal] = await Promise.all([
                 prisma.student.count({ where: { branchId: branch.id } }),
-                prisma.attendance.count({
-                    where: { branchId: branch.id, date: today, status: { in: ['PRESENT', 'LATE'] } },
-                }),
+                // A student can attend several sessions a day: count students, not records.
+                prisma.attendance
+                    .findMany({
+                        where: { branchId: branch.id, date: today, status: { in: ['PRESENT', 'LATE'] } },
+                        distinct: ['studentId'],
+                        select: { studentId: true },
+                    })
+                    .then((rows) => rows.length),
                 prisma.inscription.aggregate({ where: { branchId: branch.id }, _sum: { amount: true } }),
                 prisma.payment.aggregate({ where: { branchId: branch.id, ...tuitionPayments.where }, _sum: { amount: true } }),
             ]);

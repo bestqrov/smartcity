@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { getParents, createParent } from '@/lib/services/parents';
 import type { Parent } from '@/types';
+import PortalLinkCard from '@/components/PortalLinkCard';
+import { parentPortalMessage, publicUrl } from '@/lib/publicUrl';
 
 export default function ParentsPage() {
     const [parents, setParents] = useState<Parent[]>([]);
@@ -18,6 +20,8 @@ export default function ParentsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    // The access link only exists in the create response: show it right away.
+    const [created, setCreated] = useState<{ parent: Parent; rawToken: string } | null>(null);
 
     const initialFormData = {
         name: '',
@@ -54,7 +58,7 @@ export default function ParentsPage() {
         e.preventDefault();
         setIsSaving(true);
         try {
-            await createParent({
+            const result = await createParent({
                 name: formData.name,
                 phone: formData.phone,
                 whatsapp: formData.whatsapp || undefined,
@@ -64,6 +68,7 @@ export default function ParentsPage() {
             });
             await fetchParents();
             setIsModalOpen(false);
+            setCreated(result);
         } catch (error) {
             console.error('Failed to create parent:', error);
             alert('Erreur lors de la création du parent');
@@ -331,6 +336,35 @@ export default function ParentsPage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {created && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Lien d'accès du parent"
+                >
+                    <div className="w-full max-w-2xl space-y-4 rounded-2xl bg-white dark:bg-slate-800 p-5 shadow-xl">
+                        <p className="text-lg font-bold text-slate-900 dark:text-white">Parent « {created.parent.name} » créé</p>
+                        <PortalLinkCard
+                            title="Lien d'accès du parent"
+                            url={publicUrl(`/p/${created.rawToken}`)}
+                            phone={created.parent.whatsapp || created.parent.phone}
+                            message={parentPortalMessage(created.parent.name)}
+                            warning="Envoyez-le ou imprimez-le maintenant : il ne sera plus affiché. Vous pourrez en créer un nouveau depuis la fiche du parent."
+                        />
+                        <div className="flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setCreated(null)}
+                                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                            >
+                                Terminé
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

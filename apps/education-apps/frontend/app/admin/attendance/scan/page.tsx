@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { QrCode, CheckCircle2, XCircle } from 'lucide-react';
 import { scanAttendance } from '@/lib/services/attendance';
+import { ATTENDANCE_META, attendanceErrorMessage, formatTime } from '@/lib/attendanceStatus';
 import { groupsService } from '@/lib/services/groups';
 import type { Group } from '@/types';
 
@@ -47,11 +48,14 @@ export default function AttendanceScanPage() {
 
                     try {
                         const attendance = await scanAttendance(decodedText, selectedGroupId);
-                        setLastResult({ type: 'success', message: `Présence enregistrée : ${attendance.status}` });
+                        setLastResult({
+                            type: 'success',
+                            message: `${ATTENDANCE_META[attendance.status].label} — séance de ${attendance.slotStart || ''}, scanné à ${formatTime(attendance.scannedAt)}`,
+                        });
                     } catch (error: any) {
                         setLastResult({
                             type: 'error',
-                            message: error?.response?.data?.error || 'Échec du scan',
+                            message: attendanceErrorMessage(error, 'Échec du scan'),
                         });
                     } finally {
                         processingRef.current = false;
