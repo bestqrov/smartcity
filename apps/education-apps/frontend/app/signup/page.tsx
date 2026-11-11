@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signupSchool, SignupSchoolData } from '../../lib/services/schools';
 import { GraduationCap, X } from 'lucide-react';
 import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, isInstitutionType, type InstitutionType } from '../../lib/institutionTypes';
+import { checkReferralCode } from '../../lib/services/salesAgents';
+import { whatsappUrl } from '../../lib/landing/whatsapp';
 import { fetchPublicPacks, type PublicPack } from '../../lib/services/packs';
 
 function SignupForm() {
@@ -22,6 +24,27 @@ function SignupForm() {
     );
     const [packCode, setPackCode] = useState<string>(searchParams.get('pack') ?? '');
     const [packs, setPacks] = useState<PublicPack[]>([]);
+    const [referralCode, setReferralCode] = useState<string>((searchParams.get('ref') ?? '').trim().toUpperCase());
+    const [codeStatus, setCodeStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+
+    const verifyCode = async (code: string) => {
+        if (!code) {
+            setCodeStatus('idle');
+            return;
+        }
+        setCodeStatus('checking');
+        try {
+            setCodeStatus((await checkReferralCode(code)) ? 'valid' : 'invalid');
+        } catch {
+            setCodeStatus('idle'); // network/rate-limit problem: let the server decide at submit
+        }
+    };
+
+    // A code arriving from a ?ref= link is checked right away.
+    useEffect(() => {
+        if (referralCode) verifyCode(referralCode);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Load the packs that serve the chosen type; keep the requested pack if valid, else the recommended one.
     useEffect(() => {
@@ -61,10 +84,13 @@ function SignupForm() {
         e.preventDefault();
         setError(null);
         if (!institutionType) { setError("Choisissez le type de votre établissement."); return; }
+        if (!referralCode) { setError('Le code commercial est obligatoire.'); return; }
+        if (codeStatus === 'invalid') { setError('Code commercial invalide.'); return; }
         setLoading(true);
         try {
             const { token, user, branch } = await signupSchool({
                 ...form,
+                referralCode,
                 institutionType,
                 ...(packCode ? { packCode } : {}),
             });
@@ -75,6 +101,7 @@ function SignupForm() {
         } catch (err: any) {
             const msg = err.response?.data?.error || err.response?.data?.message || 'Signup failed';
             setError(msg);
+            if (msg === 'Invalid referral code' || msg === 'Referral code is required') setCodeStatus('invalid');
         } finally {
             setLoading(false);
         }
@@ -190,6 +217,45 @@ function SignupForm() {
                                     <p className="text-xs text-slate-400">15 jours d&apos;essai gratuit, sans carte bancaire.</p>
                                 </div>
                             )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-slate-600" htmlFor="referralCode">
+                                Code commercial
+                            </label>
+                            <input
+                                id="referralCode"
+                                type="text"
+                                value={referralCode}
+                                onChange={(e) => {
+                                    setReferralCode(e.target.value.toUpperCase());
+                                    setCodeStatus('idle');
+                                }}
+                                onBlur={() => verifyCode(referralCode.trim())}
+                                required
+                                autoComplete="off"
+                                placeholder="Ex. YOUSSEF22"
+                                className={`w-full px-6 py-4 bg-slate-50 border-2 rounded-[2rem] focus:bg-white focus:outline-none font-bold text-lg shadow-sm tracking-wider ${
+                                    codeStatus === 'invalid'
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : codeStatus === 'valid'
+                                        ? 'border-emerald-300 focus:border-emerald-500'
+                                        : 'border-slate-100 focus:border-indigo-500'
+                                }`}
+                            />
+                            {codeStatus === 'checking' && <p className="text-xs text-slate-400">Vérification…</p>}
+                            {codeStatus === 'valid' && <p className="text-xs font-semibold text-emerald-600">Code valide ✓</p>}
+                            {codeStatus === 'invalid' && (
+                                <p className="text-xs font-semibold text-red-600">Ce code n&apos;existe pas ou n&apos;est plus actif.</p>
+                            )}
+                            <a
+                                href={whatsappUrl()}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block text-xs font-bold text-emerald-700 hover:underline"
+                            >
+                                Pas de code ? Contactez-nous sur WhatsApp
+                            </a>
                         </div>
 
                         <Input

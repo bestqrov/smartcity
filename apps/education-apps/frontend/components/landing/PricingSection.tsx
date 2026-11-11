@@ -40,9 +40,11 @@ interface Props {
     m: Messages;
     type: InstitutionType;
     onTypeChange: (type: InstitutionType) => void;
+    refCode?: string;
 }
 
-export default function PricingSection({ m, type, onTypeChange }: Props) {
+export default function PricingSection({ m, type, onTypeChange, refCode }: Props) {
+    const refParam = refCode ? `&ref=${encodeURIComponent(refCode)}` : '';
     const [billing, setBilling] = useState<Billing>('m');
     const [state, setState] = useState<PacksState>({ status: 'loading' });
 
@@ -113,7 +115,7 @@ export default function PricingSection({ m, type, onTypeChange }: Props) {
             {(state.status === 'error' || (state.status === 'ok' && state.packs.length === 0)) && (
                 <div className="mx-auto max-w-md rounded-2xl border border-[#22294a] bg-[#131a30] p-6 text-center">
                     <p className="text-slate-300">{m.packs_error}</p>
-                    <Link href={`/signup?type=${type}`} className="mt-4 inline-block rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-5 py-2.5 font-bold text-white">
+                    <Link href={`/signup?type=${type}${refParam}`} className="mt-4 inline-block rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-5 py-2.5 font-bold text-white">
                         {m.packs_error_cta}
                     </Link>
                 </div>
@@ -168,7 +170,7 @@ export default function PricingSection({ m, type, onTypeChange }: Props) {
                                     ))}
                                 </ul>
                                 <Link
-                                    href={`/signup?type=${type}&pack=${pack.code}`}
+                                    href={`/signup?type=${type}&pack=${pack.code}${refParam}`}
                                     className={`block rounded-xl px-5 py-3 text-center font-bold ${
                                         pack.recommended
                                             ? 'bg-gradient-to-br from-indigo-500 to-violet-500 text-white'
