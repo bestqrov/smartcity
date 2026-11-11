@@ -1,15 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Briefcase, Plus, Wallet } from 'lucide-react';
+import { Briefcase, ChevronDown, ChevronRight, Plus, Wallet } from 'lucide-react';
 import useAuthStore from '@/store/useAuthStore';
 import { Modal } from '@/components/ui/Modal';
 import AgentRatesFields, { emptyRatesForm, ratesPayload, type RatesForm } from '@/components/admin/AgentRatesFields';
 import { apiErrorMessage, getAllPacks, type AdminPack } from '@/lib/services/packs';
 import { formatRates } from '@/lib/salesAgentLabels';
-import { createSalesAgent, formatMAD, getSalesAgents, type SalesAgentListItem } from '@/lib/services/salesAgents';
+import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
+import { ClientStatusBadge } from '@/components/agent/StatusBadge';
+import {
+    createSalesAgent,
+    formatDay,
+    formatLastPayment,
+    formatMAD,
+    getSalesAgentReport,
+    getSalesAgents,
+    type AgentReport,
+    type SalesAgentListItem,
+} from '@/lib/services/salesAgents';
 
 const emptyForm = { name: '', email: '', password: '', phone: '', code: '' };
 
@@ -29,6 +40,30 @@ export default function SalesAgentsPage() {
     const [rates, setRates] = useState<RatesForm>(emptyRatesForm);
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
+
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [schoolsByAgent, setSchoolsByAgent] = useState<Record<string, AgentReport['schools']>>({});
+    const [schoolsLoading, setSchoolsLoading] = useState<string | null>(null);
+    const [schoolsError, setSchoolsError] = useState('');
+
+    const toggleSchools = async (agentId: string) => {
+        if (expandedId === agentId) {
+            setExpandedId(null);
+            return;
+        }
+        setExpandedId(agentId);
+        setSchoolsError('');
+        if (schoolsByAgent[agentId]) return;
+        setSchoolsLoading(agentId);
+        try {
+            const report = await getSalesAgentReport(agentId);
+            setSchoolsByAgent((prev) => ({ ...prev, [agentId]: report.schools }));
+        } catch (err) {
+            setSchoolsError(apiErrorMessage(err));
+        } finally {
+            setSchoolsLoading((current) => (current === agentId ? null : current));
+        }
+    };
 
     const load = async () => {
         setLoading(true);
@@ -143,7 +178,8 @@ export default function SalesAgentsPage() {
                         </thead>
                         <tbody>
                             {agents.map((agent) => (
-                                <tr key={agent.id} className="border-t border-gray-100 hover:bg-gray-50">
+                                <Fragment key={agent.id}>
+                                <tr className="border-t border-gray-100 hover:bg-gray-50">
                                     <td className="px-6 py-4">
                                         <Link href={`/admin/sales-agents/${agent.id}`} className="font-semibold text-indigo-700 hover:underline">
                                             {agent.name}
@@ -163,7 +199,16 @@ export default function SalesAgentsPage() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {agent.totals.activeSchools} / {agent.totals.schools}
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleSchools(agent.id)}
+                                            aria-expanded={expandedId === agent.id}
+                                            aria-label={`Voir les écoles de ${agent.name}`}
+                                            className="flex items-center gap-1 text-left font-semibold text-indigo-700 hover:underline"
+                                        >
+                                            {expandedId === agent.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                            {agent.totals.activeSchools} / {agent.totals.schools}
+                                        </button>
                                         <div className="text-xs text-gray-500">actives / total</div>
                                     </td>
                                     <td className="px-6 py-4">{formatMAD(agent.totals.totalCommissions)}</td>
@@ -181,6 +226,58 @@ export default function SalesAgentsPage() {
                                         </span>
                                     </td>
                                 </tr>
+                                {expandedId === agent.id && (
+                                    <tr className="bg-gray-50 border-t border-gray-100">
+                                        <td colSpan={8} className="px-6 py-4">
+                                            {schoolsLoading === agent.id ? (
+                                                <p className="text-sm text-gray-500">Chargement…</p>
+                                            ) : schoolsError && !schoolsByAgent[agent.id] ? (
+                                                <p className="text-sm text-red-600">{schoolsError}</p>
+                                            ) : schoolsByAgent[agent.id]?.length === 0 ? (
+                                                <p className="text-sm text-gray-500">Aucune école pour ce commercial.</p>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    <div className="overflow-x-auto bg-white rounded-xl border border-gray-200">
+                                                        <table className="w-full text-left text-sm">
+                                                            <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+                                                                <tr>
+                                                                    <th className="px-3 py-2">École</th>
+                                                                    <th className="px-3 py-2">Statut</th>
+                                                                    <th className="px-3 py-2">Type / Pack</th>
+                                                                    <th className="px-3 py-2">Date d&apos;achat</th>
+                                                                    <th className="px-3 py-2">Dernier paiement</th>
+                                                                    <th className="px-3 py-2">Total payé</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {schoolsByAgent[agent.id]?.map((school) => (
+                                                                    <tr key={school.id} className="border-t border-gray-100">
+                                                                        <td className="px-3 py-2 font-semibold">
+                                                                            {school.name}
+                                                                            <div className="text-xs font-normal text-gray-500">{school.city || '—'}</div>
+                                                                        </td>
+                                                                        <td className="px-3 py-2"><ClientStatusBadge status={school.clientStatus} /></td>
+                                                                        <td className="px-3 py-2">
+                                                                            {INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE]}
+                                                                            <div className="text-xs text-gray-500">{school.packName ?? 'Aucun pack'}</div>
+                                                                        </td>
+                                                                        <td className="px-3 py-2 whitespace-nowrap">{school.firstPaidAt ? formatDay(school.firstPaidAt) : '—'}</td>
+                                                                        <td className="px-3 py-2 whitespace-nowrap">{formatLastPayment(school)}</td>
+                                                                        <td className="px-3 py-2 whitespace-nowrap">{formatMAD(school.totalPaid)}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <Link href={`/admin/sales-agents/${agent.id}`} className="text-sm font-semibold text-indigo-700 hover:underline">
+                                                        Voir le détail →
+                                                    </Link>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                )}
+                                </Fragment>
                             ))}
                         </tbody>
                     </table>

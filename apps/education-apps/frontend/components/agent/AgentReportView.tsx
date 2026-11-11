@@ -10,7 +10,7 @@ import {
     PERIOD_LABELS,
     packLabel,
 } from '@/lib/salesAgentLabels';
-import { formatDate, formatDay, formatMAD, referralUrl, type AgentReport } from '@/lib/services/salesAgents';
+import { formatDate, formatDay, formatLastPayment, formatMAD, referralUrl, type AgentReport } from '@/lib/services/salesAgents';
 import { ClientStatusBadge, PayoutStatusBadge, StatusLegend } from './StatusBadge';
 
 type Tab = 'schools' | 'commissions' | 'payouts';
@@ -37,12 +37,12 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
         }
     };
 
-    const cards = [
-        { label: 'Clients', value: String(report.totals.schools) },
-        { label: 'Clients actifs', value: String(report.totals.activeSchools) },
-        { label: 'Commissions', value: formatMAD(report.totals.totalCommissions) },
-        { label: 'Déjà versé', value: formatMAD(report.totals.totalPayouts) },
-        { label: 'Solde dû', value: formatMAD(report.totals.balance), strong: true },
+    const cards: { label: string; value: string; tab: Tab; strong?: boolean }[] = [
+        { label: 'Clients', value: String(report.totals.schools), tab: 'schools' },
+        { label: 'Clients actifs', value: String(report.totals.activeSchools), tab: 'schools' },
+        { label: 'Commissions', value: formatMAD(report.totals.totalCommissions), tab: 'commissions' },
+        { label: 'Déjà versé', value: formatMAD(report.totals.totalPayouts), tab: 'payouts' },
+        { label: 'Solde dû', value: formatMAD(report.totals.balance), tab: 'commissions', strong: true },
     ];
 
     const tabs: { id: Tab; label: string }[] = [
@@ -91,13 +91,17 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {cards.map((card) => (
-                    <div
+                    <button
+                        type="button"
                         key={card.label}
-                        className={`rounded-2xl border p-4 ${card.strong ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200'}`}
+                        onClick={() => setTab(card.tab)}
+                        className={`rounded-2xl border p-4 text-left transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
+                            card.strong ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200'
+                        }`}
                     >
                         <div className="text-xs text-gray-500">{card.label}</div>
                         <div className={`mt-1 font-bold ${card.strong ? 'text-emerald-700 text-xl' : 'text-gray-800 text-lg'}`}>{card.value}</div>
-                    </div>
+                    </button>
                 ))}
             </div>
 
@@ -136,6 +140,8 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                                 <th className="px-4 py-3">Type / Pack</th>
                                 <th className="px-4 py-3">Statut</th>
                                 <th className="px-4 py-3">Inscrite le</th>
+                                <th className="px-4 py-3">Date d&apos;achat</th>
+                                <th className="px-4 py-3">Dernier paiement</th>
                                 <th className="px-4 py-3">Total payé</th>
                             </tr>
                         </thead>
@@ -158,11 +164,13 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                                         <ClientStatusBadge status={school.clientStatus} />
                                     </td>
                                     <td className="px-4 py-3">{formatDate(school.createdAt)}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{school.firstPaidAt ? formatDay(school.firstPaidAt) : '—'}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{formatLastPayment(school)}</td>
                                     <td className="px-4 py-3">{formatMAD(school.totalPaid)}</td>
                                 </tr>
                             ))}
                             {report.schools.length === 0 && (
-                                <tr><td colSpan={6} className="px-4 py-6 text-gray-500">Aucun client pour le moment.</td></tr>
+                                <tr><td colSpan={8} className="px-4 py-6 text-gray-500">Aucun client pour le moment.</td></tr>
                             )}
                         </tbody>
                     </table>

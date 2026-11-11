@@ -2,6 +2,7 @@ import api from '../api';
 import type { ApiResponse } from '@/types';
 import type { InstitutionType } from '../institutionTypes';
 import type { SchoolStatus } from './schools';
+import { PERIOD_LABELS } from '../salesAgentLabels';
 
 export type SubscriptionPeriod = 'MONTHLY' | 'SEMIANNUAL' | 'YEARLY';
 export type ClientStatus = 'PENDING' | 'ACTIVE_UNPAID' | 'CONFIRMED' | 'CANCELLED';
@@ -70,6 +71,10 @@ export interface AgentReport {
         ownerPhone: string | null;
         packName: string | null;
         totalPaid: number;
+        firstPaidAt: string | null;
+        lastPaidAt: string | null;
+        lastPeriod: SubscriptionPeriod | null;
+        paymentsCount: number;
     }[];
     commissions: {
         id: string;
@@ -132,6 +137,10 @@ export const formatDate = (value: string): string => new Date(value).toLocaleDat
 
 // For date-only values (e.g. paidAt stored at UTC midnight).
 export const formatDay = (value: string): string => new Date(value).toLocaleDateString('fr-FR', { timeZone: 'UTC' });
+
+// "12/11/2026 · Semestriel", or "—" when the school has no payment.
+export const formatLastPayment = (school: { lastPaidAt: string | null; lastPeriod: SubscriptionPeriod | null }): string =>
+    school.lastPaidAt ? `${formatDay(school.lastPaidAt)}${school.lastPeriod ? ` · ${PERIOD_LABELS[school.lastPeriod]}` : ''}` : '—';
 
 // Local calendar date as YYYY-MM-DD.
 export const todayLocal = (): string => {
