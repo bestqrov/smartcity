@@ -47,6 +47,25 @@ export interface SalesAgentListItem extends AgentRates {
     totals: AgentTotals;
 }
 
+export type PayoutMethod = 'BANK_TRANSFER' | 'MONEY_TRANSFER' | 'CASH';
+
+export const PAYOUT_METHOD_LABELS: Record<PayoutMethod, string> = {
+    BANK_TRANSFER: 'Virement bancaire',
+    MONEY_TRANSFER: "Transfert d'argent (Wafacash, Cash Plus…)",
+    CASH: 'Espèces',
+};
+
+export interface PayoutDetails {
+    payoutMethod: PayoutMethod | null;
+    bankName: string | null;
+    rib: string | null;
+    accountHolder: string | null;
+    payoutPhone: string | null;
+}
+
+// "1234 5678 9012 3456 7890 1234"
+export const formatRib = (rib: string): string => rib.replace(/\s+/g, '').replace(/(\d{4})(?=\d)/g, '$1 ');
+
 export interface RateTableRow {
     packId: string;
     packName: string;
@@ -60,7 +79,7 @@ export interface RateTableRow {
 
 export interface AgentReport {
     rateTable: RateTableRow[];
-    agent: AgentRates & {
+    agent: AgentRates & PayoutDetails & {
         id: string;
         name: string;
         phone: string | null;
@@ -198,6 +217,23 @@ export async function deleteAgentPayout(id: string, payoutId: string): Promise<v
 export async function getMyAgentReport(): Promise<AgentReport> {
     const response = await api.get<ApiResponse<AgentReport>>('/agent/me');
     return response.data.data;
+}
+
+export interface ProfileInput {
+    phone?: string;
+    payoutMethod?: PayoutMethod | null;
+    bankName?: string;
+    rib?: string;
+    accountHolder?: string;
+    payoutPhone?: string;
+}
+
+export async function updateMyProfile(data: ProfileInput): Promise<void> {
+    await api.patch('/agent/me', data);
+}
+
+export async function changeMyPassword(data: { currentPassword: string; newPassword: string }): Promise<void> {
+    await api.patch('/agent/me/password', data);
 }
 
 export async function assignSchoolAgent(schoolId: string, salesAgentId: string | null): Promise<void> {

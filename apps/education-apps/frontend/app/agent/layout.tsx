@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Briefcase, LogOut } from 'lucide-react';
 import { RequireRole } from '@/components/auth/RequireRole';
@@ -25,9 +26,11 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                 <header className="bg-white border-b border-gray-200">
                     <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2 font-bold text-gray-800">
-                            <Briefcase size={20} className="text-emerald-600" /> Espace commercial
+                            <Briefcase size={20} className="text-emerald-600" /> <span className="hidden sm:inline">Espace commercial</span>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
+                            <Link href="/agent" className="text-gray-600 hover:text-emerald-700">Tableau de bord</Link>
+                            <Link href="/agent/profile" className="text-gray-600 hover:text-emerald-700">Mon profil</Link>
                             <span className="hidden sm:inline text-gray-600">{user?.name}</span>
                             <button onClick={logout} className="flex items-center gap-1 text-gray-600 hover:text-red-600">
                                 <LogOut size={16} /> Déconnexion

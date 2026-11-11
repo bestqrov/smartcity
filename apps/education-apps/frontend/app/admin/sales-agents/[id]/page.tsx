@@ -10,6 +10,8 @@ import AgentRatesFields, { emptyRatesForm, ratesFormFrom, ratesPayload, type Rat
 import { apiErrorMessage, getAllPacks, type AdminPack } from '@/lib/services/packs';
 import {
     deleteAgentPayout,
+    formatRib,
+    PAYOUT_METHOD_LABELS,
     todayLocal,
     getSalesAgentReport,
     recordAgentPayout,
@@ -130,6 +132,21 @@ export default function SalesAgentDetailPage() {
                         </form>
 
                         {!report.agent.isHouse && (
+                            <div className="space-y-4">
+                            <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-1 text-sm">
+                                <h2 className="font-bold text-gray-800">Mode de paiement</h2>
+                                {report.agent.payoutMethod ? (
+                                    <>
+                                        <div className="font-semibold text-gray-800">{PAYOUT_METHOD_LABELS[report.agent.payoutMethod]}</div>
+                                        {report.agent.accountHolder && <div className="text-gray-700">Titulaire : {report.agent.accountHolder}</div>}
+                                        {report.agent.bankName && <div className="text-gray-700">Banque : {report.agent.bankName}</div>}
+                                        {report.agent.rib && <div className="text-gray-700">RIB : <span className="font-mono">{formatRib(report.agent.rib)}</span></div>}
+                                        {report.agent.payoutPhone && <div className="text-gray-700">Téléphone : {report.agent.payoutPhone}</div>}
+                                    </>
+                                ) : (
+                                    <p className="text-gray-500">Non renseigné par le commercial</p>
+                                )}
+                            </div>
                             <form onSubmit={addPayout} className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
                                 <h2 className="font-bold text-gray-800">Enregistrer un versement</h2>
                                 <input className={`${inputClass} w-full`} type="number" min={0.01} step="0.01" aria-label="Montant du versement (MAD)" placeholder="Montant (MAD)" value={payout.amount} onChange={(e) => setPayout({ ...payout, amount: e.target.value })} required />
@@ -137,6 +154,7 @@ export default function SalesAgentDetailPage() {
                                 <input className={`${inputClass} w-full`} aria-label="Note" placeholder="Note (ex. virement CIH)" value={payout.note} onChange={(e) => setPayout({ ...payout, note: e.target.value })} />
                                 <button disabled={busy} className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold disabled:opacity-50">Enregistrer le versement</button>
                             </form>
+                            </div>
                         )}
                     </div>
 
