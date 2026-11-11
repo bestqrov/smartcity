@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Check, Trash2, TrendingUp, ChevronDown, ChevronRight } from 'lucide-react';
-import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
+import { Copy, Check, Trash2, TrendingUp, ChevronDown, ChevronRight, Eye } from 'lucide-react';
+import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE, type InstitutionType } from '@/lib/institutionTypes';
 import {
     BASE_RATE_FIELDS,
     CLIENT_STATUS_META,
@@ -30,18 +30,60 @@ const exampleCommission = (row: RateTableRow, period: SubscriptionPeriod): numbe
     return (base * row.rates[period]) / 100;
 };
 
+const PERIOD_INITIALS: Record<SubscriptionPeriod, string> = { MONTHLY: 'M', SEMIANNUAL: 'S', YEARLY: 'A' };
+
+// "10" or "20–25"
+const rateRange = (rows: RateTableRow[], period: SubscriptionPeriod): string => {
+    const values = rows.map((row) => row.rates[period]);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return min === max ? `${min} %` : `${min}–${max} %`;
+};
+
 function RateTable({ rows }: { rows: RateTableRow[] }) {
+    const [openType, setOpenType] = useState<InstitutionType | null>(null);
     const groups = INSTITUTION_TYPES.map((type) => ({ type, rows: rows.filter((row) => row.institutionTypes.includes(type)) })).filter(
         (group) => group.rows.length > 0
     );
     if (groups.length === 0) return null;
-    const hasException = rows.some((row) => PERIODS.some((period) => row.exceptions[period]));
+    const open = groups.find((group) => group.type === openType);
+    const hasException = (list: RateTableRow[]) => list.some((row) => PERIODS.some((period) => row.exceptions[period]));
 
     return (
-        <div className="space-y-4">
-            {groups.map((group) => (
-                <div key={group.type}>
-                    <div className="text-xs font-semibold text-gray-500 uppercase mb-1">{INSTITUTION_TYPE_LABELS[group.type]}</div>
+        <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {groups.map((group) => {
+                    const isOpen = openType === group.type;
+                    return (
+                        <div key={group.type} className={`rounded-xl border p-3 text-sm ${isOpen ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                    <div className="font-semibold text-gray-800 truncate">
+                                        {INSTITUTION_TYPE_LABELS[group.type]}
+                                        {hasException(group.rows) && <span className="ml-1 text-amber-600" aria-label="Taux spécifiques">★</span>}
+                                    </div>
+                                    <div className="text-xs text-gray-500">{group.rows.length} pack{group.rows.length > 1 ? 's' : ''}</div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setOpenType(isOpen ? null : group.type)}
+                                    aria-expanded={isOpen}
+                                    aria-label={`Détails ${INSTITUTION_TYPE_LABELS[group.type]}`}
+                                    className="flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-900 shrink-0"
+                                >
+                                    <Eye size={14} aria-hidden="true" /> Détails
+                                </button>
+                            </div>
+                            <div className="mt-1 text-xs text-gray-700">
+                                {PERIODS.map((period) => `${PERIOD_INITIALS[period]} ${rateRange(group.rows, period)}`).join(' · ')}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+            {open && (
+                <div className="space-y-2">
+                    <div className="text-xs font-semibold text-gray-500 uppercase">{INSTITUTION_TYPE_LABELS[open.type]}</div>
                     <div className="overflow-x-auto rounded-xl border border-gray-200">
                         <table className="w-full text-left text-sm min-w-[480px]">
                             <thead className="bg-gray-50 text-gray-600 text-xs">
@@ -53,7 +95,7 @@ function RateTable({ rows }: { rows: RateTableRow[] }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {group.rows.map((row) => (
+                                {open.rows.map((row) => (
                                     <tr key={row.packId}>
                                         <td className="px-3 py-2 font-medium text-gray-800">{row.packName}</td>
                                         {PERIODS.map((period) => {
@@ -79,12 +121,12 @@ function RateTable({ rows }: { rows: RateTableRow[] }) {
                             </tbody>
                         </table>
                     </div>
+                    <p className="text-xs text-gray-500">
+                        {hasException(open.rows) && <span className="mr-3"><span className="text-amber-600">★</span> Taux spécifique à ce pack</span>}
+                        Montants : commission sur un paiement au prix catalogue du pack (semestriel : 6 mois, approximatif).
+                    </p>
                 </div>
-            ))}
-            <p className="text-xs text-gray-500">
-                {hasException && <span className="mr-3"><span className="text-amber-600">★</span> Taux spécifique à ce pack</span>}
-                Montants : commission sur un paiement au prix catalogue du pack (semestriel : 6 mois, approximatif).
-            </p>
+            )}
         </div>
     );
 }
@@ -221,12 +263,12 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                         type="button"
                         key={card.label}
                         onClick={() => setTab(card.tab)}
-                        className={`rounded-2xl border p-4 text-left transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
+                        className={`rounded-xl border px-3 py-2 text-left transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
                             card.strong ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200'
                         }`}
                     >
                         <div className="text-xs text-gray-500">{card.label}</div>
-                        <div className={`mt-1 font-bold ${card.strong ? 'text-emerald-700 text-xl' : 'text-gray-800 text-lg'}`}>{card.value}</div>
+                        <div className={`font-bold ${card.strong ? 'text-emerald-700 text-base' : 'text-gray-800 text-sm'}`}>{card.value}</div>
                     </button>
                 ))}
             </div>
