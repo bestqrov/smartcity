@@ -137,7 +137,7 @@ export const sanitizeAgentUpdate = (input: Record<string, unknown>): AgentUpdate
     if (input.semiannualRate !== undefined) data.semiannualRate = parseRate('Semi-annual rate', input.semiannualRate);
     if (input.yearlyRate !== undefined) data.yearlyRate = parseRate('Yearly rate', input.yearlyRate);
     // Replaces the whole list when present.
-    if (input.packRates !== undefined) data.packRates = sanitizePackRates(input.packRates);
+    if (input.packRates !== undefined) data.packRates = input.packRates === null ? [] : sanitizePackRates(input.packRates);
     if (input.active !== undefined) {
         if (typeof input.active !== 'boolean') throw new Error('Active must be true or false');
         data.active = input.active;

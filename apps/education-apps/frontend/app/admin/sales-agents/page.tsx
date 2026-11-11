@@ -105,7 +105,7 @@ export default function SalesAgentsPage() {
 
             {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100">{error}</div>}
 
-            {!loading && (
+            {!loading && !error && (
                 <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 flex items-center gap-4">
                     <Wallet className="text-orange-600 shrink-0" size={28} />
                     <div>

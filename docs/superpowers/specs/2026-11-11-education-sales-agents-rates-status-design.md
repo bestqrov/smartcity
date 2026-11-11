@@ -89,7 +89,7 @@ Each commission also returns `paidAmount`. Totals gain `statusCounts: { PENDING,
 - `POST /api/sales-agents`: body takes `monthlyRate`, `semiannualRate`, `yearlyRate` (required) and `packRates` (optional array of `{ packId, period, rate }`) instead of `commissionRate`.
 - `PATCH /api/sales-agents/:id`: any of the three rates; `packRates` replaces the whole list when present. `commissionRate` is no longer accepted.
 - `POST /api/schools/:id/payments`: `period` accepts `SEMIANNUAL`; the payment stores `packId`/`packName`.
-- `GET /api/sales-agents`, `GET /api/sales-agents/:id`, `GET /api/agent/me`: agent objects expose the three rates and `packRates` enriched with `packName`; reports add client `status`, commission `payoutStatus` + `paidAmount` + `packName`, and `totals.statusCounts`.
+- `GET /api/sales-agents`, `GET /api/sales-agents/:id`, `GET /api/agent/me`: agent objects expose the three rates and `packRates` enriched with `packName`; reports add `clientStatus` per school, commission `payoutStatus` + `paidAmount` + `packName`, and `totals.statusCounts`.
 
 ## Frontend
 

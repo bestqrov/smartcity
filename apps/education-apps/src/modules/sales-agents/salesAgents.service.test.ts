@@ -202,7 +202,7 @@ describe('createAgent', () => {
     it('rejects an unknown pack before creating anything', async () => {
         (prisma.pack.count as jest.Mock).mockResolvedValue(0);
         await expect(createAgent({ ...input, packRates: [{ packId: PACK_A, period: 'YEARLY', rate: 20 }] })).rejects.toThrow(
-            'Pack not found'
+            'Unknown pack in pack rates'
         );
         expect(prisma.$transaction).not.toHaveBeenCalled();
     });
@@ -284,7 +284,7 @@ describe('updateAgent', () => {
         (prisma.pack.count as jest.Mock).mockResolvedValue(0);
 
         await expect(updateAgent('a1', { packRates: [{ packId: PACK_A, period: 'YEARLY', rate: 20 }] })).rejects.toThrow(
-            'Pack not found'
+            'Unknown pack in pack rates'
         );
         expect(prisma.salesAgent.update).not.toHaveBeenCalled();
     });

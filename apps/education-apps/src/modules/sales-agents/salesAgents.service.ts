@@ -82,7 +82,7 @@ const assertPacksExist = async (rates: PackRateData[]) => {
     const ids = [...new Set(rates.map((rate) => rate.packId))];
     if (ids.length === 0) return;
     const found = await prisma.pack.count({ where: { id: { in: ids } } });
-    if (found !== ids.length) throw new Error('Pack not found');
+    if (found !== ids.length) throw new Error('Unknown pack in pack rates');
 };
 
 const earnsCommission = (data: AgentUpdateData): boolean =>
