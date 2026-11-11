@@ -23,6 +23,8 @@ import announcementsRoutes from './modules/announcements/announcements.routes';
 import holidaysRoutes from './modules/holidays/holidays.routes';
 import transportRoutes from './modules/transport/transport.routes';
 import packsRoutes from './modules/packs/packs.routes';
+import salesAgentsRoutes from './modules/sales-agents/salesAgents.routes';
+import agentRoutes from './modules/sales-agents/agent.routes';
 
 const app: Application = express();
 
@@ -58,6 +60,8 @@ apiRouter.use('/announcements', announcementsRoutes);
 apiRouter.use('/holidays', holidaysRoutes);
 apiRouter.use('/transport', transportRoutes);
 apiRouter.use('/packs', packsRoutes);
+apiRouter.use('/sales-agents', salesAgentsRoutes);
+apiRouter.use('/agent', agentRoutes);
 
 app.use('/api', apiRouter);
 

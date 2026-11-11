@@ -132,6 +132,20 @@ describe('tenantScopeMiddleware', () => {
         expect(next).not.toHaveBeenCalled();
     });
 
+    it('rejects SALES_AGENT on branch-scoped routes', async () => {
+        const req = {
+            user: { id: 'u1', email: 'a@b.com', role: 'SALES_AGENT', schoolId: null, branchId: null },
+            header: jest.fn(),
+        } as unknown as TenantRequest;
+        const res = makeRes();
+        const next = jest.fn();
+
+        await tenantScopeMiddleware(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(next).not.toHaveBeenCalled();
+    });
+
     describe('trial expiry (write requests only)', () => {
         it('allows a write when the school is ACTIVE, regardless of trialEndsAt', async () => {
             (prisma.branch.findUnique as jest.Mock).mockResolvedValue({

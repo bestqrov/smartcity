@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { signup, getMe, updateMe, list, updateStatus, assignPack } from './schools.controller';
+import { assignAgent, listPayments, addPayment, removePayment } from '../sales-agents/salesAgents.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 
@@ -25,5 +26,9 @@ router.put('/me', authMiddleware, roleMiddleware('OWNER', 'ADMIN'), updateMe);
 router.get('/', authMiddleware, roleMiddleware('SUPER_ADMIN'), list);
 router.patch('/:id/status', authMiddleware, roleMiddleware('SUPER_ADMIN'), updateStatus);
 router.patch('/:id/pack', authMiddleware, roleMiddleware('SUPER_ADMIN'), assignPack);
+router.patch('/:id/sales-agent', authMiddleware, roleMiddleware('SUPER_ADMIN'), assignAgent);
+router.get('/:id/payments', authMiddleware, roleMiddleware('SUPER_ADMIN'), listPayments);
+router.post('/:id/payments', authMiddleware, roleMiddleware('SUPER_ADMIN'), addPayment);
+router.delete('/:id/payments/:paymentId', authMiddleware, roleMiddleware('SUPER_ADMIN'), removePayment);
 
 export default router;

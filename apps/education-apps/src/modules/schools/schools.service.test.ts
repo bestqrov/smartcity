@@ -347,6 +347,8 @@ describe('listSchools', () => {
                     institutionType: true,
                     packId: true,
                     pack: { select: { id: true, code: true, name: true } },
+                    salesAgentId: true,
+                    salesAgent: { select: { id: true, name: true, code: true } },
                 }),
             })
         );
