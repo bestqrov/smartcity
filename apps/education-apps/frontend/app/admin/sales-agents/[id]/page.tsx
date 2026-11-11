@@ -6,7 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import useAuthStore from '@/store/useAuthStore';
 import AgentReportView from '@/components/agent/AgentReportView';
-import { apiErrorMessage } from '@/lib/services/packs';
+import AgentRatesFields, { emptyRatesForm, ratesFormFrom, ratesPayload, type RatesForm } from '@/components/admin/AgentRatesFields';
+import { apiErrorMessage, getAllPacks, type AdminPack } from '@/lib/services/packs';
 import {
     deleteAgentPayout,
     todayLocal,
@@ -21,22 +22,21 @@ export default function SalesAgentDetailPage() {
     const router = useRouter();
     const user = useAuthStore((state) => state.user);
     const [report, setReport] = useState<AgentReport | null>(null);
+    const [packs, setPacks] = useState<AdminPack[]>([]);
     const [error, setError] = useState('');
-    const [edit, setEdit] = useState({ name: '', phone: '', commissionRate: '', active: true });
+    const [edit, setEdit] = useState({ name: '', phone: '', active: true });
+    const [rates, setRates] = useState<RatesForm>(emptyRatesForm);
     const [payout, setPayout] = useState({ amount: '', paidAt: todayLocal(), note: '' });
     const [busy, setBusy] = useState(false);
 
     const load = async () => {
         setError('');
         try {
-            const data = await getSalesAgentReport(id);
+            const [data, allPacks] = await Promise.all([getSalesAgentReport(id), getAllPacks()]);
             setReport(data);
-            setEdit({
-                name: data.agent.name,
-                phone: data.agent.phone ?? '',
-                commissionRate: String(data.agent.commissionRate),
-                active: data.agent.active,
-            });
+            setPacks(allPacks);
+            setEdit({ name: data.agent.name, phone: data.agent.phone ?? '', active: data.agent.active });
+            setRates(ratesFormFrom(data.agent));
         } catch (err) {
             setError(apiErrorMessage(err));
         }
@@ -68,7 +68,7 @@ export default function SalesAgentDetailPage() {
                 id,
                 report?.agent.isHouse
                     ? { name: edit.name, phone: edit.phone }
-                    : { name: edit.name, phone: edit.phone, commissionRate: Number(edit.commissionRate), active: edit.active }
+                    : { name: edit.name, phone: edit.phone, active: edit.active, ...ratesPayload(rates) }
             )
         );
     };
@@ -107,16 +107,19 @@ export default function SalesAgentDetailPage() {
                         {report.agent.isHouse && <span className="ml-3 align-middle px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>}
                     </h1>
 
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-4 items-start">
                         <form onSubmit={saveAgent} className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
                             <h2 className="font-bold text-gray-800">Fiche</h2>
                             <input className={`${inputClass} w-full`} aria-label="Nom" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} required />
                             <input className={`${inputClass} w-full`} aria-label="Téléphone" placeholder="Téléphone" value={edit.phone} onChange={(e) => setEdit({ ...edit, phone: e.target.value })} />
-                            <label className="block text-sm text-gray-600">
-                                Taux de commission (%) — s&apos;applique aux prochains paiements
-                                <input className={`${inputClass} w-full`} type="number" min={0} max={100} step="0.5" value={edit.commissionRate} onChange={(e) => setEdit({ ...edit, commissionRate: e.target.value })} disabled={report.agent.isHouse} required />
-                                {report.agent.isHouse && <span className="block mt-1 text-xs text-gray-500">Le code société ne touche pas de commission.</span>}
-                            </label>
+                            <div className="pt-2 border-t border-gray-100 space-y-2">
+                                <div className="text-sm font-semibold text-gray-700">
+                                    Taux de commission{' '}
+                                    <span className="font-normal text-xs text-gray-500">— s&apos;appliquent aux prochains paiements</span>
+                                </div>
+                                <AgentRatesFields value={rates} onChange={setRates} packs={packs} disabled={report.agent.isHouse} />
+                                {report.agent.isHouse && <p className="text-xs text-gray-500">Le code société ne touche pas de commission.</p>}
+                            </div>
                             {!report.agent.isHouse && (
                                 <label className="flex items-center gap-2 text-sm text-gray-700">
                                     <input type="checkbox" checked={edit.active} onChange={(e) => setEdit({ ...edit, active: e.target.checked })} />
