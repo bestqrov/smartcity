@@ -1,5 +1,5 @@
 'use client';
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import useAuthStore, { setActiveBranchId } from '../../store/useAuthStore';
@@ -27,16 +27,22 @@ function SignupForm() {
     const [referralCode, setReferralCode] = useState<string>((searchParams.get('ref') ?? '').trim().toUpperCase());
     const [codeStatus, setCodeStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
 
+    // The code a pending check is for; a response for an older code is dropped so it can't overwrite the status.
+    const checkedCode = useRef('');
+
     const verifyCode = async (code: string) => {
+        checkedCode.current = code;
         if (!code) {
             setCodeStatus('idle');
             return;
         }
         setCodeStatus('checking');
         try {
-            setCodeStatus((await checkReferralCode(code)) ? 'valid' : 'invalid');
+            const valid = await checkReferralCode(code);
+            if (checkedCode.current === code) setCodeStatus(valid ? 'valid' : 'invalid');
         } catch {
-            setCodeStatus('idle'); // network/rate-limit problem: let the server decide at submit
+            // network/rate-limit problem: let the server decide at submit
+            if (checkedCode.current === code) setCodeStatus('idle');
         }
     };
 
@@ -84,13 +90,14 @@ function SignupForm() {
         e.preventDefault();
         setError(null);
         if (!institutionType) { setError("Choisissez le type de votre établissement."); return; }
-        if (!referralCode) { setError('Le code commercial est obligatoire.'); return; }
+        const code = referralCode.trim();
+        if (!code) { setError('Le code commercial est obligatoire.'); return; }
         if (codeStatus === 'invalid') { setError('Code commercial invalide.'); return; }
         setLoading(true);
         try {
             const { token, user, branch } = await signupSchool({
                 ...form,
-                referralCode,
+                referralCode: code,
                 institutionType,
                 ...(packCode ? { packCode } : {}),
             });
@@ -100,8 +107,12 @@ function SignupForm() {
             router.push('/admin/settings');
         } catch (err: any) {
             const msg = err.response?.data?.error || err.response?.data?.message || 'Signup failed';
-            setError(msg);
-            if (msg === 'Invalid referral code' || msg === 'Referral code is required') setCodeStatus('invalid');
+            if (msg === 'Invalid referral code' || msg === 'Referral code is required') {
+                setCodeStatus('invalid');
+                setError(msg === 'Invalid referral code' ? 'Code commercial invalide.' : 'Le code commercial est obligatoire.');
+            } else {
+                setError(msg);
+            }
         } finally {
             setLoading(false);
         }
@@ -229,6 +240,7 @@ function SignupForm() {
                                 value={referralCode}
                                 onChange={(e) => {
                                     setReferralCode(e.target.value.toUpperCase());
+                                    checkedCode.current = ''; // ignore any check still in flight
                                     setCodeStatus('idle');
                                 }}
                                 onBlur={() => verifyCode(referralCode.trim())}
