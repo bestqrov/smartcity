@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Check, Trash2 } from 'lucide-react';
+import { Copy, Check, Trash2, TrendingUp, ChevronDown, ChevronRight } from 'lucide-react';
 import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
 import {
     BASE_RATE_FIELDS,
@@ -36,6 +36,20 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
             // clipboard unavailable: the link stays visible to copy by hand
         }
     };
+
+    const [monthOpen, setMonthOpen] = useState(false);
+    const now = new Date();
+    const ym = (year: number, month: number) => `${year}-${String(month).padStart(2, '0')}`;
+    const thisMonth = ym(now.getFullYear(), now.getMonth() + 1);
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonth = ym(prev.getFullYear(), prev.getMonth() + 1);
+    const monthCommissions = report.commissions.filter((c) => c.paidAt.slice(0, 7) === thisMonth);
+    const monthEarned = monthCommissions.reduce((total, c) => total + c.commissionAmount, 0);
+    const monthCollected = monthCommissions.reduce((total, c) => total + c.amount, 0);
+    const lastMonthEarned = report.commissions
+        .filter((c) => c.paidAt.slice(0, 7) === lastMonth)
+        .reduce((total, c) => total + c.commissionAmount, 0);
+    const monthLabel = now.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
     const cards: { label: string; value: string; tab: Tab; strong?: boolean }[] = [
         { label: 'Clients', value: String(report.totals.schools), tab: 'schools' },
@@ -86,6 +100,64 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                     </div>
                 ) : (
                     <p className="text-xs text-gray-500">Pas d&apos;exception par pack.</p>
+                )}
+            </div>
+
+            <div className="space-y-3">
+                <button
+                    type="button"
+                    onClick={() => setMonthOpen((open) => !open)}
+                    aria-expanded={monthOpen}
+                    className="w-full text-left rounded-2xl border border-emerald-200 bg-emerald-50 p-5 flex items-center gap-4 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                >
+                    <TrendingUp className="text-emerald-600 shrink-0" size={32} aria-hidden="true" />
+                    <div className="flex-1 min-w-0">
+                        <div className="text-sm text-emerald-800">Gagné ce mois-ci — {monthLabel}</div>
+                        <div className="text-3xl font-bold text-emerald-700">{formatMAD(monthEarned)}</div>
+                        <div className="text-xs text-emerald-800">
+                            {monthCommissions.length} paiement{monthCommissions.length > 1 ? 's' : ''} · {formatMAD(monthCollected)} encaissés par les écoles
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">Mois dernier : {formatMAD(lastMonthEarned)}</div>
+                    </div>
+                    <span className="flex items-center gap-1 text-sm font-semibold text-emerald-700 shrink-0">
+                        <span className="hidden sm:inline">Voir le détail</span>
+                        {monthOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                    </span>
+                </button>
+                {monthOpen && (
+                    <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+                                <tr>
+                                    <th className="px-4 py-3">Date</th>
+                                    <th className="px-4 py-3">École</th>
+                                    <th className="px-4 py-3">Pack</th>
+                                    <th className="px-4 py-3">Période</th>
+                                    <th className="px-4 py-3">Paiement</th>
+                                    <th className="px-4 py-3">Taux</th>
+                                    <th className="px-4 py-3">Commission</th>
+                                    <th className="px-4 py-3">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {monthCommissions.map((c) => (
+                                    <tr key={c.id} className="border-t border-gray-100">
+                                        <td className="px-4 py-3 whitespace-nowrap">{formatDay(c.paidAt)}</td>
+                                        <td className="px-4 py-3 font-semibold">{c.schoolName}</td>
+                                        <td className="px-4 py-3">{c.packName ?? '—'}</td>
+                                        <td className="px-4 py-3">{PERIOD_LABELS[c.period]}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap">{formatMAD(c.amount)}</td>
+                                        <td className="px-4 py-3">{c.commissionRate} %</td>
+                                        <td className="px-4 py-3 font-bold whitespace-nowrap">{formatMAD(c.commissionAmount)}</td>
+                                        <td className="px-4 py-3"><PayoutStatusBadge status={c.payoutStatus} /></td>
+                                    </tr>
+                                ))}
+                                {monthCommissions.length === 0 && (
+                                    <tr><td colSpan={8} className="px-4 py-6 text-gray-500">Aucune commission ce mois-ci.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
 
