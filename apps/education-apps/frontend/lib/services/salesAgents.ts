@@ -47,11 +47,18 @@ export interface SalesAgentListItem extends AgentRates {
     totals: AgentTotals;
 }
 
-export type PayoutMethod = 'BANK_TRANSFER' | 'MONEY_TRANSFER' | 'CASH';
+export type PayoutMethod = 'BANK_TRANSFER' | 'MONEY_TRANSFER' | 'MOBILE_MONEY' | 'CASH';
+export type WalletProvider = 'INWI_MONEY' | 'ORANGE_MONEY';
+
+export const WALLET_PROVIDER_LABELS: Record<WalletProvider, string> = {
+    INWI_MONEY: 'Inwi Money',
+    ORANGE_MONEY: 'Orange Money',
+};
 
 export const PAYOUT_METHOD_LABELS: Record<PayoutMethod, string> = {
     BANK_TRANSFER: 'Virement bancaire',
     MONEY_TRANSFER: "Transfert d'argent (Wafacash, Cash Plus…)",
+    MOBILE_MONEY: 'Portefeuille mobile (Inwi Money, Orange Money)',
     CASH: 'Espèces',
 };
 
@@ -61,6 +68,7 @@ export interface PayoutDetails {
     rib: string | null;
     accountHolder: string | null;
     payoutPhone: string | null;
+    walletProvider: WalletProvider | null;
 }
 
 // "1234 5678 9012 3456 7890 1234"
@@ -226,6 +234,7 @@ export interface ProfileInput {
     rib?: string;
     accountHolder?: string;
     payoutPhone?: string;
+    walletProvider?: WalletProvider;
 }
 
 export async function updateMyProfile(data: ProfileInput): Promise<void> {
@@ -254,4 +263,8 @@ export async function recordSchoolPayment(
 
 export async function deleteSchoolPayment(schoolId: string, paymentId: string): Promise<void> {
     await api.delete(`/schools/${schoolId}/payments/${paymentId}`);
+}
+
+export async function resetAgentPassword(id: string, newPassword: string): Promise<void> {
+    await api.patch(`/sales-agents/${id}/password`, { newPassword });
 }

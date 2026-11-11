@@ -294,6 +294,7 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
             rib: agent.rib,
             accountHolder: agent.accountHolder,
             payoutPhone: agent.payoutPhone,
+            walletProvider: agent.walletProvider,
         },
         rateTable,
         totals: { ...totals, statusCounts: countStatuses(schools.map((school) => school.clientStatus)) },

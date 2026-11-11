@@ -12,6 +12,7 @@ import {
     deleteAgentPayout,
     formatRib,
     PAYOUT_METHOD_LABELS,
+    WALLET_PROVIDER_LABELS,
     todayLocal,
     getSalesAgentReport,
     recordAgentPayout,
@@ -137,7 +138,11 @@ export default function SalesAgentDetailPage() {
                                 <h2 className="font-bold text-gray-800">Mode de paiement</h2>
                                 {report.agent.payoutMethod ? (
                                     <>
-                                        <div className="font-semibold text-gray-800">{PAYOUT_METHOD_LABELS[report.agent.payoutMethod]}</div>
+                                        <div className="font-semibold text-gray-800">
+                                            {report.agent.payoutMethod === 'MOBILE_MONEY' && report.agent.walletProvider
+                                                ? WALLET_PROVIDER_LABELS[report.agent.walletProvider]
+                                                : PAYOUT_METHOD_LABELS[report.agent.payoutMethod]}
+                                        </div>
                                         {report.agent.accountHolder && <div className="text-gray-700">Titulaire : {report.agent.accountHolder}</div>}
                                         {report.agent.bankName && <div className="text-gray-700">Banque : {report.agent.bankName}</div>}
                                         {report.agent.rib && <div className="text-gray-700">RIB : <span className="font-mono">{formatRib(report.agent.rib)}</span></div>}

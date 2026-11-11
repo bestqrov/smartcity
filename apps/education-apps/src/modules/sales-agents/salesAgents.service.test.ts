@@ -606,7 +606,7 @@ describe('updateOwnProfile', () => {
         expect(prisma.salesAgent.findUnique).toHaveBeenCalledWith({ where: { userId: 'u1' } });
         expect(tx.salesAgent.update).toHaveBeenCalledWith({
             where: { id: 'a1' },
-            data: { phone: '0600', payoutMethod: 'CASH', bankName: null, rib: null, accountHolder: null, payoutPhone: null },
+            data: { phone: '0600', payoutMethod: 'CASH', bankName: null, rib: null, accountHolder: null, payoutPhone: null, walletProvider: null },
         });
         expect(tx.user.update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { gsm: '0600' } });
         expect(result).toEqual({ id: 'a1', phone: '0600', payoutMethod: 'CASH' });

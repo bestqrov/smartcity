@@ -6,9 +6,11 @@ import {
     changeMyPassword,
     getMyAgentReport,
     PAYOUT_METHOD_LABELS,
+    WALLET_PROVIDER_LABELS,
     updateMyProfile,
     type AgentReport,
     type PayoutMethod,
+    type WalletProvider,
 } from '@/lib/services/salesAgents';
 
 type Notice = { type: 'ok' | 'error'; text: string } | null;
@@ -31,7 +33,7 @@ function NoticeBox({ notice }: { notice: Notice }) {
 export default function AgentProfilePage() {
     const [agent, setAgent] = useState<AgentReport['agent'] | null>(null);
     const [loadError, setLoadError] = useState('');
-    const [form, setForm] = useState({ phone: '', method: '' as PayoutMethod | '', bankName: '', rib: '', accountHolder: '', payoutPhone: '' });
+    const [form, setForm] = useState({ phone: '', method: '' as PayoutMethod | '', bankName: '', rib: '', accountHolder: '', payoutPhone: '', walletProvider: '' as WalletProvider | '' });
     const [profileNotice, setProfileNotice] = useState<Notice>(null);
     const [pwd, setPwd] = useState({ current: '', next: '', confirm: '' });
     const [pwdNotice, setPwdNotice] = useState<Notice>(null);
@@ -48,6 +50,7 @@ export default function AgentProfilePage() {
                     rib: agent.rib ?? '',
                     accountHolder: agent.accountHolder ?? '',
                     payoutPhone: agent.payoutPhone ?? '',
+                    walletProvider: agent.walletProvider ?? '',
                 });
             })
             .catch((err) => setLoadError(apiErrorMessage(err)));
@@ -62,6 +65,11 @@ export default function AgentProfilePage() {
                 phone: form.phone,
                 payoutMethod: form.method || null,
                 ...(form.method === 'BANK_TRANSFER' && { bankName: form.bankName, rib: form.rib, accountHolder: form.accountHolder }),
+                ...(form.method === 'MOBILE_MONEY' && {
+                    walletProvider: form.walletProvider as WalletProvider,
+                    accountHolder: form.accountHolder,
+                    payoutPhone: form.payoutPhone,
+                }),
                 ...(form.method === 'MONEY_TRANSFER' && { accountHolder: form.accountHolder, payoutPhone: form.payoutPhone }),
             });
             setProfileNotice({ type: 'ok', text: 'Profil enregistré.' });
@@ -138,6 +146,18 @@ export default function AgentProfilePage() {
                     <div className="space-y-3">
                         <input className={inputClass} aria-label="Nom du bénéficiaire" placeholder="Nom du bénéficiaire" value={form.accountHolder} onChange={(e) => setForm({ ...form, accountHolder: e.target.value })} required />
                         <input className={inputClass} aria-label="Téléphone du bénéficiaire" placeholder="Téléphone du bénéficiaire" value={form.payoutPhone} onChange={(e) => setForm({ ...form, payoutPhone: e.target.value })} required />
+                    </div>
+                )}
+                {form.method === 'MOBILE_MONEY' && (
+                    <div className="space-y-3">
+                        <select className={inputClass} aria-label="Opérateur" value={form.walletProvider} onChange={(e) => setForm({ ...form, walletProvider: e.target.value as WalletProvider })} required>
+                            <option value="">Choisir l&apos;opérateur</option>
+                            {(Object.keys(WALLET_PROVIDER_LABELS) as WalletProvider[]).map((provider) => (
+                                <option key={provider} value={provider}>{WALLET_PROVIDER_LABELS[provider]}</option>
+                            ))}
+                        </select>
+                        <input className={inputClass} aria-label="Nom du titulaire du portefeuille" placeholder="Nom du titulaire du portefeuille" value={form.accountHolder} onChange={(e) => setForm({ ...form, accountHolder: e.target.value })} required />
+                        <input className={inputClass} aria-label="Téléphone du portefeuille" placeholder="Téléphone du portefeuille" value={form.payoutPhone} onChange={(e) => setForm({ ...form, payoutPhone: e.target.value })} required />
                     </div>
                 )}
                 {form.method === 'CASH' && <p className="text-xs text-gray-500">Vos commissions vous seront remises en espèces.</p>}

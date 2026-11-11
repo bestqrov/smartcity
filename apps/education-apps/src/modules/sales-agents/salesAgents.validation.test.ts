@@ -274,7 +274,7 @@ describe('sanitizeAgentSelfUpdate', () => {
     it('requires bank name, holder and a 24-digit RIB for a bank transfer, and stores digits only', () => {
         expect(
             sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', bankName: ' CIH ', accountHolder: ' Ali ', rib: '1234 5678 9012 3456 7890 1234' })
-        ).toEqual({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', accountHolder: 'Ali', rib: RIB, payoutPhone: null });
+        ).toEqual({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', accountHolder: 'Ali', rib: RIB, payoutPhone: null, walletProvider: null });
         expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', accountHolder: 'Ali', rib: RIB })).toThrow('Bank name is required');
         expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', rib: RIB })).toThrow('Account holder is required');
         expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'BANK_TRANSFER', bankName: 'CIH', accountHolder: 'Ali', rib: '123' })).toThrow('RIB must be exactly 24 digits');
@@ -285,19 +285,34 @@ describe('sanitizeAgentSelfUpdate', () => {
     it('requires holder and phone for a money transfer and clears the bank fields', () => {
         expect(
             sanitizeAgentSelfUpdate({ payoutMethod: 'MONEY_TRANSFER', accountHolder: ' Ali ', payoutPhone: ' 0611 ', bankName: 'CIH', rib: RIB })
-        ).toEqual({ payoutMethod: 'MONEY_TRANSFER', accountHolder: 'Ali', payoutPhone: '0611', bankName: null, rib: null });
+        ).toEqual({ payoutMethod: 'MONEY_TRANSFER', accountHolder: 'Ali', payoutPhone: '0611', bankName: null, rib: null, walletProvider: null });
         expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'MONEY_TRANSFER', payoutPhone: '0611' })).toThrow('Account holder is required');
         expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'MONEY_TRANSFER', accountHolder: 'Ali' })).toThrow('Payout phone is required');
     });
 
+    it('requires provider, holder and phone for mobile money and clears the bank fields', () => {
+        expect(
+            sanitizeAgentSelfUpdate({ payoutMethod: 'MOBILE_MONEY', walletProvider: 'INWI_MONEY', accountHolder: ' Ali ', payoutPhone: ' 0611 ', bankName: 'CIH', rib: RIB })
+        ).toEqual({ payoutMethod: 'MOBILE_MONEY', walletProvider: 'INWI_MONEY', accountHolder: 'Ali', payoutPhone: '0611', bankName: null, rib: null });
+        const ok = { payoutMethod: 'MOBILE_MONEY', accountHolder: 'Ali', payoutPhone: '0611' };
+        expect(() => sanitizeAgentSelfUpdate(ok)).toThrow('Wallet provider must be INWI_MONEY or ORANGE_MONEY');
+        expect(() => sanitizeAgentSelfUpdate({ ...ok, walletProvider: 'PAYPAL' })).toThrow('Wallet provider must be INWI_MONEY or ORANGE_MONEY');
+        expect(() => sanitizeAgentSelfUpdate({ ...ok, walletProvider: 'ORANGE_MONEY', accountHolder: '' })).toThrow('Account holder is required');
+        expect(() => sanitizeAgentSelfUpdate({ ...ok, walletProvider: 'ORANGE_MONEY', payoutPhone: '' })).toThrow('Payout phone is required');
+    });
+
+    it('clears the wallet provider for the other methods', () => {
+        expect(sanitizeAgentSelfUpdate({ payoutMethod: 'CASH', walletProvider: 'INWI_MONEY' })).toMatchObject({ walletProvider: null });
+    });
+
     it('clears every other payout field for cash, and for a null method', () => {
-        const cleared = { bankName: null, rib: null, accountHolder: null, payoutPhone: null };
+        const cleared = { bankName: null, rib: null, accountHolder: null, payoutPhone: null, walletProvider: null };
         expect(sanitizeAgentSelfUpdate({ payoutMethod: 'CASH', bankName: 'CIH', payoutPhone: '06' })).toEqual({ payoutMethod: 'CASH', ...cleared });
         expect(sanitizeAgentSelfUpdate({ payoutMethod: null })).toEqual({ payoutMethod: null, ...cleared });
     });
 
     it('rejects an unknown method and payout fields without a method', () => {
-        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'PAYPAL' })).toThrow('Payout method must be BANK_TRANSFER, MONEY_TRANSFER or CASH');
+        expect(() => sanitizeAgentSelfUpdate({ payoutMethod: 'PAYPAL' })).toThrow('Payout method must be BANK_TRANSFER, MONEY_TRANSFER, MOBILE_MONEY or CASH');
         expect(() => sanitizeAgentSelfUpdate({ rib: RIB })).toThrow('Payout method is required');
     });
 

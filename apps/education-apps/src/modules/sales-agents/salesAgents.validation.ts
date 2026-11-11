@@ -194,11 +194,14 @@ export const sanitizePayout = (input: Record<string, unknown>): PayoutData => ({
     note: optionalText(input.note),
 });
 
-export const PAYOUT_METHODS = ['BANK_TRANSFER', 'MONEY_TRANSFER', 'CASH'] as const;
+export const PAYOUT_METHODS = ['BANK_TRANSFER', 'MONEY_TRANSFER', 'MOBILE_MONEY', 'CASH'] as const;
 export type PayoutMethodValue = (typeof PAYOUT_METHODS)[number];
 
-const SELF_FIELDS = ['phone', 'payoutMethod', 'bankName', 'rib', 'accountHolder', 'payoutPhone'] as const;
-const PAYOUT_DETAIL_FIELDS = ['bankName', 'rib', 'accountHolder', 'payoutPhone'] as const;
+export const WALLET_PROVIDERS = ['INWI_MONEY', 'ORANGE_MONEY'] as const;
+export type WalletProviderValue = (typeof WALLET_PROVIDERS)[number];
+
+const SELF_FIELDS = ['phone', 'payoutMethod', 'bankName', 'rib', 'accountHolder', 'payoutPhone', 'walletProvider'] as const;
+const PAYOUT_DETAIL_FIELDS = ['bankName', 'rib', 'accountHolder', 'payoutPhone', 'walletProvider'] as const;
 
 export interface AgentSelfUpdateData {
     phone?: string | null;
@@ -207,6 +210,7 @@ export interface AgentSelfUpdateData {
     rib?: string | null;
     accountHolder?: string | null;
     payoutPhone?: string | null;
+    walletProvider?: WalletProviderValue | null;
 }
 
 // What an agent may change on their own profile: phone and payout method. Everything else is admin-only.
@@ -223,11 +227,11 @@ export const sanitizeAgentSelfUpdate = (input: Record<string, unknown>): AgentSe
         if (hasDetails) throw new Error('Payout method is required');
     } else {
         const method = input.payoutMethod;
-        const cleared = { bankName: null, rib: null, accountHolder: null, payoutPhone: null };
+        const cleared = { bankName: null, rib: null, accountHolder: null, payoutPhone: null, walletProvider: null };
         if (method === null) {
             Object.assign(data, { payoutMethod: null, ...cleared });
         } else if (!PAYOUT_METHODS.includes(method as PayoutMethodValue)) {
-            throw new Error('Payout method must be BANK_TRANSFER, MONEY_TRANSFER or CASH');
+            throw new Error('Payout method must be BANK_TRANSFER, MONEY_TRANSFER, MOBILE_MONEY or CASH');
         } else if (method === 'BANK_TRANSFER') {
             const rib = typeof input.rib === 'string' ? input.rib.replace(/\s+/g, '') : '';
             const bankName = requireText('Bank name', input.bankName);
@@ -238,6 +242,14 @@ export const sanitizeAgentSelfUpdate = (input: Record<string, unknown>): AgentSe
             const accountHolder = requireText('Account holder', input.accountHolder);
             const payoutPhone = requireText('Payout phone', input.payoutPhone);
             Object.assign(data, { payoutMethod: method, ...cleared, accountHolder, payoutPhone });
+        } else if (method === 'MOBILE_MONEY') {
+            const walletProvider = input.walletProvider;
+            if (!WALLET_PROVIDERS.includes(walletProvider as WalletProviderValue)) {
+                throw new Error('Wallet provider must be INWI_MONEY or ORANGE_MONEY');
+            }
+            const accountHolder = requireText('Account holder', input.accountHolder);
+            const payoutPhone = requireText('Payout phone', input.payoutPhone);
+            Object.assign(data, { payoutMethod: method, ...cleared, walletProvider, accountHolder, payoutPhone });
         } else {
             Object.assign(data, { payoutMethod: method, ...cleared });
         }

@@ -27,6 +27,7 @@ enum SchoolStatus {
 enum PayoutMethod {
   BANK_TRANSFER
   MONEY_TRANSFER
+  MOBILE_MONEY
   CASH
 }
 
@@ -636,6 +637,7 @@ model SalesAgent {
   rib            String? // 24 digits, no spaces
   accountHolder  String?
   payoutPhone    String?
+  walletProvider String? // INWI_MONEY | ORANGE_MONEY, validated in code; only for MOBILE_MONEY
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
