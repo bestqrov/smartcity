@@ -25,6 +25,7 @@ import transportRoutes from './modules/transport/transport.routes';
 import packsRoutes from './modules/packs/packs.routes';
 import salesAgentsRoutes from './modules/sales-agents/salesAgents.routes';
 import agentRoutes from './modules/sales-agents/agent.routes';
+import platformRoutes from './modules/platform/platform.routes';
 
 const app: Application = express();
 
@@ -62,6 +63,7 @@ apiRouter.use('/transport', transportRoutes);
 apiRouter.use('/packs', packsRoutes);
 apiRouter.use('/sales-agents', salesAgentsRoutes);
 apiRouter.use('/agent', agentRoutes);
+apiRouter.use('/platform', platformRoutes);
 
 app.use('/api', apiRouter);
 
