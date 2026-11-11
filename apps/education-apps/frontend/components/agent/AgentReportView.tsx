@@ -1,0 +1,189 @@
+'use client';
+
+import { useState } from 'react';
+import { Copy, Check, Trash2 } from 'lucide-react';
+import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
+import { formatDate, formatMAD, referralUrl, type AgentReport } from '@/lib/services/salesAgents';
+
+type Tab = 'schools' | 'commissions' | 'payouts';
+
+interface Props {
+    report: AgentReport;
+    onDeletePayout?: (payoutId: string) => void; // admin only
+}
+
+const STATUS_LABELS: Record<string, string> = { ACTIVE: 'Active', PENDING: 'En attente', SUSPENDED: 'Suspendue' };
+
+export default function AgentReportView({ report, onDeletePayout }: Props) {
+    const [tab, setTab] = useState<Tab>('schools');
+    const [copied, setCopied] = useState(false);
+    const link = referralUrl(report.agent.referralPath);
+
+    const copy = async () => {
+        try {
+            await navigator.clipboard.writeText(link);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // clipboard unavailable: the link stays visible to copy by hand
+        }
+    };
+
+    const cards = [
+        { label: 'Clients', value: String(report.totals.schools) },
+        { label: 'Clients actifs', value: String(report.totals.activeSchools) },
+        { label: 'Commissions', value: formatMAD(report.totals.totalCommissions) },
+        { label: 'Déjà versé', value: formatMAD(report.totals.totalPayouts) },
+        { label: 'Solde dû', value: formatMAD(report.totals.balance), strong: true },
+    ];
+
+    const tabs: { id: Tab; label: string }[] = [
+        { id: 'schools', label: `Clients (${report.schools.length})` },
+        { id: 'commissions', label: `Commissions (${report.commissions.length})` },
+        { id: 'payouts', label: `Paiements reçus (${report.payouts.length})` },
+    ];
+
+    return (
+        <div className="space-y-6">
+            <div className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-wrap items-center gap-3">
+                <span className="text-sm text-gray-500">Lien commercial :</span>
+                <code className="flex-1 min-w-0 truncate text-sm font-semibold text-indigo-700">{link}</code>
+                <button onClick={copy} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold">
+                    {copied ? <Check size={16} /> : <Copy size={16} />} {copied ? 'Copié' : 'Copier'}
+                </button>
+                <span className="w-full text-xs text-gray-500">
+                    Code : <b className="font-mono">{report.agent.code}</b> · Taux : {report.agent.commissionRate} %
+                </span>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {cards.map((card) => (
+                    <div
+                        key={card.label}
+                        className={`rounded-2xl border p-4 ${card.strong ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200'}`}
+                    >
+                        <div className="text-xs text-gray-500">{card.label}</div>
+                        <div className={`mt-1 font-bold ${card.strong ? 'text-emerald-700 text-xl' : 'text-gray-800 text-lg'}`}>{card.value}</div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="flex gap-2 overflow-x-auto">
+                {tabs.map((t) => (
+                    <button
+                        key={t.id}
+                        onClick={() => setTab(t.id)}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap ${
+                            tab === t.id ? 'bg-gray-800 text-white' : 'bg-white border border-gray-200 text-gray-600'
+                        }`}
+                    >
+                        {t.label}
+                    </button>
+                ))}
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto">
+                {tab === 'schools' && (
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th className="px-4 py-3">École</th>
+                                <th className="px-4 py-3">Contact</th>
+                                <th className="px-4 py-3">Type / Pack</th>
+                                <th className="px-4 py-3">Statut</th>
+                                <th className="px-4 py-3">Inscrite le</th>
+                                <th className="px-4 py-3">Total payé</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {report.schools.map((school) => (
+                                <tr key={school.id} className="border-t border-gray-100">
+                                    <td className="px-4 py-3 font-semibold">
+                                        {school.name}
+                                        <div className="text-xs text-gray-500">{school.city || '—'}</div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {school.ownerName}
+                                        <div className="text-xs text-gray-500">{school.ownerPhone || '—'}</div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE]}
+                                        <div className="text-xs text-gray-500">{school.packName ?? 'Aucun pack'}</div>
+                                    </td>
+                                    <td className="px-4 py-3">{STATUS_LABELS[school.status] ?? school.status}</td>
+                                    <td className="px-4 py-3">{formatDate(school.createdAt)}</td>
+                                    <td className="px-4 py-3">{formatMAD(school.totalPaid)}</td>
+                                </tr>
+                            ))}
+                            {report.schools.length === 0 && (
+                                <tr><td colSpan={6} className="px-4 py-6 text-gray-500">Aucun client pour le moment.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                )}
+
+                {tab === 'commissions' && (
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th className="px-4 py-3">Date</th>
+                                <th className="px-4 py-3">École</th>
+                                <th className="px-4 py-3">Paiement</th>
+                                <th className="px-4 py-3">Taux</th>
+                                <th className="px-4 py-3">Commission</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {report.commissions.map((c) => (
+                                <tr key={c.id} className="border-t border-gray-100">
+                                    <td className="px-4 py-3">{formatDate(c.paidAt)}</td>
+                                    <td className="px-4 py-3 font-semibold">{c.schoolName}</td>
+                                    <td className="px-4 py-3">
+                                        {formatMAD(c.amount)} <span className="text-xs text-gray-500">({c.period === 'YEARLY' ? 'annuel' : 'mensuel'})</span>
+                                    </td>
+                                    <td className="px-4 py-3">{c.commissionRate} %</td>
+                                    <td className="px-4 py-3 font-bold">{formatMAD(c.commissionAmount)}</td>
+                                </tr>
+                            ))}
+                            {report.commissions.length === 0 && (
+                                <tr><td colSpan={5} className="px-4 py-6 text-gray-500">Aucune commission pour le moment.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                )}
+
+                {tab === 'payouts' && (
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th className="px-4 py-3">Date</th>
+                                <th className="px-4 py-3">Montant</th>
+                                <th className="px-4 py-3">Note</th>
+                                {onDeletePayout && <th className="px-4 py-3" />}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {report.payouts.map((p) => (
+                                <tr key={p.id} className="border-t border-gray-100">
+                                    <td className="px-4 py-3">{formatDate(p.paidAt)}</td>
+                                    <td className="px-4 py-3 font-bold">{formatMAD(p.amount)}</td>
+                                    <td className="px-4 py-3">{p.note || '—'}</td>
+                                    {onDeletePayout && (
+                                        <td className="px-4 py-3 text-right">
+                                            <button onClick={() => onDeletePayout(p.id)} className="text-red-600 hover:text-red-800" aria-label="Supprimer">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))}
+                            {report.payouts.length === 0 && (
+                                <tr><td colSpan={onDeletePayout ? 4 : 3} className="px-4 py-6 text-gray-500">Aucun paiement pour le moment.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+        </div>
+    );
+}
