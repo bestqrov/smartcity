@@ -3,7 +3,7 @@ import { buildTotals, resolveReferralCode, isReferralCodeValid, listAgents, crea
 import * as bcryptUtil from '../../utils/bcrypt';
 
 jest.mock('../../config/database', () => {
-    const tx = { user: { create: jest.fn() }, salesAgent: { create: jest.fn() } };
+    const tx = { user: { create: jest.fn(), update: jest.fn() }, salesAgent: { create: jest.fn(), update: jest.fn() } };
     return {
         __esModule: true,
         default: {
@@ -170,6 +170,23 @@ describe('updateAgent', () => {
     it('404s an unknown agent', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(null);
         await expect(updateAgent('zz', { name: 'x' })).rejects.toThrow('Sales agent not found');
+    });
+
+    it('refuses a non-zero commission rate on the house agent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'h1', isHouse: true, userId: null });
+        await expect(updateAgent('h1', { commissionRate: 10 })).rejects.toThrow('The company code earns no commission');
+        expect(prisma.salesAgent.update).not.toHaveBeenCalled();
+    });
+
+    it('keeps the login account name and phone in sync with the agent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', isHouse: false, userId: 'u1' });
+        tx.salesAgent.update.mockResolvedValue({ id: 'a1', name: 'Ali', phone: null, userId: 'u1' });
+
+        await expect(updateAgent('a1', { name: 'Ali', phone: '' })).resolves.toEqual({ id: 'a1', name: 'Ali', phone: null });
+
+        expect(tx.salesAgent.update).toHaveBeenCalledWith({ where: { id: 'a1' }, data: { name: 'Ali', phone: null } });
+        expect(tx.user.update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { name: 'Ali', gsm: null } });
+        expect(prisma.salesAgent.update).not.toHaveBeenCalled();
     });
 });
 

@@ -104,8 +104,25 @@ export const updateAgent = async (id: string, input: Record<string, unknown>) =>
     const existing = await prisma.salesAgent.findUnique({ where: { id } });
     if (!existing) throw new Error('Sales agent not found');
     if (existing.isHouse && data.active === false) throw new Error('The company code cannot be deactivated');
+    if (existing.isHouse && data.commissionRate !== undefined && data.commissionRate !== 0) {
+        throw new Error('The company code earns no commission');
+    }
 
-    const { userId: _userId, ...updated } = await prisma.salesAgent.update({ where: { id }, data });
+    // The login account shows the agent's name (e.g. in the /agent header), so keep it in sync.
+    const userData = {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.phone !== undefined && { gsm: data.phone }),
+    };
+    const userId = existing.userId;
+
+    const { userId: _userId, ...updated } =
+        userId && Object.keys(userData).length > 0
+            ? await prisma.$transaction(async (tx) => {
+                  const agent = await tx.salesAgent.update({ where: { id }, data });
+                  await tx.user.update({ where: { id: userId }, data: userData });
+                  return agent;
+              })
+            : await prisma.salesAgent.update({ where: { id }, data });
     return updated;
 };
 

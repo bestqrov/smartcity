@@ -162,7 +162,9 @@ Dans **Domains**, ajoutez le nouveau domaine confirmé à l'étape 1 des préreq
 ## 4. Ordre de déploiement
 
 1. **`education-backend`** d'abord (le frontend en dépend via `INTERNAL_API_URL`).
-2. **`education-frontend`** ensuite.
+   - Après un changement de schéma Prisma : `npx prisma db push` (crée les collections `sales_agents`, `school_payments`, `agent_payouts` et leurs index).
+   - Une seule fois : `npm run prisma:seed-sales-agents` (crée le code société `ARWA`, idempotent ; nécessite les devDependencies pour `ts-node`). **Sans ce code, toute inscription d'école échoue** : le code commercial est obligatoire.
+2. **`education-frontend`** ensuite. Définir `NEXT_PUBLIC_WHATSAPP_NUMBER` au build (lien « Pas de code ? » de l'inscription).
 
 ---
 
@@ -172,7 +174,7 @@ Dans **Domains**, ajoutez le nouveau domaine confirmé à l'étape 1 des préreq
 # Health / signup endpoint du backend (interne, via le frontend qui proxy /api)
 curl -X POST https://<domaine-frontend>/api/schools/signup \
   -H 'Content-Type: application/json' \
-  -d '{"ownerName":"Test","ownerEmail":"deploytest@example.com","password":"password123"}'
+  -d '{"ownerName":"Test","ownerEmail":"deploytest@example.com","password":"password123","institutionType":"PRIVATE_SCHOOL","referralCode":"ARWA"}'
 
 # Frontend
 curl -I https://<domaine-frontend>
