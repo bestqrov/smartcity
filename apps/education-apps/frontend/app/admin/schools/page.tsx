@@ -206,7 +206,7 @@ export default function SuperAdminSchoolsPage() {
                     </table>
                 )}
             </div>
-            <SchoolPaymentsModal school={paymentsSchool} onClose={() => setPaymentsSchool(null)} />
+            {paymentsSchool && <SchoolPaymentsModal key={paymentsSchool.id} school={paymentsSchool} onClose={() => setPaymentsSchool(null)} />}
         </div>
     );
 }

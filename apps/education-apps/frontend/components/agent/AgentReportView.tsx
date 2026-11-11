@@ -3,18 +3,19 @@
 import { useState } from 'react';
 import { Copy, Check, Trash2 } from 'lucide-react';
 import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
-import { formatDate, formatMAD, referralUrl, type AgentReport } from '@/lib/services/salesAgents';
+import { formatDate, formatDay, formatMAD, referralUrl, type AgentReport } from '@/lib/services/salesAgents';
 
 type Tab = 'schools' | 'commissions' | 'payouts';
 
 interface Props {
     report: AgentReport;
     onDeletePayout?: (payoutId: string) => void; // admin only
+    busy?: boolean;
 }
 
 const STATUS_LABELS: Record<string, string> = { ACTIVE: 'Active', PENDING: 'En attente', SUSPENDED: 'Suspendue' };
 
-export default function AgentReportView({ report, onDeletePayout }: Props) {
+export default function AgentReportView({ report, onDeletePayout, busy }: Props) {
     const [tab, setTab] = useState<Tab>('schools');
     const [copied, setCopied] = useState(false);
     const link = referralUrl(report.agent.referralPath);
@@ -136,7 +137,7 @@ export default function AgentReportView({ report, onDeletePayout }: Props) {
                         <tbody>
                             {report.commissions.map((c) => (
                                 <tr key={c.id} className="border-t border-gray-100">
-                                    <td className="px-4 py-3">{formatDate(c.paidAt)}</td>
+                                    <td className="px-4 py-3">{formatDay(c.paidAt)}</td>
                                     <td className="px-4 py-3 font-semibold">{c.schoolName}</td>
                                     <td className="px-4 py-3">
                                         {formatMAD(c.amount)} <span className="text-xs text-gray-500">({c.period === 'YEARLY' ? 'annuel' : 'mensuel'})</span>
@@ -165,12 +166,12 @@ export default function AgentReportView({ report, onDeletePayout }: Props) {
                         <tbody>
                             {report.payouts.map((p) => (
                                 <tr key={p.id} className="border-t border-gray-100">
-                                    <td className="px-4 py-3">{formatDate(p.paidAt)}</td>
+                                    <td className="px-4 py-3">{formatDay(p.paidAt)}</td>
                                     <td className="px-4 py-3 font-bold">{formatMAD(p.amount)}</td>
                                     <td className="px-4 py-3">{p.note || '—'}</td>
                                     {onDeletePayout && (
                                         <td className="px-4 py-3 text-right">
-                                            <button onClick={() => onDeletePayout(p.id)} className="text-red-600 hover:text-red-800" aria-label="Supprimer">
+                                            <button onClick={() => onDeletePayout(p.id)} disabled={busy} className="text-red-600 hover:text-red-800" aria-label="Supprimer">
                                                 <Trash2 size={16} />
                                             </button>
                                         </td>

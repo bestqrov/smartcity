@@ -100,6 +100,16 @@ export const formatMAD = (value: number): string =>
 
 export const formatDate = (value: string): string => new Date(value).toLocaleDateString('fr-FR');
 
+// For date-only values (e.g. paidAt stored at UTC midnight).
+export const formatDay = (value: string): string => new Date(value).toLocaleDateString('fr-FR', { timeZone: 'UTC' });
+
+// Local calendar date as YYYY-MM-DD.
+export const todayLocal = (): string => {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
 export const referralUrl = (referralPath: string): string =>
     typeof window === 'undefined' ? referralPath : `${window.location.origin}${referralPath}`;
 

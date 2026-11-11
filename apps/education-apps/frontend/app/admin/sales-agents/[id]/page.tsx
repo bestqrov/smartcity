@@ -9,13 +9,12 @@ import AgentReportView from '@/components/agent/AgentReportView';
 import { apiErrorMessage } from '@/lib/services/packs';
 import {
     deleteAgentPayout,
+    todayLocal,
     getSalesAgentReport,
     recordAgentPayout,
     updateSalesAgent,
     type AgentReport,
 } from '@/lib/services/salesAgents';
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 export default function SalesAgentDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -24,7 +23,7 @@ export default function SalesAgentDetailPage() {
     const [report, setReport] = useState<AgentReport | null>(null);
     const [error, setError] = useState('');
     const [edit, setEdit] = useState({ name: '', phone: '', commissionRate: '', active: true });
-    const [payout, setPayout] = useState({ amount: '', paidAt: today(), note: '' });
+    const [payout, setPayout] = useState({ amount: '', paidAt: todayLocal(), note: '' });
     const [busy, setBusy] = useState(false);
 
     const load = async () => {
@@ -65,12 +64,12 @@ export default function SalesAgentDetailPage() {
     const saveAgent = (e: React.FormEvent) => {
         e.preventDefault();
         run(() =>
-            updateSalesAgent(id, {
-                name: edit.name,
-                phone: edit.phone,
-                commissionRate: Number(edit.commissionRate),
-                active: edit.active,
-            })
+            updateSalesAgent(
+                id,
+                report?.agent.isHouse
+                    ? { name: edit.name, phone: edit.phone }
+                    : { name: edit.name, phone: edit.phone, commissionRate: Number(edit.commissionRate), active: edit.active }
+            )
         );
     };
 
@@ -78,7 +77,7 @@ export default function SalesAgentDetailPage() {
         e.preventDefault();
         run(async () => {
             await recordAgentPayout(id, { amount: Number(payout.amount), paidAt: payout.paidAt, note: payout.note || undefined });
-            setPayout({ amount: '', paidAt: today(), note: '' });
+            setPayout({ amount: '', paidAt: todayLocal(), note: '' });
         });
     };
 
@@ -99,9 +98,9 @@ export default function SalesAgentDetailPage() {
 
             {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100">{error}</div>}
 
-            {!report ? (
+            {!report && !error ? (
                 <p className="text-gray-500">Chargement…</p>
-            ) : (
+            ) : !report ? null : (
                 <>
                     <h1 className="text-3xl font-bold text-gray-800">
                         {report.agent.name}
@@ -111,11 +110,12 @@ export default function SalesAgentDetailPage() {
                     <div className="grid md:grid-cols-2 gap-4">
                         <form onSubmit={saveAgent} className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
                             <h2 className="font-bold text-gray-800">Fiche</h2>
-                            <input className={`${inputClass} w-full`} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} required />
-                            <input className={`${inputClass} w-full`} placeholder="Téléphone" value={edit.phone} onChange={(e) => setEdit({ ...edit, phone: e.target.value })} />
+                            <input className={`${inputClass} w-full`} aria-label="Nom" value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} required />
+                            <input className={`${inputClass} w-full`} aria-label="Téléphone" placeholder="Téléphone" value={edit.phone} onChange={(e) => setEdit({ ...edit, phone: e.target.value })} />
                             <label className="block text-sm text-gray-600">
                                 Taux de commission (%) — s&apos;applique aux prochains paiements
-                                <input className={`${inputClass} w-full`} type="number" min={0} max={100} step="0.5" value={edit.commissionRate} onChange={(e) => setEdit({ ...edit, commissionRate: e.target.value })} required />
+                                <input className={`${inputClass} w-full`} type="number" min={0} max={100} step="0.5" value={edit.commissionRate} onChange={(e) => setEdit({ ...edit, commissionRate: e.target.value })} disabled={report.agent.isHouse} required />
+                                {report.agent.isHouse && <span className="block mt-1 text-xs text-gray-500">Le code société ne touche pas de commission.</span>}
                             </label>
                             {!report.agent.isHouse && (
                                 <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -129,15 +129,15 @@ export default function SalesAgentDetailPage() {
                         {!report.agent.isHouse && (
                             <form onSubmit={addPayout} className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
                                 <h2 className="font-bold text-gray-800">Enregistrer un versement</h2>
-                                <input className={`${inputClass} w-full`} type="number" min={0.01} step="0.01" placeholder="Montant (MAD)" value={payout.amount} onChange={(e) => setPayout({ ...payout, amount: e.target.value })} required />
-                                <input className={`${inputClass} w-full`} type="date" value={payout.paidAt} onChange={(e) => setPayout({ ...payout, paidAt: e.target.value })} required />
-                                <input className={`${inputClass} w-full`} placeholder="Note (ex. virement CIH)" value={payout.note} onChange={(e) => setPayout({ ...payout, note: e.target.value })} />
+                                <input className={`${inputClass} w-full`} type="number" min={0.01} step="0.01" aria-label="Montant du versement (MAD)" placeholder="Montant (MAD)" value={payout.amount} onChange={(e) => setPayout({ ...payout, amount: e.target.value })} required />
+                                <input className={`${inputClass} w-full`} type="date" aria-label="Date du versement" value={payout.paidAt} onChange={(e) => setPayout({ ...payout, paidAt: e.target.value })} required />
+                                <input className={`${inputClass} w-full`} aria-label="Note" placeholder="Note (ex. virement CIH)" value={payout.note} onChange={(e) => setPayout({ ...payout, note: e.target.value })} />
                                 <button disabled={busy} className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold disabled:opacity-50">Enregistrer le versement</button>
                             </form>
                         )}
                     </div>
 
-                    <AgentReportView report={report} onDeletePayout={removePayout} />
+                    <AgentReportView report={report} onDeletePayout={removePayout} busy={busy} />
                 </>
             )}
         </div>

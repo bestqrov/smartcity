@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Briefcase, LogOut } from 'lucide-react';
 import { RequireRole } from '@/components/auth/RequireRole';
@@ -8,6 +9,10 @@ import useAuthStore from '@/store/useAuthStore';
 export default function AgentLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const user = useAuthStore((state) => state.user);
+
+    useEffect(() => {
+        if (user?.role === 'SUPER_ADMIN') router.replace('/admin/sales-agents');
+    }, [user, router]);
 
     const logout = () => {
         useAuthStore.getState().logout();

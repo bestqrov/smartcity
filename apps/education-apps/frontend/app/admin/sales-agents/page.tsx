@@ -148,11 +148,11 @@ export default function SalesAgentsPage() {
             <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Nouveau commercial">
                 <form onSubmit={submit} className="space-y-3">
                     {formError && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{formError}</div>}
-                    <input className={inputClass} placeholder="Nom complet" value={form.name} onChange={set('name')} required />
-                    <input className={inputClass} type="email" placeholder="Email (identifiant)" value={form.email} onChange={set('email')} required />
-                    <input className={inputClass} type="password" placeholder="Mot de passe (8 caractères min.)" minLength={8} value={form.password} onChange={set('password')} required />
-                    <input className={inputClass} placeholder="Téléphone" value={form.phone} onChange={set('phone')} />
-                    <input className={`${inputClass} font-mono`} placeholder="Code (ex. YOUSSEF22)" pattern="[A-Z0-9\-]{3,20}" value={form.code} onChange={set('code')} required />
+                    <input className={inputClass} aria-label="Nom complet" placeholder="Nom complet" value={form.name} onChange={set('name')} required />
+                    <input className={inputClass} type="email" aria-label="Email (identifiant)" placeholder="Email (identifiant)" value={form.email} onChange={set('email')} required />
+                    <input className={inputClass} type="password" aria-label="Mot de passe" placeholder="Mot de passe (8 caractères min.)" minLength={8} value={form.password} onChange={set('password')} required />
+                    <input className={inputClass} aria-label="Téléphone" placeholder="Téléphone" value={form.phone} onChange={set('phone')} />
+                    <input className={`${inputClass} font-mono`} aria-label="Code commercial" placeholder="Code (ex. YOUSSEF22)" pattern="[A-Z0-9\-]{3,20}" value={form.code} onChange={set('code')} required />
                     <label className="block text-sm text-gray-600">
                         Taux de commission (%)
                         <input className={inputClass} type="number" min={0} max={100} step="0.5" value={form.commissionRate} onChange={set('commissionRate')} required />

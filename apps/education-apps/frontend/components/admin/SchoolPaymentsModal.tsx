@@ -6,26 +6,26 @@ import { Modal } from '@/components/ui/Modal';
 import { apiErrorMessage } from '@/lib/services/packs';
 import {
     deleteSchoolPayment,
-    formatDate,
+    formatDay,
     formatMAD,
     getSchoolPayments,
     recordSchoolPayment,
+    todayLocal,
     type SchoolPaymentItem,
     type SubscriptionPeriod,
 } from '@/lib/services/salesAgents';
 
 interface Props {
-    school: { id: string; name: string } | null;
+    school: { id: string; name: string };
     onClose: () => void;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
-
 export default function SchoolPaymentsModal({ school, onClose }: Props) {
     const [payments, setPayments] = useState<SchoolPaymentItem[]>([]);
-    const [form, setForm] = useState({ amount: '', period: 'MONTHLY' as SubscriptionPeriod, paidAt: today(), note: '' });
+    const [form, setForm] = useState({ amount: '', period: 'MONTHLY' as SubscriptionPeriod, paidAt: todayLocal(), note: '' });
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const load = async (schoolId: string) => {
         setError('');
@@ -33,15 +33,15 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
             setPayments(await getSchoolPayments(schoolId));
         } catch (err) {
             setError(apiErrorMessage(err));
+        } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (school) load(school.id);
-        else setPayments([]);
-    }, [school]);
-
-    if (!school) return null;
+        load(school.id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [school.id]);
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,7 +54,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                 paidAt: form.paidAt,
                 note: form.note || undefined,
             });
-            setForm({ amount: '', period: form.period, paidAt: today(), note: '' });
+            setForm({ amount: '', period: form.period, paidAt: todayLocal(), note: '' });
             await load(school.id);
         } catch (err) {
             setError(apiErrorMessage(err));
@@ -84,13 +84,13 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                 {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{error}</div>}
 
                 <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                    <input className={inputClass} type="number" min={0.01} step="0.01" placeholder="Montant (MAD)" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
-                    <select className={inputClass} value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value as SubscriptionPeriod })}>
+                    <input className={inputClass} type="number" min={0.01} step="0.01" aria-label="Montant (MAD)" placeholder="Montant (MAD)" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
+                    <select className={inputClass} aria-label="Période" value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value as SubscriptionPeriod })}>
                         <option value="MONTHLY">Mensuel</option>
                         <option value="YEARLY">Annuel</option>
                     </select>
-                    <input className={inputClass} type="date" value={form.paidAt} onChange={(e) => setForm({ ...form, paidAt: e.target.value })} required />
-                    <input className={inputClass} placeholder="Note" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+                    <input className={inputClass} type="date" aria-label="Date du paiement" value={form.paidAt} onChange={(e) => setForm({ ...form, paidAt: e.target.value })} required />
+                    <input className={inputClass} aria-label="Note" placeholder="Note" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
                     <button disabled={busy} className="sm:col-span-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold disabled:opacity-50">
                         Enregistrer le paiement
                     </button>
@@ -109,7 +109,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                     <tbody>
                         {payments.map((p) => (
                             <tr key={p.id} className="border-t border-gray-100">
-                                <td className="px-3 py-2">{formatDate(p.paidAt)}</td>
+                                <td className="px-3 py-2">{formatDay(p.paidAt)}</td>
                                 <td className="px-3 py-2">
                                     {formatMAD(p.amount)} <span className="text-xs text-gray-500">({p.period === 'YEARLY' ? 'annuel' : 'mensuel'})</span>
                                 </td>
@@ -123,7 +123,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                             </tr>
                         ))}
                         {payments.length === 0 && (
-                            <tr><td colSpan={5} className="px-3 py-4 text-gray-500">Aucun paiement enregistré.</td></tr>
+                            <tr><td colSpan={5} className="px-3 py-4 text-gray-500">{loading ? 'Chargement…' : 'Aucun paiement enregistré.'}</td></tr>
                         )}
                     </tbody>
                 </table>
