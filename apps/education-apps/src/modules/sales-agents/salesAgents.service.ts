@@ -224,9 +224,18 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
     const schools = agent.schools.map(({ pack, ...school }) => {
         // Only payments credited to this agent count.
         const credited = agent.payments.filter((payment) => payment.schoolId === school.id);
+        const times = credited.map((payment) => payment.paidAt.getTime());
+        const latest = credited.reduce<(typeof credited)[number] | null>(
+            (best, payment) => (!best || payment.paidAt.getTime() > best.paidAt.getTime() ? payment : best),
+            null
+        );
         return {
             ...school,
             packName: pack?.name ?? null,
+            firstPaidAt: credited.length ? new Date(Math.min(...times)) : null,
+            lastPaidAt: latest?.paidAt ?? null,
+            lastPeriod: latest?.period ?? null,
+            paymentsCount: credited.length,
             clientStatus: clientStatus(school.status, credited.length),
             totalPaid: sum(credited.map((payment) => payment.amount)),
         };

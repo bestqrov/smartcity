@@ -429,7 +429,17 @@ describe('agent report', () => {
             packName: 'Pro',
             clientStatus: 'CONFIRMED',
             totalPaid: 450,
+            firstPaidAt: new Date('2026-01-01'),
+            lastPaidAt: new Date('2026-03-01'),
+            lastPeriod: 'MONTHLY',
+            paymentsCount: 2,
         });
+        expect(report.schools.map((s) => [s.id, s.firstPaidAt, s.lastPaidAt, s.lastPeriod, s.paymentsCount])).toEqual([
+            ['s1', new Date('2026-01-01'), new Date('2026-03-01'), 'MONTHLY', 2],
+            ['s2', null, null, null, 0],
+            ['s3', null, null, null, 0],
+            ['s4', new Date('2026-02-01'), new Date('2026-02-01'), 'SEMIANNUAL', 1],
+        ]);
         expect(report.schools.map((s) => [s.id, s.status, s.clientStatus, s.totalPaid])).toEqual([
             ['s1', 'ACTIVE', 'CONFIRMED', 450],
             ['s2', 'PENDING', 'PENDING', 0],
