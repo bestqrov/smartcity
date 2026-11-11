@@ -21,7 +21,7 @@ export default function AgentHomePage() {
     return (
         <div className="space-y-4">
             <h1 className="text-2xl font-bold text-gray-800">Bonjour {report.agent.name}</h1>
-            <AgentReportView report={report} />
+            <AgentReportView report={report} ratesTitle="Mes taux" />
         </div>
     );
 }

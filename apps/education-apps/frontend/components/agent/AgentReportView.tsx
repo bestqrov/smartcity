@@ -3,7 +3,15 @@
 import { useState } from 'react';
 import { Copy, Check, Trash2 } from 'lucide-react';
 import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
+import {
+    BASE_RATE_FIELDS,
+    CLIENT_STATUS_META,
+    CLIENT_STATUS_ORDER,
+    PERIOD_LABELS,
+    packLabel,
+} from '@/lib/salesAgentLabels';
 import { formatDate, formatDay, formatMAD, referralUrl, type AgentReport } from '@/lib/services/salesAgents';
+import { ClientStatusBadge, PayoutStatusBadge, StatusLegend } from './StatusBadge';
 
 type Tab = 'schools' | 'commissions' | 'payouts';
 
@@ -11,11 +19,10 @@ interface Props {
     report: AgentReport;
     onDeletePayout?: (payoutId: string) => void; // admin only
     busy?: boolean;
+    ratesTitle?: string; // "Mes taux" in the agent space
 }
 
-const STATUS_LABELS: Record<string, string> = { ACTIVE: 'Active', PENDING: 'En attente', SUSPENDED: 'Suspendue' };
-
-export default function AgentReportView({ report, onDeletePayout, busy }: Props) {
+export default function AgentReportView({ report, onDeletePayout, busy, ratesTitle = 'Taux' }: Props) {
     const [tab, setTab] = useState<Tab>('schools');
     const [copied, setCopied] = useState(false);
     const link = referralUrl(report.agent.referralPath);
@@ -53,8 +60,33 @@ export default function AgentReportView({ report, onDeletePayout, busy }: Props)
                     {copied ? <Check size={16} /> : <Copy size={16} />} {copied ? 'Copié' : 'Copier'}
                 </button>
                 <span className="w-full text-xs text-gray-500">
-                    Code : <b className="font-mono">{report.agent.code}</b> · Taux : {report.agent.commissionRate} %
+                    Code : <b className="font-mono">{report.agent.code}</b>
                 </span>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+                <h2 className="font-bold text-gray-800">{ratesTitle}</h2>
+                <div className="flex flex-wrap gap-2">
+                    {BASE_RATE_FIELDS.map((field) => (
+                        <span key={field.key} className="px-3 py-1 rounded-lg bg-gray-100 text-sm text-gray-700">
+                            {PERIOD_LABELS[field.period]} : <b>{report.agent[field.key]} %</b>
+                        </span>
+                    ))}
+                </div>
+                {report.agent.packRates.length > 0 ? (
+                    <div>
+                        <div className="text-xs text-gray-500 mb-1">Exceptions par pack</div>
+                        <ul className="text-sm text-gray-700 space-y-0.5">
+                            {report.agent.packRates.map((rate) => (
+                                <li key={`${rate.packId}-${rate.period}`}>
+                                    {packLabel(rate)} · {PERIOD_LABELS[rate.period]} : <b>{rate.rate} %</b>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ) : (
+                    <p className="text-xs text-gray-500">Pas d&apos;exception par pack.</p>
+                )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -67,6 +99,17 @@ export default function AgentReportView({ report, onDeletePayout, busy }: Props)
                         <div className={`mt-1 font-bold ${card.strong ? 'text-emerald-700 text-xl' : 'text-gray-800 text-lg'}`}>{card.value}</div>
                     </div>
                 ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2" aria-label="Statut des clients">
+                {CLIENT_STATUS_ORDER.map((status) => {
+                    const meta = CLIENT_STATUS_META[status];
+                    return (
+                        <span key={status} title={meta.label} className={`px-3 py-1 rounded-full border text-sm font-semibold ${meta.className}`}>
+                            <span aria-hidden="true">{meta.icon}</span> {report.totals.statusCounts[status]} {meta.short}
+                        </span>
+                    );
+                })}
             </div>
 
             <div className="flex gap-2 overflow-x-auto">
@@ -111,7 +154,9 @@ export default function AgentReportView({ report, onDeletePayout, busy }: Props)
                                         {INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE]}
                                         <div className="text-xs text-gray-500">{school.packName ?? 'Aucun pack'}</div>
                                     </td>
-                                    <td className="px-4 py-3">{STATUS_LABELS[school.status] ?? school.status}</td>
+                                    <td className="px-4 py-3">
+                                        <ClientStatusBadge status={school.clientStatus} />
+                                    </td>
                                     <td className="px-4 py-3">{formatDate(school.createdAt)}</td>
                                     <td className="px-4 py-3">{formatMAD(school.totalPaid)}</td>
                                 </tr>
@@ -129,9 +174,11 @@ export default function AgentReportView({ report, onDeletePayout, busy }: Props)
                             <tr>
                                 <th className="px-4 py-3">Date</th>
                                 <th className="px-4 py-3">École</th>
+                                <th className="px-4 py-3">Pack</th>
                                 <th className="px-4 py-3">Paiement</th>
                                 <th className="px-4 py-3">Taux</th>
                                 <th className="px-4 py-3">Commission</th>
+                                <th className="px-4 py-3">Statut</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -139,15 +186,24 @@ export default function AgentReportView({ report, onDeletePayout, busy }: Props)
                                 <tr key={c.id} className="border-t border-gray-100">
                                     <td className="px-4 py-3">{formatDay(c.paidAt)}</td>
                                     <td className="px-4 py-3 font-semibold">{c.schoolName}</td>
+                                    <td className="px-4 py-3">{c.packName ?? '—'}</td>
                                     <td className="px-4 py-3">
-                                        {formatMAD(c.amount)} <span className="text-xs text-gray-500">({c.period === 'YEARLY' ? 'annuel' : 'mensuel'})</span>
+                                        {formatMAD(c.amount)} <span className="text-xs text-gray-500">({PERIOD_LABELS[c.period]})</span>
                                     </td>
                                     <td className="px-4 py-3">{c.commissionRate} %</td>
                                     <td className="px-4 py-3 font-bold">{formatMAD(c.commissionAmount)}</td>
+                                    <td className="px-4 py-3">
+                                        <PayoutStatusBadge status={c.payoutStatus} />
+                                        {c.payoutStatus === 'PARTIAL' && (
+                                            <div className="mt-1 text-xs text-gray-500">
+                                                {formatMAD(c.paidAmount)} versé · reste {formatMAD(c.commissionAmount - c.paidAmount)}
+                                            </div>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                             {report.commissions.length === 0 && (
-                                <tr><td colSpan={5} className="px-4 py-6 text-gray-500">Aucune commission pour le moment.</td></tr>
+                                <tr><td colSpan={7} className="px-4 py-6 text-gray-500">Aucune commission pour le moment.</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -185,6 +241,9 @@ export default function AgentReportView({ report, onDeletePayout, busy }: Props)
                     </table>
                 )}
             </div>
+
+            {tab === 'schools' && <StatusLegend kind="client" />}
+            {tab === 'commissions' && <StatusLegend kind="payout" />}
         </div>
     );
 }
