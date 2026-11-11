@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import AgentReportView from '@/components/agent/AgentReportView';
+import { DashboardBanner } from '@/components/dashboard/DashboardShell';
 import { apiErrorMessage } from '@/lib/services/packs';
 import { getMyAgentReport, type AgentReport } from '@/lib/services/salesAgents';
 import { useAgentPrefs } from '@/lib/agent/prefs';
@@ -33,14 +34,14 @@ export default function AgentHomePage() {
 
     return (
         <div className="space-y-4">
-            <header className="flex justify-center">
-                <div className="w-full max-w-2xl rounded-2xl bg-espresso-800 px-5 py-3 text-center text-white shadow-sm dark:bg-espresso-ink sm:rounded-full">
-                    <h1 className="text-lg font-extrabold sm:text-2xl">{m.banner_title}</h1>
-                    <p className="mt-0.5 text-xs text-espresso-100 sm:text-sm">
+            <DashboardBanner
+                title={m.banner_title}
+                subtitle={
+                    <>
                         {m.hello(report.agent.name)} · {m.code} <span className="font-mono font-bold">{report.agent.code}</span>
-                    </p>
-                </div>
-            </header>
+                    </>
+                }
+            />
             <AgentReportView report={report} ratesTitle={m.my_rates} lang={lang} m={m} focus={section} />
         </div>
     );

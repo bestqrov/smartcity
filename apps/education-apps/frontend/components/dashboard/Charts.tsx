@@ -1,6 +1,6 @@
 'use client';
 
-// Small dependency-free charts (HTML bars + inline SVG) for the sales agent dashboard.
+// Small dependency-free charts (HTML bars + inline SVG) for the espresso dashboards (sales agent, super admin).
 // They follow the document direction: bars grow from the inline start, time axes run right-to-left in Arabic.
 import { ArrowDown, ArrowUp } from 'lucide-react';
 
@@ -84,6 +84,7 @@ export interface BarDatum {
     key: string;
     label: string;
     value: number;
+    icon?: React.ReactNode; // e.g. an avatar, shown before the label (horizontal bars only)
 }
 
 export function HBarChart({ data: all, format, empty, maxRows = 6 }: { data: BarDatum[]; format: (v: number) => string; empty: string; maxRows?: number }) {
@@ -95,9 +96,16 @@ export function HBarChart({ data: all, format, empty, maxRows = 6 }: { data: Bar
         <ul className="space-y-1.5">
             {data.map((d) => (
                 <li key={d.key} className="flex items-center gap-2 text-[11px]">
-                    <span className="w-24 shrink-0 truncate text-end font-semibold text-espresso-800 dark:text-espresso-100 sm:w-28" title={d.label}>
-                        {d.label}
-                    </span>
+                    {d.icon ? (
+                        <span className="flex w-28 shrink-0 items-center justify-end gap-1.5 sm:w-32" title={d.label}>
+                            <span className="min-w-0 truncate text-end font-semibold text-espresso-800 dark:text-espresso-100">{d.label}</span>
+                            {d.icon}
+                        </span>
+                    ) : (
+                        <span className="w-24 shrink-0 truncate text-end font-semibold text-espresso-800 dark:text-espresso-100 sm:w-28" title={d.label}>
+                            {d.label}
+                        </span>
+                    )}
                     <span className="flex min-w-0 flex-1 items-center gap-1.5">
                         <span
                             className="h-3.5 shrink-0 rounded-e-md bg-espresso-600 dark:bg-espresso-400"

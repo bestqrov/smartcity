@@ -11,7 +11,8 @@ import { agentMessages, type AgentLang, type AgentMessages } from '@/lib/agent/m
 import { fmtDate, fmtDay, fmtMAD, fmtMADShort, fmtMonthShort, fmtMonthYear, fmtNumber } from '@/lib/agent/format';
 import type { AgentSection } from '@/lib/agent/prefs';
 import { ClientStatusBadge, PayoutStatusBadge, StatusLegend } from './StatusBadge';
-import { cardClass, ChartCard, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from './dashboard/Charts';
+import { cardClass, ChartCard, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from '@/components/dashboard/Charts';
+import { emptyRowClass, mutedClass, rowClass, Slicer, TabButton, tdClass, theadClass, thClass } from '@/components/dashboard/ui';
 
 type Tab = 'schools' | 'commissions' | 'payouts';
 type School = AgentReport['schools'][number];
@@ -58,16 +59,6 @@ const rateRange = (rows: RateTableRow[], period: SubscriptionPeriod): string => 
     const max = Math.max(...values);
     return min === max ? `${min} %` : `${min}–${max} %`;
 };
-
-// ---- shared table styles -------------------------------------------------------------------------------------
-
-const theadClass = 'sticky top-0 z-10 bg-espresso-800 text-espresso-50 text-xs dark:bg-espresso-ink';
-const thClass = 'px-3 py-2 font-semibold whitespace-nowrap text-start';
-const tdClass = 'px-3 py-2';
-const rowClass =
-    'border-t border-espresso-100 odd:bg-white even:bg-espresso-50/60 hover:bg-espresso-100/60 dark:border-espresso-800 dark:odd:bg-espresso-900 dark:even:bg-espresso-950/50 dark:hover:bg-espresso-800/60';
-const mutedClass = 'text-xs text-gray-500 dark:text-espresso-300';
-const emptyRowClass = 'px-3 py-6 text-gray-500 dark:text-espresso-300';
 
 function RateTable({ rows, m, lang }: { rows: RateTableRow[]; m: AgentMessages; lang: AgentLang }) {
     const [openType, setOpenType] = useState<InstitutionType | null>(null);
@@ -179,27 +170,6 @@ function RateTable({ rows, m, lang }: { rows: RateTableRow[]; m: AgentMessages; 
                 </div>
             )}
         </div>
-    );
-}
-
-function Slicer({ id, label, value, onChange, options, all }: { id: string; label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; all: string }) {
-    return (
-        <label htmlFor={id} className="block min-w-0">
-            <span className="mb-1 block truncate text-xs font-bold text-espresso-50">{label}</span>
-            <select
-                id={id}
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                className="w-full rounded-lg border border-transparent bg-white px-2 py-1.5 text-sm font-semibold text-espresso-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-espresso-300 dark:border-espresso-700 dark:bg-espresso-900 dark:text-espresso-50"
-            >
-                <option value="">{all}</option>
-                {options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                        {option.label}
-                    </option>
-                ))}
-            </select>
-        </label>
     );
 }
 
@@ -558,22 +528,9 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
             <section id="agent-tables" className="scroll-mt-28 space-y-3">
                 <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label={m.tabs_label}>
                     {tabs.map((t) => (
-                        <button
-                            key={t.id}
-                            type="button"
-                            role="tab"
-                            id={`tab-${t.id}`}
-                            aria-selected={tab === t.id}
-                            aria-controls="agent-tabpanel"
-                            onClick={() => setTab(t.id)}
-                            className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-espresso-500 ${
-                                tab === t.id
-                                    ? 'bg-espresso-800 text-white dark:bg-espresso-200 dark:text-espresso-950'
-                                    : 'border border-espresso-100 bg-white text-espresso-700 hover:bg-espresso-50 dark:border-espresso-800 dark:bg-espresso-900 dark:text-espresso-200 dark:hover:bg-espresso-800'
-                            }`}
-                        >
+                        <TabButton key={t.id} id={`tab-${t.id}`} selected={tab === t.id} controls="agent-tabpanel" onClick={() => setTab(t.id)}>
                             {t.label} <span className="tabular-nums">({t.count})</span>
-                        </button>
+                        </TabButton>
                     ))}
                 </div>
 
