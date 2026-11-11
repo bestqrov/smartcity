@@ -15,12 +15,18 @@ enum UserRole {
   SECRETARY
   OWNER
   SUPER_ADMIN
+  SALES_AGENT
 }
 
 enum SchoolStatus {
   PENDING
   ACTIVE
   SUSPENDED
+}
+
+enum SubscriptionPeriod {
+  MONTHLY
+  YEARLY
 }
 
 enum InscriptionType {
@@ -64,6 +70,7 @@ model User {
   school   School? @relation(fields: [schoolId], references: [id])
   branchId String? @db.ObjectId
   branch   Branch? @relation(fields: [branchId], references: [id])
+  salesAgent SalesAgent?
 
   @@map("users")
 }
@@ -109,8 +116,12 @@ model School {
   institutionType InstitutionType? // null is treated as PRIVATE_SCHOOL
   packId          String?          @db.ObjectId
   pack            Pack?            @relation(fields: [packId], references: [id])
+  salesAgentId String?          @db.ObjectId
+  salesAgent   SalesAgent?      @relation(fields: [salesAgentId], references: [id])
+  payments     SchoolPayment[]
 
   @@index([packId])
+  @@index([salesAgentId])
   @@map("schools")
 }
 
@@ -596,4 +607,61 @@ model Pack {
 
   @@index([active, sortOrder])
   @@map("packs")
+}
+
+// A commercial who brings schools in. The house agent (isHouse) is the company's own code used in its ads:
+// it has no login (userId null). Only the house agent may have a null userId (MongoDB unique index).
+model SalesAgent {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  phone          String?
+  code           String   @unique
+  commissionRate Float
+  isHouse        Boolean  @default(false)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  userId String? @unique @db.ObjectId
+  user   User?   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  schools  School[]
+  payments SchoolPayment[]
+  payouts  AgentPayout[]
+
+  @@map("sales_agents")
+}
+
+// A subscription payment made by a school, recorded by the SUPER_ADMIN. The agent and rate are frozen here.
+model SchoolPayment {
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  schoolId         String             @db.ObjectId
+  school           School             @relation(fields: [schoolId], references: [id])
+  amount           Float
+  period           SubscriptionPeriod
+  paidAt           DateTime
+  note             String?
+  salesAgentId     String?            @db.ObjectId
+  salesAgent       SalesAgent?        @relation(fields: [salesAgentId], references: [id])
+  commissionRate   Float
+  commissionAmount Float
+  createdAt        DateTime           @default(now())
+
+  @@index([schoolId, paidAt])
+  @@index([salesAgentId, paidAt])
+  @@map("school_payments")
+}
+
+// Money paid out to an agent against their commissions.
+model AgentPayout {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  salesAgentId String     @db.ObjectId
+  salesAgent   SalesAgent @relation(fields: [salesAgentId], references: [id])
+  amount       Float
+  paidAt       DateTime
+  note         String?
+  createdAt    DateTime   @default(now())
+
+  @@index([salesAgentId, paidAt])
+  @@map("agent_payouts")
 }
