@@ -33,8 +33,15 @@ const parseAmount = (value: unknown): number => {
 };
 
 const parseDate = (label: string, value: unknown): Date => {
-    const date = typeof value === 'string' || value instanceof Date ? new Date(value) : null;
-    if (!date || Number.isNaN(date.getTime())) throw new Error(`${label} must be a valid date`);
+    const invalid = new Error(`${label} must be a valid date`);
+    if (value instanceof Date) {
+        if (Number.isNaN(value.getTime())) throw invalid;
+        return value;
+    }
+    // Only YYYY-MM-DD, optionally followed by a time part: `new Date('1')` and rolled-over days like 02-31 are rejected.
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}(T.*)?$/.test(value)) throw invalid;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime()) || new Date(value.slice(0, 10)).toISOString().slice(0, 10) !== value.slice(0, 10)) throw invalid;
     return date;
 };
 
