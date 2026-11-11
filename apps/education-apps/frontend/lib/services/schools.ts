@@ -8,6 +8,7 @@ export interface SignupSchoolData {
     password: string;
     institutionType: InstitutionType;
     packCode?: string;
+    referralCode: string;
 }
 
 export interface SignupSchoolResponse {
@@ -77,6 +78,8 @@ export interface SchoolListItem {
     institutionType?: InstitutionType | null;
     packId?: string | null;
     pack?: { id: string; code: string; name: string } | null;
+    salesAgentId?: string | null;
+    salesAgent?: { id: string; name: string; code: string } | null;
 }
 
 export async function getAllSchools(): Promise<SchoolListItem[]> {

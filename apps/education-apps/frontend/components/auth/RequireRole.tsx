@@ -35,6 +35,8 @@ export function RequireRole({ children, allowedRoles }: RequireRoleProps) {
                     router.push('/secretary');
                 } else if (user.role === 'OWNER') {
                     router.push('/admin/select-branch');
+                } else if (user.role === 'SALES_AGENT') {
+                    router.push('/agent');
                 }
             }
         }
