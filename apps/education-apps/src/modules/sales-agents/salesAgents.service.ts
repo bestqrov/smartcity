@@ -2,7 +2,17 @@ import type { Prisma } from '@prisma/client';
 import prisma from '../../config/database';
 import { hashPassword } from '../../utils/bcrypt';
 import { assertId } from '../transport/ids';
-import { CODE_PATTERN, normalizeCode, roundMoney, sanitizeAgentUpdate, sanitizeNewAgent, sanitizePayout } from './salesAgents.validation';
+import {
+    CODE_PATTERN,
+    normalizeCode,
+    roundMoney,
+    sanitizeAgentUpdate,
+    sanitizeNewAgent,
+    sanitizePayout,
+    type AgentUpdateData,
+    type PackRateData,
+} from './salesAgents.validation';
+import { allocatePayouts, clientStatus, countStatuses, type Allocation } from './salesAgents.statuses';
 
 // The agent behind a referral code typed at signup. Only active agents' codes are accepted.
 export const resolveReferralCode = async (raw: unknown) => {
@@ -49,6 +59,36 @@ export const buildTotals = (
     };
 };
 
+type StoredPackRate = { packId: string; period: string; rate: number };
+type PackLabels = Map<string, { name: string; code: string }>;
+
+// Exceptions store only the pack id; names are looked up so a renamed pack shows its current name.
+// The code disambiguates packs that share a name across institution types (e.g. "Pro").
+const packLabels = async (lists: StoredPackRate[][]): Promise<PackLabels> => {
+    const ids = [...new Set(lists.flat().map((rate) => rate.packId))];
+    if (ids.length === 0) return new Map();
+    const packs = await prisma.pack.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, code: true } });
+    return new Map(packs.map((pack) => [pack.id, { name: pack.name, code: pack.code }]));
+};
+
+const withPackNames = <T extends StoredPackRate>(rates: T[], labels: PackLabels) =>
+    rates.map((rate) => ({
+        ...rate,
+        packName: labels.get(rate.packId)?.name ?? null,
+        packCode: labels.get(rate.packId)?.code ?? null,
+    }));
+
+const assertPacksExist = async (rates: PackRateData[]) => {
+    const ids = [...new Set(rates.map((rate) => rate.packId))];
+    if (ids.length === 0) return;
+    const found = await prisma.pack.count({ where: { id: { in: ids } } });
+    if (found !== ids.length) throw new Error('Pack not found');
+};
+
+const earnsCommission = (data: AgentUpdateData): boolean =>
+    [data.monthlyRate, data.semiannualRate, data.yearlyRate].some((rate) => rate !== undefined && rate !== 0) ||
+    (data.packRates?.length ?? 0) > 0;
+
 export const listAgents = async () => {
     const agents = await prisma.salesAgent.findMany({
         orderBy: [{ isHouse: 'desc' }, { createdAt: 'asc' }],
@@ -59,9 +99,11 @@ export const listAgents = async () => {
             payouts: { select: { amount: true } },
         },
     });
+    const labels = await packLabels(agents.map((agent) => agent.packRates));
 
-    return agents.map(({ user, schools, payments, payouts, userId: _userId, ...agent }) => ({
+    return agents.map(({ user, schools, payments, payouts, packRates, userId: _userId, ...agent }) => ({
         ...agent,
+        packRates: withPackNames(packRates, labels),
         email: user?.email ?? null,
         totals: buildTotals(schools, payments, payouts),
     }));
@@ -72,6 +114,7 @@ export const createAgent = async (input: Record<string, unknown>) => {
 
     if (await prisma.salesAgent.findUnique({ where: { code: data.code } })) throw new Error('This code is already used');
     if (await prisma.user.findUnique({ where: { email: data.email } })) throw new Error('Email already exists');
+    await assertPacksExist(data.packRates);
 
     const password = await hashPassword(data.password);
 
@@ -85,7 +128,10 @@ export const createAgent = async (input: Record<string, unknown>) => {
                     name: data.name,
                     phone: data.phone,
                     code: data.code,
-                    commissionRate: data.commissionRate,
+                    monthlyRate: data.monthlyRate,
+                    semiannualRate: data.semiannualRate,
+                    yearlyRate: data.yearlyRate,
+                    packRates: data.packRates,
                     userId: user.id,
                 },
             });
@@ -97,6 +143,7 @@ export const createAgent = async (input: Record<string, unknown>) => {
     }
 };
 
+// New rates only apply to payments recorded afterwards: past payments keep their frozen rate.
 export const updateAgent = async (id: string, input: Record<string, unknown>) => {
     assertId('Sales agent id', id);
     const data = sanitizeAgentUpdate(input);
@@ -104,9 +151,12 @@ export const updateAgent = async (id: string, input: Record<string, unknown>) =>
     const existing = await prisma.salesAgent.findUnique({ where: { id } });
     if (!existing) throw new Error('Sales agent not found');
     if (existing.isHouse && data.active === false) throw new Error('The company code cannot be deactivated');
-    if (existing.isHouse && data.commissionRate !== undefined && data.commissionRate !== 0) {
-        throw new Error('The company code earns no commission');
-    }
+    if (existing.isHouse && earnsCommission(data)) throw new Error('The company code earns no commission');
+    if (data.packRates) await assertPacksExist(data.packRates);
+
+    // packRates replaces the whole list when sent.
+    const { packRates, ...fields } = data;
+    const agentData = { ...fields, ...(packRates !== undefined && { packRates: { set: packRates } }) };
 
     // The login account shows the agent's name (e.g. in the /agent header), so keep it in sync.
     const userData = {
@@ -118,13 +168,15 @@ export const updateAgent = async (id: string, input: Record<string, unknown>) =>
     const { userId: _userId, ...updated } =
         userId && Object.keys(userData).length > 0
             ? await prisma.$transaction(async (tx) => {
-                  const agent = await tx.salesAgent.update({ where: { id }, data });
+                  const agent = await tx.salesAgent.update({ where: { id }, data: agentData });
                   await tx.user.update({ where: { id: userId }, data: userData });
                   return agent;
               })
-            : await prisma.salesAgent.update({ where: { id }, data });
+            : await prisma.salesAgent.update({ where: { id }, data: agentData });
     return updated;
 };
+
+const NO_ALLOCATION: Allocation = { payoutStatus: 'NONE', paidAmount: 0 };
 
 const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
     const agent = await prisma.salesAgent.findUnique({
@@ -147,13 +199,15 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
             },
             // Payments credited to this agent (frozen on the payment), not payments of its current schools.
             payments: {
-                orderBy: { paidAt: 'desc' },
+                orderBy: [{ paidAt: 'desc' }, { createdAt: 'desc' }],
                 select: {
                     id: true,
                     schoolId: true,
                     paidAt: true,
+                    createdAt: true,
                     amount: true,
                     period: true,
+                    packName: true,
                     commissionRate: true,
                     commissionAmount: true,
                     school: { select: { name: true } },
@@ -164,26 +218,42 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
     });
     if (!agent) throw new Error('Sales agent not found');
 
+    const labels = await packLabels([agent.packRates]);
+    const totals = buildTotals(agent.schools, agent.payments, agent.payouts);
+    const allocation = allocatePayouts(agent.payments, totals.totalPayouts);
+    const schools = agent.schools.map(({ pack, ...school }) => {
+        // Only payments credited to this agent count.
+        const credited = agent.payments.filter((payment) => payment.schoolId === school.id);
+        return {
+            ...school,
+            packName: pack?.name ?? null,
+            clientStatus: clientStatus(school.status, credited.length),
+            totalPaid: sum(credited.map((payment) => payment.amount)),
+        };
+    });
+
     return {
         agent: {
             id: agent.id,
             name: agent.name,
             phone: agent.phone,
             code: agent.code,
-            commissionRate: agent.commissionRate,
+            monthlyRate: agent.monthlyRate,
+            semiannualRate: agent.semiannualRate,
+            yearlyRate: agent.yearlyRate,
+            packRates: withPackNames(agent.packRates, labels),
             isHouse: agent.isHouse,
             active: agent.active,
             email: agent.user?.email ?? null,
             referralPath: `/signup?ref=${agent.code}`,
         },
-        totals: buildTotals(agent.schools, agent.payments, agent.payouts),
-        schools: agent.schools.map(({ pack, ...school }) => ({
-            ...school,
-            packName: pack?.name ?? null,
-            // Only payments credited to this agent count.
-            totalPaid: sum(agent.payments.filter((payment) => payment.schoolId === school.id).map((payment) => payment.amount)),
+        totals: { ...totals, statusCounts: countStatuses(schools.map((school) => school.clientStatus)) },
+        schools,
+        commissions: agent.payments.map(({ school, schoolId: _schoolId, createdAt: _createdAt, ...payment }) => ({
+            ...payment,
+            schoolName: school.name,
+            ...(allocation.get(payment.id) ?? NO_ALLOCATION),
         })),
-        commissions: agent.payments.map(({ school, schoolId: _schoolId, ...payment }) => ({ ...payment, schoolName: school.name })),
         payouts: agent.payouts,
     };
 };
