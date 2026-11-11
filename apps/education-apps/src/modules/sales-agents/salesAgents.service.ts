@@ -1,7 +1,8 @@
+import type { Prisma } from '@prisma/client';
 import prisma from '../../config/database';
 import { hashPassword } from '../../utils/bcrypt';
 import { assertId } from '../transport/ids';
-import { CODE_PATTERN, normalizeCode, roundMoney, sanitizeAgentUpdate, sanitizeNewAgent } from './salesAgents.validation';
+import { CODE_PATTERN, normalizeCode, roundMoney, sanitizeAgentUpdate, sanitizeNewAgent, sanitizePayout } from './salesAgents.validation';
 
 // The agent behind a referral code typed at signup. Only active agents' codes are accepted.
 export const resolveReferralCode = async (raw: unknown) => {
@@ -101,4 +102,92 @@ export const updateAgent = async (id: string, input: Record<string, unknown>) =>
     if (existing.isHouse && data.active === false) throw new Error('The company code cannot be deactivated');
 
     return prisma.salesAgent.update({ where: { id }, data });
+};
+
+const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
+    const agent = await prisma.salesAgent.findUnique({
+        where,
+        include: {
+            user: { select: { email: true } },
+            schools: {
+                orderBy: { createdAt: 'desc' },
+                select: {
+                    id: true,
+                    name: true,
+                    city: true,
+                    institutionType: true,
+                    status: true,
+                    createdAt: true,
+                    ownerName: true,
+                    ownerPhone: true,
+                    pack: { select: { name: true } },
+                    payments: { select: { amount: true } },
+                },
+            },
+            // Payments credited to this agent (frozen on the payment), not payments of its current schools.
+            payments: {
+                orderBy: { paidAt: 'desc' },
+                select: {
+                    id: true,
+                    paidAt: true,
+                    amount: true,
+                    period: true,
+                    commissionRate: true,
+                    commissionAmount: true,
+                    school: { select: { name: true } },
+                },
+            },
+            payouts: { orderBy: { paidAt: 'desc' }, select: { id: true, paidAt: true, amount: true, note: true } },
+        },
+    });
+    if (!agent) throw new Error('Sales agent not found');
+
+    return {
+        agent: {
+            id: agent.id,
+            name: agent.name,
+            phone: agent.phone,
+            code: agent.code,
+            commissionRate: agent.commissionRate,
+            isHouse: agent.isHouse,
+            active: agent.active,
+            email: agent.user?.email ?? null,
+            referralPath: `/signup?ref=${agent.code}`,
+        },
+        totals: buildTotals(agent.schools, agent.payments, agent.payouts),
+        schools: agent.schools.map(({ pack, payments, ...school }) => ({
+            ...school,
+            packName: pack?.name ?? null,
+            totalPaid: sum(payments.map((payment) => payment.amount)),
+        })),
+        commissions: agent.payments.map(({ school, ...payment }) => ({ ...payment, schoolName: school.name })),
+        payouts: agent.payouts,
+    };
+};
+
+export const getAgentReport = (id: string) => {
+    assertId('Sales agent id', id);
+    return reportFor({ id });
+};
+
+export const getAgentReportForUser = (userId: string) => {
+    assertId('User id', userId);
+    return reportFor({ userId });
+};
+
+export const recordPayout = async (agentId: string, input: Record<string, unknown>) => {
+    assertId('Sales agent id', agentId);
+    const data = sanitizePayout(input);
+    const agent = await prisma.salesAgent.findUnique({ where: { id: agentId } });
+    if (!agent) throw new Error('Sales agent not found');
+    return prisma.agentPayout.create({ data: { ...data, salesAgentId: agentId } });
+};
+
+export const deletePayout = async (agentId: string, payoutId: string) => {
+    assertId('Sales agent id', agentId);
+    assertId('Payout id', payoutId);
+    const payout = await prisma.agentPayout.findFirst({ where: { id: payoutId, salesAgentId: agentId } });
+    if (!payout) throw new Error('Payout not found');
+    await prisma.agentPayout.delete({ where: { id: payoutId } });
+    return { id: payoutId };
 };

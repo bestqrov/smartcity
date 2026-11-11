@@ -1,5 +1,5 @@
 import prisma from '../../config/database';
-import { resolveReferralCode, isReferralCodeValid, listAgents, createAgent, updateAgent } from './salesAgents.service';
+import { resolveReferralCode, isReferralCodeValid, listAgents, createAgent, updateAgent, getAgentReport, getAgentReportForUser, recordPayout, deletePayout } from './salesAgents.service';
 import * as bcryptUtil from '../../utils/bcrypt';
 
 jest.mock('../../config/database', () => {
@@ -150,5 +150,144 @@ describe('updateAgent', () => {
     it('404s an unknown agent', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(null);
         await expect(updateAgent('zz', { name: 'x' })).rejects.toThrow('Sales agent not found');
+    });
+});
+
+describe('agent report', () => {
+    const stored = {
+        id: 'a1',
+        name: 'Youssef',
+        phone: '0600',
+        code: 'YOUSSEF22',
+        commissionRate: 15,
+        isHouse: false,
+        active: true,
+        userId: 'u1',
+        createdAt: new Date('2026-01-01'),
+        updatedAt: new Date('2026-01-01'),
+        user: { email: 'y@example.com' },
+        schools: [
+            {
+                id: 's1',
+                name: 'Ecole A',
+                city: 'Casa',
+                institutionType: 'PRIVATE_SCHOOL',
+                status: 'ACTIVE',
+                createdAt: new Date('2026-02-01'),
+                ownerName: 'Owner',
+                ownerPhone: '0611',
+                pack: { name: 'Pro' },
+                payments: [{ amount: 350 }, { amount: 350 }],
+            },
+        ],
+        payments: [
+            {
+                id: 'p1',
+                paidAt: new Date('2026-03-01'),
+                amount: 350,
+                period: 'MONTHLY',
+                commissionRate: 15,
+                commissionAmount: 52.5,
+                school: { name: 'Ecole A' },
+            },
+        ],
+        payouts: [{ id: 'o1', paidAt: new Date('2026-03-05'), amount: 50, note: null }],
+    };
+
+    it('builds the report for an agent id', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(stored);
+
+        const report = await getAgentReport('a1');
+
+        expect((prisma.salesAgent.findUnique as jest.Mock).mock.calls[0][0].where).toEqual({ id: 'a1' });
+        expect(report.agent).toEqual({
+            id: 'a1',
+            name: 'Youssef',
+            phone: '0600',
+            code: 'YOUSSEF22',
+            commissionRate: 15,
+            isHouse: false,
+            active: true,
+            email: 'y@example.com',
+            referralPath: '/signup?ref=YOUSSEF22',
+        });
+        expect(report.totals).toEqual({
+            schools: 1,
+            activeSchools: 1,
+            totalCommissions: 52.5,
+            totalPayouts: 50,
+            balance: 2.5,
+        });
+        expect(report.schools).toEqual([
+            {
+                id: 's1',
+                name: 'Ecole A',
+                city: 'Casa',
+                institutionType: 'PRIVATE_SCHOOL',
+                status: 'ACTIVE',
+                createdAt: new Date('2026-02-01'),
+                ownerName: 'Owner',
+                ownerPhone: '0611',
+                packName: 'Pro',
+                totalPaid: 700,
+            },
+        ]);
+        expect(report.commissions).toEqual([
+            {
+                id: 'p1',
+                paidAt: new Date('2026-03-01'),
+                amount: 350,
+                period: 'MONTHLY',
+                commissionRate: 15,
+                commissionAmount: 52.5,
+                schoolName: 'Ecole A',
+            },
+        ]);
+        expect(report.payouts).toEqual(stored.payouts);
+    });
+
+    it('scopes the agent space by the logged-in user id, and commissions by the payment agent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(stored);
+
+        await getAgentReportForUser('u1');
+
+        const args = (prisma.salesAgent.findUnique as jest.Mock).mock.calls[0][0];
+        expect(args.where).toEqual({ userId: 'u1' });
+        // Commissions come from the agent's own `payments` relation (SchoolPayment.salesAgentId),
+        // so a payment made before the school moved to another agent stays with this agent.
+        expect(args.include.payments).toBeDefined();
+    });
+
+    it('404s when no agent matches', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(null);
+        await expect(getAgentReportForUser('u9')).rejects.toThrow('Sales agent not found');
+    });
+});
+
+describe('payouts', () => {
+    it('records a payout for an existing agent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1' });
+        (prisma.agentPayout.create as jest.Mock).mockResolvedValue({ id: 'o1' });
+
+        await recordPayout('a1', { amount: 3000, paidAt: '2026-11-10', note: 'virement' });
+
+        expect(prisma.agentPayout.create).toHaveBeenCalledWith({
+            data: { amount: 3000, paidAt: new Date('2026-11-10'), note: 'virement', salesAgentId: 'a1' },
+        });
+    });
+
+    it('404s a payout for an unknown agent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(null);
+        await expect(recordPayout('zz', { amount: 10, paidAt: '2026-11-10' })).rejects.toThrow('Sales agent not found');
+    });
+
+    it('deletes only a payout that belongs to the agent', async () => {
+        (prisma.agentPayout.findFirst as jest.Mock).mockResolvedValueOnce({ id: 'o1' }).mockResolvedValueOnce(null);
+
+        await expect(deletePayout('a1', 'o1')).resolves.toEqual({ id: 'o1' });
+        expect(prisma.agentPayout.findFirst).toHaveBeenCalledWith({ where: { id: 'o1', salesAgentId: 'a1' } });
+        expect(prisma.agentPayout.delete).toHaveBeenCalledWith({ where: { id: 'o1' } });
+
+        await expect(deletePayout('a2', 'o1')).rejects.toThrow('Payout not found');
     });
 });
