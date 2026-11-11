@@ -14,6 +14,7 @@ import {
     type SchoolPaymentItem,
     type SubscriptionPeriod,
 } from '@/lib/services/salesAgents';
+import { PERIODS, PERIOD_LABELS } from '@/lib/salesAgentLabels';
 
 interface Props {
     school: { id: string; name: string };
@@ -86,8 +87,11 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                 <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                     <input className={inputClass} type="number" min={0.01} step="0.01" aria-label="Montant (MAD)" placeholder="Montant (MAD)" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
                     <select className={inputClass} aria-label="Période" value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value as SubscriptionPeriod })}>
-                        <option value="MONTHLY">Mensuel</option>
-                        <option value="YEARLY">Annuel</option>
+                        {PERIODS.map((period) => (
+                            <option key={period} value={period}>
+                                {PERIOD_LABELS[period]}
+                            </option>
+                        ))}
                     </select>
                     <input className={inputClass} type="date" aria-label="Date du paiement" value={form.paidAt} onChange={(e) => setForm({ ...form, paidAt: e.target.value })} required />
                     <input className={inputClass} aria-label="Note" placeholder="Note" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
@@ -101,6 +105,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                         <tr>
                             <th className="px-3 py-2">Date</th>
                             <th className="px-3 py-2">Montant</th>
+                            <th className="px-3 py-2">Pack</th>
                             <th className="px-3 py-2">Commercial</th>
                             <th className="px-3 py-2">Commission</th>
                             <th className="px-3 py-2" />
@@ -111,8 +116,9 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                             <tr key={p.id} className="border-t border-gray-100">
                                 <td className="px-3 py-2">{formatDay(p.paidAt)}</td>
                                 <td className="px-3 py-2">
-                                    {formatMAD(p.amount)} <span className="text-xs text-gray-500">({p.period === 'YEARLY' ? 'annuel' : 'mensuel'})</span>
+                                    {formatMAD(p.amount)} <span className="text-xs text-gray-500">({PERIOD_LABELS[p.period].toLowerCase()})</span>
                                 </td>
+                                <td className="px-3 py-2">{p.packName ?? '—'}</td>
                                 <td className="px-3 py-2">{p.salesAgent ? `${p.salesAgent.name} (${p.salesAgent.code})` : '—'}</td>
                                 <td className="px-3 py-2">{formatMAD(p.commissionAmount)} <span className="text-xs text-gray-500">({p.commissionRate} %)</span></td>
                                 <td className="px-3 py-2 text-right">
@@ -123,7 +129,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                             </tr>
                         ))}
                         {payments.length === 0 && (
-                            <tr><td colSpan={5} className="px-3 py-4 text-gray-500">{loading ? 'Chargement…' : 'Aucun paiement enregistré.'}</td></tr>
+                            <tr><td colSpan={6} className="px-3 py-4 text-gray-500">{loading ? 'Chargement…' : 'Aucun paiement enregistré.'}</td></tr>
                         )}
                     </tbody>
                 </table>
