@@ -163,7 +163,8 @@ Dans **Domains**, ajoutez le nouveau domaine confirmé à l'étape 1 des préreq
 
 1. **`education-backend`** d'abord (le frontend en dépend via `INTERNAL_API_URL`).
    - Après un changement de schéma Prisma : `npx prisma db push` (crée les collections `sales_agents`, `school_payments`, `agent_payouts` et leurs index).
-   - Une seule fois : `npm run prisma:seed-sales-agents` (crée le code société `ARWA`, idempotent ; nécessite les devDependencies pour `ts-node`). **Sans ce code, toute inscription d'école échoue** : le code commercial est obligatoire.
+   - Une seule fois : `npm run prisma:seed-sales-agents` (convertit les commerciaux v1 puis crée le code société `ARWA`, idempotent ; nécessite les devDependencies pour `ts-node`). **Sans ce code, toute inscription d'école échoue** : le code commercial est obligatoire.
+   - Taux par période (v2) : juste après `npx prisma db push`, **avant** de redémarrer le backend, lancer `npm run prisma:migrate-agent-rates` (idempotent). Il remplace l'ancien `commissionRate` de chaque commercial par trois taux (mensuel, semestriel, annuel) égaux à l'ancien taux. Sans cela, les commerciaux créés en v1 ne peuvent plus être lus.
 2. **`education-frontend`** ensuite. Définir `NEXT_PUBLIC_WHATSAPP_NUMBER` au build (lien « Pas de code ? » de l'inscription).
 
 ---

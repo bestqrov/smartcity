@@ -26,6 +26,7 @@ enum SchoolStatus {
 
 enum SubscriptionPeriod {
   MONTHLY
+  SEMIANNUAL
   YEARLY
 }
 
@@ -612,15 +613,19 @@ model Pack {
 // A commercial who brings schools in. The house agent (isHouse) is the company's own code used in its ads:
 // it has no login (userId null). Only the house agent may have a null userId (MongoDB unique index).
 model SalesAgent {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   phone          String?
-  code           String   @unique
-  commissionRate Float
-  isHouse        Boolean  @default(false)
-  active         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  code           String          @unique
+  // Percent 0-100 per payment period; packRates override them for one (pack, period).
+  monthlyRate    Float
+  semiannualRate Float
+  yearlyRate     Float
+  packRates      AgentPackRate[]
+  isHouse        Boolean         @default(false)
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   userId String? @unique @db.ObjectId
   user   User?   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -630,6 +635,13 @@ model SalesAgent {
   payouts  AgentPayout[]
 
   @@map("sales_agents")
+}
+
+// A sales agent's rate for one (pack, period), embedded in SalesAgent. (packId, period) is unique per agent.
+type AgentPackRate {
+  packId String             @db.ObjectId
+  period SubscriptionPeriod
+  rate   Float
 }
 
 // A subscription payment made by a school, recorded by the SUPER_ADMIN. The agent and rate are frozen here.
@@ -645,6 +657,9 @@ model SchoolPayment {
   salesAgent       SalesAgent?        @relation(fields: [salesAgentId], references: [id])
   commissionRate   Float
   commissionAmount Float
+  // The school's pack when the payment was recorded (snapshot, no relation). Null on v1 payments.
+  packId           String?            @db.ObjectId
+  packName         String?
   createdAt        DateTime           @default(now())
 
   @@index([schoolId, paidAt])

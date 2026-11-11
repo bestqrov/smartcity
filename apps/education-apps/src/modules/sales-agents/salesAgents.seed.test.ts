@@ -16,7 +16,16 @@ describe('seedHouseAgent', () => {
 
         expect(client.salesAgent.findFirst).toHaveBeenCalledWith({ where: { isHouse: true } });
         expect(client.salesAgent.create).toHaveBeenCalledWith({
-            data: { name: 'Société (ARWA)', code: 'ARWA', commissionRate: 0, isHouse: true, active: true },
+            data: {
+                name: 'Société (ARWA)',
+                code: 'ARWA',
+                monthlyRate: 0,
+                semiannualRate: 0,
+                yearlyRate: 0,
+                packRates: [],
+                isHouse: true,
+                active: true,
+            },
         });
     });
 
