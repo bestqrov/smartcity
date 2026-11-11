@@ -18,16 +18,16 @@ export const cardClass =
 
 export function ChartCard({ title, hint, children, className = '' }: { title: string; hint?: string; children: React.ReactNode; className?: string }) {
     return (
-        <section className={`${cardClass} p-4 ${className}`}>
-            <h3 className="text-center text-sm font-bold text-espresso-800 dark:text-espresso-100">{title}</h3>
-            {hint && <p className="mt-0.5 text-center text-xs text-gray-500 dark:text-espresso-300">{hint}</p>}
-            <div className="mt-3">{children}</div>
+        <section className={`${cardClass} p-3 ${className}`}>
+            <h3 className="text-center text-sm font-bold leading-tight text-espresso-800 dark:text-espresso-100">{title}</h3>
+            {hint && <p className="mt-0.5 text-center text-[11px] text-gray-500 dark:text-espresso-300">{hint}</p>}
+            <div className="mt-2">{children}</div>
         </section>
     );
 }
 
 export function EmptyChart({ text }: { text: string }) {
-    return <p className="py-10 text-center text-sm text-gray-500 dark:text-espresso-300">{text}</p>;
+    return <p className="py-6 text-center text-xs text-gray-500 dark:text-espresso-300">{text}</p>;
 }
 
 // ---- KPI card --------------------------------------------------------------------------------------------------
@@ -45,8 +45,8 @@ interface KpiProps {
 export function KpiCard({ label, value, sub, delta, onClick, expanded, highlight }: KpiProps) {
     const body = (
         <>
-            <span aria-hidden="true" className={`absolute inset-y-0 start-0 w-2 ${highlight ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-espresso-800 dark:bg-espresso-400'}`} />
-            <div className="text-xl font-extrabold tabular-nums leading-tight text-espresso-900 dark:text-espresso-50 sm:text-2xl">{value}</div>
+            <span aria-hidden="true" className={`absolute inset-y-0 start-0 w-1.5 ${highlight ? 'bg-emerald-600 dark:bg-emerald-400' : 'bg-espresso-800 dark:bg-espresso-400'}`} />
+            <div className="text-lg font-extrabold tabular-nums leading-tight text-espresso-900 dark:text-espresso-50 sm:text-xl">{value}</div>
             <div className="mt-1 text-xs font-bold text-espresso-700 dark:text-espresso-200 sm:text-sm">{label}</div>
             {delta && (
                 <div
@@ -64,7 +64,7 @@ export function KpiCard({ label, value, sub, delta, onClick, expanded, highlight
             {sub && <div className="mt-0.5 text-[11px] text-gray-500 dark:text-espresso-300">{sub}</div>}
         </>
     );
-    const base = `${cardClass} relative overflow-hidden ps-5 pe-3 py-3 text-center`;
+    const base = `${cardClass} relative overflow-hidden ps-4 pe-2 py-2 text-center`;
     if (!onClick) return <div className={base}>{body}</div>;
     return (
         <button
@@ -86,19 +86,21 @@ export interface BarDatum {
     value: number;
 }
 
-export function HBarChart({ data, format, empty }: { data: BarDatum[]; format: (v: number) => string; empty: string }) {
+export function HBarChart({ data: all, format, empty, maxRows = 6 }: { data: BarDatum[]; format: (v: number) => string; empty: string; maxRows?: number }) {
+    // Long lists keep only the top rows by value.
+    const data = all.length > maxRows ? [...all].sort((a, b) => b.value - a.value).slice(0, maxRows) : all;
     const max = Math.max(0, ...data.map((d) => d.value));
     if (data.length === 0 || max === 0) return <EmptyChart text={empty} />;
     return (
-        <ul className="space-y-2">
+        <ul className="space-y-1.5">
             {data.map((d) => (
-                <li key={d.key} className="flex items-center gap-2 text-xs">
-                    <span className="w-28 shrink-0 truncate text-end font-semibold text-espresso-800 dark:text-espresso-100 sm:w-36" title={d.label}>
+                <li key={d.key} className="flex items-center gap-2 text-[11px]">
+                    <span className="w-24 shrink-0 truncate text-end font-semibold text-espresso-800 dark:text-espresso-100 sm:w-28" title={d.label}>
                         {d.label}
                     </span>
                     <span className="flex min-w-0 flex-1 items-center gap-1.5">
                         <span
-                            className="h-5 shrink-0 rounded-e-md bg-espresso-600 dark:bg-espresso-400"
+                            className="h-3.5 shrink-0 rounded-e-md bg-espresso-600 dark:bg-espresso-400"
                             style={{ width: `${Math.max(d.value > 0 ? 2 : 0, (d.value / max) * 75)}%` }}
                             title={`${d.label} : ${format(d.value)}`}
                         />
@@ -117,18 +119,18 @@ export function VBarChart({ data, format, empty }: { data: BarDatum[]; format: (
     if (data.length === 0 || max === 0) return <EmptyChart text={empty} />;
     return (
         <div className="overflow-x-auto">
-            <div className="flex min-w-full gap-2" style={{ minWidth: `${data.length * 56}px` }}>
+            <div className="flex min-w-full gap-1.5" style={{ minWidth: `${data.length * 40}px` }}>
                 {data.map((d) => (
                     <div key={d.key} className="flex min-w-0 flex-1 flex-col items-center">
-                        <div className="flex h-40 w-full flex-col items-center justify-end">
-                            <span className="mb-1 text-xs font-bold tabular-nums text-gray-700 dark:text-espresso-100">{format(d.value)}</span>
+                        <div className="flex h-24 w-full flex-col items-center justify-end">
+                            <span className="mb-0.5 text-[10px] font-bold tabular-nums text-gray-700 dark:text-espresso-100">{format(d.value)}</span>
                             <span
-                                className="w-full max-w-[44px] rounded-t-md bg-espresso-600 dark:bg-espresso-400"
+                                className="w-full max-w-[32px] rounded-t-md bg-espresso-600 dark:bg-espresso-400"
                                 style={{ height: `${(d.value / max) * 82}%`, minHeight: d.value > 0 ? 3 : 0 }}
                                 title={`${d.label} : ${format(d.value)}`}
                             />
                         </div>
-                        <span className="mt-1 w-full border-t border-espresso-100 pt-1 text-center text-[11px] font-semibold leading-tight text-espresso-700 line-clamp-2 dark:border-espresso-800 dark:text-espresso-200" title={d.label}>
+                        <span className="mt-1 w-full border-t border-espresso-100 pt-0.5 text-center text-[10px] font-semibold leading-tight text-espresso-700 line-clamp-2 dark:border-espresso-800 dark:text-espresso-200" title={d.label}>
                             {d.label}
                         </span>
                     </div>
@@ -158,11 +160,11 @@ interface LineProps {
 }
 
 export function SplineChart({ points, rtl, format, formatShort, selectedKey, onSelect, selectLabel }: LineProps) {
-    const W = 720;
-    const H = 250;
-    const padX = 36;
-    const top = 34;
-    const base = H - 36;
+    const W = 480;
+    const H = 140;
+    const padX = 24;
+    const top = 24;
+    const base = H - 22;
     const max = Math.max(1, ...points.map((p) => p.value));
     const n = points.length;
     const xy = points.map((p, i) => {
@@ -188,13 +190,13 @@ export function SplineChart({ points, rtl, format, formatShort, selectedKey, onS
 
     return (
         <div className="overflow-x-auto">
-            <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full min-w-[560px]" role="img">
+            <svg viewBox={`0 0 ${W} ${H}`} className="h-auto max-h-[180px] w-full min-w-[300px]" role="img">
                 {[0.25, 0.5, 0.75, 1].map((f) => (
-                    <line key={f} x1={padX - 20} x2={W - padX + 20} y1={base - f * (base - top)} y2={base - f * (base - top)} className="stroke-gray-100 dark:stroke-espresso-800" strokeWidth={1} />
+                    <line key={f} x1={padX - 14} x2={W - padX + 14} y1={base - f * (base - top)} y2={base - f * (base - top)} className="stroke-gray-100 dark:stroke-espresso-800" strokeWidth={1} />
                 ))}
-                <line x1={padX - 20} x2={W - padX + 20} y1={base} y2={base} className="stroke-gray-300 dark:stroke-espresso-700" strokeWidth={1} />
+                <line x1={padX - 14} x2={W - padX + 14} y1={base} y2={base} className="stroke-gray-300 dark:stroke-espresso-700" strokeWidth={1} />
                 <path d={area} className="fill-gray-200/70 dark:fill-espresso-700/40" />
-                <path d={line} fill="none" className="stroke-espresso-700 dark:stroke-espresso-300" strokeWidth={2.5} strokeLinecap="round" />
+                <path d={line} fill="none" className="stroke-espresso-700 dark:stroke-espresso-300" strokeWidth={2} strokeLinecap="round" />
                 {xy.map((p) => {
                     const selected = p.key === selectedKey;
                     return (
@@ -218,20 +220,20 @@ export function SplineChart({ points, rtl, format, formatShort, selectedKey, onS
                             className={`${onSelect ? 'cursor-pointer' : ''} outline-none [&:focus-visible>circle.ring]:stroke-espresso-500`}
                         >
                             <title>{`${p.title} : ${format(p.value)}`}</title>
-                            <rect x={p.x - 24} y={top - 26} width={48} height={base - top + 52} fill="transparent" />
-                            {selected && <rect x={p.x - 22} y={top - 22} width={44} height={base - top + 22} rx={6} className="fill-espresso-100/70 dark:fill-espresso-800/70" />}
-                            <circle className="ring" cx={p.x} cy={p.y} r={10} fill="none" strokeWidth={2} stroke="transparent" />
+                            <rect x={p.x - 16} y={top - 20} width={32} height={base - top + 40} fill="transparent" />
+                            {selected && <rect x={p.x - 15} y={top - 18} width={30} height={base - top + 18} rx={6} className="fill-espresso-100/70 dark:fill-espresso-800/70" />}
+                            <circle className="ring" cx={p.x} cy={p.y} r={8} fill="none" strokeWidth={2} stroke="transparent" />
                             <circle
                                 cx={p.x}
                                 cy={p.y}
-                                r={selected ? 6 : 4.5}
-                                strokeWidth={2.5}
+                                r={selected ? 5 : 3.5}
+                                strokeWidth={2}
                                 className={selected ? 'fill-espresso-700 stroke-espresso-700 dark:fill-espresso-200 dark:stroke-espresso-200' : 'fill-white stroke-espresso-700 dark:fill-espresso-900 dark:stroke-espresso-300'}
                             />
-                            <text x={p.x} y={p.y - 11} textAnchor="middle" fontSize={11} fontWeight={700} className="fill-espresso-900 dark:fill-espresso-50">
+                            <text x={p.x} y={p.y - 8} textAnchor="middle" fontSize={10} fontWeight={700} className="fill-espresso-900 dark:fill-espresso-50">
                                 {formatShort(p.value)}
                             </text>
-                            <text x={p.x} y={base + 20} textAnchor="middle" fontSize={11} fontWeight={600} className="fill-gray-600 dark:fill-espresso-200">
+                            <text x={p.x} y={base + 14} textAnchor="middle" fontSize={10} fontWeight={600} className="fill-gray-600 dark:fill-espresso-200">
                                 {p.label}
                             </text>
                         </g>
@@ -264,8 +266,8 @@ export function DonutChart({ data, totalLabel, formatValue, formatTotal = format
     const total = data.reduce((sum, d) => sum + d.value, 0);
     if (total === 0) return <EmptyChart text={empty} />;
     const cx = 160;
-    const cy = 112;
-    const r = 60;
+    const cy = 82;
+    const r = 47;
     const C = 2 * Math.PI * r;
     let acc = 0;
     const segments = data
@@ -279,7 +281,7 @@ export function DonutChart({ data, totalLabel, formatValue, formatTotal = format
 
     return (
         <div>
-            <svg viewBox="0 0 320 224" className="mx-auto h-auto w-full max-w-[340px]" role="img" aria-label={`${totalLabel} ${formatTotal(total)}`}>
+            <svg viewBox="0 0 320 164" className="mx-auto h-auto w-full max-w-[320px]" role="img" aria-label={`${totalLabel} ${formatTotal(total)}`}>
                 <g transform={`rotate(-90 ${cx} ${cy})`}>
                     {segments.map((s) => (
                         <circle
@@ -288,7 +290,7 @@ export function DonutChart({ data, totalLabel, formatValue, formatTotal = format
                             cy={cy}
                             r={r}
                             fill="none"
-                            strokeWidth={26}
+                            strokeWidth={20}
                             strokeDasharray={`${(s.value / total) * C} ${C}`}
                             strokeDashoffset={-(s.start / total) * C}
                             className={TONES[s.tone % TONES.length].stroke}
@@ -298,27 +300,27 @@ export function DonutChart({ data, totalLabel, formatValue, formatTotal = format
                     ))}
                 </g>
                 {segments.map((s) => {
-                    const lx = cx + (r + 26) * Math.cos(s.mid);
-                    const ly = cy + (r + 26) * Math.sin(s.mid);
+                    const lx = cx + (r + 20) * Math.cos(s.mid);
+                    const ly = cy + (r + 20) * Math.sin(s.mid);
                     const cos = Math.cos(s.mid);
                     const anchor = cos > 0.25 ? 'start' : cos < -0.25 ? 'end' : 'middle';
                     return (
-                        <text key={s.key} x={lx} y={ly + 4} textAnchor={anchor} fontSize={11} fontWeight={700} className="fill-espresso-900 dark:fill-espresso-50" direction="ltr">
+                        <text key={s.key} x={lx} y={ly + 4} textAnchor={anchor} fontSize={10} fontWeight={700} className="fill-espresso-900 dark:fill-espresso-50" direction="ltr">
                             {`${formatValue(s.value)} (${formatPct(s.pct)})`}
                         </text>
                     );
                 })}
-                <text x={cx} y={cy + 2} textAnchor="middle" fontSize={formatTotal(total).length > 8 ? 13 : 20} fontWeight={800} className="fill-espresso-900 dark:fill-espresso-50">
+                <text x={cx} y={cy + 2} textAnchor="middle" fontSize={formatTotal(total).length > 8 ? 11 : 16} fontWeight={800} className="fill-espresso-900 dark:fill-espresso-50">
                     {formatTotal(total)}
                 </text>
-                <text x={cx} y={cy + 18} textAnchor="middle" fontSize={10} className="fill-gray-500 dark:fill-espresso-300">
+                <text x={cx} y={cy + 13} textAnchor="middle" fontSize={9} className="fill-gray-500 dark:fill-espresso-300">
                     {totalLabel}
                 </text>
             </svg>
-            <ul className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+            <ul className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-0.5 text-[11px]">
                 {data.map((d) => (
                     <li key={d.key} className="flex items-center gap-1.5 text-gray-700 dark:text-espresso-100">
-                        <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${TONES[d.tone % TONES.length].bg}`} />
+                        <span aria-hidden="true" className={`h-2 w-2 rounded-full ${TONES[d.tone % TONES.length].bg}`} />
                         {d.label}
                     </li>
                 ))}

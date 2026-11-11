@@ -414,7 +414,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
             </section>
 
             {/* ---- KPI row */}
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
                 <KpiCard label={m.stat_clients} value={fmtNumber(clientsCount, lang)} sub={`${m.stat_active} : ${fmtNumber(activeCount, lang)}`} onClick={() => setTab('schools')} />
                 <KpiCard
                     label={m.stat_commissions}
@@ -502,14 +502,8 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
             )}
 
             {/* ---- charts */}
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                <ChartCard title={m.chart_by_type}>
-                    <HBarChart data={byType} format={moneyShort} empty={m.chart_empty} />
-                </ChartCard>
-                <ChartCard title={m.chart_by_pack}>
-                    <VBarChart data={byPack} format={(v) => fmtNumber(v, lang)} empty={m.chart_empty} />
-                </ChartCard>
-                <ChartCard title={m.chart_trend} hint={m.chart_trend_hint} className="lg:col-span-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <ChartCard title={m.chart_trend} hint={m.chart_trend_hint} className="sm:col-span-2 lg:col-span-2">
                     <SplineChart
                         points={trend}
                         rtl={lang === 'ar'}
@@ -528,6 +522,12 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                         formatPct={(p) => `${p} %`}
                         empty={m.chart_empty}
                     />
+                </ChartCard>
+                <ChartCard title={m.chart_by_type}>
+                    <HBarChart data={byType} format={moneyShort} empty={m.chart_empty} />
+                </ChartCard>
+                <ChartCard title={m.chart_by_pack}>
+                    <VBarChart data={byPack} format={(v) => fmtNumber(v, lang)} empty={m.chart_empty} />
                 </ChartCard>
                 <ChartCard title={m.chart_period}>
                     <DonutChart data={byPeriod} totalLabel={m.chart_total} formatValue={moneyShort} formatPct={(p) => `${p} %`} empty={m.chart_empty} />
