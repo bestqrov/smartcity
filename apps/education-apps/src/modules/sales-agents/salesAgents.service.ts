@@ -8,6 +8,7 @@ import {
     roundMoney,
     sanitizeAgentSelfUpdate,
     sanitizeAgentUpdate,
+    sanitizeEmail,
     sanitizeNewPassword,
     sanitizeNewAgent,
     sanitizePayout,
@@ -370,4 +371,22 @@ export const resetAgentPassword = async (agentId: string, input: Record<string, 
     if (agent.isHouse || !agent.userId) throw new Error('The company code has no login');
     await prisma.user.update({ where: { id: agent.userId }, data: { password: await hashPassword(newPassword) } });
     return { changed: true };
+};
+
+// Super admin changes the email the agent logs in with. The house agent has no login.
+export const changeAgentEmail = async (agentId: string, input: Record<string, unknown>) => {
+    assertId('Sales agent id', agentId);
+    const email = sanitizeEmail(input.email);
+    const agent = await prisma.salesAgent.findUnique({ where: { id: agentId } });
+    if (!agent) throw new Error('Sales agent not found');
+    if (agent.isHouse || !agent.userId) throw new Error('The company code has no login');
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing && existing.id !== agent.userId) throw new Error('Email already exists');
+    try {
+        const updated = await prisma.user.update({ where: { id: agent.userId }, data: { email }, select: { email: true } });
+        return { email: updated.email };
+    } catch (error) {
+        if ((error as { code?: string })?.code === 'P2002') throw new Error('Email already exists');
+        throw error;
+    }
 };

@@ -101,8 +101,7 @@ export const sanitizeNewAgent = (input: Record<string, unknown>): NewAgentData =
     const password = typeof input.password === 'string' ? input.password : '';
     if (password.length < 8) throw new Error('Password must be at least 8 characters');
     const name = requireText('Name', input.name);
-    const email = requireText('Email', input.email).toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Email is invalid');
+    const email = sanitizeEmail(input.email);
     return {
         name,
         email,
@@ -256,6 +255,12 @@ export const sanitizeAgentSelfUpdate = (input: Record<string, unknown>): AgentSe
     }
     if (Object.keys(data).length === 0) throw new Error('Nothing to update');
     return data;
+};
+
+export const sanitizeEmail = (value: unknown): string => {
+    const email = requireText('Email', value).toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Email is invalid');
+    return email;
 };
 
 export const sanitizeNewPassword = (value: unknown): string => {

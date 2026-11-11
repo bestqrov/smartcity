@@ -13,6 +13,7 @@ import {
     updateOwnProfile,
     changeOwnPassword,
     resetAgentPassword,
+    changeAgentEmail,
 } from './salesAgents.service';
 import {
     assignSchoolAgent,
@@ -66,6 +67,12 @@ export const resetPassword = (req: Request, res: Response) =>
     respond(res, () => resetAgentPassword(req.params.id, req.body ?? {}), {
         message: 'Password reset',
         failure: 'Failed to reset password',
+    });
+
+export const changeEmail = (req: Request, res: Response) =>
+    respond(res, () => changeAgentEmail(req.params.id, req.body ?? {}), {
+        message: 'Email updated',
+        failure: 'Failed to update email',
     });
 
 export const me = (req: AuthRequest, res: Response) =>

@@ -13,6 +13,7 @@ import {
     updateOwnProfile,
     changeOwnPassword,
     resetAgentPassword,
+    changeAgentEmail,
 } from './salesAgents.service';
 import * as bcryptUtil from '../../utils/bcrypt';
 
@@ -683,5 +684,48 @@ describe('resetAgentPassword', () => {
     it('404s for an unknown agent', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(null);
         await expect(resetAgentPassword('6ab050b281878c35b0f00752', { newPassword: 'newpass123' })).rejects.toThrow('Sales agent not found');
+    });
+});
+
+describe('changeAgentEmail', () => {
+    const ID = '6ab050b281878c35b0f00752';
+    const agent = { id: 'a1', isHouse: false, userId: 'u1' };
+
+    it('trims, lowercases and updates the linked user, returning no hash', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(agent);
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+        (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'u1', email: 'new@x.com', password: 'secret-hash' });
+
+        const result = await changeAgentEmail(ID, { email: '  New@X.com ' });
+
+        expect(prisma.user.update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { email: 'new@x.com' }, select: { email: true } });
+        expect(JSON.stringify(result)).not.toContain('secret-hash');
+        expect(result).toEqual({ email: 'new@x.com' });
+    });
+
+    it('rejects an invalid email before reading', async () => {
+        await expect(changeAgentEmail(ID, { email: 'nope' })).rejects.toThrow('Email is invalid');
+        expect(prisma.salesAgent.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('400s when another user already has the email', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(agent);
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u2' });
+        await expect(changeAgentEmail(ID, { email: 'a@b.com' })).rejects.toThrow('Email already exists');
+        expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('translates a P2002 race to the same message', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(agent);
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+        (prisma.user.update as jest.Mock).mockRejectedValue({ code: 'P2002' });
+        await expect(changeAgentEmail(ID, { email: 'a@b.com' })).rejects.toThrow('Email already exists');
+    });
+
+    it('400s for the house agent and 404s for an unknown agent', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'a1', isHouse: true, userId: null });
+        await expect(changeAgentEmail(ID, { email: 'a@b.com' })).rejects.toThrow('The company code has no login');
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValueOnce(null);
+        await expect(changeAgentEmail(ID, { email: 'a@b.com' })).rejects.toThrow('Sales agent not found');
     });
 });

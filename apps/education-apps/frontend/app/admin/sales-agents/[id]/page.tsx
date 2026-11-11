@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, KeyRound } from 'lucide-react';
+import { ArrowLeft, KeyRound, Mail } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import useAuthStore from '@/store/useAuthStore';
 import AgentReportView from '@/components/agent/AgentReportView';
@@ -18,6 +18,7 @@ import {
     getSalesAgentReport,
     recordAgentPayout,
     resetAgentPassword,
+    changeAgentEmail,
     updateSalesAgent,
     type AgentReport,
 } from '@/lib/services/salesAgents';
@@ -33,6 +34,9 @@ export default function SalesAgentDetailPage() {
     const [rates, setRates] = useState<RatesForm>(emptyRatesForm);
     const [payout, setPayout] = useState({ amount: '', paidAt: todayLocal(), note: '' });
     const [busy, setBusy] = useState(false);
+    const [emailOpen, setEmailOpen] = useState(false);
+    const [emailValue, setEmailValue] = useState('');
+    const [emailNotice, setEmailNotice] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
     const [pwdOpen, setPwdOpen] = useState(false);
     const [pwd, setPwd] = useState({ next: '', confirm: '' });
     const [pwdNotice, setPwdNotice] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
@@ -100,6 +104,26 @@ export default function SalesAgentDetailPage() {
         setPwdNotice(null);
     };
 
+    const closeEmail = () => {
+        setEmailOpen(false);
+        setEmailNotice(null);
+    };
+
+    const submitEmail = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setEmailNotice(null);
+        setBusy(true);
+        try {
+            await changeAgentEmail(id, emailValue);
+            await load();
+            setEmailNotice({ type: 'ok', text: 'E-mail modifié. Le commercial doit se connecter avec la nouvelle adresse.' });
+        } catch (err) {
+            setEmailNotice({ type: 'error', text: apiErrorMessage(err) });
+        } finally {
+            setBusy(false);
+        }
+    };
+
     const submitPwd = async (e: React.FormEvent) => {
         e.preventDefault();
         setPwdNotice(null);
@@ -139,6 +163,10 @@ export default function SalesAgentDetailPage() {
                     </h1>
 
                     {!report.agent.isHouse && (
+                        <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={() => { setEmailValue(report.agent.email ?? ''); setEmailOpen(true); }} className="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                            <Mail size={16} aria-hidden="true" /> Modifier l&apos;e-mail
+                        </button>
                         <button
                             type="button"
                             onClick={() => setPwdOpen(true)}
@@ -146,6 +174,7 @@ export default function SalesAgentDetailPage() {
                         >
                             <KeyRound size={16} aria-hidden="true" /> Réinitialiser le mot de passe
                         </button>
+                        </div>
                     )}
 
                     <div className="grid md:grid-cols-2 gap-4 items-start">
@@ -200,6 +229,21 @@ export default function SalesAgentDetailPage() {
                             </div>
                         )}
                     </div>
+
+                    <Modal isOpen={emailOpen} onClose={closeEmail} title="Modifier l'e-mail" size="sm">
+                        <form onSubmit={submitEmail} className="space-y-3">
+                            <input className={`${inputClass} w-full`} type="email" autoComplete="off" aria-label="E-mail de connexion" value={emailValue} onChange={(e) => setEmailValue(e.target.value)} required />
+                            {emailNotice && (
+                                <div role={emailNotice.type === 'error' ? 'alert' : 'status'} className={`p-3 rounded-lg text-sm border ${emailNotice.type === 'ok' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                                    {emailNotice.text}
+                                </div>
+                            )}
+                            <div className="flex justify-end gap-2">
+                                <button type="button" onClick={closeEmail} className="px-4 py-2 border border-gray-200 rounded-lg text-gray-700">Fermer</button>
+                                <button disabled={busy} className="px-4 py-2 bg-gray-800 text-white rounded-lg font-semibold disabled:opacity-50">Enregistrer</button>
+                            </div>
+                        </form>
+                    </Modal>
 
                     <Modal isOpen={pwdOpen} onClose={closePwd} title="Réinitialiser le mot de passe" size="sm">
                         <form onSubmit={submitPwd} className="space-y-3">

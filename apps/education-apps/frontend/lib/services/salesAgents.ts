@@ -268,3 +268,7 @@ export async function deleteSchoolPayment(schoolId: string, paymentId: string): 
 export async function resetAgentPassword(id: string, newPassword: string): Promise<void> {
     await api.patch(`/sales-agents/${id}/password`, { newPassword });
 }
+
+export async function changeAgentEmail(id: string, email: string): Promise<void> {
+    await api.patch(`/sales-agents/${id}/email`, { email });
+}
