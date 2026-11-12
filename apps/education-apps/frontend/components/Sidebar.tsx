@@ -138,6 +138,17 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       ]
     },
     {
+      id: 'parents',
+      label: 'Parents',
+      icon: Users,
+      activeColor: 'bg-[#334155]/50 border-[#A78BFA]',
+      iconColor: 'text-[#A78BFA]',
+      submenu: [
+        { label: 'Liste des parents', path: '/admin/parents' },
+        { label: 'Accès parents', path: '/admin/parents/access' },
+      ]
+    },
+    {
       id: 'transport',
       label: 'Transport',
       icon: Bus,
@@ -215,6 +226,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       path: '/secretary/formation-pro',
       activeColor: 'bg-[#334155]/50 border-[#C084FC]',
       iconColor: 'text-[#C084FC]'
+    },
+    {
+      id: 'parents-access',
+      label: 'Accès parents',
+      icon: Users,
+      path: '/secretary/parents/access',
+      activeColor: 'bg-[#334155]/50 border-[#A78BFA]',
+      iconColor: 'text-[#A78BFA]'
     },
     {
       id: 'recus',
