@@ -58,6 +58,8 @@ describe('evolution client', () => {
         expect(await connectionState('x')).toBe('unknown');
         fetchMock.mockResolvedValueOnce({ ok: false, status: 500, text: async () => '{"message":"bad"}' });
         await expect(sendText('x', '1', 't')).rejects.toThrow('Evolution API 500');
+        fetchMock.mockResolvedValueOnce({ ok: false, status: 404, text: async () => '' });
+        await expect(connectInstance('x')).rejects.toMatchObject({ status: 404 });
     });
 
     it('throws when not configured, without calling fetch', async () => {

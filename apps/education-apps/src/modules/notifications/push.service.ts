@@ -1,5 +1,6 @@
 import prisma from '../../config/database';
 import { hashToken } from '../../utils/accessToken';
+import { isAllowedPushEndpoint } from './push.sender';
 
 export interface SubscriptionInput {
     endpoint?: unknown;
@@ -23,14 +24,17 @@ export const subscribe = async (rawToken: string, subscription: SubscriptionInpu
     const endpoint = subscription?.endpoint;
     const p256dh = subscription?.keys?.p256dh;
     const auth = subscription?.keys?.auth;
-    if (!isStr(endpoint) || !/^https:\/\//.test(endpoint) || !isStr(p256dh, 500) || !isStr(auth, 500)) {
+    if (!isStr(endpoint) || !isAllowedPushEndpoint(endpoint) || !isStr(p256dh, 500) || !isStr(auth, 500)) {
         throw new Error('Invalid subscription');
     }
     const language = lang === 'ar' ? 'ar' : 'fr';
+    // An endpoint is a device: it cannot be moved from one parent to another.
+    const existing = await prisma.pushSubscription.findUnique({ where: { endpoint } });
+    if (existing && existing.parentId !== parent.id) throw new Error('Invalid subscription');
     await prisma.pushSubscription.upsert({
         where: { endpoint },
         create: { endpoint, p256dh, auth, lang: language, parentId: parent.id, branchId: parent.branchId },
-        update: { p256dh, auth, lang: language, parentId: parent.id, branchId: parent.branchId },
+        update: { p256dh, auth, lang: language },
     });
     return { subscribed: true };
 };

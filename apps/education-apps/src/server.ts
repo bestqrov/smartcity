@@ -50,8 +50,10 @@ const startServer = async () => {
 
             startAbsenceCronJob();
             console.log('⏰ Absence sweep cron job started');
-            startOutboxWorker();
-            console.log('📨 Notification outbox worker started');
+            if (process.env.OUTBOX_WORKER !== '0') {
+                startOutboxWorker();
+                console.log('📨 Notification outbox worker started');
+            }
         });
     } catch (error) {
         console.error('❌ Failed to start server:', error);

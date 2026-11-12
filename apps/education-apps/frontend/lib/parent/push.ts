@@ -42,10 +42,23 @@ export async function registerWorker(token: string): Promise<ServiceWorkerRegist
     const reg = await navigator.serviceWorker.getRegistration(scopeFor(token));
     if (!reg) throw new Error('Service worker not registered');
     if (!reg.active) {
-        await new Promise<void>((resolve) => {
+        await new Promise<void>((resolve, reject) => {
             const sw = reg.installing || reg.waiting;
             if (!sw) return resolve();
-            sw.addEventListener('statechange', () => sw.state === 'activated' && resolve());
+            const timer = setTimeout(() => reject(new Error('Service worker activation timed out')), 10_000);
+            const settle = () => {
+                if (sw.state === 'activated') {
+                    clearTimeout(timer);
+                    resolve();
+                } else if (sw.state === 'redundant') {
+                    clearTimeout(timer);
+                    // Replaced by a newer worker: fine if one is active now, otherwise a failure.
+                    if (reg.active) resolve();
+                    else reject(new Error('Service worker became redundant'));
+                }
+            };
+            sw.addEventListener('statechange', settle);
+            settle();
         });
     }
     return reg;

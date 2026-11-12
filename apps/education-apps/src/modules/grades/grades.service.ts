@@ -209,19 +209,19 @@ export const saveGrades = async (scope: GradesScope, evaluationId: string, entri
 export const setPublished = async (scope: GradesScope, evaluationId: string, published: boolean) => {
     const { evaluation } = await loadEvaluation(scope, evaluationId);
     if (typeof published !== 'boolean') throw new Error('published must be a boolean');
-    // Parents hear about an evaluation once: the first publish stamps notifiedAt, a re-publish doesn't notify.
-    const firstPublish = published && !evaluation.published && !evaluation.notifiedAt;
-    const updated = await prisma.evaluation.update({
-        where: { id: evaluationId },
-        data: firstPublish ? { published, notifiedAt: new Date() } : { published },
-    });
-    if (firstPublish) await notifyGradePublished(updated);
+    const updated = await prisma.evaluation.update({ where: { id: evaluationId }, data: { published } });
+    // Parents hear about an evaluation once: the first publish with grades claims notifiedAt.
+    if (published && !evaluation.notifiedAt) await notifyGradePublished(updated);
     return updated;
 };
 
 const fmt = (n: number) => String(Math.round(n * 100) / 100).replace('.', ',');
 
-/** One message per graded (or absent) child to their parent. Never throws. */
+/**
+ * One message per graded (or absent) child to their parent. Nobody graded yet → nothing is stamped,
+ * so a later publish still notifies. notifiedAt is claimed atomically so concurrent publishes notify once.
+ * Never throws.
+ */
 const notifyGradePublished = async (evaluation: {
     id: string; branchId: string; subject: string; title: string; maxScore: number;
 }) => {
@@ -231,6 +231,11 @@ const notifyGradePublished = async (evaluation: {
             select: { studentId: true, score: true, absent: true },
         });
         if (grades.length === 0) return;
+        const { count } = await prisma.evaluation.updateMany({
+            where: { id: evaluation.id, OR: [{ notifiedAt: null }, { notifiedAt: { isSet: false } }] },
+            data: { notifiedAt: new Date() },
+        });
+        if (count !== 1) return;
         const students = await prisma.student.findMany({
             where: { id: { in: grades.map((g) => g.studentId) } },
             select: { id: true, name: true, surname: true, parentId: true },

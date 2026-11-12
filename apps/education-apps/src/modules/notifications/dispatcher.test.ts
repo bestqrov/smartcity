@@ -1,5 +1,5 @@
 import prisma from '../../config/database';
-import { notify, splitBilingual } from './dispatcher';
+import { notify, splitBilingual, KIND_PRIORITY } from './dispatcher';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
@@ -47,6 +47,13 @@ describe('notify', () => {
         expect(wa.map((r: any) => [r.parentId, r.to])).toEqual([['p1', '212612345678'], ['p2', '212600000000']]);
         expect(wa[0].body).toContain('Corps');
         expect(wa[0].body).toContain('نص');
+        expect(rows.every((r: any) => r.priority === 3)).toBe(true);
+    });
+
+    it('priority by kind: ATTENDANCE 1, GRADE 3, ANNOUNCEMENT 5', async () => {
+        expect(KIND_PRIORITY).toMatchObject({ ATTENDANCE: 1, GRADE: 3, HOMEWORK: 3, ACTIVITY: 4, ANNOUNCEMENT: 5 });
+        await notify(['p1'], { ...input, kind: 'ATTENDANCE' });
+        expect(queued().every((r: any) => r.priority === 1)).toBe(true);
     });
 
     it('no whatsapp when the channel is disconnected', async () => {

@@ -27,3 +27,22 @@ export const sendPush = async (target: PushTarget, payload: { title: string; bod
         }
     );
 };
+
+const PUSH_HOSTS = new Set(['fcm.googleapis.com', 'updates.push.services.mozilla.com', 'web.push.apple.com']);
+const PUSH_HOST_SUFFIXES = ['.push.apple.com', '.notify.windows.com'];
+
+/** SSRF guard: only real browser push services, over https on the default port. */
+export const isAllowedPushEndpoint = (endpoint: unknown): boolean => {
+    if (typeof endpoint !== 'string') return false;
+    let url: URL;
+    try {
+        url = new URL(endpoint);
+    } catch {
+        return false;
+    }
+    if (url.protocol !== 'https:') return false;
+    if (url.port !== '' && url.port !== '443') return false;
+    if (url.username || url.password) return false;
+    const host = url.hostname.toLowerCase();
+    return PUSH_HOSTS.has(host) || PUSH_HOST_SUFFIXES.some((s) => host.endsWith(s));
+};

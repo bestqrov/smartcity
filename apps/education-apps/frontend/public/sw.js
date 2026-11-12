@@ -28,6 +28,10 @@ self.addEventListener('notificationclick', (event) => {
             const scopePath = new URL(self.registration.scope).pathname.replace(/\/$/, '');
             for (const client of list) {
                 if (new URL(client.url).pathname.startsWith(scopePath) && 'focus' in client) {
+                    const targetUrl = new URL(target, self.registration.scope).href;
+                    if (client.url !== targetUrl && 'navigate' in client) {
+                        return client.navigate(targetUrl).then((c) => (c || client).focus());
+                    }
                     return client.focus();
                 }
             }

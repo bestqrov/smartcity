@@ -18,6 +18,14 @@ export const isEvolutionConfigured = (): boolean => {
 
 export const instanceName = (branchId: string) => `arwa-${branchId}`;
 
+/** HTTP error from Evolution; `status` lets callers tell "instance missing" (404) from other failures. */
+export class EvolutionError extends Error {
+    constructor(message: string, public readonly status: number) {
+        super(message);
+        this.name = 'EvolutionError';
+    }
+}
+
 const call = async (method: string, path: string, body?: unknown): Promise<any> => {
     const { url, key } = config();
     if (!url || !key) throw new Error('WhatsApp (Evolution API) is not configured');
@@ -39,7 +47,7 @@ const call = async (method: string, path: string, body?: unknown): Promise<any> 
         }
         if (!res.ok) {
             const detail = data && typeof data === 'object' ? JSON.stringify(data.response ?? data.message ?? data).slice(0, 300) : '';
-            throw new Error(`Evolution API ${res.status}${detail ? `: ${detail}` : ''}`);
+            throw new EvolutionError(`Evolution API ${res.status}${detail ? `: ${detail}` : ''}`, res.status);
         }
         return data;
     } catch (error: any) {

@@ -43,10 +43,23 @@ export const getStatus = async (branchId: string) => {
 export const connect = async (branchId: string) => {
     if (!evolution.isEvolutionConfigured()) throw new Error('WhatsApp automatique non disponible');
     const channel = await ensureChannel(branchId);
+    // Already paired on the Evolution side: nothing to scan, just record it.
+    let state: evolution.EvolutionState = 'unknown';
+    try {
+        state = await evolution.connectionState(channel.instance);
+    } catch (error: any) {
+        if (error?.status !== 404) throw error;
+    }
+    if (state === 'open') {
+        const phone = (await evolution.fetchOwnerPhone(channel.instance)) ?? channel.phone ?? null;
+        const updated = await prisma.whatsappChannel.update({ where: { branchId }, data: { status: 'CONNECTED', phone } });
+        return { ...publicChannel(true, updated), qr: { base64: null, code: null } };
+    }
     let qr: { base64?: string; code?: string } = {};
     try {
         qr = await evolution.connectInstance(channel.instance);
-    } catch {
+    } catch (error: any) {
+        if (error?.status !== 404) throw error;
         // Instance missing on the Evolution server: create it (the create response carries the QR).
         qr = await evolution.createInstance(channel.instance);
         if (!qr.base64 && !qr.code) qr = await evolution.connectInstance(channel.instance);

@@ -39,6 +39,15 @@ const KIND_TOGGLE: Record<NotificationKind, 'sendAttendance' | 'sendGrades' | 's
     ANNOUNCEMENT: 'sendAnnouncements',
 };
 
+/** Outbox order: lower is sent first (the worker sorts by priority, then sendAfter). */
+export const KIND_PRIORITY: Record<string, number> = {
+    ATTENDANCE: 1,
+    GRADE: 3,
+    HOMEWORK: 3,
+    ACTIVITY: 4,
+    ANNOUNCEMENT: 5,
+};
+
 /**
  * Queues one PUSH message per subscription of each parent, plus one WHATSAPP message per parent
  * when the branch's channel is CONNECTED and this kind is enabled. Nothing is sent here: the
@@ -56,6 +65,7 @@ export const notify = async (parentIds: string[], input: NotifyInput): Promise<n
 
     const whatsappOn = !!channel && channel.status === 'CONNECTED' && channel[KIND_TOGGLE[input.kind]] === true;
     const url = input.path ?? null;
+    const priority = KIND_PRIORITY[input.kind] ?? 5;
     const data: any[] = [];
 
     for (const parent of parents) {
@@ -69,6 +79,7 @@ export const notify = async (parentIds: string[], input: NotifyInput): Promise<n
                 title: pick(input.title, sub.lang),
                 body: pick(input.body, sub.lang),
                 url,
+                priority,
             });
         }
         if (whatsappOn) {
@@ -83,6 +94,7 @@ export const notify = async (parentIds: string[], input: NotifyInput): Promise<n
                     title: input.title.fr,
                     body: whatsappText(input.title, input.body),
                     url,
+                    priority,
                 });
             }
         }

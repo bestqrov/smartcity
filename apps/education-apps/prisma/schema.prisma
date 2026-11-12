@@ -849,7 +849,9 @@ model OutboundMessage {
   title     String?
   body      String
   url       String?
-  status    String              @default("PENDING") // PENDING | SENT | FAILED | SKIPPED
+  status    String              @default("PENDING") // PENDING | SENDING | SENT | FAILED | SKIPPED
+  priority  Int                 @default(5) // 1 = most urgent (ATTENDANCE) … 5 (ANNOUNCEMENT)
+  lockedAt  DateTime?
   error     String?
   attempts  Int                 @default(0)
   sendAfter DateTime            @default(now())
