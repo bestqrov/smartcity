@@ -15,5 +15,5 @@ export default function ParentSpacePage() {
         getPublicParentProfile(token).then(setParent).catch(() => setError(true));
     }, [token]);
 
-    return <ParentShell parent={parent} error={error} />;
+    return <ParentShell token={token} parent={parent} error={error} />;
 }

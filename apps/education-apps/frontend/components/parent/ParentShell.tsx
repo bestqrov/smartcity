@@ -59,11 +59,12 @@ function Skeleton() {
 }
 
 interface Props {
+    token: string;
     parent: Parent | null;
     error: boolean;
 }
 
-export default function ParentShell({ parent, error }: Props) {
+export default function ParentShell({ token, parent, error }: Props) {
     const [lang, setLang] = useParentLang();
     const t = PARENT_MESSAGES[lang];
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -187,11 +188,11 @@ export default function ParentShell({ parent, error }: Props) {
                     ) : (
                         <>
                             <InstallBanner t={t} />
-                            {activeTab === 'home' && <HomeTab parent={parent} student={student} t={t} lang={lang} goTo={setTab} />}
+                            {activeTab === 'home' && <HomeTab token={token} parent={parent} student={student} t={t} lang={lang} goTo={setTab} />}
                             {activeTab === 'attendance' && <AttendanceTab student={student} t={t} lang={lang} />}
                             {activeTab === 'payments' && <PaymentsTab student={student} t={t} lang={lang} />}
                             {activeTab === 'grades' && <GradesTab parent={parent} student={student} t={t} lang={lang} />}
-                            {activeTab === 'school' && <SchoolTab parent={parent} student={student} t={t} lang={lang} />}
+                            {activeTab === 'school' && <SchoolTab token={token} parent={parent} student={student} t={t} lang={lang} />}
                         </>
                     )}
                 </main>

@@ -6,8 +6,10 @@ import type { ParentLang, ParentMessages } from '@/lib/parent/messages';
 import { DAY_ORDER, allSlots, formatDate } from '@/lib/parent/helpers';
 import { whatsappNumber } from '@/lib/publicUrl';
 import { Card, EmptyState, Ltr, SectionTitle } from './ui';
+import { PushToggleRow } from './PushToggleRow';
 
 interface Props {
+    token: string;
     parent: Parent;
     student: Student;
     t: ParentMessages;
@@ -21,7 +23,7 @@ const Row = ({ label, children }: { label: string; children: React.ReactNode }) 
     </div>
 );
 
-export default function SchoolTab({ parent, student, t, lang }: Props) {
+export default function SchoolTab({ token, parent, student, t, lang }: Props) {
     const groups = student.groups || [];
     const slots = allSlots(groups);
     const days = DAY_ORDER.filter((d) => slots.some((s) => s.day === d));
@@ -192,6 +194,8 @@ export default function SchoolTab({ parent, student, t, lang }: Props) {
                     </ul>
                 )}
             </Card>
+
+            <PushToggleRow token={token} t={t} lang={lang} />
 
             {school && (
                 <Card>
