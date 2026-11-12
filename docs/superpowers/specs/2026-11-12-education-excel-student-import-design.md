@@ -101,10 +101,14 @@ time, and the two paths would disagree.
 **The dialog**
 - It states the numbers: *"Votre pack « Pro » permet 300 élèves. Vous en avez 120, ce
   fichier en ajoute 250 : il manque 70 places."*
-- It lists the active packs of the school's institution type that have room for
-  `current + adding` students (`maxStudents` big enough, or `null`), with their monthly
-  and yearly price and their limit. The smallest pack that fits is pre-selected and
-  marked "Recommandé".
+- It shows **the same packs as the landing page**, from the same source:
+  `GET /packs/public?type=<school's type>`, through `fetchPublicPacks`. The cards look
+  like the landing cards (name, monthly/yearly toggle, price, the limits line from
+  `limitsLine`, features), restyled for the app's light and dark themes. What a school
+  sees inside the app therefore always matches what it was sold.
+- Packs with no room for `current + adding` students are shown greyed out with
+  "Insuffisant". The current pack is marked "Pack actuel". The smallest pack that fits
+  is pre-selected and marked "Recommandé".
 - It states the payment terms before the admin confirms: *"Votre nouveau pack est actif
   immédiatement. Vous avez jusqu'au {date} pour régler le nouveau tarif."* The date is
   the deadline described below.
@@ -175,9 +179,11 @@ model PackUpgrade {
   payment again if it was deleted by mistake, and that settles the upgrade again.
 
 **API**
-- `GET /school/pack-options?adding=N` (ADMIN, OWNER, SECRETARY). Returns the current pack,
-  the current count, the limit, and the packs that fit, with `recommended` set on the
-  smallest.
+- `GET /school/capacity` (ADMIN, OWNER, SECRETARY). Returns the school's institution type,
+  its current pack (id and name), the active student count and the limit. The pack list
+  itself comes from the public endpoint above, so the landing page and the dialog
+  cannot drift apart. The `limitsLine` helper moves from `PricingSection.tsx` into
+  `frontend/lib/packs/limits.ts`, so both use it.
 - `POST /school/pack-upgrade` (ADMIN, OWNER). Body: `{ packId }`. In one transaction it
   checks the rules above, updates `School.packId`, and creates the `PackUpgrade`. Returns
   the new capacity and `dueAt`.
