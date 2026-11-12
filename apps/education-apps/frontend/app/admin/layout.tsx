@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { RequireRole } from '@/components/auth/RequireRole';
+import PackUpgradeBanner from '@/components/packs/PackUpgradeBanner';
 import PackUpgradeHost from '@/components/packs/PackUpgradeHost';
 import { Sidebar } from '@/components/Sidebar';
 
@@ -45,6 +46,7 @@ export default function AdminLayout({
                     <TopBar />
                     <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pt-16">
                         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+                            {pathname === '/admin' && <PackUpgradeBanner />}
                             {children}
                         </div>
                     </main>
