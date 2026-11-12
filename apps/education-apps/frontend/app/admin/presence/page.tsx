@@ -441,7 +441,7 @@ function Timetable({
         <div className="overflow-x-auto">
             <div className="min-w-[760px]">
                 <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60">
-                    <div />
+                    <div className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-900" />
                     {week.days.map((day) => (
                         <div
                             key={day.date}
@@ -458,7 +458,7 @@ function Timetable({
                 </div>
 
                 <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))]">
-                    <div className="relative" style={{ height }}>
+                    <div className="sticky left-0 z-10 bg-white dark:bg-slate-800" style={{ height }}>
                         {hours.map((m) => (
                             <span
                                 key={m}
