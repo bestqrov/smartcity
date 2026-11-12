@@ -12,7 +12,7 @@ import { fmtDate, fmtDay, fmtMAD, fmtMADShort, fmtMonthShort, fmtMonthYear, fmtN
 import type { AgentSection } from '@/lib/agent/prefs';
 import { ClientStatusBadge, PayoutStatusBadge, StatusLegend } from './StatusBadge';
 import { cardClass, ChartCard, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from '@/components/dashboard/Charts';
-import { emptyRowClass, mutedClass, rowClass, Slicer, TabButton, tdClass, theadClass, thClass } from '@/components/dashboard/ui';
+import { cardEmptyClass, cardItemClass, cardListClass, emptyRowClass, mutedClass, rowClass, Slicer, TabButton, tdClass, theadClass, thClass } from '@/components/dashboard/ui';
 
 type Tab = 'schools' | 'commissions' | 'payouts';
 type School = AgentReport['schools'][number];
@@ -430,7 +430,24 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                         </button>
                     </div>
                     <div className="max-h-[60vh] overflow-auto">
-                        <table className="w-full text-start text-sm">
+                        <ul className={cardListClass}>
+                            {monthCommissions.map((c) => (
+                                <li key={c.id} className={cardItemClass}>
+                                        <div className="flex items-baseline justify-between gap-2">
+                                            <span className="min-w-0 font-semibold">{c.schoolName}</span>
+                                            <span className="shrink-0 font-bold tabular-nums">{money(c.commissionAmount)}</span>
+                                        </div>
+                                        <div className={mutedClass}>
+                                            <span className="tabular-nums">{fmtDay(c.paidAt, lang)}</span> · {c.packName ?? '—'} · {money(c.amount)} ({m.period[c.period]}) · {c.commissionRate} %
+                                        </div>
+                                        <div>
+                                            <PayoutStatusBadge status={c.payoutStatus} m={m} />
+                                        </div>
+                                    </li>
+                            ))}
+                        </ul>
+                        {monthCommissions.length === 0 && <p className={cardEmptyClass}>{m.no_month_commission}</p>}
+                        <table className="hidden w-full text-start text-sm md:table">
                             <thead className={theadClass}>
                                 <tr>
                                     <th className={thClass}>{m.col_date}</th>
@@ -536,7 +553,34 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
 
                 <div id="agent-tabpanel" role="tabpanel" aria-labelledby={`tab-${tab}`} className={`${cardClass} max-h-[70vh] overflow-auto`}>
                     {tab === 'schools' && (
-                        <table className="w-full text-start text-sm">
+                        <>
+                        <ul className={cardListClass}>
+                            {data.schools.map((school) => (
+                                <li key={school.id} className={cardItemClass}>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <div className="font-semibold">{school.name}</div>
+                                            <div className={mutedClass}>{school.city || '—'}</div>
+                                        </div>
+                                        <ClientStatusBadge status={school.clientStatus} m={m} />
+                                    </div>
+                                    <div className={mutedClass}>
+                                        {m.institution_type[data.typeOf(school)]} · {school.packName ?? m.no_pack}
+                                    </div>
+                                    <div className={mutedClass}>
+                                        {school.ownerName} · <span dir="ltr">{school.ownerPhone || '—'}</span>
+                                    </div>
+                                    <div className="flex items-baseline justify-between gap-2">
+                                        <span className={`${mutedClass} tabular-nums`}>
+                                            {m.col_last_payment} : {lastPayment(school)}
+                                        </span>
+                                        <span className="font-bold tabular-nums">{money(school.totalPaid)}</span>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                        {data.schools.length === 0 && <p className={cardEmptyClass}>{m.no_clients}</p>}
+                        <table className="hidden w-full text-start text-sm md:table">
                             <thead className={theadClass}>
                                 <tr>
                                     <th className={thClass}>{m.col_school}</th>
@@ -584,10 +628,32 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                                 )}
                             </tbody>
                         </table>
+                        </>
                     )}
 
                     {tab === 'commissions' && (
-                        <table className="w-full text-start text-sm">
+                        <>
+                        <ul className={cardListClass}>
+                            {data.commissions.map((c) => (
+                                <li key={c.id} className={cardItemClass}>
+                                        <div className="flex items-baseline justify-between gap-2">
+                                            <span className="min-w-0 font-semibold">{c.schoolName}</span>
+                                            <span className="shrink-0 font-bold tabular-nums">{money(c.commissionAmount)}</span>
+                                        </div>
+                                        <div className={mutedClass}>
+                                            <span className="tabular-nums">{fmtDay(c.paidAt, lang)}</span> · {c.packName ?? '—'} · {money(c.amount)} ({m.period[c.period]}) · {c.commissionRate} %
+                                        </div>
+                                        <div>
+                                            <PayoutStatusBadge status={c.payoutStatus} m={m} />
+                                            {c.payoutStatus === 'PARTIAL' && (
+                                                <span className={`ms-2 ${mutedClass} tabular-nums`}>{m.partial_detail(money(c.paidAmount), money(c.commissionAmount - c.paidAmount))}</span>
+                                            )}
+                                        </div>
+                                    </li>
+                            ))}
+                        </ul>
+                        {data.commissions.length === 0 && <p className={cardEmptyClass}>{m.no_commissions}</p>}
+                        <table className="hidden w-full text-start text-sm md:table">
                             <thead className={theadClass}>
                                 <tr>
                                     <th className={thClass}>{m.col_date}</th>
@@ -627,6 +693,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                                 )}
                             </tbody>
                         </table>
+                        </>
                     )}
 
                     {tab === 'payouts' && (

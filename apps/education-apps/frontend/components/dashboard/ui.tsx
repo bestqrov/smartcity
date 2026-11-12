@@ -8,6 +8,10 @@ export const thClass = 'px-3 py-2 font-semibold whitespace-nowrap text-start';
 export const tdClass = 'px-3 py-2';
 export const rowClass =
     'border-t border-espresso-100 odd:bg-white even:bg-espresso-50/60 hover:bg-espresso-100/60 dark:border-espresso-800 dark:odd:bg-espresso-900 dark:even:bg-espresso-950/50 dark:hover:bg-espresso-800/60';
+// Phone layout (below md): each row becomes a card in a <ul className={cardListClass}>, the table is hidden.
+export const cardListClass = 'divide-y divide-espresso-100 md:hidden dark:divide-espresso-800';
+export const cardItemClass = 'space-y-1.5 px-3 py-3 text-sm text-gray-800 odd:bg-white even:bg-espresso-50/60 dark:text-espresso-100 dark:odd:bg-espresso-900 dark:even:bg-espresso-950/50';
+export const cardEmptyClass = 'px-3 py-6 text-sm text-gray-500 md:hidden dark:text-espresso-300';
 export const mutedClass = 'text-xs text-gray-500 dark:text-espresso-300';
 export const emptyRowClass = 'px-3 py-6 text-gray-500 dark:text-espresso-300';
 

@@ -15,7 +15,7 @@ import type { AgentLang } from '@/lib/agent/messages';
 import { fmtDay, fmtMAD, fmtMADShort, fmtMonthShort, fmtMonthYear, fmtNumber } from '@/lib/agent/format';
 import { AgentAvatar } from '@/components/agent/AgentAvatar';
 import { cardClass, ChartCard, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from '@/components/dashboard/Charts';
-import { emptyRowClass, mutedClass, rowClass, Slicer, TabButton, tdClass, theadClass, thClass } from '@/components/dashboard/ui';
+import { cardEmptyClass, cardItemClass, cardListClass, emptyRowClass, mutedClass, rowClass, Slicer, TabButton, tdClass, theadClass, thClass } from '@/components/dashboard/ui';
 
 type Tab = 'schools' | 'payments' | 'agents';
 type Panel = 'new' | 'revenue' | 'trials' | null;
@@ -280,7 +280,36 @@ export default function PlatformDashboard({ data: overview, lang, m }: Props) {
                         {closeButton}
                     </div>
                     <div className="max-h-[60vh] overflow-auto">
-                        <table className="w-full text-start text-sm">
+                        <ul className={cardListClass}>
+                            {panel === 'revenue' &&
+                                monthPayments.map((p) => (
+                                    <li key={p.id} className={cardItemClass}>
+                                        <div className="flex items-baseline justify-between gap-2">
+                                            <span className="min-w-0 font-semibold">{p.schoolName}</span>
+                                            <span className="shrink-0 font-bold tabular-nums">{money(p.amount)}</span>
+                                        </div>
+                                        <div className={mutedClass}>
+                                            <span className="tabular-nums">{fmtDay(p.paidAt, lang)}</span> · {m.period[p.period]} · {p.packName ?? '—'}
+                                        </div>
+                                    </li>
+                                ))}
+                            {panel !== 'revenue' &&
+                                (panel === 'new' ? newThisMonth : trials).map((s) => (
+                                    <li key={s.id} className={cardItemClass}>
+                                        <div className="font-semibold">{s.name}</div>
+                                        <div className={mutedClass}>
+                                            {typeLabel(s)} · {s.packName ?? '—'} · {agentCell(s)}
+                                        </div>
+                                        <div className={`${mutedClass} tabular-nums`}>
+                                            {panel === 'new' ? fmtDay(s.createdAt, lang) : `${fmtDay(s.trialEndsAt!, lang)} · ${m.days_left(daysLeft(s.trialEndsAt!))}`}
+                                        </div>
+                                    </li>
+                                ))}
+                        </ul>
+                        {((panel === 'new' && newThisMonth.length === 0) || (panel === 'revenue' && monthPayments.length === 0) || (panel === 'trials' && trials.length === 0)) && (
+                            <p className={cardEmptyClass}>{panel === 'new' ? m.no_new : panel === 'revenue' ? m.no_month_payment : m.no_trials}</p>
+                        )}
+                        <table className="hidden w-full text-start text-sm md:table">
                             <thead className={theadClass}>
                                 {panel === 'revenue' ? (
                                     <tr>
@@ -384,7 +413,71 @@ export default function PlatformDashboard({ data: overview, lang, m }: Props) {
                 </div>
 
                 <div id="platform-tabpanel" role="tabpanel" aria-labelledby={`tab-${tab}`} className={`${cardClass} max-h-[70vh] overflow-auto`}>
-                    <table className="w-full text-start text-sm">
+                    <ul className={cardListClass}>
+                        {tab === 'schools' &&
+                            d.schools.map((s) => (
+                                <li key={s.id} className={cardItemClass}>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <div className="font-semibold">{s.name}</div>
+                                            <div className={mutedClass}>{s.city || '—'}</div>
+                                        </div>
+                                        {statusBadge(s.status)}
+                                    </div>
+                                    <div className={mutedClass}>
+                                        {typeLabel(s)} · {s.packName ?? '—'}
+                                    </div>
+                                    <div className="flex items-baseline justify-between gap-2">
+                                        <span className={mutedClass}>
+                                            {m.col_agent} : {agentCell(s)}
+                                        </span>
+                                        <span className="font-bold tabular-nums">{money(s.totalPaid)}</span>
+                                    </div>
+                                </li>
+                            ))}
+                        {tab === 'payments' &&
+                            d.payments.map((p) => (
+                                <li key={p.id} className={cardItemClass}>
+                                    <div className="flex items-baseline justify-between gap-2">
+                                        <span className="min-w-0 font-semibold">{p.schoolName}</span>
+                                        <span className="shrink-0 font-bold tabular-nums">{money(p.amount)}</span>
+                                    </div>
+                                    <div className={mutedClass}>
+                                        <span className="tabular-nums">{fmtDay(p.paidAt, lang)}</span> · {m.period[p.period]} · {p.packName ?? '—'}
+                                    </div>
+                                    <div className={mutedClass}>
+                                        {m.col_commission} : <span className="tabular-nums">{money(p.commissionAmount)}</span> · {p.salesAgentName ?? '—'}
+                                    </div>
+                                </li>
+                            ))}
+                        {tab === 'agents' &&
+                            agentRows.map(({ agent, schools, revenue, commissions }) => (
+                                <li key={agent.id} className={`${cardItemClass} flex items-center gap-3`}>
+                                    <AgentAvatar src={agent.avatar} name={agent.name} size={36} className="shrink-0 bg-espresso-100 text-espresso-800 dark:bg-espresso-700 dark:text-espresso-50" />
+                                    <div className="min-w-0 flex-1">
+                                        <Link href={`/admin/sales-agents/${agent.id}`} className={linkClass}>
+                                            {agent.name}
+                                        </Link>
+                                        {agent.isHouse && <span className={`${mutedClass} ms-2`}>{m.house}</span>}
+                                        {!agent.active && <span className="ms-2 text-xs font-semibold text-red-600 dark:text-red-300">{m.inactive}</span>}
+                                        <div className={mutedClass}>
+                                            <span className="font-mono">{agent.code}</span> · {m.col_schools} {count(schools)}
+                                        </div>
+                                        <div className={`${mutedClass} tabular-nums`}>
+                                            {m.col_revenue} : {money(revenue)}
+                                        </div>
+                                    </div>
+                                    <div className="shrink-0 text-end">
+                                        <div className={mutedClass}>{m.col_balance}</div>
+                                        <div className="font-bold tabular-nums">{money(agent.totals.balance)}</div>
+                                    </div>
+                                </li>
+                            ))}
+                    </ul>
+                    {((tab === 'schools' && d.schools.length === 0) || (tab === 'payments' && d.payments.length === 0) || (tab === 'agents' && agentRows.length === 0)) && (
+                        <p className={cardEmptyClass}>{tab === 'schools' ? m.no_schools : tab === 'payments' ? m.no_payments : m.no_agents}</p>
+                    )}
+                    <table className="hidden w-full text-start text-sm md:table">
                         <thead className={theadClass}>
                             {tab === 'schools' && (
                                 <tr>

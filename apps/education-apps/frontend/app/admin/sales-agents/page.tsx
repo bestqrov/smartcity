@@ -137,6 +137,78 @@ export default function SalesAgentsPage() {
     const totalOwed = owed.reduce((total, agent) => total + agent.totals.balance, 0);
     const inputClass = 'w-full px-3 py-2 border border-gray-200 rounded-lg';
 
+    // Expanded schools of an agent: same content in the table row (md+) and under the card (phones).
+    const renderSchools = (agent: SalesAgentListItem) => (
+        <>
+        {schoolsLoading === agent.id ? (
+            <p className="text-sm text-gray-500">Chargement…</p>
+        ) : schoolsError && !schoolsByAgent[agent.id] ? (
+            <p className="text-sm text-red-600">{schoolsError}</p>
+        ) : schoolsByAgent[agent.id]?.length === 0 ? (
+            <p className="text-sm text-gray-500">Aucune école pour ce commercial.</p>
+        ) : (
+            <div className="space-y-3">
+                <ul className="md:hidden bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+                    {schoolsByAgent[agent.id]?.map((school) => (
+                        <li key={school.id} className="p-3 space-y-1 text-sm">
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                    <div className="font-semibold">{school.name}</div>
+                                    <div className="text-xs text-gray-500">{school.city || '—'}</div>
+                                </div>
+                                <span className="font-bold whitespace-nowrap">{formatMAD(school.totalPaid)}</span>
+                            </div>
+                            <ClientStatusBadge status={school.clientStatus} />
+                            <div className="text-xs text-gray-500">
+                                {INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE]} · {school.packName ?? 'Aucun pack'}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                Achat : {school.firstPaidAt ? formatDay(school.firstPaidAt) : '—'} · Dernier paiement : {formatLastPayment(school)}
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+                <div className="hidden md:block overflow-x-auto bg-white rounded-xl border border-gray-200">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th className="px-3 py-2">École</th>
+                                <th className="px-3 py-2">Statut</th>
+                                <th className="px-3 py-2">Type / Pack</th>
+                                <th className="px-3 py-2">Date d&apos;achat</th>
+                                <th className="px-3 py-2">Dernier paiement</th>
+                                <th className="px-3 py-2">Total payé</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {schoolsByAgent[agent.id]?.map((school) => (
+                                <tr key={school.id} className="border-t border-gray-100">
+                                    <td className="px-3 py-2 font-semibold">
+                                        {school.name}
+                                        <div className="text-xs font-normal text-gray-500">{school.city || '—'}</div>
+                                    </td>
+                                    <td className="px-3 py-2"><ClientStatusBadge status={school.clientStatus} /></td>
+                                    <td className="px-3 py-2">
+                                        {INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE]}
+                                        <div className="text-xs text-gray-500">{school.packName ?? 'Aucun pack'}</div>
+                                    </td>
+                                    <td className="px-3 py-2 whitespace-nowrap">{school.firstPaidAt ? formatDay(school.firstPaidAt) : '—'}</td>
+                                    <td className="px-3 py-2 whitespace-nowrap">{formatLastPayment(school)}</td>
+                                    <td className="px-3 py-2 whitespace-nowrap">{formatMAD(school.totalPaid)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                <Link href={`/admin/sales-agents/${agent.id}`} className="text-sm font-semibold text-indigo-700 hover:underline">
+                    Voir le détail →
+                </Link>
+            </div>
+        )}
+        </>
+    );
+
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -177,7 +249,55 @@ export default function SalesAgentsPage() {
                         <Briefcase size={20} /> Aucun commercial. Lancez le seed du code société (ARWA) puis ajoutez vos commerciaux.
                     </div>
                 ) : (
-                    <table className="w-full text-left">
+                    <>
+                    <ul className="md:hidden divide-y divide-gray-100">
+                        {agents.map((agent) => (
+                            <li key={agent.id} className="p-4 space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <AgentAvatar src={agent.avatar} name={agent.name} size={40} className="shrink-0 bg-indigo-100 text-indigo-700" />
+                                    <div className="min-w-0 flex-1">
+                                        <Link href={`/admin/sales-agents/${agent.id}`} className="font-semibold text-indigo-700 hover:underline">
+                                            {agent.name}
+                                        </Link>
+                                        <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                                            {agent.isHouse && <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>}
+                                            {agent.isSchoolAccount && <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Compte école</span>}
+                                            {!agent.active && <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-200 text-gray-600">Inactif</span>}
+                                        </div>
+                                    </div>
+                                    <span className="font-mono font-bold text-sm">{agent.code}</span>
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                    {formatRates(agent)}
+                                    {agent.packRates.length > 0 && (
+                                        <span className="text-indigo-700"> · +{agent.packRates.length} exception{agent.packRates.length > 1 ? 's' : ''}</span>
+                                    )}
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleSchools(agent.id)}
+                                        aria-expanded={expandedId === agent.id}
+                                        aria-label={`Voir les écoles de ${agent.name}`}
+                                        className="flex items-center gap-1 text-left text-sm font-semibold text-indigo-700 hover:underline"
+                                    >
+                                        {expandedId === agent.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                        {agent.totals.activeSchools} / {agent.totals.schools} écoles
+                                    </button>
+                                    <span className="text-sm text-gray-600">Commissions : {formatMAD(agent.totals.totalCommissions)}</span>
+                                </div>
+                                <div className="flex items-baseline justify-between gap-3">
+                                    <span className="text-sm text-gray-600">Reste à payer</span>
+                                    <span className={`font-bold ${balanceClass(agent.totals.balance)}`}>{formatMAD(agent.totals.balance)}</span>
+                                </div>
+                                {expandedId === agent.id && <div className="pt-2 border-t border-gray-100">{renderSchools(agent)}</div>}
+                                <Link href={`/admin/sales-agents/${agent.id}`} className="block text-sm font-semibold text-indigo-700 hover:underline">
+                                    Voir le détail →
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                    <table className="hidden md:table w-full text-left">
                         <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
                             <tr>
                                 <th className="px-3 py-3 sm:px-6 sm:py-4">Commercial</th>
@@ -202,7 +322,10 @@ export default function SalesAgentsPage() {
                                                     {agent.name}
                                                 </Link>
                                                 {agent.isHouse && (
-                                                    <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>
+                                                    <span className="ms-2 px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>
+                                                )}
+                                                {agent.isSchoolAccount && (
+                                                    <span className="ms-2 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Compte école</span>
                                                 )}
                                                 <div className="text-xs text-gray-500">{agent.email ?? '—'}</div>
                                             </div>
@@ -248,51 +371,7 @@ export default function SalesAgentsPage() {
                                 {expandedId === agent.id && (
                                     <tr className="bg-gray-50 border-t border-gray-100">
                                         <td colSpan={8} className="px-3 py-3 sm:px-6 sm:py-4">
-                                            {schoolsLoading === agent.id ? (
-                                                <p className="text-sm text-gray-500">Chargement…</p>
-                                            ) : schoolsError && !schoolsByAgent[agent.id] ? (
-                                                <p className="text-sm text-red-600">{schoolsError}</p>
-                                            ) : schoolsByAgent[agent.id]?.length === 0 ? (
-                                                <p className="text-sm text-gray-500">Aucune école pour ce commercial.</p>
-                                            ) : (
-                                                <div className="space-y-3">
-                                                    <div className="overflow-x-auto bg-white rounded-xl border border-gray-200">
-                                                        <table className="w-full text-left text-sm">
-                                                            <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
-                                                                <tr>
-                                                                    <th className="px-3 py-2">École</th>
-                                                                    <th className="px-3 py-2">Statut</th>
-                                                                    <th className="px-3 py-2">Type / Pack</th>
-                                                                    <th className="px-3 py-2">Date d&apos;achat</th>
-                                                                    <th className="px-3 py-2">Dernier paiement</th>
-                                                                    <th className="px-3 py-2">Total payé</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {schoolsByAgent[agent.id]?.map((school) => (
-                                                                    <tr key={school.id} className="border-t border-gray-100">
-                                                                        <td className="px-3 py-2 font-semibold">
-                                                                            {school.name}
-                                                                            <div className="text-xs font-normal text-gray-500">{school.city || '—'}</div>
-                                                                        </td>
-                                                                        <td className="px-3 py-2"><ClientStatusBadge status={school.clientStatus} /></td>
-                                                                        <td className="px-3 py-2">
-                                                                            {INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE]}
-                                                                            <div className="text-xs text-gray-500">{school.packName ?? 'Aucun pack'}</div>
-                                                                        </td>
-                                                                        <td className="px-3 py-2 whitespace-nowrap">{school.firstPaidAt ? formatDay(school.firstPaidAt) : '—'}</td>
-                                                                        <td className="px-3 py-2 whitespace-nowrap">{formatLastPayment(school)}</td>
-                                                                        <td className="px-3 py-2 whitespace-nowrap">{formatMAD(school.totalPaid)}</td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    <Link href={`/admin/sales-agents/${agent.id}`} className="text-sm font-semibold text-indigo-700 hover:underline">
-                                                        Voir le détail →
-                                                    </Link>
-                                                </div>
-                                            )}
+                                            {renderSchools(agent)}
                                         </td>
                                     </tr>
                                 )}
@@ -300,6 +379,7 @@ export default function SalesAgentsPage() {
                             ))}
                         </tbody>
                     </table>
+                    </>
                 )}
             </div>
 
