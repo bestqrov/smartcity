@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { RequireRole } from '@/components/auth/RequireRole';
+import PackUpgradeHost from '@/components/packs/PackUpgradeHost';
 import { Sidebar } from '@/components/Sidebar';
 
 import TopBar from '@/components/TopBar';
@@ -37,6 +38,7 @@ export default function AdminLayout({
 
     return (
         <RequireRole allowedRoles={['ADMIN', 'OWNER']}>
+            <PackUpgradeHost />
             <div className="flex h-screen h-[100dvh] bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
                 <Sidebar currentPath={pathname} />
                 <div className="flex-1 flex flex-col min-w-0">
