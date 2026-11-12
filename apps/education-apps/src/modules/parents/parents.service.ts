@@ -23,6 +23,7 @@ export const createParent = async (data: CreateParentData & { branchId: string }
         data: {
             ...data,
             accessTokenHash: hashToken(rawToken),
+            linkIssuedAt: new Date(),
         },
     });
 
@@ -69,7 +70,7 @@ export const regenerateParentToken = async (id: string, branchId: string) => {
 
     const parent = await prisma.parent.update({
         where: { id },
-        data: { accessTokenHash: hashToken(rawToken) },
+        data: { accessTokenHash: hashToken(rawToken), linkIssuedAt: new Date() },
     });
 
     return { parent, rawToken };
@@ -81,17 +82,28 @@ export const assertParentInBranch = async (parentId: string | null | undefined, 
     await findOwnParent(parentId, branchId);
 };
 
+const PROFILE_ATTENDANCE_DAYS = 60;
+const MAX_LINKS_PER_REQUEST = 200;
+
 export const getParentByRawToken = async (rawToken: string) => {
     const accessTokenHash = hashToken(rawToken);
+    const attendanceSince = new Date(Date.now() - PROFILE_ATTENDANCE_DAYS * 24 * 60 * 60 * 1000);
 
-    return prisma.parent.findUnique({
+    const parent = await prisma.parent.findUnique({
         where: { accessTokenHash },
         include: {
             students: {
                 include: {
                     inscriptions: true,
                     payments: tuitionPayments,
-                    attendances: true,
+                    attendances: {
+                        where: { date: { gte: attendanceSince } },
+                        orderBy: [{ date: 'desc' }, { slotStart: 'desc' }],
+                    },
+                    // Only what a parent needs: the teacher is reduced to a name.
+                    groups: {
+                        select: { id: true, name: true, subject: true, level: true, timeSlots: true, teacher: { select: { name: true } } },
+                    },
                     // Read-only transport summary for the portal: route/stop/subscription scalars are returned; driver is limited to name+phone, vehicle to plate, payments to id.
                     transportSubscriptions: {
                         where: { status: { in: ['ACTIVE', 'PAUSED'] } },
@@ -110,4 +122,90 @@ export const getParentByRawToken = async (rawToken: string) => {
             },
         },
     });
+
+    if (!parent) return null;
+
+    if (!parent.branchId) {
+        return { ...parent, announcements: [], holidays: [], school: null };
+    }
+
+    const branchId = parent.branchId;
+    const [announcements, holidays, branch] = await Promise.all([
+        prisma.announcement.findMany({
+            where: { branchId, active: true },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+        }),
+        prisma.holiday.findMany({
+            where: { branchId, active: true, endDate: { gte: new Date() } },
+            orderBy: { startDate: 'asc' },
+        }),
+        prisma.branch.findUnique({
+            where: { id: branchId },
+            include: { school: { select: { name: true, logo: true, phone: true, email: true } } },
+        }),
+    ]);
+
+    return { ...parent, announcements, holidays, school: branch?.school || null };
+};
+
+/** Re-issues the access link of many parents at once (bulk QR cards). All-or-nothing, branch-scoped. */
+export const issueParentLinks = async (parentIds: unknown, branchId: string) => {
+    if (
+        !Array.isArray(parentIds) ||
+        parentIds.length < 1 ||
+        parentIds.length > MAX_LINKS_PER_REQUEST ||
+        parentIds.some((id) => typeof id !== 'string' || id.length === 0) ||
+        new Set(parentIds).size !== parentIds.length
+    ) {
+        throw new Error(`parentIds must be 1 to ${MAX_LINKS_PER_REQUEST} distinct non-empty ids`);
+    }
+    const ids = parentIds as string[];
+
+    let found: { id: string }[];
+    try {
+        found = await prisma.parent.findMany({ where: { id: { in: ids }, branchId }, select: { id: true } });
+    } catch {
+        found = []; // malformed ObjectId
+    }
+    if (found.length !== ids.length) {
+        throw new Error('Parent not found');
+    }
+
+    const issuedAt = new Date();
+    const links = ids.map((id) => ({ id, rawToken: generateRawToken() }));
+    await prisma.$transaction(
+        links.map(({ id, rawToken }) =>
+            prisma.parent.update({ where: { id }, data: { accessTokenHash: hashToken(rawToken), linkIssuedAt: issuedAt } })
+        )
+    );
+
+    return links;
+};
+
+/** The branch's parents with link status and last visit, for the "Accès parents" page. */
+export const getParentsAccess = async (branchId: string) => {
+    const parents = await prisma.parent.findMany({
+        where: { branchId },
+        select: {
+            id: true,
+            name: true,
+            phone: true,
+            whatsapp: true,
+            linkIssuedAt: true,
+            students: { where: { branchId }, select: { id: true, name: true, surname: true } },
+        },
+    });
+    if (parents.length === 0) return [];
+
+    const visits = await prisma.accessLog.groupBy({
+        by: ['parentId'],
+        where: { parentId: { in: parents.map((p) => p.id) } },
+        _max: { accessedAt: true },
+    });
+    const lastVisit = new Map(visits.map((v) => [v.parentId, v._max.accessedAt]));
+
+    return parents
+        .map(({ students, ...parent }) => ({ ...parent, lastVisitAt: lastVisit.get(parent.id) ?? null, children: students }))
+        .sort((a, b) => a.name.localeCompare(b.name));
 };
