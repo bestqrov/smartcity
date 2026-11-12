@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sun, Moon, Cloud, Bell, Menu, Timer, Sparkles } from 'lucide-react';
+import { Sun, Moon, Cloud, Bell, Menu, Timer, Sparkles, Briefcase } from 'lucide-react';
 import axios from 'axios';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import useAuthStore from '@/store/useAuthStore';
@@ -117,6 +118,18 @@ export default function TopBar() {
                         </div>
                         <Sparkles size={14} className="text-amber-400 animate-pulse ml-1" />
                     </div>
+                )}
+
+                {user && user.role !== 'SALES_AGENT' && user.salesAgent && (
+                    <Link
+                        href="/agent"
+                        title="Espace commercial"
+                        aria-label="Espace commercial"
+                        className="flex items-center gap-2 px-3 py-2.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-full transition-colors"
+                    >
+                        <Briefcase size={18} />
+                        <span className="hidden sm:inline">Espace commercial</span>
+                    </Link>
                 )}
 
                 {/* Theme Toggle */}

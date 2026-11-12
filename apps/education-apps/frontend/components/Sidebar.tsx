@@ -429,7 +429,16 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
           })}
         </nav>
 
-        <div className="p-3 border-t border-[#334155]/50">
+        <div className="p-3 border-t border-[#334155]/50 space-y-2">
+          {user && user.role !== 'SALES_AGENT' && user.salesAgent && (
+            <button
+              onClick={() => handleNavigation('/agent')}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all border border-emerald-500/20"
+            >
+              <Briefcase size={16} />
+              <span className="font-semibold text-[13px]">Espace commercial</span>
+            </button>
+          )}
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-white/5 text-red-400 hover:bg-red-500/10 transition-all group shadow-sm border border-white/5"

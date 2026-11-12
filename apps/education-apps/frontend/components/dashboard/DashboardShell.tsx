@@ -40,12 +40,14 @@ interface Props {
     nav: ShellNavItem[];
     userName?: string | null;
     avatar?: string | null;
+    // Optional shortcut to another space (e.g. back to the school), shown under the nav.
+    extraLink?: { label: string; href: string; icon: LucideIcon };
     children: React.ReactNode;
 }
 
 const focusRing = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-espresso-200';
 
-export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, userName, avatar, children }: Props) {
+export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, userName, avatar, extraLink, children }: Props) {
     const router = useRouter();
 
     const logout = () => {
@@ -109,6 +111,12 @@ export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, user
                             );
                         })}
                     </nav>
+                    {extraLink && (
+                        <Link href={extraLink.href} className={`mx-4 mt-3 flex items-center justify-center gap-2 rounded-full bg-white/10 px-4 py-2.5 text-sm font-bold text-espresso-50 hover:bg-white/20 ${focusRing}`}>
+                            <extraLink.icon size={16} aria-hidden="true" />
+                            {extraLink.label}
+                        </Link>
+                    )}
                     <div className="mt-4 flex justify-center gap-2 px-4">{toggles('sidebar')}</div>
                     <p dir="ltr" className="mt-4 px-4 text-center text-[11px] text-espresso-200/80">
                         {CREDIT}
@@ -146,6 +154,12 @@ export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, user
                                     </Link>
                                 );
                             })}
+                            {extraLink && (
+                                <Link href={extraLink.href} className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/30 px-3 py-2 text-xs font-bold text-espresso-50 hover:bg-white/20 ${focusRing}`}>
+                                    <extraLink.icon size={14} aria-hidden="true" />
+                                    {extraLink.label}
+                                </Link>
+                            )}
                         </nav>
                     </header>
 

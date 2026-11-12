@@ -204,8 +204,43 @@ export async function getSalesAgents(): Promise<SalesAgentListItem[]> {
     return response.data.data;
 }
 
-export async function createSalesAgent(data: NewAgentInput): Promise<void> {
-    await api.post('/sales-agents', data);
+export type NewAgentPayload = Omit<NewAgentInput, 'password'> & { password?: string; linkExistingUser?: boolean };
+
+// Thrown when the email already belongs to a user: `existingRole` says which kind of account it is.
+export class AgentEmailExistsError extends Error {
+    existingRole: string | null;
+    constructor(existingRole: string | null) {
+        super('Email already exists');
+        this.existingRole = existingRole;
+    }
+}
+
+const LINK_ERRORS: Record<string, string> = {
+    'This account is already a sales agent': 'Ce compte est déjà un commercial.',
+    "A super admin account can't be a sales agent": 'Un compte super admin ne peut pas être commercial.',
+    'No account found with this email': 'Aucun compte trouvé avec cet e-mail.',
+    'This code is already used': 'Ce code est déjà utilisé.',
+    'This account is also a school account: change its email/password from its own profile':
+        "Ce compte est aussi un compte d'école : l'e-mail et le mot de passe se changent depuis son propre profil.",
+};
+
+// French text for the known English API errors of the agent endpoints, else the raw message.
+export const agentErrorMessage = (e: any): string => {
+    const raw: string | undefined = e?.response?.data?.error;
+    if (raw && LINK_ERRORS[raw]) return LINK_ERRORS[raw];
+    return raw || e?.response?.data?.message || e?.message || 'Une erreur est survenue';
+};
+
+export async function createSalesAgent(data: NewAgentPayload): Promise<void> {
+    try {
+        await api.post('/sales-agents', data);
+    } catch (e: any) {
+        const body = e?.response?.data;
+        if (!data.linkExistingUser && e?.response?.status === 400 && body?.error === 'Email already exists') {
+            throw new AgentEmailExistsError(body?.data?.existingRole ?? null);
+        }
+        throw e;
+    }
 }
 
 export async function updateSalesAgent(id: string, data: AgentUpdateInput): Promise<void> {

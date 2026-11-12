@@ -9,6 +9,8 @@ export interface User {
     role: UserRole;
     schoolId?: string | null;
     avatar?: string | null;
+    // Set when this school account is also linked to a sales agent profile.
+    salesAgent?: { code: string } | null;
     createdAt: string;
 }
 

@@ -13,6 +13,8 @@ import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institu
 import { AgentAvatar } from '@/components/agent/AgentAvatar';
 import { ClientStatusBadge } from '@/components/agent/StatusBadge';
 import {
+    AgentEmailExistsError,
+    agentErrorMessage,
     createSalesAgent,
     formatDay,
     formatLastPayment,
@@ -22,6 +24,8 @@ import {
     type AgentReport,
     type SalesAgentListItem,
 } from '@/lib/services/salesAgents';
+
+const LINKABLE_ROLES: Record<string, string> = { OWNER: 'Propriétaire', ADMIN: 'Administrateur', SECRETARY: 'Secrétaire' };
 
 const emptyForm = { name: '', email: '', password: '', phone: '', code: '' };
 
@@ -41,6 +45,8 @@ export default function SalesAgentsPage() {
     const [rates, setRates] = useState<RatesForm>(emptyRatesForm);
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
+    // Set when the email already belongs to a school account that can be linked as a sales agent.
+    const [linkRole, setLinkRole] = useState<string | null>(null);
 
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [schoolsByAgent, setSchoolsByAgent] = useState<Record<string, AgentReport['schools']>>({});
@@ -93,6 +99,7 @@ export default function SalesAgentsPage() {
         setForm(emptyForm);
         setRates(emptyRatesForm);
         setFormError('');
+        setLinkRole(null);
         setShowForm(true);
     };
 
@@ -104,7 +111,7 @@ export default function SalesAgentsPage() {
             await createSalesAgent({
                 name: form.name,
                 email: form.email,
-                password: form.password,
+                ...(linkRole ? { linkExistingUser: true } : { password: form.password }),
                 phone: form.phone || undefined,
                 code: form.code,
                 ...ratesPayload(rates),
@@ -112,7 +119,13 @@ export default function SalesAgentsPage() {
             setShowForm(false);
             await load();
         } catch (err) {
-            setFormError(apiErrorMessage(err));
+            if (err instanceof AgentEmailExistsError && err.existingRole && LINKABLE_ROLES[err.existingRole]) {
+                setLinkRole(err.existingRole);
+            } else if (err instanceof AgentEmailExistsError) {
+                setFormError('Cet e-mail est déjà utilisé par un autre compte.');
+            } else {
+                setFormError(agentErrorMessage(err));
+            }
         } finally {
             setSaving(false);
         }
@@ -294,8 +307,15 @@ export default function SalesAgentsPage() {
                 <form onSubmit={submit} className="space-y-3">
                     {formError && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{formError}</div>}
                     <input className={inputClass} aria-label="Nom complet" placeholder="Nom complet" value={form.name} onChange={set('name')} required />
-                    <input className={inputClass} type="email" aria-label="Email (identifiant)" placeholder="Email (identifiant)" value={form.email} onChange={set('email')} required />
-                    <input className={inputClass} type="password" aria-label="Mot de passe" placeholder="Mot de passe (8 caractères min.)" minLength={8} value={form.password} onChange={set('password')} required />
+                    <input className={inputClass} type="email" aria-label="Email (identifiant)" placeholder="Email (identifiant)" value={form.email} onChange={(e) => { setLinkRole(null); set('email')(e); }} required />
+                    {linkRole ? (
+                        <div className="bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-lg text-sm space-y-1">
+                            <div className="font-semibold">Ce compte existe déjà ({LINKABLE_ROLES[linkRole]}). Le lier comme commercial ?</div>
+                            <div>La personne garde son mot de passe actuel et son école ; elle aura en plus un espace commercial.</div>
+                        </div>
+                    ) : (
+                        <input className={inputClass} type="password" aria-label="Mot de passe" placeholder="Mot de passe (8 caractères min.)" minLength={8} value={form.password} onChange={set('password')} required />
+                    )}
                     <input className={inputClass} aria-label="Téléphone" placeholder="Téléphone" value={form.phone} onChange={set('phone')} />
                     <input className={`${inputClass} font-mono`} aria-label="Code commercial" placeholder="Code (ex. YOUSSEF22)" pattern="[A-Z0-9\-]{3,20}" value={form.code} onChange={set('code')} required />
                     <div className="pt-2 border-t border-gray-100">
@@ -303,7 +323,7 @@ export default function SalesAgentsPage() {
                         <AgentRatesFields value={rates} onChange={setRates} packs={packs} />
                     </div>
                     <button disabled={saving} className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold disabled:opacity-50">
-                        {saving ? 'Création…' : 'Créer'}
+                        {saving ? 'Création…' : linkRole ? 'Lier au compte existant' : 'Créer'}
                     </button>
                 </form>
             </Modal>

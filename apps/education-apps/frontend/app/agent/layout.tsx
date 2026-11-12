@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { CreditCard, LayoutDashboard, Percent, Receipt, UserCircle, Users } from 'lucide-react';
+import { Building2, CreditCard, LayoutDashboard, Percent, Receipt, UserCircle, Users } from 'lucide-react';
 import { RequireRole } from '@/components/auth/RequireRole';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
-import useAuthStore from '@/store/useAuthStore';
+import useAuthStore, { getActiveBranchId } from '@/store/useAuthStore';
 import { AgentPrefsProvider, useAgentPrefs, type AgentSection } from '@/lib/agent/prefs';
 import type { AgentMessages } from '@/lib/agent/messages';
 
@@ -32,9 +32,15 @@ function Shell({ children }: { children: React.ReactNode }) {
         if (needsProfile) useAuthStore.getState().getMe();
     }, [needsProfile]);
 
+    // School accounts (owner/admin/secretary) may enter only when linked to a sales agent profile.
+    const allowed = !!user && user.role !== 'SUPER_ADMIN' && (user.role === 'SALES_AGENT' || !!user.salesAgent);
+    const schoolHome =
+        user?.role === 'OWNER' ? (getActiveBranchId() ? '/admin' : '/admin/select-branch') : user?.role === 'SECRETARY' ? '/secretary' : '/admin';
     useEffect(() => {
-        if (user?.role === 'SUPER_ADMIN') router.replace('/admin/sales-agents');
-    }, [user, router]);
+        if (!user) return;
+        if (user.role === 'SUPER_ADMIN') router.replace('/admin/sales-agents');
+        else if (!allowed) router.replace(schoolHome);
+    }, [user, allowed, schoolHome, router]);
 
     const nav = NAV.map((item) => {
         const key = item.key;
@@ -49,15 +55,15 @@ function Shell({ children }: { children: React.ReactNode }) {
     });
 
     return (
-        <DashboardShell lang={lang} setLang={setLang} theme={theme} toggleTheme={toggleTheme} m={m} nav={nav} userName={user?.name} avatar={user?.avatar}>
-            {children}
+        <DashboardShell lang={lang} setLang={setLang} theme={theme} toggleTheme={toggleTheme} m={m} nav={nav} userName={user?.name} avatar={user?.avatar} extraLink={user && user.role !== 'SALES_AGENT' ? { label: m.my_school, href: schoolHome, icon: Building2 } : undefined}>
+            {allowed ? children : null}
         </DashboardShell>
     );
 }
 
 export default function AgentLayout({ children }: { children: React.ReactNode }) {
     return (
-        <RequireRole allowedRoles={['SALES_AGENT']}>
+        <RequireRole allowedRoles={['SALES_AGENT', 'OWNER', 'ADMIN', 'SECRETARY']}>
             <AgentPrefsProvider>
                 <Shell>{children}</Shell>
             </AgentPrefsProvider>

@@ -18,6 +18,7 @@ import {
     todayLocal,
     getSalesAgentReport,
     recordAgentPayout,
+    agentErrorMessage,
     resetAgentPassword,
     changeAgentEmail,
     updateSalesAgent,
@@ -119,7 +120,7 @@ export default function SalesAgentDetailPage() {
             await load();
             setEmailNotice({ type: 'ok', text: 'E-mail modifié. Le commercial doit se connecter avec la nouvelle adresse.' });
         } catch (err) {
-            setEmailNotice({ type: 'error', text: apiErrorMessage(err) });
+            setEmailNotice({ type: 'error', text: agentErrorMessage(err) });
         } finally {
             setBusy(false);
         }
@@ -136,7 +137,7 @@ export default function SalesAgentDetailPage() {
             setPwd({ next: '', confirm: '' });
             setPwdNotice({ type: 'ok', text: 'Mot de passe modifié. Communiquez-le au commercial.' });
         } catch (err) {
-            setPwdNotice({ type: 'error', text: apiErrorMessage(err) });
+            setPwdNotice({ type: 'error', text: agentErrorMessage(err) });
         } finally {
             setBusy(false);
         }
