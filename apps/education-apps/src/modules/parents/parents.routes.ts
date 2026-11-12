@@ -9,6 +9,8 @@ import {
     getPublicProfile,
     issueLinks,
     getAccess,
+    getNotifications,
+    readNotifications,
 } from './parents.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
@@ -36,6 +38,17 @@ const activityResponseLimiter = rateLimit({
     legacyHeaders: false,
     validate: { keyGeneratorIpFallback: false },
 });
+const notificationsLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    keyGenerator: (req) => `pn:${req.params.token}`,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+});
+router.get('/notifications/:token', notificationsLimiter, getNotifications);
+router.post('/notifications/:token/read', notificationsLimiter, readNotifications);
+
 router.post('/activity-response/:token', activityResponseLimiter, parentRespond);
 
 router.use(authMiddleware);

@@ -121,6 +121,7 @@ export const scanAttendance = async (rawStudentToken: string, groupId: string, b
         await notifySafely([student.parentId], {
             kind: 'ATTENDANCE',
             branchId,
+            studentId: student.id,
             title: ATTENDANCE_TITLE,
             body: splitBilingual(message),
         });

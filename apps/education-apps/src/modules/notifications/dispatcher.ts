@@ -16,6 +16,8 @@ export interface NotifyInput {
     body: Localized;
     /** Deep link for the push click; omitted = the installed app's start_url. */
     path?: string | null;
+    /** Set when a single child is concerned (shown in the parent's inbox). */
+    studentId?: string | null;
 }
 
 /** "fr line\nar line" (the attendance messages) → { fr, ar }. */
@@ -51,7 +53,7 @@ export const KIND_PRIORITY: Record<string, number> = {
 };
 
 /**
- * Queues one PUSH message per subscription of each parent, plus one WHATSAPP message per parent
+ * Stores one in-app ParentNotification per parent, then queues one PUSH message per subscription of each parent, plus one WHATSAPP message per parent
  * when the branch's channel is CONNECTED and this kind is enabled. Nothing is sent here: the
  * outbox worker does that. Returns the number of queued messages.
  */
@@ -69,6 +71,21 @@ export const notify = async (parentIds: string[], input: NotifyInput): Promise<n
     const url = input.path ?? null;
     const priority = KIND_PRIORITY[input.kind] ?? 5;
     const data: any[] = [];
+
+    // The in-app inbox is always on: one row per parent, regardless of push/WhatsApp.
+    if (parents.length > 0) await prisma.parentNotification.createMany({
+        data: parents.map((p) => ({
+            parentId: p.id,
+            branchId: input.branchId,
+            kind: input.kind,
+            titleFr: input.title.fr,
+            titleAr: input.title.ar,
+            bodyFr: input.body.fr,
+            bodyAr: input.body.ar,
+            path: url,
+            studentId: input.studentId ?? null,
+        })),
+    });
 
     for (const parent of parents) {
         for (const sub of subscriptions.filter((s: any) => s.parentId === parent.id)) {

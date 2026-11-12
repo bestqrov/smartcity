@@ -26,6 +26,7 @@ jest.mock('../../config/database', () => ({
         activityResponse: { findMany: jest.fn().mockResolvedValue([]) },
         homework: { findMany: jest.fn().mockResolvedValue([]) },
         settings: { findUnique: jest.fn() },
+        parentNotification: { count: jest.fn().mockResolvedValue(0) },
         $transaction: jest.fn(),
     },
 }));

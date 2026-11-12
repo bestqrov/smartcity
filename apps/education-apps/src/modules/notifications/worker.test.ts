@@ -9,6 +9,7 @@ jest.mock('../../config/database', () => ({
         outboundMessage: { findMany: jest.fn(), findFirst: jest.fn(), update: jest.fn(), updateMany: jest.fn(), deleteMany: jest.fn() },
         pushSubscription: { findUnique: jest.fn(), deleteMany: jest.fn() },
         whatsappChannel: { findUnique: jest.fn() },
+        parentNotification: { deleteMany: jest.fn() },
     },
 }));
 jest.mock('./evolution.client', () => ({
@@ -167,6 +168,14 @@ describe('cleanupOutbox', () => {
         await cleanupOutbox(now);
         expect(prisma.outboundMessage.deleteMany).toHaveBeenCalledWith({
             where: { status: { in: ['SENT', 'SKIPPED', 'FAILED'] }, createdAt: { lt: new Date(now.getTime() - 60 * 86_400_000) } },
+        });
+    });
+
+    it('deletes inbox notifications older than 180 days', async () => {
+        m(prisma.outboundMessage.deleteMany).mockResolvedValue({ count: 0 });
+        await cleanupOutbox(now);
+        expect(prisma.parentNotification.deleteMany).toHaveBeenCalledWith({
+            where: { createdAt: { lt: new Date(now.getTime() - 180 * 86_400_000) } },
         });
     });
 });

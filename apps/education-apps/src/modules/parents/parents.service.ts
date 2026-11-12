@@ -145,9 +145,12 @@ export const getParentByRawToken = async (rawToken: string) => {
 
     if (!parent) return null;
 
+    const unreadNotifications = await prisma.parentNotification.count({ where: { parentId: parent.id, readAt: null } });
+
     if (!parent.branchId) {
         return {
             ...parent,
+            unreadNotifications,
             students: parent.students.map((s) => ({ ...s, grades: [], homework: [] })),
             announcements: [],
             holidays: [],
@@ -276,7 +279,7 @@ export const getParentByRawToken = async (rawToken: string) => {
             .map(({ groupId, ...h }) => ({ ...h, groupName: s.groups.find((g) => g.id === groupId)?.name ?? null })),
     }));
 
-    return { ...parent, students, announcements, holidays, activities, school: branch?.school || null, gradingPeriods };
+    return { ...parent, students, announcements, holidays, activities, school: branch?.school || null, gradingPeriods, unreadNotifications };
 };
 
 /** Re-issues the access link of many parents at once (bulk QR cards). All-or-nothing, branch-scoped. */

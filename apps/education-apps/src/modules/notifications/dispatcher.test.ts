@@ -8,6 +8,7 @@ jest.mock('../../config/database', () => ({
         pushSubscription: { findMany: jest.fn() },
         whatsappChannel: { findUnique: jest.fn() },
         outboundMessage: { createMany: jest.fn() },
+        parentNotification: { createMany: jest.fn() },
     },
 }));
 
@@ -31,6 +32,26 @@ beforeEach(() => {
         { parentId: 'p1', endpoint: 'https://push/b', lang: 'ar' },
     ]);
     m(prisma.whatsappChannel.findUnique).mockResolvedValue({ status: 'CONNECTED', sendAttendance: true, sendGrades: true, sendAnnouncements: false });
+});
+
+describe('notify inbox', () => {
+    it('always stores one inbox row per parent, even with no subscription and whatsapp off', async () => {
+        m(prisma.whatsappChannel.findUnique).mockResolvedValue(null);
+        m(prisma.pushSubscription.findMany).mockResolvedValue([]);
+        await notify(['p1', 'p2'], { ...input, path: '/x', studentId: 's1' });
+        expect(prisma.parentNotification.createMany).toHaveBeenCalledWith({
+            data: [
+                { parentId: 'p1', branchId: 'b1', kind: 'GRADE', titleFr: 'Titre', titleAr: 'عنوان', bodyFr: 'Corps', bodyAr: 'نص', path: '/x', studentId: 's1' },
+                { parentId: 'p2', branchId: 'b1', kind: 'GRADE', titleFr: 'Titre', titleAr: 'عنوان', bodyFr: 'Corps', bodyAr: 'نص', path: '/x', studentId: 's1' },
+            ],
+        });
+        expect(prisma.outboundMessage.createMany).not.toHaveBeenCalled();
+    });
+
+    it('studentId/path default to null', async () => {
+        await notify(['p1'], input);
+        expect(m(prisma.parentNotification.createMany).mock.calls[0][0].data[0]).toMatchObject({ path: null, studentId: null });
+    });
 });
 
 describe('notify', () => {

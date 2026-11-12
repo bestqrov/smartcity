@@ -920,3 +920,21 @@ model Homework {
   @@index([branchId, groupId, dueDate])
   @@map("homeworks")
 }
+
+model ParentNotification {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  parentId  String    @db.ObjectId
+  branchId  String    @db.ObjectId
+  kind      String
+  titleFr   String
+  titleAr   String
+  bodyFr    String
+  bodyAr    String
+  path      String?
+  studentId String?   @db.ObjectId
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([parentId, createdAt])
+  @@map("parent_notifications")
+}
