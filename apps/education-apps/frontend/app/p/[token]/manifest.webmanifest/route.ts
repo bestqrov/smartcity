@@ -9,7 +9,11 @@ export async function GET(_req: Request, { params }: { params: { token: string }
         display: 'standalone',
         background_color: '#f8fafc',
         theme_color: '#4f46e5',
-        icons: [{ src: '/icon.jpg', sizes: '225x225', type: 'image/jpeg', purpose: 'any' }],
+        icons: [
+            { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+            { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+            { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
     };
     return new Response(JSON.stringify(manifest), {
         headers: {

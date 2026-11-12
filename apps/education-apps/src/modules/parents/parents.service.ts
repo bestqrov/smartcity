@@ -98,6 +98,7 @@ export const getParentByRawToken = async (rawToken: string) => {
                     payments: tuitionPayments,
                     attendances: {
                         where: { date: { gte: attendanceSince } },
+                        select: { id: true, date: true, slotStart: true, status: true, groupId: true, scannedAt: true },
                         orderBy: [{ date: 'desc' }, { slotStart: 'desc' }],
                     },
                     // Only what a parent needs: the teacher is reduced to a name.
@@ -128,6 +129,9 @@ export const getParentByRawToken = async (rawToken: string) => {
     if (!parent.branchId) {
         return { ...parent, announcements: [], holidays: [], school: null };
     }
+
+    // Defence in depth: never expose a linked student that belongs to another branch.
+    parent.students = parent.students.filter((s) => s.branchId === parent.branchId);
 
     const branchId = parent.branchId;
     const [announcements, holidays, branch] = await Promise.all([

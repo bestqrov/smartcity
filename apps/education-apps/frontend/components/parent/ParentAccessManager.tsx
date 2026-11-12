@@ -103,6 +103,7 @@ export default function ParentAccessManager() {
         }
         if (p.linkIssuedAt && !window.confirm("Un nouveau lien va être créé : l'ancien lien de ce parent ne fonctionnera plus.")) return;
         const tab = window.open('', '_blank');
+        if (tab) tab.opener = null;
         setBusyId(p.id);
         try {
             const { rawToken } = await regenerateParentToken(p.id);

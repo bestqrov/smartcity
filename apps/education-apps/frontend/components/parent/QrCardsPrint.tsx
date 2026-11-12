@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 import { Printer, X } from 'lucide-react';
 
@@ -21,6 +22,9 @@ const PER_PAGE = 8;
 
 export default function QrCardsPrint({ schoolName, cards, onClose }: Props) {
     const [qrs, setQrs] = useState<Record<string, string>>({});
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => setMounted(true), []);
 
     useEffect(() => {
         let cancelled = false;
@@ -40,16 +44,17 @@ export default function QrCardsPrint({ schoolName, cards, onClose }: Props) {
     for (let i = 0; i < cards.length; i += PER_PAGE) pages.push(cards.slice(i, i + PER_PAGE));
     const ready = Object.keys(qrs).length === cards.length;
 
-    return (
-        <div className="qr-print-root fixed inset-0 z-[100] overflow-auto bg-slate-100 dark:bg-slate-900">
+    if (!mounted) return null;
+
+    return createPortal(
+        <div id="qr-print-root" className="qr-print-root fixed inset-0 z-[100] overflow-auto bg-slate-100 dark:bg-slate-900">
             <style>{`
                 @media print {
                     @page { size: A4 portrait; margin: 8mm; }
-                    body * { visibility: hidden !important; }
-                    .qr-print-root, .qr-print-root * { visibility: visible !important; }
-                    .qr-print-root { position: absolute !important; inset: 0 !important; overflow: visible !important; background: #fff !important; }
+                    body > *:not(#qr-print-root) { display: none !important; }
+                    #qr-print-root { position: static !important; inset: auto !important; overflow: visible !important; background: #fff !important; }
                     .qr-no-print { display: none !important; }
-                    .qr-page { box-shadow: none !important; margin: 0 !important; width: auto !important; height: 279mm !important; padding: 0 !important; break-after: page; page-break-after: always; }
+                    .qr-page { box-shadow: none !important; margin: 0 !important; width: auto !important; height: 277mm !important; padding: 0 !important; break-after: page; page-break-after: always; }
                     .qr-page:last-child { break-after: auto; page-break-after: auto; }
                 }
             `}</style>
@@ -104,6 +109,7 @@ export default function QrCardsPrint({ schoolName, cards, onClose }: Props) {
                     </div>
                 ))}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

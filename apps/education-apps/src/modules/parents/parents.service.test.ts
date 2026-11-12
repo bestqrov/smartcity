@@ -88,6 +88,7 @@ describe('parents.service', () => {
             expect(include.groups).toEqual({
                 select: { id: true, name: true, subject: true, level: true, timeSlots: true, teacher: { select: { name: true } } },
             });
+            expect(include.attendances.select).toEqual({ id: true, date: true, slotStart: true, status: true, groupId: true, scannedAt: true });
             expect(include.attendances.orderBy).toEqual([{ date: 'desc' }, { slotStart: 'desc' }]);
             const gte: Date = include.attendances.where.date.gte;
             const days = (before - gte.getTime()) / 86400000;
@@ -118,6 +119,18 @@ describe('parents.service', () => {
             expect(result.announcements).toEqual([{ id: 'a1' }]);
             expect(result.holidays).toEqual([{ id: 'h1' }]);
             expect(result.school).toEqual({ name: 'Ecole', logo: null, phone: '05', email: 'e@x' });
+        });
+
+        it('drops students that belong to another branch', async () => {
+            (prisma.parent.findUnique as jest.Mock).mockResolvedValue({
+                id: 'p1',
+                branchId: 'b1',
+                students: [{ id: 's1', branchId: 'b1' }, { id: 's2', branchId: 'b2' }],
+            });
+
+            const result: any = await getParentByRawToken('tok');
+
+            expect(result.students.map((s: any) => s.id)).toEqual(['s1']);
         });
 
         it('gives a parent without a branch empty lists and no school', async () => {

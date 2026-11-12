@@ -6,6 +6,7 @@ export async function generateMetadata({ params }: { params: { token: string } }
         title: 'Espace parent',
         manifest: `/p/${encodeURIComponent(params.token)}/manifest.webmanifest`,
         appleWebApp: { capable: true, title: 'Espace parent', statusBarStyle: 'default' },
+        icons: { apple: '/icons/icon-192.png' },
         robots: { index: false, follow: false },
     };
 }
