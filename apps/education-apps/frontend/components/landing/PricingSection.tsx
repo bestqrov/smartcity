@@ -60,15 +60,20 @@ export default function PricingSection({ m, type, onTypeChange, refCode }: Props
     const [billing, setBilling] = useState<Billing>('m');
     const [state, setState] = useState<PacksState>({ status: 'loading' });
     const [offer, setOffer] = useState<PartnerOfferPrices | null>(null);
+    const [eligible, setEligible] = useState(false);
     const [showStandard, setShowStandard] = useState(false);
 
-    // A partner link may unlock the partner offer; any failure just leaves the normal packs.
+    // Prices are public (teaser); only an eligible partner link unlocks the direct offer. Failure leaves the normal packs.
     useEffect(() => {
         let cancelled = false;
         setOffer(null);
-        if (!refCode) return;
-        fetchPartnerOffer(refCode)
-            .then((result) => !cancelled && setOffer(result.eligible && result.offer ? result.offer : null))
+        setEligible(false);
+        fetchPartnerOffer(refCode || undefined)
+            .then((result) => {
+                if (cancelled) return;
+                setOffer(result.offer ?? null);
+                setEligible(result.eligible && !!result.offer);
+            })
             .catch(() => {});
         return () => {
             cancelled = true;
@@ -114,10 +119,12 @@ export default function PricingSection({ m, type, onTypeChange, refCode }: Props
             </div>
 
             {offer && (
-                <div className="mx-auto mb-8 max-w-4xl rounded-3xl border-2 border-amber-400/70 bg-gradient-to-b from-amber-400/10 to-transparent p-5">
+                <div className={`mx-auto mb-8 max-w-4xl rounded-3xl border-2 p-5 ${eligible ? 'border-amber-400/70 bg-gradient-to-b from-amber-400/10 to-transparent' : 'border-dashed border-amber-400/60 bg-amber-400/5'}`}>
                     <div className="mb-4 text-center">
-                        <span className="rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold text-slate-900">{m.po_badge}</span>
-                        <p className="mt-2 text-sm text-slate-300">{m.po_sub}</p>
+                        <span className="rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold text-slate-900">
+                            {eligible ? m.po_badge : m.pp_title}
+                        </span>
+                        <p className="mt-2 text-sm text-slate-300">{eligible ? m.po_sub : m.pp_sub}</p>
                     </div>
                     <div className="grid gap-4 md:grid-cols-3">
                         {OFFER_PERIODS.map((period) => {
@@ -140,15 +147,16 @@ export default function PricingSection({ m, type, onTypeChange, refCode }: Props
                                         <p className="mt-1 text-xs font-semibold text-emerald-400">{m.po_save.replace('{n}', String(saving))}</p>
                                     )}
                                     <Link
-                                        href={`/signup?type=${type}${refParam}&offer=${period}`}
+                                        href={`/signup?type=${type}${eligible ? refParam : ''}&offer=${period}`}
                                         className="mt-4 block rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 px-5 py-3 text-center font-bold text-slate-900"
                                     >
-                                        {m.po_cta}
+                                        {eligible ? m.po_cta : m.pp_cta}
                                     </Link>
                                 </div>
                             );
                         })}
                     </div>
+                    {eligible && (
                     <div className="mt-4 text-center">
                         <button
                             type="button"
@@ -159,10 +167,11 @@ export default function PricingSection({ m, type, onTypeChange, refCode }: Props
                             {showStandard ? m.po_std_hide : m.po_std_show}
                         </button>
                     </div>
+                    )}
                 </div>
             )}
 
-            {(!offer || showStandard) && (
+            {(!eligible || showStandard) && (
             <>
             <div className="mb-8 flex justify-center gap-2">
                 {(['m', 'y'] as Billing[]).map((option) => (

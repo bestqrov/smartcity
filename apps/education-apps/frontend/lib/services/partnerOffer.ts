@@ -43,8 +43,8 @@ export const offerSavingPercent = (offer: PartnerOfferPrices, period: OfferPerio
 export const formatOfferMoney = (value: number): string =>
     value.toLocaleString('fr-FR', { minimumFractionDigits: Number.isInteger(value) ? 0 : 2, maximumFractionDigits: 2 });
 
-export async function fetchPartnerOffer(ref: string): Promise<PartnerOfferCheck> {
-    const response = await api.get<ApiResponse<PartnerOfferCheck>>('/partner-offer', { params: { ref } });
+export async function fetchPartnerOffer(ref?: string): Promise<PartnerOfferCheck> {
+    const response = await api.get<ApiResponse<PartnerOfferCheck>>('/partner-offer', { params: ref ? { ref } : {} });
     return response.data.data;
 }
 

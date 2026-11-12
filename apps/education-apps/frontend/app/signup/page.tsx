@@ -5,7 +5,7 @@ import Button from '../../components/Button';
 import useAuthStore, { setActiveBranchId } from '../../store/useAuthStore';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signupSchool, SignupSchoolData } from '../../lib/services/schools';
-import { GraduationCap, X } from 'lucide-react';
+import { GraduationCap, Lock, X } from 'lucide-react';
 import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, isInstitutionType, type InstitutionType } from '../../lib/institutionTypes';
 import { checkReferralCode } from '../../lib/services/salesAgents';
 import { whatsappUrl } from '../../lib/landing/whatsapp';
@@ -37,9 +37,16 @@ function SignupForm() {
     const [packCode, setPackCode] = useState<string>(searchParams.get('pack') ?? '');
     const [packs, setPacks] = useState<PublicPack[]>([]);
     const [referralCode, setReferralCode] = useState<string>((searchParams.get('ref') ?? '').trim().toUpperCase());
-    const [offer, setOffer] = useState<PartnerOfferPrices | null>(null);
+    // Offer prices are public; `eligible` (a partner's code was checked) is what unlocks the offer.
+    const [prices, setPrices] = useState<PartnerOfferPrices | null>(null);
+    const [eligible, setEligible] = useState(false);
     const initialOffer = searchParams.get('offer');
     const [offerPeriod, setOfferPeriod] = useState<OfferPeriod>(isOfferPeriod(initialOffer) ? initialOffer : 'MONTHLY');
+    // The offer asked for on the landing; dropped by "Continuer sans l'offre".
+    const [wantsOffer, setWantsOffer] = useState<boolean>(isOfferPeriod(initialOffer));
+    const codeInput = useRef<HTMLInputElement>(null);
+    const offer = eligible ? prices : null; // the unlocked offer
+    const lockedOffer = !eligible && wantsOffer && prices ? prices : null;
     const [codeStatus, setCodeStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
 
     // The code a pending check is for; a response for an older code is dropped so it can't overwrite the status.
@@ -47,7 +54,7 @@ function SignupForm() {
 
     const verifyCode = async (code: string) => {
         checkedCode.current = code;
-        setOffer(null);
+        setEligible(false);
         if (!code) {
             setCodeStatus('idle');
             return;
@@ -60,7 +67,10 @@ function SignupForm() {
             if (valid) {
                 // A partner code replaces the packs with the partner offer; failure just keeps the packs.
                 const result = await fetchPartnerOffer(code).catch(() => null);
-                if (checkedCode.current === code && result?.eligible && result.offer) setOffer(result.offer);
+                if (checkedCode.current === code && result?.offer) {
+                    setPrices(result.offer);
+                    setEligible(result.eligible);
+                }
             }
         } catch {
             // network/rate-limit problem: let the server decide at submit
@@ -71,8 +81,15 @@ function SignupForm() {
     // A code arriving from a ?ref= link is checked right away.
     useEffect(() => {
         if (referralCode) verifyCode(referralCode);
+        else fetchPartnerOffer().then((result) => setPrices(result.offer ?? null)).catch(() => {});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Arriving for a locked offer: put the cursor on the code field.
+    useEffect(() => {
+        if (wantsOffer && !eligible) codeInput.current?.focus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [prices === null]);
 
     // Load the packs that serve the chosen type; keep the requested pack if valid, else the recommended one.
     useEffect(() => {
@@ -121,7 +138,7 @@ function SignupForm() {
                 ...form,
                 referralCode: code,
                 institutionType,
-                ...(offer ? { offerPeriod } : packCode ? { packCode } : {}),
+                ...(eligible && prices ? { offerPeriod } : packCode ? { packCode } : {}),
             });
             setAccessTokenState(token);
             setUser(user);
@@ -133,7 +150,7 @@ function SignupForm() {
                 setCodeStatus('invalid');
                 setError(msg === 'Invalid referral code' ? 'Code commercial invalide.' : 'Le code commercial est obligatoire.');
             } else if (msg === 'This offer is only available through a partner') {
-                setOffer(null);
+                setEligible(false);
                 setError("Cette offre n'est disponible que via un partenaire.");
             } else {
                 setError(msg);
@@ -221,6 +238,50 @@ function SignupForm() {
                                 ))}
                             </select>
 
+                            {lockedOffer && (
+                                <div className="grid gap-2" role="radiogroup" aria-label="Offre partenaire (verrouillée)">
+                                    <p className="text-xs font-extrabold uppercase tracking-wider text-amber-600">Offre spéciale via Partenaire</p>
+                                    <div className="rounded-2xl border-2 border-amber-400 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+                                        {codeStatus === 'valid' || codeStatus === 'invalid'
+                                            ? codeStatus === 'valid'
+                                                ? "Ce code n'est pas celui d'un partenaire : l'offre spéciale nécessite le code de votre partenaire (commercial)."
+                                                : "Code introuvable : l'offre spéciale nécessite le code de votre partenaire (commercial)."
+                                            : 'Entrez le code de votre partenaire (commercial) pour bénéficier de cette offre.'}
+                                        {(codeStatus === 'valid' || codeStatus === 'invalid') && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setWantsOffer(false)}
+                                                className="mt-2 block rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-700"
+                                            >
+                                                Continuer sans l&apos;offre
+                                            </button>
+                                        )}
+                                    </div>
+                                    {OFFER_PERIODS.map((period) => (
+                                        <label
+                                            key={period}
+                                            className={`flex cursor-not-allowed items-center justify-between rounded-2xl border-2 px-5 py-3 ${
+                                                offerPeriod === period ? 'border-amber-500 bg-amber-50/70' : 'border-slate-100 bg-slate-50 opacity-50'
+                                            }`}
+                                        >
+                                            <span className="flex items-center gap-3 font-bold text-slate-800">
+                                                <input type="radio" name="offer-locked" disabled checked={offerPeriod === period} readOnly />
+                                                {OFFER_LABELS[period]}
+                                                {offerPeriod === period && <Lock size={14} className="text-amber-600" aria-label="Verrouillée" />}
+                                            </span>
+                                            <span className="text-right text-sm font-semibold text-slate-500">
+                                                {formatOfferMoney(offerPrice(lockedOffer, period))} MAD
+                                                {period !== 'MONTHLY' && (
+                                                    <span className="block text-xs font-normal">
+                                                        ≈ {formatOfferMoney(offerPerMonth(lockedOffer, period))} MAD / mois
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+
                             {offer && (
                                 <div className="grid gap-2" role="radiogroup" aria-label="Offre partenaire">
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-amber-600">Offre partenaire</p>
@@ -255,7 +316,7 @@ function SignupForm() {
                                 </div>
                             )}
 
-                            {!offer && packs.length > 0 && (
+                            {!offer && !lockedOffer && packs.length > 0 && (
                                 <div className="grid gap-2" role="radiogroup" aria-label="Pack">
                                     {packs.map((pack) => (
                                         <label
@@ -295,19 +356,22 @@ function SignupForm() {
                             </label>
                             <input
                                 id="referralCode"
+                                ref={codeInput}
                                 type="text"
                                 value={referralCode}
                                 onChange={(e) => {
                                     setReferralCode(e.target.value.toUpperCase());
                                     checkedCode.current = ''; // ignore any check still in flight
                                     setCodeStatus('idle');
-                                    setOffer(null);
+                                    setEligible(false);
                                 }}
                                 onBlur={() => verifyCode(referralCode.trim())}
                                 required
                                 autoComplete="off"
                                 placeholder="Ex. YOUSSEF22"
                                 className={`w-full px-6 py-4 bg-slate-50 border-2 rounded-[2rem] focus:bg-white focus:outline-none font-bold text-lg shadow-sm tracking-wider ${
+                                    lockedOffer && codeStatus !== 'valid' && codeStatus !== 'invalid' ? 'ring-4 ring-amber-300 border-amber-400 ' : ''
+                                }${
                                     codeStatus === 'invalid'
                                         ? 'border-red-300 focus:border-red-500'
                                         : codeStatus === 'valid'
