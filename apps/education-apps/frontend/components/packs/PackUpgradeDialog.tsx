@@ -45,7 +45,7 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
                 if (cancelled) return;
                 setCapacity(cap);
                 setPacks(list);
-                const fitting = list.filter((pack) => room(pack) >= needed).sort((a, b) => room(a) - room(b));
+                const fitting = list.filter((pack) => pack.code !== cap.packCode && room(pack) >= needed).sort((a, b) => room(a) - room(b));
                 setSelected(fitting[0]?.code ?? null);
             })
             .catch((err) => !cancelled && setError(apiErrorMessage(err)));
@@ -54,7 +54,7 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
         };
     }, [needed]);
 
-    const fitting = (packs ?? []).filter((pack) => room(pack) >= needed);
+    const fitting = (packs ?? []).filter((pack) => pack.code !== capacity?.packCode && room(pack) >= needed);
     const recommended = [...fitting].sort((a, b) => room(a) - room(b))[0]?.code;
     const chosen = packs?.find((pack) => pack.code === selected) ?? null;
 
@@ -71,7 +71,10 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
         }
     };
 
-    const close = () => onDone(done !== null);
+    const close = () => {
+        if (saving) return;
+        onDone(done !== null);
+    };
 
     return (
         <div
@@ -89,7 +92,7 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
                         </h2>
                         {!done && <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{studentLimitMessage(details)}</p>}
                     </div>
-                    <button type="button" onClick={close} aria-label="Fermer" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <button type="button" onClick={close} disabled={saving} aria-label="Fermer" className="text-gray-400 disabled:opacity-50 hover:text-gray-600 dark:hover:text-gray-200">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
@@ -158,7 +161,7 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
                                             </div>
                                             <p className="mt-2 text-2xl font-extrabold text-gray-900 dark:text-white">
                                                 {billing === 'm' ? pack.monthlyPrice : pack.yearlyPrice}{' '}
-                                                <small className="text-sm font-semibold text-gray-500">MAD{billing === 'm' ? ' / mois' : ' / an'}</small>
+                                                <small className="text-sm font-semibold text-gray-500 dark:text-gray-400">MAD{billing === 'm' ? ' / mois' : ' / an'}</small>
                                             </p>
                                             <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{limitsLine(pack, capacity.institutionType, messages.fr)}</p>
                                             {pack.features.length > 0 && (

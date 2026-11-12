@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import api from '@/lib/api';
+import { createStudent } from '@/lib/services/students';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 import {
@@ -274,13 +275,13 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
         setRegistrationSuccess(false);
 
         try {
-            const response = await api.post('/students', {
+            await createStudent({
                 ...formData,
                 subjects: subjects,
                 inscriptionFee: inscriptionFee,
                 subjectsTotal: calculateSubjectsTotal(),
                 amountPaid: total,
-            });
+            } as any);
 
             setLastRegisteredStudent({
                 name: formData.name,

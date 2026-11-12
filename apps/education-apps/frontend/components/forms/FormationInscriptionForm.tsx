@@ -106,9 +106,10 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
             setLoading(true);
 
             // Create an inscription for each selected formation
-            await Promise.all(formData.formation.map(async (formationId) => {
+            // Sequential: a full school opens the pack upgrade dialog, which must not race
+            for (const formationId of formData.formation) {
                 const formation = formations.find(f => f.id === formationId);
-                if (!formation) return;
+                if (!formation) continue;
 
                 // 1. Create Student
                 const studentData = await createStudent({
@@ -130,7 +131,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                     note: `Inscription Formation: ${formation.name}`,
                     status: 'ACTIVE'
                 } as any);
-            }));
+            }
 
             if (onSuccess) {
                 onSuccess();
