@@ -29,6 +29,8 @@ import agentRoutes from './modules/sales-agents/agent.routes';
 import partnerOfferRoutes from './modules/partner-offer/partnerOffer.routes';
 import platformRoutes from './modules/platform/platform.routes';
 import subscriptionRoutes from './modules/subscription/subscription.routes';
+import gradesRoutes from './modules/grades/grades.routes';
+import teacherPortalRoutes from './modules/teacher-portal/teacherPortal.routes';
 
 const app: Application = express();
 
@@ -78,6 +80,8 @@ apiRouter.use('/partner-offer', partnerOfferRoutes);
 apiRouter.use('/agent', agentRoutes);
 apiRouter.use('/platform', platformRoutes);
 apiRouter.use('/school', subscriptionRoutes);
+apiRouter.use('/grades', gradesRoutes);
+apiRouter.use('/teacher-portal', teacherPortalRoutes);
 
 app.use('/api', apiRouter);
 

@@ -13,6 +13,7 @@ router.use(tenantScopeMiddleware);
 router.post('/', teachersController.createTeacher);
 router.get('/', teachersController.getAllTeachers);
 router.put('/:id', teachersController.updateTeacher);
+router.post('/:id/portal-link', teachersController.issuePortalLink);
 router.delete('/:id', teachersController.deleteTeacher);
 
 export default router;

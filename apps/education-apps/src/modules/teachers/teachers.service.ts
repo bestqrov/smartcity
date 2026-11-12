@@ -1,4 +1,5 @@
 import prisma from '../../config/database';
+import { generateRawToken, hashToken } from '../../utils/accessToken';
 
 export interface CreateTeacherData {
     name: string;
@@ -118,4 +119,21 @@ export const calculateMonthlyTeacherExpenses = async (branchId: string) => {
         totalTeacherExpenses: totalExpenses,
         teacherCount: teachers.length
     };
+};
+
+/** Creates or regenerates the teacher's secret portal link (/t/<token>); the previous link stops working. */
+export const issueTeacherLink = async (id: string, branchId: string) => {
+    if (typeof id !== 'string' || !id) throw new Error('Teacher not found');
+    let existing;
+    try {
+        existing = await prisma.teacher.findFirst({ where: { id, branchId } });
+    } catch {
+        existing = null; // malformed ObjectId
+    }
+    if (!existing) throw new Error('Teacher not found');
+
+    const rawToken = generateRawToken();
+    const linkIssuedAt = new Date();
+    await prisma.teacher.update({ where: { id }, data: { accessTokenHash: hashToken(rawToken), linkIssuedAt } });
+    return { rawToken, linkIssuedAt };
 };
