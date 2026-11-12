@@ -142,6 +142,11 @@ model School {
   salesAgent   SalesAgent?      @relation(fields: [salesAgentId], references: [id])
   payments     SchoolPayment[]
 
+  // Partner offer taken at signup through a partner's referral link: period and price are frozen then.
+  partnerOffer Boolean             @default(false)
+  offerPeriod  SubscriptionPeriod?
+  offerPrice   Float?
+
   @@index([packId])
   @@index([salesAgentId])
   @@map("schools")
@@ -716,4 +721,19 @@ model AgentPayout {
 
   @@index([salesAgentId, paidAt])
   @@map("agent_payouts")
+}
+
+// The offer shown to visitors coming through a partner's referral link. A single document (key "default"),
+// editable by the SUPER_ADMIN. Prices are in MAD.
+model PartnerOffer {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  key             String   @unique @default("default")
+  active          Boolean  @default(true)
+  monthlyPrice    Float
+  semiannualPrice Float
+  yearlyPrice     Float
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("partner_offers")
 }

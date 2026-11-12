@@ -25,6 +25,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
             institutionType,
             packCode,
             referralCode,
+            offerPeriod,
         } = req.body;
 
         if (!ownerName || !ownerEmail || !password) {
@@ -48,6 +49,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
             institutionType,
             packCode,
             referralCode,
+            offerPeriod,
         });
 
         const token = generateToken({

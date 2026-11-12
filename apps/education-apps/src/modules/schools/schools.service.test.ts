@@ -16,6 +16,7 @@ jest.mock('../../config/database', () => ({
         school: { findUnique: jest.fn(), update: jest.fn(), findMany: jest.fn() },
         pack: { findFirst: jest.fn() },
         salesAgent: { findFirst: jest.fn() },
+        partnerOffer: { findUnique: jest.fn() },
         $transaction: jest.fn(),
     },
 }));
@@ -63,6 +64,67 @@ beforeEach(() => {
 
 describe('signupSchool', () => {
     afterEach(() => jest.restoreAllMocks());
+
+    describe('partner offer', () => {
+        const storedOffer = { active: true, monthlyPrice: 120, semiannualPrice: 1299, yearlyPrice: 2000 };
+        const partner = { ...agent, isHouse: false };
+
+        it('snapshots period and price and uses the default pack when the code is partner-eligible', async () => {
+            const { txClient } = arrangeSignup();
+            (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(partner);
+            (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(storedOffer);
+            (prisma.pack.findFirst as jest.Mock).mockResolvedValue(pack());
+
+            await signupSchool({ ...baseInput, offerPeriod: 'SEMIANNUAL' });
+
+            expect(prisma.pack.findFirst).toHaveBeenCalledWith({
+                where: { isDefault: true, active: true, institutionTypes: { has: 'PRIVATE_SCHOOL' } },
+            });
+            expect(txClient.school.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({ packId: 'pack1', partnerOffer: true, offerPeriod: 'SEMIANNUAL', offerPrice: 1299 }),
+                })
+            );
+        });
+
+        it.each([['MONTHLY', 120], ['YEARLY', 2000]])('snapshots the %s price', async (period, price) => {
+            const { txClient } = arrangeSignup();
+            (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(partner);
+            (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(storedOffer);
+
+            await signupSchool({ ...baseInput, offerPeriod: period as any });
+
+            expect(txClient.school.create).toHaveBeenCalledWith(
+                expect.objectContaining({ data: expect.objectContaining({ offerPeriod: period, offerPrice: price }) })
+            );
+        });
+
+        it('leaves the offer fields out when no offerPeriod is sent', async () => {
+            const { txClient } = arrangeSignup();
+            (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(partner);
+
+            await signupSchool(baseInput);
+
+            const data = txClient.school.create.mock.calls[0][0].data;
+            expect(data.partnerOffer).toBeUndefined();
+            expect(prisma.partnerOffer.findUnique).not.toHaveBeenCalled();
+        });
+
+        it('rejects an offerPeriod for the house code, an inactive offer or an invalid period', async () => {
+            const { txClient } = arrangeSignup();
+            (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue({ ...agent, isHouse: true });
+            (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(storedOffer);
+            await expect(signupSchool({ ...baseInput, offerPeriod: 'YEARLY' })).rejects.toThrow('This offer is only available through a partner');
+
+            (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(partner);
+            (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue({ ...storedOffer, active: false });
+            await expect(signupSchool({ ...baseInput, offerPeriod: 'YEARLY' })).rejects.toThrow('This offer is only available through a partner');
+
+            (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(storedOffer);
+            await expect(signupSchool({ ...baseInput, offerPeriod: 'WEEKLY' as any })).rejects.toThrow('offerPeriod must be MONTHLY, SEMIANNUAL or YEARLY');
+            expect(txClient.school.create).not.toHaveBeenCalled();
+        });
+    });
 
     it('rejects a signup without a referral code', async () => {
         arrangeSignup();
@@ -329,6 +391,15 @@ describe('updateSchoolProfile', () => {
 
         expect(prisma.school.update).toHaveBeenCalledWith({ where: { id: 's1' }, data: { name: 'New Name' } });
         expect(result).toEqual(updated);
+    });
+});
+
+describe('listSchools offer fields', () => {
+    it('selects partnerOffer, offerPeriod and offerPrice', async () => {
+        (prisma.school.findMany as jest.Mock).mockResolvedValue([]);
+        await listSchools();
+        const select = (prisma.school.findMany as jest.Mock).mock.calls[0][0].select;
+        expect(select).toEqual(expect.objectContaining({ partnerOffer: true, offerPeriod: true, offerPrice: true }));
     });
 });
 

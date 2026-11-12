@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { seedPartnerOffer } from '../src/modules/partner-offer/partnerOffer.service';
 import { seedHouseAgent } from '../src/modules/sales-agents/salesAgents.seed';
 import { migrateAgentRates } from '../src/modules/sales-agents/salesAgents.migration';
 import bcrypt from 'bcryptjs';
@@ -154,6 +155,7 @@ async function main() {
     console.log('\nEnsuring house referral code...');
     await migrateAgentRates(prisma); // v1 agents must be converted before Prisma reads any agent
     await seedHouseAgent(prisma);
+    await seedPartnerOffer(prisma);
 
     console.log('\n✅ Database seed completed!');
 }

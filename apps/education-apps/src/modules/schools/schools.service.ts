@@ -1,6 +1,7 @@
 import { resolveReferralCode } from '../sales-agents/salesAgents.service';
 import prisma from '../../config/database';
 import { hashPassword } from '../../utils/bcrypt';
+import { resolvePartnerOffer, offerPriceFor } from '../partner-offer/partnerOffer.service';
 import { assertId } from '../transport/ids';
 import { DEFAULT_INSTITUTION_TYPE, InstitutionTypeValue, isInstitutionType } from '../packs/packs.constants';
 
@@ -15,7 +16,11 @@ export interface SignupSchoolData {
     branchCity?: string;
     institutionType: InstitutionTypeValue;
     packCode?: string;
+    offerPeriod?: unknown; // partner offer period; loosely typed, comes from a public request body
 }
+
+const OFFER_PERIODS = ['MONTHLY', 'SEMIANNUAL', 'YEARLY'] as const;
+type OfferPeriod = (typeof OFFER_PERIODS)[number];
 
 const TRIAL_DAYS = 15;
 
@@ -44,6 +49,16 @@ export const signupSchool = async (data: SignupSchoolData) => {
 
     const agent = await resolveReferralCode(data.referralCode);
 
+    // Partner offer: only through a partner's code while the offer is on. The price is frozen on the school.
+    let offerFields: { partnerOffer: true; offerPeriod: OfferPeriod; offerPrice: number } | null = null;
+    if (data.offerPeriod !== undefined && data.offerPeriod !== null && data.offerPeriod !== '') {
+        const period = OFFER_PERIODS.find((value) => value === data.offerPeriod);
+        if (!period) throw new Error('offerPeriod must be MONTHLY, SEMIANNUAL or YEARLY');
+        const offer = await resolvePartnerOffer(data.referralCode);
+        if (!offer) throw new Error('This offer is only available through a partner');
+        offerFields = { partnerOffer: true, offerPeriod: period, offerPrice: offerPriceFor(offer, period) };
+    }
+
     const email = data.ownerEmail.toLowerCase();
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -51,7 +66,8 @@ export const signupSchool = async (data: SignupSchoolData) => {
         throw new Error('Email already exists');
     }
 
-    const pack = await resolveSignupPack(data.packCode, data.institutionType);
+    // An offer signup always gets the type's default pack (its features); the pack picker is not used.
+    const pack = await resolveSignupPack(offerFields ? undefined : data.packCode, data.institutionType);
 
     const hashedPassword = await hashPassword(data.password);
 
@@ -70,6 +86,7 @@ export const signupSchool = async (data: SignupSchoolData) => {
                     institutionType: data.institutionType,
                     packId: pack?.id ?? null,
                     salesAgentId: agent.id,
+                    ...(offerFields ?? {}),
                     ownerName: data.ownerName,
                     ownerEmail: email,
                     ownerPhone: data.ownerPhone,
@@ -141,6 +158,9 @@ export const listSchools = async () => {
             pack: { select: { id: true, code: true, name: true } },
             salesAgentId: true,
             salesAgent: { select: { id: true, name: true, code: true } },
+            partnerOffer: true,
+            offerPeriod: true,
+            offerPrice: true,
         },
         orderBy: { createdAt: 'desc' },
     });
