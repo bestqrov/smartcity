@@ -10,8 +10,8 @@ interface Props {
 
 export default function LandingNav({ m, lang, onLangChange }: Props) {
     return (
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-            <Link href="/" className="flex items-center gap-2 text-xl font-extrabold">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-5 sm:py-4">
+            <Link href="/" className="flex items-center gap-2 whitespace-nowrap text-lg font-extrabold sm:text-xl">
                 <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-gradient-to-br from-indigo-400 to-violet-500 text-white">
                     <GraduationCap size={18} />
                 </span>
@@ -24,12 +24,12 @@ export default function LandingNav({ m, lang, onLangChange }: Props) {
                 <button
                     type="button"
                     onClick={() => onLangChange(lang === 'fr' ? 'ar' : 'fr')}
-                    className="rounded-full border border-[#22294a] bg-[#131a30] px-4 py-1.5 text-sm font-semibold text-slate-200 hover:bg-[#1a2342]"
+                    className="rounded-full border border-[#22294a] bg-[#131a30] px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-[#1a2342] sm:px-4"
                     aria-label="Changer de langue / تغيير اللغة"
                 >
                     {m.lang_switch}
                 </button>
-                <Link href="/login" className="rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-4 py-2 text-sm font-bold text-white">
+                <Link href="/login" className="rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-3 py-2 text-sm font-bold text-white sm:px-4">
                     {m.nav_login}
                 </Link>
             </div>
