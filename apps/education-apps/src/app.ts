@@ -27,6 +27,7 @@ import salesAgentsRoutes from './modules/sales-agents/salesAgents.routes';
 import agentRoutes from './modules/sales-agents/agent.routes';
 import partnerOfferRoutes from './modules/partner-offer/partnerOffer.routes';
 import platformRoutes from './modules/platform/platform.routes';
+import subscriptionRoutes from './modules/subscription/subscription.routes';
 
 const app: Application = express();
 
@@ -74,6 +75,7 @@ apiRouter.use('/sales-agents', salesAgentsRoutes);
 apiRouter.use('/partner-offer', partnerOfferRoutes);
 apiRouter.use('/agent', agentRoutes);
 apiRouter.use('/platform', platformRoutes);
+apiRouter.use('/school', subscriptionRoutes);
 
 app.use('/api', apiRouter);
 

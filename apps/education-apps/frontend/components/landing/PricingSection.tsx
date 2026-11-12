@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Messages } from '@/lib/landing/messages';
 import { INSTITUTION_TYPES, type InstitutionType } from '@/lib/institutionTypes';
+import { limitsLine } from '@/lib/packs/limits';
 import { fetchPublicPacks, type PublicPack } from '@/lib/services/packs';
 import {
     OFFER_PERIODS,
@@ -28,25 +29,6 @@ const TYPE_TITLE_KEYS: Record<InstitutionType, keyof Messages> = {
 
 type Billing = 'm' | 'y';
 type PacksState = { status: 'loading' } | { status: 'error' } | { status: 'ok'; packs: PublicPack[] };
-
-const fill = (template: string, n: number) => template.replace('{n}', String(n));
-
-const limitsLine = (pack: PublicPack, type: InstitutionType, m: Messages): string => {
-    const creche = type === 'CRECHE';
-    const students =
-        pack.maxStudents === null
-            ? creche ? m.lim_children_unlimited : m.lim_students_unlimited
-            : fill(creche ? m.lim_children : m.lim_students, pack.maxStudents);
-    const branches =
-        pack.maxBranches === null
-            ? m.lim_branches_unlimited
-            : pack.maxBranches === 1
-            ? m.lim_branch_one
-            : pack.maxBranches === 2
-            ? m.lim_branches_two
-            : fill(m.lim_branches, pack.maxBranches);
-    return `${students} · ${branches}`;
-};
 
 interface Props {
     m: Messages;

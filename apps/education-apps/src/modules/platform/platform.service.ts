@@ -1,12 +1,13 @@
 import prisma from '../../config/database';
 import { roundMoney } from '../sales-agents/salesAgents.validation';
 import { buildTotals } from '../sales-agents/salesAgents.service';
+import { UNSETTLED } from '../subscription/packUpgrade.service';
 
 // Raw data of the super admin platform dashboard, in one call. Aggregation happens in the browser,
 // like the sales agent dashboard. Every query uses an explicit `select` and the results are mapped
 // field by field, so no password hash, user id, owner contact or bank detail can reach the response.
 export const getPlatformOverview = async () => {
-    const [schools, payments, agents, payouts] = await Promise.all([
+    const [schools, payments, agents, payouts, upgrades] = await Promise.all([
         prisma.school.findMany({
             orderBy: { createdAt: 'desc' },
             select: {
@@ -56,6 +57,20 @@ export const getPlatformOverview = async () => {
         prisma.agentPayout.findMany({
             orderBy: { paidAt: 'desc' },
             select: { salesAgentId: true, amount: true, paidAt: true },
+        }),
+        prisma.packUpgrade.findMany({
+            where: { dueAt: { not: null }, ...UNSETTLED },
+            orderBy: { dueAt: 'asc' },
+            select: {
+                id: true,
+                schoolId: true,
+                fromPackName: true,
+                toPackName: true,
+                toMonthlyPrice: true,
+                createdAt: true,
+                dueAt: true,
+                school: { select: { name: true } },
+            },
         }),
     ]);
 
@@ -107,5 +122,15 @@ export const getPlatformOverview = async () => {
             totals: buildTotals(agent.schools, agent.payments, agent.payouts),
         })),
         payouts: payouts.map((payout) => ({ agentId: payout.salesAgentId, amount: payout.amount, paidAt: payout.paidAt })),
+        pendingUpgrades: upgrades.map((upgrade) => ({
+            id: upgrade.id,
+            schoolId: upgrade.schoolId,
+            schoolName: upgrade.school.name,
+            fromPackName: upgrade.fromPackName,
+            toPackName: upgrade.toPackName,
+            toMonthlyPrice: upgrade.toMonthlyPrice,
+            createdAt: upgrade.createdAt,
+            dueAt: upgrade.dueAt,
+        })),
     };
 };

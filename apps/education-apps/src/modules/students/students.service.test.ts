@@ -1,4 +1,5 @@
 import prisma from '../../config/database';
+import { assertStudentCapacity, StudentLimitError } from '../packs/packs.limits';
 import { regenerateStudentToken, updateStudent, createStudent, getAllStudents, getStudentById, getStudentByPortalToken } from './students.service';
 
 jest.mock('../../config/database', () => {
@@ -23,6 +24,11 @@ jest.mock('../../config/database', () => {
             $transaction: jest.fn((cb: any) => cb({ student, inscription, payment })),
         },
     };
+});
+
+jest.mock('../packs/packs.limits', () => {
+    const actual = jest.requireActual('../packs/packs.limits');
+    return { ...actual, assertStudentCapacity: jest.fn().mockResolvedValue(undefined) };
 });
 
 describe('regenerateStudentToken', () => {
@@ -203,5 +209,23 @@ describe('initial inscription', () => {
         await createStudent({ branchId: 'b1', name: 'A', surname: 'B' } as any);
 
         expect(prisma.inscription.create).not.toHaveBeenCalled();
+    });
+});
+
+describe('createStudent pack limit', () => {
+    it('checks room for one student in the branch before creating anything', async () => {
+        (prisma.student.create as jest.Mock).mockResolvedValue({ id: 's1', branchId: 'b1' });
+        await createStudent({ name: 'A', surname: 'B', branchId: 'b1' } as any);
+        expect(assertStudentCapacity).toHaveBeenCalledWith('b1', 1);
+    });
+
+    it('creates nothing when the school is full', async () => {
+        (prisma.student.create as jest.Mock).mockClear();
+        (assertStudentCapacity as jest.Mock).mockRejectedValueOnce(
+            new StudentLimitError({ limit: 100, current: 100, adding: 1, packName: 'Essentiel' })
+        );
+
+        await expect(createStudent({ name: 'A', surname: 'B', branchId: 'b1' } as any)).rejects.toBeInstanceOf(StudentLimitError);
+        expect(prisma.student.create).not.toHaveBeenCalled();
     });
 });

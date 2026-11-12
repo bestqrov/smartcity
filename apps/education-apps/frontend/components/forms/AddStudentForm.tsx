@@ -87,9 +87,9 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                 await createStudent(payload);
             }
             onSuccess();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save student', error);
-            alert('Une erreur est survenue lors de l\'enregistrement.');
+            alert(error?.response?.data?.error || error?.message || 'Une erreur est survenue lors de l\'enregistrement.');
         } finally {
             setLoading(false);
         }

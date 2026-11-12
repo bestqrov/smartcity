@@ -51,11 +51,23 @@ export interface PlatformPayout {
     paidAt: string;
 }
 
+export interface PlatformPendingUpgrade {
+    id: string;
+    schoolId: string;
+    schoolName: string;
+    fromPackName: string | null;
+    toPackName: string;
+    toMonthlyPrice: number;
+    createdAt: string;
+    dueAt: string;
+}
+
 export interface PlatformOverview {
     schools: PlatformSchool[];
     payments: PlatformPayment[];
     agents: PlatformAgent[];
     payouts: PlatformPayout[];
+    pendingUpgrades: PlatformPendingUpgrade[];
 }
 
 export async function getPlatformOverview(): Promise<PlatformOverview> {
