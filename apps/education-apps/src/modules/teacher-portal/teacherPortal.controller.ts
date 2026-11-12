@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { sendError } from '../../utils/response';
 import { respond } from '../transport/http';
 import * as grades from '../grades/grades.service';
+import * as homework from '../homework/homework.service';
 import { findTeacherByToken, getTeacherPortal, PortalTeacher } from './teacherPortal.service';
 
 // Public, passwordless: the token is the credential. Every call re-resolves the teacher and passes
@@ -56,5 +57,27 @@ export const publish = withTeacher((teacher, req, res) =>
     respond(res, () => grades.setPublished(scopeOf(teacher), req.params.id, req.body?.published), {
         message: 'Evaluation updated successfully',
         failure: 'Failed to publish evaluation',
+    })
+);
+
+export const createHomework = withTeacher((teacher, req, res) =>
+    respond(res, () => homework.createHomework(scopeOf(teacher), req.body || {}, `teacher:${teacher.id}`), {
+        message: 'Homework created successfully',
+        failure: 'Failed to create homework',
+        status: 201,
+    })
+);
+
+export const updateHomework = withTeacher((teacher, req, res) =>
+    respond(res, () => homework.updateHomework(scopeOf(teacher), req.params.id, req.body || {}), {
+        message: 'Homework updated successfully',
+        failure: 'Failed to update homework',
+    })
+);
+
+export const deleteHomework = withTeacher((teacher, req, res) =>
+    respond(res, () => homework.deleteHomework(scopeOf(teacher), req.params.id), {
+        message: 'Homework deleted successfully',
+        failure: 'Failed to delete homework',
     })
 );

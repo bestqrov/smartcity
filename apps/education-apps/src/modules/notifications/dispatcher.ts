@@ -1,7 +1,7 @@
 import prisma from '../../config/database';
 import { whatsappNumber } from './phone';
 
-export type NotificationKind = 'ATTENDANCE' | 'GRADE' | 'ANNOUNCEMENT';
+export type NotificationKind = 'ATTENDANCE' | 'GRADE' | 'ANNOUNCEMENT' | 'ACTIVITY' | 'HOMEWORK';
 
 /** French and Arabic text; push picks one by the subscription's lang, WhatsApp sends both. */
 export interface Localized {
@@ -33,10 +33,12 @@ const whatsappText = (title: Localized, body: Localized) => {
     return `${fr}\n\n*${title.ar}*\n${body.ar}`;
 };
 
-const KIND_TOGGLE: Record<NotificationKind, 'sendAttendance' | 'sendGrades' | 'sendAnnouncements'> = {
+const KIND_TOGGLE: Record<NotificationKind, 'sendAttendance' | 'sendGrades' | 'sendAnnouncements' | 'sendActivities' | 'sendHomework'> = {
     ATTENDANCE: 'sendAttendance',
     GRADE: 'sendGrades',
     ANNOUNCEMENT: 'sendAnnouncements',
+    ACTIVITY: 'sendActivities',
+    HOMEWORK: 'sendHomework',
 };
 
 /** Outbox order: lower is sent first (the worker sorts by priority, then sendAfter). */

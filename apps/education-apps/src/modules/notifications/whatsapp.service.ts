@@ -9,6 +9,8 @@ const publicChannel = (configured: boolean, channel: any) => ({
     sendAttendance: channel?.sendAttendance ?? true,
     sendGrades: channel?.sendGrades ?? true,
     sendAnnouncements: channel?.sendAnnouncements ?? false,
+    sendActivities: channel?.sendActivities ?? true,
+    sendHomework: channel?.sendHomework ?? true,
 });
 
 const ensureChannel = (branchId: string) =>
@@ -70,7 +72,7 @@ export const connect = async (branchId: string) => {
 
 export const updateSettings = async (branchId: string, input: Record<string, unknown>) => {
     const data: Record<string, boolean> = {};
-    for (const key of ['sendAttendance', 'sendGrades', 'sendAnnouncements']) {
+    for (const key of ['sendAttendance', 'sendGrades', 'sendAnnouncements', 'sendActivities', 'sendHomework']) {
         if (input[key] === undefined) continue;
         if (typeof input[key] !== 'boolean') throw new Error(`${key} must be a boolean`);
         data[key] = input[key] as boolean;

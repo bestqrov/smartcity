@@ -33,6 +33,8 @@ import gradesRoutes from './modules/grades/grades.routes';
 import teacherPortalRoutes from './modules/teacher-portal/teacherPortal.routes';
 import pushRoutes from './modules/notifications/push.routes';
 import whatsappRoutes from './modules/notifications/whatsapp.routes';
+import activitiesRoutes from './modules/activities/activities.routes';
+import homeworkRoutes from './modules/homework/homework.routes';
 
 const app: Application = express();
 
@@ -86,6 +88,8 @@ apiRouter.use('/grades', gradesRoutes);
 apiRouter.use('/teacher-portal', teacherPortalRoutes);
 apiRouter.use('/push', pushRoutes);
 apiRouter.use('/whatsapp', whatsappRoutes);
+apiRouter.use('/activities', activitiesRoutes);
+apiRouter.use('/homework', homeworkRoutes);
 
 app.use('/api', apiRouter);
 

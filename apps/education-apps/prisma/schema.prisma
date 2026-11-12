@@ -834,6 +834,8 @@ model WhatsappChannel {
   sendAttendance    Boolean  @default(true)
   sendGrades        Boolean  @default(true)
   sendAnnouncements Boolean  @default(false)
+  sendActivities    Boolean  @default(true)
+  sendHomework      Boolean  @default(true)
   updatedAt         DateTime @updatedAt
 
   @@map("whatsapp_channels")
@@ -861,4 +863,60 @@ model OutboundMessage {
   @@index([status, sendAfter])
   @@index([branchId, createdAt])
   @@map("outbound_messages")
+}
+
+model Activity {
+  id           String             @id @default(auto()) @map("_id") @db.ObjectId
+  branchId     String             @db.ObjectId
+  title        String
+  description  String?
+  startAt      DateTime
+  endAt        DateTime?
+  location     String?
+  price        Float? // null/0 = free
+  needsConsent Boolean            @default(true)
+  deadline     DateTime? // last day to answer
+  audience     String             @default("ALL") // ALL | GROUPS
+  groupIds     String[]           @db.ObjectId
+  coverImage   String? // data URL
+  published    Boolean            @default(false)
+  notifiedAt   DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  responses    ActivityResponse[]
+
+  @@index([branchId, startAt])
+  @@map("activities")
+}
+
+model ActivityResponse {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  activityId String   @db.ObjectId
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  studentId  String   @db.ObjectId
+  parentId   String?  @db.ObjectId
+  branchId   String   @db.ObjectId
+  answer     String // YES | NO
+  paid       Boolean  @default(false)
+  note       String?
+  answeredAt DateTime @default(now())
+
+  @@unique([activityId, studentId])
+  @@map("activity_responses")
+}
+
+model Homework {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  branchId  String   @db.ObjectId
+  groupId   String   @db.ObjectId
+  subject   String
+  title     String
+  details   String?
+  dueDate   DateTime
+  createdBy String? // "teacher:<id>" | "user:<id>"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([branchId, groupId, dueDate])
+  @@map("homeworks")
 }

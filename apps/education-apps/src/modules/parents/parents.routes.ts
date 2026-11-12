@@ -13,6 +13,7 @@ import {
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
+import { parentRespond } from '../activities/activities.controller';
 
 const router = Router();
 
@@ -25,6 +26,17 @@ const publicProfileLimiter = rateLimit({
 
 // Public, passwordless — must come before the authMiddleware below
 router.get('/profile/:token', publicProfileLimiter, getPublicProfile);
+
+// Keyed per link token, like the teacher portal (a whole school behind one NAT must not share a budget).
+const activityResponseLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    keyGenerator: (req) => `ar:${req.params.token}`,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+});
+router.post('/activity-response/:token', activityResponseLimiter, parentRespond);
 
 router.use(authMiddleware);
 // Branch staff only: parents are scoped to the branch their children study in.

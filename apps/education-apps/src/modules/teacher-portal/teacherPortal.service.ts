@@ -41,14 +41,21 @@ export const getTeacherPortal = async (teacher: PortalTeacher) => {
         prisma.branch.findUnique({ where: { id: branchId }, include: { school: { select: { name: true, logo: true } } } }),
     ]);
 
-    const evaluations =
+    const groupIds = groups.map((g) => g.id);
+    const [evaluations, homework] =
         groups.length === 0
-            ? []
-            : await prisma.evaluation.findMany({
-                  where: { branchId, groupId: { in: groups.map((g) => g.id) } },
-                  include: { grades: true },
-                  orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-              });
+            ? [[], []]
+            : await Promise.all([
+                  prisma.evaluation.findMany({
+                      where: { branchId, groupId: { in: groupIds } },
+                      include: { grades: true },
+                      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+                  }),
+                  prisma.homework.findMany({
+                      where: { branchId, groupId: { in: groupIds } },
+                      orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }],
+                  }),
+              ]);
 
     return {
         teacher: { id: teacher.id, name: teacher.name },
@@ -58,6 +65,7 @@ export const getTeacherPortal = async (teacher: PortalTeacher) => {
             ...g,
             students: [...g.students].sort((a, b) => a.surname.localeCompare(b.surname) || a.name.localeCompare(b.name)),
             evaluations: evaluations.filter((e) => e.groupId === g.id),
+            homework: homework.filter((h) => h.groupId === g.id),
         })),
     };
 };
