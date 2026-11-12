@@ -208,7 +208,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
     const lastMonth = ym(new Date(now.getFullYear(), now.getMonth() - 1, 1));
 
     const data = useMemo(() => {
-        const schoolByName = new Map<string, School>(report.schools.map((school) => [school.name, school]));
+        const schoolById = new Map<string, School>(report.schools.map((school) => [school.id, school]));
         const typeOf = (school: School | undefined) => school?.institutionType ?? DEFAULT_INSTITUTION_TYPE;
         const schoolMatches = (school: School) =>
             (!filters.status || school.clientStatus === filters.status) &&
@@ -219,7 +219,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
             if (filters.period && c.period !== filters.period) return false;
             if (filters.pack && c.packName !== filters.pack) return false;
             if (filters.status || filters.type) {
-                const school = schoolByName.get(c.schoolName);
+                const school = schoolById.get(c.schoolId);
                 if (!school) return false;
                 if (filters.status && school.clientStatus !== filters.status) return false;
                 if (filters.type && typeOf(school) !== filters.type) return false;
@@ -230,7 +230,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
         const commissionsAnyMonth = report.commissions.filter(commissionMatches);
         const commissions = filters.month ? commissionsAnyMonth.filter((c) => c.paidAt.slice(0, 7) === filters.month) : commissionsAnyMonth;
         const payouts = filters.month ? report.payouts.filter((p) => p.paidAt.slice(0, 7) === filters.month) : report.payouts;
-        return { schoolByName, typeOf, schools, commissionsAnyMonth, commissions, payouts };
+        return { schoolById, typeOf, schools, commissionsAnyMonth, commissions, payouts };
     }, [report, filters]);
 
     const anyFilter = Object.values(filters).some(Boolean);
@@ -268,7 +268,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
         key: type,
         label: m.institution_type[type],
         value: sum(
-            data.commissions.filter((c) => data.typeOf(data.schoolByName.get(c.schoolName)) === type),
+            data.commissions.filter((c) => data.typeOf(data.schoolById.get(c.schoolId)) === type),
             (c) => c.commissionAmount
         ),
     }))

@@ -302,7 +302,7 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
         rateTable,
         totals: { ...totals, statusCounts: countStatuses(schools.map((school) => school.clientStatus)) },
         schools,
-        commissions: agent.payments.map(({ school, schoolId: _schoolId, createdAt: _createdAt, ...payment }) => ({
+        commissions: agent.payments.map(({ school, createdAt: _createdAt, ...payment }) => ({
             ...payment,
             schoolName: school.name,
             ...(allocation.get(payment.id) ?? NO_ALLOCATION),

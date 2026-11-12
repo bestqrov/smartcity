@@ -125,6 +125,7 @@ export interface AgentReport {
         packName: string | null;
         commissionRate: number;
         commissionAmount: number;
+        schoolId: string;
         schoolName: string;
         payoutStatus: PayoutStatus;
         paidAmount: number;

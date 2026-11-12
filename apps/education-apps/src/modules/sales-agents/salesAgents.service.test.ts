@@ -532,10 +532,10 @@ describe('agent report', () => {
         ]);
         // 300 paid out: p3 (oldest, 250) is paid, p4 has no commission, p2 gets the last 50, p1 is due.
         expect(report.commissions).toEqual([
-            { id: 'p1', paidAt: new Date('2026-03-01'), amount: 350, period: 'MONTHLY', packName: 'Pro', commissionRate: 10, commissionAmount: 35, schoolName: 'Ecole A', payoutStatus: 'DUE', paidAmount: 0 },
-            { id: 'p2', paidAt: new Date('2026-02-01'), amount: 1500, period: 'SEMIANNUAL', packName: 'Pro', commissionRate: 15, commissionAmount: 225, schoolName: 'Ecole D', payoutStatus: 'PARTIAL', paidAmount: 50 },
-            { id: 'p4', paidAt: new Date('2026-01-01'), amount: 100, period: 'MONTHLY', packName: null, commissionRate: 0, commissionAmount: 0, schoolName: 'Ecole A', payoutStatus: 'NONE', paidAmount: 0 },
-            { id: 'p3', paidAt: new Date('2026-01-01'), amount: 1000, period: 'YEARLY', packName: null, commissionRate: 25, commissionAmount: 250, schoolName: 'Ecole Z', payoutStatus: 'PAID', paidAmount: 250 },
+            { id: 'p1', paidAt: new Date('2026-03-01'), amount: 350, period: 'MONTHLY', packName: 'Pro', commissionRate: 10, commissionAmount: 35, schoolId: 's1', schoolName: 'Ecole A', payoutStatus: 'DUE', paidAmount: 0 },
+            { id: 'p2', paidAt: new Date('2026-02-01'), amount: 1500, period: 'SEMIANNUAL', packName: 'Pro', commissionRate: 15, commissionAmount: 225, schoolId: 's4', schoolName: 'Ecole D', payoutStatus: 'PARTIAL', paidAmount: 50 },
+            { id: 'p4', paidAt: new Date('2026-01-01'), amount: 100, period: 'MONTHLY', packName: null, commissionRate: 0, commissionAmount: 0, schoolId: 's1', schoolName: 'Ecole A', payoutStatus: 'NONE', paidAmount: 0 },
+            { id: 'p3', paidAt: new Date('2026-01-01'), amount: 1000, period: 'YEARLY', packName: null, commissionRate: 25, commissionAmount: 250, schoolId: 's9', schoolName: 'Ecole Z', payoutStatus: 'PAID', paidAmount: 250 },
         ]);
         expect(report.payouts).toEqual(stored.payouts);
     });
