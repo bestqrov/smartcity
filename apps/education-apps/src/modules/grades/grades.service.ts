@@ -252,6 +252,7 @@ const notifyGradePublished = async (evaluation: {
             await notifySafely([student.parentId], {
                 kind: 'GRADE',
                 branchId: evaluation.branchId,
+                studentId: student.id,
                 title: { fr: `Nouvelle note — ${name}`, ar: `نقطة جديدة — ${name}` },
                 body: {
                     fr: `Nouvelle note — ${evaluation.subject} · ${evaluation.title} : ${result.fr}`,

@@ -4,6 +4,13 @@ import { getAccessToken, setAccessToken, clearTokens, getActiveBranchId } from "
 
 const api = axios.create({ baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000" });
 
+/** Absolute URL for a server path such as `/api/parents/...` (the API base URL may already end in `/api`). */
+export const apiAssetUrl = (path: string): string => {
+    const base = (api.defaults.baseURL || "").replace(/\/+$/, "");
+    const rel = base.endsWith("/api") && path.startsWith("/api/") ? path.slice(4) : path;
+    return `${base}${rel.startsWith("/") ? rel : `/${rel}`}`;
+};
+
 let isRefreshing = false;
 let failedQueue: any[] = [];
 

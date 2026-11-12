@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { CalendarCheck2, GraduationCap, Home, LinkIcon, MessageCircle, Phone, School, Wallet, type LucideIcon } from 'lucide-react';
-import type { Parent } from '@/types';
+import { useCallback, useEffect, useState } from 'react';
+import { Bell, CalendarCheck2, GraduationCap, Home, LinkIcon, MessageCircle, Phone, School, Wallet, type LucideIcon } from 'lucide-react';
+import type { Parent, ParentActivity, ParentNotification } from '@/types';
 import { PARENT_MESSAGES } from '@/lib/parent/messages';
 import { useParentLang } from '@/lib/parent/useParentLang';
 import { initials } from '@/lib/parent/helpers';
@@ -13,7 +13,10 @@ import PaymentsTab from './PaymentsTab';
 import SchoolTab from './SchoolTab';
 import GradesTab from './GradesTab';
 import InstallBanner from './InstallBanner';
-import { Card, EmptyState } from './ui';
+import HomeworkSection from './HomeworkSection';
+import NotificationsSheet from './NotificationsSheet';
+import { getParentNotifications } from '@/lib/services/parents';
+import { Card, EmptyState, Ltr } from './ui';
 
 type Tab = 'home' | 'attendance' | 'payments' | 'grades' | 'school';
 const TABS: { id: Tab; icon: LucideIcon }[] = [
@@ -64,7 +67,37 @@ interface Props {
     error: boolean;
 }
 
-export default function ParentShell({ token, parent, error }: Props) {
+export default function ParentShell({ token, parent: loaded, error }: Props) {
+    // Local copy so activity answers can be applied optimistically.
+    const [parent, setParent] = useState<Parent | null>(loaded);
+    useEffect(() => setParent(loaded), [loaded]);
+    const [unread, setUnread] = useState(0);
+    useEffect(() => setUnread(loaded?.unreadNotifications ?? 0), [loaded]);
+    // Keep the bell fresh: on focus / tab shown, and every 60 s while visible.
+    useEffect(() => {
+        if (!token || !loaded) return;
+        let alive = true;
+        const refresh = () => {
+            if (document.visibilityState !== 'visible') return;
+            getParentNotifications(token, { limit: 1 })
+                .then((r) => alive && setUnread(r.unread))
+                .catch(() => undefined);
+        };
+        const timer = window.setInterval(refresh, 60_000);
+        window.addEventListener('focus', refresh);
+        document.addEventListener('visibilitychange', refresh);
+        return () => {
+            alive = false;
+            window.clearInterval(timer);
+            window.removeEventListener('focus', refresh);
+            document.removeEventListener('visibilitychange', refresh);
+        };
+    }, [token, loaded]);
+    const [inboxOpen, setInboxOpen] = useState(false);
+    const setActivities = useCallback(
+        (updater: (prev: ParentActivity[]) => ParentActivity[]) => setParent((p) => (p ? { ...p, activities: updater(p.activities || []) } : p)),
+        [],
+    );
     const [lang, setLang] = useParentLang();
     const t = PARENT_MESSAGES[lang];
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -84,8 +117,8 @@ export default function ParentShell({ token, parent, error }: Props) {
     const student = students.find((s) => s.id === childId) || students[0];
     const school = parent?.school;
     const wa = whatsappNumber(school?.phone);
-    // Crèches never have grades: the tab only exists when any child has at least one.
-    const hasGrades = students.some((s) => (s.grades || []).length > 0);
+    // Crèches never have grades or homework: the tab only exists when any child has at least one.
+    const hasGrades = students.some((s) => (s.grades || []).length > 0 || (s.homework || []).length > 0);
     const tabs = TABS.filter((x) => x.id !== 'grades' || hasGrades);
     const activeTab: Tab = tab === 'grades' && !hasGrades ? 'home' : tab;
 
@@ -106,6 +139,21 @@ export default function ParentShell({ token, parent, error }: Props) {
                             <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{school?.name || t.appName}</p>
                             <p className="truncate text-xs text-slate-500 dark:text-slate-400">{parent ? parent.name : t.appName}</p>
                         </div>
+                        {parent && !error && (
+                            <button
+                                type="button"
+                                onClick={() => setInboxOpen(true)}
+                                aria-label={t.notifications}
+                                className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700 active:scale-95 dark:bg-slate-800 dark:text-slate-200"
+                            >
+                                <Bell className="h-4 w-4" />
+                                {unread > 0 && (
+                                    <span className="absolute -end-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-950">
+                                        <Ltr>{unread > 99 ? '99+' : unread}</Ltr>
+                                    </span>
+                                )}
+                            </button>
+                        )}
                         <button
                             type="button"
                             onClick={() => setLang(lang === 'fr' ? 'ar' : 'fr')}
@@ -191,11 +239,35 @@ export default function ParentShell({ token, parent, error }: Props) {
                             {activeTab === 'home' && <HomeTab token={token} parent={parent} student={student} t={t} lang={lang} goTo={setTab} />}
                             {activeTab === 'attendance' && <AttendanceTab student={student} t={t} lang={lang} />}
                             {activeTab === 'payments' && <PaymentsTab student={student} t={t} lang={lang} />}
-                            {activeTab === 'grades' && <GradesTab parent={parent} student={student} t={t} lang={lang} />}
-                            {activeTab === 'school' && <SchoolTab token={token} parent={parent} student={student} t={t} lang={lang} />}
+                            {activeTab === 'grades' && (
+                                <>
+                                    {(student.homework || []).length > 0 && <HomeworkSection student={student} t={t} lang={lang} />}
+                                    {((student.grades || []).length > 0 || (student.homework || []).length === 0) && (
+                                        <GradesTab parent={parent} student={student} t={t} lang={lang} />
+                                    )}
+                                </>
+                            )}
+                            {activeTab === 'school' && <SchoolTab token={token} parent={parent} student={student} t={t} lang={lang} setActivities={setActivities} />}
                         </>
                     )}
                 </main>
+
+                {inboxOpen && parent && (
+                    <NotificationsSheet
+                        token={token}
+                        t={t}
+                        lang={lang}
+                        onClose={() => setInboxOpen(false)}
+                        onUnread={setUnread}
+                        onOpenItem={(n: ParentNotification) => {
+                            const target: Tab =
+                                n.kind === 'ATTENDANCE' ? 'attendance' : n.kind === 'GRADE' || n.kind === 'HOMEWORK' ? 'grades' : n.kind === 'ACTIVITY' ? 'school' : 'home';
+                            if (n.studentId && students.some((s) => s.id === n.studentId)) setChildId(n.studentId);
+                            setTab(target);
+                            setInboxOpen(false);
+                        }}
+                    />
+                )}
 
                 {/* Bottom tab bar */}
                 {parent && student && !error && (

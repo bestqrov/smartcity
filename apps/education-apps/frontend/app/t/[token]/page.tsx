@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronRight, Loader2, Users } from 'lucide-react';
 import GroupEvaluations from '@/components/grades/GroupEvaluations';
+import HomeworkList from '@/components/homework/HomeworkList';
+import { teacherHomeworkClient, type Homework } from '@/lib/services/homework';
 import { getTeacherPortal, teacherGradesClient, type EvaluationWithGrades, type TeacherPortal } from '@/lib/services/grades';
 import { sortStudents } from '@/components/grades/utils';
 
@@ -12,6 +14,8 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
     const [portal, setPortal] = useState<TeacherPortal | null>(null);
     const [state, setState] = useState<'loading' | 'invalid' | 'rate' | 'error' | 'ready'>('loading');
     const [groupId, setGroupId] = useState<string | null>(null);
+    const [tab, setTab] = useState<'evaluations' | 'homework'>('evaluations');
+    const hwClient = useMemo(() => teacherHomeworkClient(token), [token]);
 
     useEffect(() => {
         let cancelled = false;
@@ -37,6 +41,11 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
     const setEvaluations = (updater: (prev: EvaluationWithGrades[]) => EvaluationWithGrades[]) =>
         setPortal((p) =>
             p ? { ...p, groups: p.groups.map((g) => (g.id === groupId ? { ...g, evaluations: updater(g.evaluations) } : g)) } : p,
+        );
+
+    const setHomework = (updater: (prev: Homework[]) => Homework[]) =>
+        setPortal((p) =>
+            p ? { ...p, groups: p.groups.map((g) => (g.id === groupId ? { ...g, homework: updater(g.homework ?? []) } : g)) } : p,
         );
 
     if (state === 'loading') {
@@ -87,6 +96,31 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
             </header>
             <div className="mx-auto max-w-2xl p-4">
                 {group ? (
+                    <div className="space-y-4">
+                    <div className="flex gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+                        {(['evaluations', 'homework'] as const).map((t) => (
+                            <button
+                                key={t}
+                                type="button"
+                                onClick={() => setTab(t)}
+                                className={`flex-1 rounded-lg px-4 py-2 text-sm font-medium ${
+                                    tab === t ? 'bg-white text-slate-900 shadow dark:bg-slate-700 dark:text-white' : 'text-slate-600 dark:text-slate-300'
+                                }`}
+                            >
+                                {t === 'evaluations' ? 'Évaluations' : 'Devoirs'}
+                            </button>
+                        ))}
+                    </div>
+                    {tab === 'homework' ? (
+                    <HomeworkList
+                        key={`hw-${group.id}`}
+                        client={hwClient}
+                        groupId={group.id}
+                        groupSubject={group.subject}
+                        homework={group.homework ?? []}
+                        setHomework={setHomework}
+                    />
+                    ) : (
                     <GroupEvaluations
                         key={group.id}
                         client={client}
@@ -97,6 +131,8 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
                         evaluations={group.evaluations}
                         setEvaluations={setEvaluations}
                     />
+                    )}
+                    </div>
                 ) : portal.groups.length === 0 ? (
                     <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
                         Aucun groupe ne vous est attribué.

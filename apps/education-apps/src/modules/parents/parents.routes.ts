@@ -9,10 +9,13 @@ import {
     getPublicProfile,
     issueLinks,
     getAccess,
+    getNotifications,
+    readNotifications,
 } from './parents.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
+import { parentRespond, parentCover } from '../activities/activities.controller';
 
 const router = Router();
 
@@ -25,6 +28,38 @@ const publicProfileLimiter = rateLimit({
 
 // Public, passwordless — must come before the authMiddleware below
 router.get('/profile/:token', publicProfileLimiter, getPublicProfile);
+
+// Keyed per link token, like the teacher portal (a whole school behind one NAT must not share a budget).
+const activityResponseLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    keyGenerator: (req) => `ar:${req.params.token}`,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+});
+const notificationsLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    keyGenerator: (req) => `pn:${req.params.token}`,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+});
+router.get('/notifications/:token', notificationsLimiter, getNotifications);
+router.post('/notifications/:token/read', notificationsLimiter, readNotifications);
+
+router.post('/activity-response/:token', activityResponseLimiter, parentRespond);
+
+const activityCoverLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    keyGenerator: (req) => `ac:${req.params.token}`,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+});
+router.get('/activity-cover/:token/:id', activityCoverLimiter, parentCover);
 
 router.use(authMiddleware);
 // Branch staff only: parents are scoped to the branch their children study in.

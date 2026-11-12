@@ -51,9 +51,49 @@ export interface Student {
     holidays?: Holiday[];
     // only present on the parent portal profile response: published grades, newest first
     grades?: ParentGrade[];
+    // only present on the parent portal profile response: homework for the child's groups
+    homework?: ParentHomework[];
     school?: { name: string; logo?: string | null; phone?: string | null; email?: string | null } | null;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface ParentHomework {
+    id: string;
+    subject: string | null;
+    title: string;
+    details: string | null;
+    dueDate: string;
+    groupName: string;
+}
+
+export interface ParentActivity {
+    id: string;
+    title: string;
+    description: string | null;
+    startAt: string;
+    endAt: string | null;
+    location: string | null;
+    price: number | null;
+    needsConsent: boolean;
+    deadline: string | null;
+    hasCover: boolean;
+    /** Server path (`/api/parents/activity-cover/...`); resolve with `apiAssetUrl`. */
+    coverUrl: string | null;
+    children: { studentId: string; answer: 'YES' | 'NO' | null; paid: boolean }[];
+}
+
+export type ParentNotificationKind = 'ATTENDANCE' | 'GRADE' | 'ANNOUNCEMENT' | 'ACTIVITY' | 'HOMEWORK';
+
+export interface ParentNotification {
+    id: string;
+    kind: ParentNotificationKind;
+    title: { fr: string; ar: string };
+    body: { fr: string; ar: string };
+    path: string | null;
+    studentId: string | null;
+    read: boolean;
+    createdAt: string;
 }
 
 export interface ParentGrade {
@@ -100,6 +140,8 @@ export interface Parent {
     announcements?: Pick<Announcement, 'id' | 'title' | 'body' | 'createdAt'>[];
     holidays?: Holiday[];
     gradingPeriods?: string[];
+    activities?: ParentActivity[];
+    unreadNotifications?: number;
     school?: { name: string; logo?: string | null; phone?: string | null; email?: string | null } | null;
     createdAt: string;
     updatedAt: string;

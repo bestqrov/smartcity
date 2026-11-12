@@ -1,12 +1,13 @@
 'use client';
 
 import { Baby, Bus, CalendarDays, Mail, Megaphone, Palmtree, Phone, School, Users } from 'lucide-react';
-import type { Parent, Student } from '@/types';
+import type { Parent, ParentActivity, Student } from '@/types';
 import type { ParentLang, ParentMessages } from '@/lib/parent/messages';
 import { DAY_ORDER, allSlots, formatDate } from '@/lib/parent/helpers';
 import { whatsappNumber } from '@/lib/publicUrl';
 import { Card, EmptyState, Ltr, SectionTitle } from './ui';
 import { PushToggleRow } from './PushToggleRow';
+import ActivitiesSection from './ActivitiesSection';
 
 interface Props {
     token: string;
@@ -14,6 +15,7 @@ interface Props {
     student: Student;
     t: ParentMessages;
     lang: ParentLang;
+    setActivities: (updater: (prev: ParentActivity[]) => ParentActivity[]) => void;
 }
 
 const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -23,7 +25,7 @@ const Row = ({ label, children }: { label: string; children: React.ReactNode }) 
     </div>
 );
 
-export default function SchoolTab({ token, parent, student, t, lang }: Props) {
+export default function SchoolTab({ token, parent, student, t, lang, setActivities }: Props) {
     const groups = student.groups || [];
     const slots = allSlots(groups);
     const days = DAY_ORDER.filter((d) => slots.some((s) => s.day === d));
@@ -35,6 +37,9 @@ export default function SchoolTab({ token, parent, student, t, lang }: Props) {
 
     return (
         <div className="space-y-4">
+            {(parent.activities || []).length > 0 && (
+                <ActivitiesSection token={token} parent={parent} t={t} lang={lang} setActivities={setActivities} />
+            )}
             <Card>
                 <SectionTitle icon={Users}>{t.groups}</SectionTitle>
                 {groups.length === 0 ? (

@@ -81,6 +81,7 @@ export const runAbsenceSweep = async (): Promise<void> => {
                         await notifySafely([student.parentId], {
                             kind: 'ATTENDANCE',
                             branchId: group.branchId,
+                            studentId: student.id,
                             title: ATTENDANCE_TITLE,
                             body: splitBilingual(absentMessage(fullName, group.name, slot.startTime, slot.endTime)),
                         });

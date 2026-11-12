@@ -12,6 +12,7 @@ import {
     getParentsAccess,
 } from './parents.service';
 import { sendSuccess, sendError } from '../../utils/response';
+import { listInbox, markRead } from '../notifications/inbox.service';
 import { respond } from '../transport/http';
 
 export const create = async (req: TenantRequest, res: Response): Promise<void> => {
@@ -108,4 +109,27 @@ export const getAccess = async (req: TenantRequest, res: Response): Promise<void
         message: 'Parents access retrieved successfully',
         failure: 'Failed to retrieve parents access',
     });
+};
+
+const inboxFail = (res: Response, error: any) => {
+    const status = error?.message === 'Parent not found' ? 404 : 400;
+    sendError(res, error?.message || 'Failed', 'Failed', status);
+};
+
+export const getNotifications = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const data = await listInbox(req.params.token, req.query.before, req.query.limit);
+        sendSuccess(res, data, 'Notifications retrieved successfully', 200);
+    } catch (error: any) {
+        inboxFail(res, error);
+    }
+};
+
+export const readNotifications = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const data = await markRead(req.params.token, req.body?.ids);
+        sendSuccess(res, data, 'Notifications marked as read', 200);
+    } catch (error: any) {
+        inboxFail(res, error);
+    }
 };

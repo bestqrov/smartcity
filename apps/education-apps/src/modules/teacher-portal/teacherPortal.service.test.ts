@@ -8,6 +8,7 @@ jest.mock('../../config/database', () => ({
         teacher: { findFirst: jest.fn() },
         group: { findMany: jest.fn() },
         evaluation: { findMany: jest.fn() },
+        homework: { findMany: jest.fn() },
         settings: { findUnique: jest.fn() },
         branch: { findUnique: jest.fn() },
     },
@@ -56,6 +57,8 @@ describe('getTeacherPortal', () => {
         ]);
         const ev = { id: 'e1', groupId: 'g1', title: 'C1', grades: [] };
         m(prisma.evaluation.findMany).mockResolvedValue([ev]);
+        const hw = { id: 'h1', groupId: 'g1', title: 'Ex' };
+        m(prisma.homework.findMany).mockResolvedValue([hw, { id: 'h2', groupId: 'gX' }]);
         m(prisma.settings.findUnique).mockResolvedValue({ gradingPeriods: [] });
         m(prisma.branch.findUnique).mockResolvedValue({ school: { name: 'Ecole', logo: null } });
 
@@ -85,6 +88,7 @@ describe('getTeacherPortal', () => {
                         { id: 's2', name: 'Ali', surname: 'Zaki' },
                     ],
                     evaluations: [ev],
+                    homework: [hw],
                 },
             ],
         });

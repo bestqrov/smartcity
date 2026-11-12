@@ -1,5 +1,5 @@
 import api from '../api';
-import type { Parent, ApiResponse } from '@/types';
+import type { Parent, ApiResponse, ParentNotification } from '@/types';
 
 export async function getParents(): Promise<Parent[]> {
     const response = await api.get<ApiResponse<Parent[]>>('/parents');
@@ -50,5 +50,32 @@ export async function getParentsAccess(): Promise<ParentAccessRow[]> {
 
 export async function issueParentLinks(parentIds: string[]): Promise<{ id: string; rawToken: string }[]> {
     const response = await api.post<ApiResponse<{ id: string; rawToken: string }[]>>('/parents/links', { parentIds });
+    return response.data.data;
+}
+
+export async function answerParentActivity(
+    token: string,
+    body: { activityId: string; studentId: string; answer: 'YES' | 'NO'; note?: string },
+): Promise<{ activityId: string; studentId: string; answer: 'YES' | 'NO'; paid: boolean; note: string | null }> {
+    const response = await api.post<ApiResponse<{ activityId: string; studentId: string; answer: 'YES' | 'NO'; paid: boolean; note: string | null }>>(
+        `/parents/activity-response/${token}`,
+        body,
+    );
+    return response.data.data;
+}
+
+export async function getParentNotifications(
+    token: string,
+    params: { before?: string; limit?: number } = {},
+): Promise<{ items: ParentNotification[]; unread: number; nextBefore: string | null }> {
+    const response = await api.get<ApiResponse<{ items: ParentNotification[]; unread: number; nextBefore: string | null }>>(
+        `/parents/notifications/${token}`,
+        { params },
+    );
+    return response.data.data;
+}
+
+export async function markParentNotificationsRead(token: string, ids?: string[]): Promise<{ unread: number }> {
+    const response = await api.post<ApiResponse<{ unread: number }>>(`/parents/notifications/${token}/read`, ids ? { ids } : {});
     return response.data.data;
 }

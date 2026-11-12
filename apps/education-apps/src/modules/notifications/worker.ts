@@ -53,13 +53,18 @@ export const processOutbox = async (now: Date = new Date()): Promise<void> => {
     }
 };
 
-/** Retention: finished rows older than 60 days. */
+const INBOX_RETENTION_DAYS = 180;
+
+/** Retention: finished outbox rows older than 60 days, inbox notifications older than 180. */
 export const cleanupOutbox = async (now: Date = new Date()) => {
     const { count } = await prisma.outboundMessage.deleteMany({
         where: {
             status: { in: ['SENT', 'SKIPPED', 'FAILED'] },
             createdAt: { lt: new Date(now.getTime() - RETENTION_DAYS * 86_400_000) },
         },
+    });
+    await prisma.parentNotification.deleteMany({
+        where: { createdAt: { lt: new Date(now.getTime() - INBOX_RETENTION_DAYS * 86_400_000) } },
     });
     return count;
 };
