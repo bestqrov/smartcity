@@ -1,7 +1,7 @@
 // src/modules/students-import/importStudents.service.test.ts
 import prisma from '../../config/database';
-import { getSchoolCapacity } from '../packs/packs.limits';
-import { MAX_IMPORT_ROWS, validateImport } from './importStudents.service';
+import { assertStudentCapacity, getSchoolCapacity, StudentLimitError } from '../packs/packs.limits';
+import { commitImport, MAX_IMPORT_ROWS, validateImport } from './importStudents.service';
 
 jest.mock('../packs/packs.limits', () => {
     const actual = jest.requireActual('../packs/packs.limits');
@@ -94,5 +94,83 @@ describe('validateImport', () => {
         await expect(validateImport('b1', 'nope' as any, TODAY)).rejects.toThrow('Rows must be a non-empty list');
         await expect(validateImport('b1', [], TODAY)).rejects.toThrow('Rows must be a non-empty list');
         await expect(validateImport('b1', [{ surname: 'A' } as any], TODAY)).rejects.toThrow('Each row needs a rowNumber');
+    });
+});
+
+describe('commitImport', () => {
+    beforeEach(() => {
+        (prisma.student.create as jest.Mock).mockImplementation(({ data }: any) => Promise.resolve({ id: `s-${data.surname}` }));
+        (prisma.group.create as jest.Mock).mockImplementation(({ data }: any) => Promise.resolve({ id: `g-${data.name}` }));
+        (assertStudentCapacity as jest.Mock).mockResolvedValue(undefined);
+    });
+
+    const ROWS = [
+        { rowNumber: 2, surname: 'Alaoui', name: 'Sara', group: 'ce2-a', schoolLevel: 'Primaire' },
+        { rowNumber: 3, surname: 'Bennani', name: 'Omar', birthDate: '05/03/2015' }, // duplicate in DB
+        { rowNumber: 4, surname: 'Idrissi', name: 'Adam', group: 'CM1-B', schoolLevel: 'Primaire' },
+        { rowNumber: 5, surname: '', name: 'Bad' }, // error
+    ];
+
+    it('checks capacity for the valid rows before writing anything', async () => {
+        (assertStudentCapacity as jest.Mock).mockRejectedValueOnce(
+            new StudentLimitError({ limit: 100, current: 99, adding: 2, packName: 'Essentiel' })
+        );
+        await expect(commitImport('b1', ROWS, false, TODAY)).rejects.toBeInstanceOf(StudentLimitError);
+        expect(assertStudentCapacity).toHaveBeenCalledWith('b1', 2);
+        expect(prisma.student.create).not.toHaveBeenCalled();
+        expect(prisma.group.create).not.toHaveBeenCalled();
+    });
+
+    it('creates valid students with tokens and their existing group, and no inscription or payment', async () => {
+        const result = await commitImport('b1', ROWS, false, TODAY);
+
+        expect(prisma.student.create).toHaveBeenCalledTimes(2);
+        const first = (prisma.student.create as jest.Mock).mock.calls[0][0].data;
+        expect(first).toEqual({
+            branchId: 'b1',
+            surname: 'Alaoui',
+            name: 'Sara',
+            schoolLevel: 'Primaire',
+            active: true,
+            accessTokenHash: expect.any(String),
+            portalTokenHash: expect.any(String),
+            groups: { connect: [{ id: 'g1' }] },
+        });
+        const second = (prisma.student.create as jest.Mock).mock.calls[1][0].data;
+        expect(second.groups).toBeUndefined(); // CM1-B missing and not created
+        expect(prisma.group.create).not.toHaveBeenCalled();
+        expect((prisma as any).inscription).toBeUndefined();
+        expect((prisma as any).payment).toBeUndefined();
+
+        expect(result.counts).toEqual({ created: 2, duplicate: 1, error: 1 });
+        expect(result.rows.map((row) => [row.rowNumber, row.status])).toEqual([
+            [2, 'created'],
+            [3, 'duplicate'],
+            [4, 'created'],
+            [5, 'error'],
+        ]);
+        expect(result.createdGroups).toEqual([]);
+    });
+
+    it('creates each missing group once, with the level of its first row, when asked', async () => {
+        const result = await commitImport('b1', ROWS, true, TODAY);
+        expect(prisma.group.create).toHaveBeenCalledTimes(1);
+        expect(prisma.group.create).toHaveBeenCalledWith({
+            data: { name: 'CM1-B', type: 'SOUTIEN', level: 'Primaire', branchId: 'b1' },
+            select: { id: true },
+        });
+        const second = (prisma.student.create as jest.Mock).mock.calls[1][0].data;
+        expect(second.groups).toEqual({ connect: [{ id: 'g-CM1-B' }] });
+        expect(result.createdGroups).toEqual(['CM1-B']);
+    });
+
+    it('records a failing row as an error and goes on with the next ones', async () => {
+        (prisma.student.create as jest.Mock)
+            .mockRejectedValueOnce(new Error('boom'))
+            .mockImplementationOnce(({ data }: any) => Promise.resolve({ id: `s-${data.surname}` }));
+        const result = await commitImport('b1', ROWS, false, TODAY);
+        expect(result.rows[0]).toMatchObject({ rowNumber: 2, status: 'error', errors: ["Échec de l'enregistrement"] });
+        expect(result.rows[2]).toMatchObject({ rowNumber: 4, status: 'created' });
+        expect(result.counts).toEqual({ created: 1, duplicate: 1, error: 2 });
     });
 });

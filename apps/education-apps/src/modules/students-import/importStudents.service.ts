@@ -1,6 +1,8 @@
 // src/modules/students-import/importStudents.service.ts
 import prisma from '../../config/database';
 import { getSchoolCapacity, remainingPlaces } from '../packs/packs.limits';
+import { assertStudentCapacity } from '../packs/packs.limits';
+import { generateRawToken, hashToken } from '../../utils/accessToken';
 import { duplicateKey, foldText, normalizeRow, type ImportRow, type NormalizedRow } from './normalize';
 
 export const MAX_IMPORT_ROWS = 1000;
@@ -76,4 +78,95 @@ export const validateImport = async (branchId: string, input: unknown, today: Da
         groupIds,
         capacity: { limit: capacity.limit, current: capacity.current, remaining: remainingPlaces(capacity), packName: capacity.packName },
     };
+};
+
+export type CommitStatus = 'created' | 'duplicate' | 'error';
+
+export interface CommitRow {
+    rowNumber: number;
+    status: CommitStatus;
+    errors: string[];
+    warnings: string[];
+}
+
+export interface ImportCommitResult {
+    rows: CommitRow[];
+    counts: Record<CommitStatus, number>;
+    createdGroups: string[];
+}
+
+const CHUNK = 50;
+
+// Re-validates (the data may have changed since the preview), checks the pack once for every valid
+// row, creates the requested missing groups, then creates students one by one: a failing row is
+// reported and the others go on. Imported students get no Inscription and no Payment.
+export const commitImport = async (
+    branchId: string,
+    input: unknown,
+    createMissingGroups: boolean,
+    today: Date = new Date()
+): Promise<ImportCommitResult> => {
+    const validation = await validateImport(branchId, input, today);
+    const valid = validation.rows.filter((row) => row.status === 'valid');
+    await assertStudentCapacity(branchId, valid.length);
+
+    const groupIds = new Map(validation.groupIds);
+    const createdGroups: string[] = [];
+    if (createMissingGroups) {
+        for (const name of validation.missingGroups) {
+            const folded = foldText(name);
+            const level = valid.find((row) => row.group && foldText(row.group) === folded && row.data.schoolLevel)?.data.schoolLevel;
+            const group = await prisma.group.create({
+                data: { name, type: 'SOUTIEN', ...(level && { level }), branchId },
+                select: { id: true },
+            });
+            groupIds.set(folded, group.id);
+            createdGroups.push(name);
+        }
+    }
+
+    const outcome = new Map<number, CommitRow>();
+    for (let start = 0; start < valid.length; start += CHUNK) {
+        await Promise.all(
+            valid.slice(start, start + CHUNK).map(async (row) => {
+                const groupId = row.group ? groupIds.get(foldText(row.group)) : undefined;
+                try {
+                    await prisma.student.create({
+                        data: {
+                            branchId,
+                            ...row.data,
+                            active: true,
+                            accessTokenHash: hashToken(generateRawToken()),
+                            portalTokenHash: hashToken(generateRawToken()),
+                            ...(groupId && { groups: { connect: [{ id: groupId }] } }),
+                        },
+                        select: { id: true },
+                    });
+                    outcome.set(row.rowNumber, { rowNumber: row.rowNumber, status: 'created', errors: [], warnings: row.warnings });
+                } catch (error) {
+                    console.error(`Import row ${row.rowNumber} failed`, error);
+                    outcome.set(row.rowNumber, {
+                        rowNumber: row.rowNumber,
+                        status: 'error',
+                        errors: ["Échec de l'enregistrement"],
+                        warnings: row.warnings,
+                    });
+                }
+            })
+        );
+    }
+
+    const rows: CommitRow[] = validation.rows.map(
+        (row) =>
+            outcome.get(row.rowNumber) ?? {
+                rowNumber: row.rowNumber,
+                status: row.status === 'duplicate' ? 'duplicate' : 'error',
+                errors: row.errors,
+                warnings: row.warnings,
+            }
+    );
+    const counts = { created: 0, duplicate: 0, error: 0 };
+    for (const row of rows) counts[row.status] += 1;
+
+    return { rows, counts, createdGroups };
 };
