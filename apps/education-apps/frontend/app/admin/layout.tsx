@@ -8,6 +8,9 @@ import { Sidebar } from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
 import useAuthStore, { getActiveBranchId } from '@/store/useAuthStore';
 
+const SUPER_ADMIN_HOME = '/admin/schools';
+const SUPER_ADMIN_PAGES = ['/admin/schools', '/admin/packs', '/admin/sales-agents', '/admin/platform'];
+
 export default function AdminLayout({
     children,
 }: {
@@ -20,6 +23,10 @@ export default function AdminLayout({
     useEffect(() => {
         if (user?.role === 'OWNER' && !getActiveBranchId() && pathname !== '/admin/select-branch') {
             router.push('/admin/select-branch');
+        }
+        // The super admin manages the platform, not a school: school pages (branch-scoped) don't apply.
+        if (user?.role === 'SUPER_ADMIN' && !SUPER_ADMIN_PAGES.some((page) => pathname?.startsWith(page))) {
+            router.replace(SUPER_ADMIN_HOME);
         }
     }, [user, pathname, router]);
 

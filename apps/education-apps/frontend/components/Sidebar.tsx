@@ -248,8 +248,8 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       path: '/admin/sales-agents',
       activeColor: 'bg-[#334155]/50 border-[#34D399]',
       iconColor: 'text-[#34D399]'
-    },
-    ...adminMenuItems
+    }
+    // Platform-only: the super admin doesn't manage what happens inside a school.
   ];
 
   const menuItems = effectiveRole === 'OWNER'
