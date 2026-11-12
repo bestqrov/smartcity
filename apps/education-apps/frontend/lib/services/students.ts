@@ -1,4 +1,7 @@
 import api from '../api';
+import { studentLimitDetails } from './subscription';
+import { askForUpgrade } from '../packs/upgradeBus';
+import { studentLimitMessage } from '../packs/limits';
 import type { Student, StudentFormData, ApiResponse } from '@/types';
 
 export async function getStudents(): Promise<Student[]> {
@@ -11,9 +14,18 @@ export async function getStudentById(id: string): Promise<Student> {
     return response.data.data;
 }
 
+// When the school is full, the upgrade dialog opens; after an upgrade the same student is created.
+// A cancelled dialog becomes a plain Error (no `response`), so every form shows the limit message as is.
 export async function createStudent(data: StudentFormData): Promise<Student> {
-    const response = await api.post<ApiResponse<Student>>('/students', data);
-    return response.data.data;
+    try {
+        const response = await api.post<ApiResponse<Student>>('/students', data);
+        return response.data.data;
+    } catch (error) {
+        const details = studentLimitDetails(error);
+        if (!details) throw error;
+        if (await askForUpgrade(details)) return createStudent(data);
+        throw new Error(studentLimitMessage(details));
+    }
 }
 
 export async function updateStudent(id: string, data: Partial<StudentFormData>): Promise<Student> {
