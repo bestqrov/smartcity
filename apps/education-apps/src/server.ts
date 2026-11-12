@@ -2,12 +2,16 @@ import app from './app';
 import { env } from './config/env';
 import prisma from './config/database';
 import { startAbsenceCronJob } from './modules/attendance/absence-job';
+import { ensureBaseData } from './startup/ensureBaseData';
 
 const startServer = async () => {
     try {
         // Test database connection
         await prisma.$connect();
         console.log('✅ Database connected successfully');
+
+        // Company code, partner offer, agent rate migration: no manual seed needed after a deploy.
+        await ensureBaseData(prisma);
 
         // Start server
         app.listen(env.PORT, () => {

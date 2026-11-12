@@ -105,9 +105,12 @@ TRUST_PROXY=2
 # Build
 npm install && npm run build
 
-# Start
-node dist/server.js
+# Start : pousse le schéma Prisma, puis lance le serveur MÊME si db push échoue (`;` et non `&&`) —
+# db push refuse les changements destructifs (il faut alors le lancer à la main), il ne doit pas bloquer l'API.
+npx prisma db push --skip-generate; node dist/server.js
 ```
+
+> Si `npx prisma` est introuvable au démarrage (devDependencies retirées), ajouter `prisma` aux `dependencies` du `package.json`, ou lancer `npx prisma db push` une fois depuis le terminal Coolify.
 
 (`npm run build` est maintenant juste `tsc` — il incluait auparavant
 `cd frontend && npm install && npm run build`, un build Next.js complet imbriqué et
@@ -169,9 +172,8 @@ Dans **Domains**, ajoutez le nouveau domaine confirmé à l'étape 1 des préreq
 ## 4. Ordre de déploiement
 
 1. **`education-backend`** d'abord (le frontend en dépend via `INTERNAL_API_URL`).
-   - Après un changement de schéma Prisma : `npx prisma db push` (crée les collections `sales_agents`, `school_payments`, `agent_payouts` et leurs index).
-   - Une seule fois : `npm run prisma:seed-sales-agents` (convertit les commerciaux v1 puis crée le code société `ARWA`, idempotent ; nécessite les devDependencies pour `ts-node`). **Sans ce code, toute inscription d'école échoue** : le code commercial est obligatoire.
-   - Taux par période (v2) : juste après `npx prisma db push`, **avant** de redémarrer le backend, lancer `npm run prisma:migrate-agent-rates` (idempotent). Il remplace l'ancien `commissionRate` de chaque commercial par trois taux (mensuel, semestriel, annuel) égaux à l'ancien taux. Sans cela, les commerciaux créés en v1 ne peuvent plus être lus.
+   - Le **Start Command** lance `npx prisma db push --skip-generate` avant le serveur (voir §2.3) : les nouvelles collections et index sont créés à chaque déploiement, rien à faire à la main.
+   - Au démarrage, le backend crée automatiquement ce qui manque (idempotent) : conversion des commerciaux v1 vers les taux par période, code société `ARWA` (**sans lui, toute inscription échoue**), offre partenaire. Vérifier dans les logs : `✅ Base data ready`. Les commandes manuelles `npm run prisma:migrate-agent-rates` et `npm run prisma:seed-sales-agents` restent disponibles en local.
 2. **`education-frontend`** ensuite. Définir `NEXT_PUBLIC_WHATSAPP_NUMBER` au build (lien « Pas de code ? » de l'inscription).
 
 ---
