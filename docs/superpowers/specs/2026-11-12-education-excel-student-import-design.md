@@ -184,7 +184,7 @@ model PackUpgrade {
   itself comes from the public endpoint above, so the landing page and the dialog
   cannot drift apart. The `limitsLine` helper moves from `PricingSection.tsx` into
   `frontend/lib/packs/limits.ts`, so both use it.
-- `POST /school/pack-upgrade` (ADMIN, OWNER). Body: `{ packId }`. In one transaction it
+- `POST /school/pack-upgrade` (ADMIN, OWNER). Body: `{ packCode }` (the public pack list exposes codes, not ids). In one transaction it
   checks the rules above, updates `School.packId`, and creates the `PackUpgrade`. Returns
   the new capacity and `dueAt`.
 - `GET /school/pack-upgrade/pending` (ADMIN, OWNER). Feeds the dashboard banner.
