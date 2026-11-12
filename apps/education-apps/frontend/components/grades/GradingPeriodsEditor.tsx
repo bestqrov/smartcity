@@ -61,7 +61,7 @@ export default function GradingPeriodsEditor() {
             <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">Périodes de notation</h3>
                 <p className="text-sm text-gray-500 dark:text-slate-400">
-                    Les évaluations et les bulletins sont regroupés par période. Renommer une période n’affecte pas les évaluations déjà créées.
+                    Les évaluations et les bulletins sont regroupés par période. Les évaluations existantes gardent leur ancienne période : renommer ou supprimer une période n’affecte pas les évaluations déjà créées.
                 </p>
             </div>
             <div className="flex flex-wrap gap-2">

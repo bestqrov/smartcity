@@ -70,7 +70,7 @@ const loadEvaluation = async (scope: GradesScope, evaluationId: unknown) => {
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 
 /** Validates the given fields (all required when `full`), returns clean prisma data. */
-const validateFields = async (scope: GradesScope, input: EvaluationInput, full: boolean) => {
+const validateFields = async (scope: GradesScope, input: EvaluationInput, full: boolean, currentPeriod?: string) => {
     const data: Record<string, unknown> = {};
     const has = (k: keyof EvaluationInput) => full || input[k] !== undefined;
 
@@ -85,9 +85,12 @@ const validateFields = async (scope: GradesScope, input: EvaluationInput, full: 
         data.subject = subject;
     }
     if (has('period')) {
-        const periods = await periodsFor(scope.branchId);
-        if (typeof input.period !== 'string' || !periods.includes(input.period)) {
-            throw new Error(`period must be one of: ${periods.join(', ')}`);
+        // Keeping the evaluation's current period is always fine, even if it was renamed/removed in settings.
+        if (!(currentPeriod !== undefined && input.period === currentPeriod)) {
+            const periods = await periodsFor(scope.branchId);
+            if (typeof input.period !== 'string' || !periods.includes(input.period)) {
+                throw new Error(`period must be one of: ${periods.join(', ')}`);
+            }
         }
         data.period = input.period;
     }
@@ -139,13 +142,16 @@ export const createEvaluation = async (scope: GradesScope, input: EvaluationInpu
 };
 
 export const updateEvaluation = async (scope: GradesScope, evaluationId: string, input: EvaluationInput) => {
-    await loadEvaluation(scope, evaluationId);
-    const data = await validateFields(scope, input || {}, false);
-    if (data.maxScore !== undefined) {
-        const above = await prisma.grade.findFirst({ where: { evaluationId, score: { gt: data.maxScore as number } } });
-        if (above) throw new Error('maxScore cannot be lower than an existing score');
-    }
-    return prisma.evaluation.update({ where: { id: evaluationId }, data });
+    const { evaluation } = await loadEvaluation(scope, evaluationId);
+    const data = await validateFields(scope, input || {}, false, evaluation.period);
+    // Check and update atomically so a concurrent grade save cannot slip above the new maxScore.
+    return prisma.$transaction(async (tx) => {
+        if (data.maxScore !== undefined) {
+            const above = await tx.grade.findFirst({ where: { evaluationId, score: { gt: data.maxScore as number } } });
+            if (above) throw new Error('maxScore cannot be lower than an existing score');
+        }
+        return tx.evaluation.update({ where: { id: evaluationId }, data });
+    });
 };
 
 export const deleteEvaluation = async (scope: GradesScope, evaluationId: string) => {
@@ -209,8 +215,11 @@ export const setPublished = async (scope: GradesScope, evaluationId: string, pub
 export const bulletin = async (scope: GradesScope, groupId: string, period: string) => {
     const group = await loadGroup(scope, groupId);
     const periods = await periodsFor(scope.branchId);
-    if (typeof period !== 'string' || !periods.includes(period)) {
-        throw new Error(`period must be one of: ${periods.join(', ')}`);
+    if (typeof period !== 'string' || !period) throw new Error(`period must be one of: ${periods.join(', ')}`);
+    if (!periods.includes(period)) {
+        // A renamed/removed period stays valid while evaluations of this group still use it.
+        const used = await prisma.evaluation.findFirst({ where: { branchId: scope.branchId, groupId, period } });
+        if (!used) throw new Error(`period must be one of: ${periods.join(', ')}`);
     }
 
     const evaluations = (await prisma.evaluation.findMany({

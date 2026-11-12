@@ -47,7 +47,9 @@ beforeEach(() => {
     m(prisma.settings.findUnique).mockResolvedValue({ gradingPeriods: [] });
     m(prisma.group.findFirst).mockResolvedValue(group);
     m(prisma.evaluation.findFirst).mockResolvedValue(evaluation);
-    m(prisma.$transaction).mockImplementation((ops: unknown[]) => Promise.all(ops));
+    m(prisma.$transaction).mockImplementation((ops: unknown) =>
+        typeof ops === 'function' ? (ops as (tx: unknown) => unknown)(prisma) : Promise.all(ops as unknown[]),
+    );
 });
 
 describe('periodsFor', () => {
@@ -168,6 +170,14 @@ describe('updateEvaluation', () => {
         m(prisma.evaluation.update).mockResolvedValue({ id: 'e1' });
         await updateEvaluation(staff, 'e1', { title: 'Examen', maxScore: 40, groupId: 'other', branchId: 'x' } as any);
         expect(prisma.evaluation.update).toHaveBeenCalledWith({ where: { id: 'e1' }, data: { title: 'Examen', maxScore: 40 } });
+    });
+
+    it('keeps the current period even if it is no longer in the settings list', async () => {
+        m(prisma.evaluation.findFirst).mockResolvedValue({ ...evaluation, period: 'Ancien' });
+        m(prisma.evaluation.update).mockResolvedValue({ id: 'e1' });
+        await updateEvaluation(staff, 'e1', { period: 'Ancien' });
+        expect(prisma.evaluation.update).toHaveBeenCalledWith({ where: { id: 'e1' }, data: { period: 'Ancien' } });
+        await expect(updateEvaluation(staff, 'e1', { period: 'Autre' })).rejects.toThrow('period');
     });
 
     it('validates fields on update', async () => {
@@ -295,6 +305,14 @@ describe('bulletin', () => {
     });
 
     it('requires a known period', async () => {
+        m(prisma.evaluation.findFirst).mockResolvedValue(null);
         await expect(bulletin(staff, 'g1', 'X')).rejects.toThrow('period');
+    });
+
+    it('accepts a period no longer in settings if the group still has evaluations in it', async () => {
+        m(prisma.evaluation.findFirst).mockResolvedValue({ id: 'e1' });
+        m(prisma.evaluation.findMany).mockResolvedValue([]);
+        const r = await bulletin(staff, 'g1', 'Ancien');
+        expect(r.period).toBe('Ancien');
     });
 });

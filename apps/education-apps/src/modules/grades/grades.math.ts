@@ -49,9 +49,10 @@ export const generalAverage = (averages: Record<string, number>): number | null 
 /** Competition ranking (1, 2, 2, 4) by general average, highest first; null averages stay unranked. */
 export const rankStudents = (rows: { studentId: string; general: number | null }[]): Record<string, number | null> => {
     const ranks: Record<string, number | null> = {};
-    const ranked = rows.filter((r) => r.general !== null).sort((a, b) => b.general! - a.general!);
+    const r2 = (n: number) => Math.round(n * 100) / 100;
+    const ranked = rows.filter((r) => r.general !== null).sort((a, b) => r2(b.general!) - r2(a.general!));
     ranked.forEach((row, i) => {
-        ranks[row.studentId] = i > 0 && ranked[i - 1].general === row.general ? ranks[ranked[i - 1].studentId] : i + 1;
+        ranks[row.studentId] = i > 0 && r2(ranked[i - 1].general!) === r2(row.general!) ? ranks[ranked[i - 1].studentId] : i + 1;
     });
     for (const row of rows) if (row.general === null) ranks[row.studentId] = null;
     return ranks;

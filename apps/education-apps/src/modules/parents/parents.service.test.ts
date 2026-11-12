@@ -178,7 +178,12 @@ describe('parents.service', () => {
             const result: any = await getParentByRawToken('tok');
 
             expect(prisma.grade.findMany).toHaveBeenCalledWith({
-                where: { branchId: 'b1', studentId: { in: ['s1', 's2'] }, evaluation: { is: { published: true, branchId: 'b1' } } },
+                where: {
+                    branchId: 'b1',
+                    studentId: { in: ['s1', 's2'] },
+                    evaluation: { is: { published: true, branchId: 'b1' } },
+                    OR: [{ absent: true }, { score: { not: null } }],
+                },
                 include: { evaluation: true },
             });
             expect(result.gradingPeriods).toEqual(['T1', 'T2', 'T3']);
@@ -187,6 +192,16 @@ describe('parents.service', () => {
                 { evaluationId: 'e1', title: 'Contrôle e1', subject: 'Maths', period: 'T1', date: new Date('2026-10-01'), maxScore: 20, coefficient: 2, score: 14, absent: false, comment: 'Bien' },
             ]);
             expect(result.students[1].grades).toEqual([]);
+        });
+
+        it('drops cleared grades (no score, not absent)', async () => {
+            (prisma.parent.findUnique as jest.Mock).mockResolvedValue({ id: 'p1', branchId: 'b1', students: [{ id: 's1', branchId: 'b1' }] });
+            (prisma.settings.findUnique as jest.Mock).mockResolvedValue(null);
+            (prisma.grade.findMany as jest.Mock).mockResolvedValue([
+                { studentId: 's1', score: null, absent: false, comment: null, evaluationId: 'e1', evaluation: { id: 'e1', published: true, branchId: 'b1', date: new Date() } },
+            ]);
+            const result: any = await getParentByRawToken('tok');
+            expect(result.students[0].grades).toEqual([]);
         });
 
         it('never exposes a grade of an unpublished evaluation even if the query returned one', async () => {

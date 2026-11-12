@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ArrowLeft, Plus } from 'lucide-react';
 import type { Evaluation, EvaluationWithGrades, Grade, GradesClient, GradeStudent } from '@/lib/services/grades';
 import { apiErrorMessage } from '@/lib/services/grades';
@@ -24,6 +24,7 @@ interface Props {
 /** A group's evaluations list → grade entry for one evaluation. */
 export default function GroupEvaluations({ client, groupId, groupSubject, students, periods, evaluations, setEvaluations }: Props) {
     const [openId, setOpenId] = useState<string | null>(null);
+    const invalidRef = useRef(false);
     const [form, setForm] = useState<{ evaluation: Evaluation | null } | null>(null);
 
     const merge = (ev: Evaluation) =>
@@ -50,7 +51,11 @@ export default function GroupEvaluations({ client, groupId, groupSubject, studen
         return (
             <div className="space-y-4">
                 <div className="flex items-start gap-2">
-                    <button type="button" onClick={() => setOpenId(null)} aria-label="Retour" className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">
+                    <button type="button" onClick={() => {
+                            if (invalidRef.current && !window.confirm('Des notes invalides ne seront pas enregistrées. Quitter ?')) return;
+                            setOpenId(null);
+                        }}
+                        aria-label="Retour" className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">
                         <ArrowLeft size={20} />
                     </button>
                     <div className="min-w-0 flex-1">
@@ -62,7 +67,10 @@ export default function GroupEvaluations({ client, groupId, groupSubject, studen
                     <PublishButton client={client} evaluation={open} studentIds={students.map((s) => s.id)} onChange={merge} />
                 </div>
                 <GradeEntry
-                    key={open.id}
+                    key={`${open.id}:${open.updatedAt}`}
+                    onInvalidChange={(v) => {
+                        invalidRef.current = v;
+                    }}
                     client={client}
                     evaluation={open}
                     students={students}

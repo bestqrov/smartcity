@@ -9,7 +9,7 @@ export const parseScore = (raw: string): number | null => {
 };
 
 export const formatNum = (n: number | null | undefined, digits = 2): string =>
-    n === null || n === undefined || Number.isNaN(n) ? '—' : n.toFixed(digits).replace(/\.?0+$/, '').replace('.', ',');
+    n === null || n === undefined || Number.isNaN(n) ? '—' : n.toFixed(digits).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '').replace('.', ',');
 
 export const fixed2 = (n: number | null | undefined): string =>
     n === null || n === undefined ? '—' : n.toFixed(2).replace('.', ',');

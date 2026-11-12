@@ -18,6 +18,8 @@ interface Props {
     students: GradeStudent[];
     /** Called with the evaluation's full grade list after each successful save. */
     onGradesSaved: (grades: Grade[]) => void;
+    /** Reports whether some rows hold invalid values (they are never saved). */
+    onInvalidChange?: (hasInvalid: boolean) => void;
 }
 
 type Status = 'idle' | 'saving' | 'saved' | 'error';
@@ -28,7 +30,7 @@ const rowFromGrade = (g?: Grade): Row => ({
     comment: g?.comment ?? '',
 });
 
-export default function GradeEntry({ client, evaluation, students, onGradesSaved }: Props) {
+export default function GradeEntry({ client, evaluation, students, onGradesSaved, onInvalidChange }: Props) {
     const sorted = useMemo(() => sortStudents(students), [students]);
     const [rows, setRows] = useState<Record<string, Row>>(() => {
         const byStudent = new Map(evaluation.grades.map((g) => [g.studentId, g]));
@@ -110,6 +112,26 @@ export default function GradeEntry({ client, evaluation, students, onGradesSaved
 
     // Save pending edits when leaving the screen.
     useEffect(() => () => void flush(), [flush]);
+
+    const hasInvalid = sorted.some((s) => rowError(rows[s.id] ?? rowFromGrade()) !== null);
+    const onInvalidRef = useRef(onInvalidChange);
+    onInvalidRef.current = onInvalidChange;
+    useEffect(() => {
+        onInvalidRef.current?.(hasInvalid);
+    }, [hasInvalid]);
+    useEffect(() => () => onInvalidRef.current?.(false), []);
+
+    // Warn before closing/reloading the tab while edits are unsaved, invalid or being saved.
+    const unsaved = hasInvalid || status === 'saving' || status === 'error' || dirty.current.size > 0;
+    useEffect(() => {
+        if (!unsaved) return;
+        const handler = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+            e.returnValue = '';
+        };
+        window.addEventListener('beforeunload', handler);
+        return () => window.removeEventListener('beforeunload', handler);
+    }, [unsaved]);
 
     const update = (ids: string[], patch: (r: Row) => Row) => {
         setRows((prev) => {

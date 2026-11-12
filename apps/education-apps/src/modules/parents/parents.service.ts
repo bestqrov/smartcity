@@ -175,7 +175,13 @@ export const getParentByRawToken = async (rawToken: string) => {
         studentIds.length === 0
             ? Promise.resolve([])
             : prisma.grade.findMany({
-                  where: { branchId, studentId: { in: studentIds }, evaluation: { is: { published: true, branchId } } },
+                  where: {
+                      branchId,
+                      studentId: { in: studentIds },
+                      evaluation: { is: { published: true, branchId } },
+                      // A cleared grade (no score, not absent) is not a grade.
+                      OR: [{ absent: true }, { score: { not: null } }],
+                  },
                   include: { evaluation: true },
               }),
     ]);
@@ -184,6 +190,7 @@ export const getParentByRawToken = async (rawToken: string) => {
     for (const g of grades) {
         const ev = g.evaluation;
         if (!ev || ev.published !== true || ev.branchId !== branchId) continue; // defence in depth
+        if (!g.absent && g.score == null) continue;
         const list = gradesByStudent.get(g.studentId) ?? [];
         list.push({
             evaluationId: ev.id,

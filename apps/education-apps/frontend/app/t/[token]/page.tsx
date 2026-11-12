@@ -10,7 +10,7 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
     const token = params.token;
     const client = useMemo(() => teacherGradesClient(token), [token]);
     const [portal, setPortal] = useState<TeacherPortal | null>(null);
-    const [state, setState] = useState<'loading' | 'invalid' | 'error' | 'ready'>('loading');
+    const [state, setState] = useState<'loading' | 'invalid' | 'rate' | 'error' | 'ready'>('loading');
     const [groupId, setGroupId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -24,7 +24,7 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
             .catch((err) => {
                 if (cancelled) return;
                 const status = err?.response?.status;
-                setState(status === 404 || status === 400 ? 'invalid' : 'error');
+                setState(status === 429 ? 'rate' : status === 404 || status === 400 ? 'invalid' : 'error');
             });
         return () => {
             cancelled = true;
@@ -51,11 +51,13 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
             <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-center dark:bg-slate-950">
                 <div className="max-w-sm space-y-2">
                     <p className="text-lg font-semibold text-slate-900 dark:text-white">
-                        {state === 'invalid' ? 'Lien invalide' : 'Connexion impossible'}
+                        {state === 'invalid' ? 'Lien invalide' : state === 'rate' ? 'Trop de requêtes' : 'Connexion impossible'}
                     </p>
                     <p className="text-sm text-slate-600 dark:text-slate-400">
                         {state === 'invalid'
                             ? 'Lien invalide, demandez un nouveau lien à l’établissement.'
+                            : state === 'rate'
+                            ? 'Trop de requêtes, réessayez dans une minute.'
                             : 'Vérifiez votre connexion internet puis rechargez la page.'}
                     </p>
                 </div>

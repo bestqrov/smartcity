@@ -41,6 +41,15 @@ describe('grades.math', () => {
         expect(generalAverage({})).toBeNull();
     });
 
+    it('rankStudents ties compare 2-decimal rounded values', () => {
+        const ranks = rankStudents([
+            { studentId: 'a', general: 12.341 },
+            { studentId: 'b', general: 12.344 },
+            { studentId: 'c', general: 11 },
+        ]);
+        expect(ranks).toEqual({ a: 1, b: 1, c: 3 });
+    });
+
     it('rankStudents uses competition ranking and leaves null averages unranked', () => {
         const ranks = rankStudents([
             { studentId: 'a', general: 12 },

@@ -24,7 +24,7 @@ export default function HomeTab({ parent, student, t, lang, goTo }: Props) {
     const balance = studentBalance(student);
     const latest = (parent.announcements || [])[0];
     const holiday = (parent.holidays || [])[0];
-    const latestGrades = (student.grades || []).slice(0, 3);
+    const latestGrades = (student.grades || []).filter((g) => g.absent || g.score != null).slice(0, 3);
 
     return (
         <div className="space-y-4">
@@ -121,7 +121,7 @@ export default function HomeTab({ parent, student, t, lang, goTo }: Props) {
                                         <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{g.title}</span>
                                     </span>
                                     <span className="shrink-0 text-sm font-bold text-slate-900 dark:text-white">
-                                        {g.absent || g.score == null ? (
+                                        {g.absent ? (
                                             <span className="text-xs font-semibold text-slate-400">{t.absentGrade}</span>
                                         ) : (
                                             <Ltr>
