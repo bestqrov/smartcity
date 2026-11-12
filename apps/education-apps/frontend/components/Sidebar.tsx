@@ -73,6 +73,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
         { label: 'Etat Soutien', path: '/admin/soutien-scolaire' },
         { label: 'Students', path: '/admin/students' },
         { label: 'Inscriptions', path: '/admin/inscriptions' },
+        { label: 'Import Excel', path: '/admin/inscriptions/import' },
         { label: 'Groups', path: '/admin/groups' },
       ]
     },
@@ -193,6 +194,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       iconColor: 'text-[#818CF8]',
       submenu: [
         { label: 'Inscriptions', path: '/secretary/inscriptions' },
+        { label: 'Import Excel', path: '/secretary/inscriptions/import' },
       ]
     },
     {
