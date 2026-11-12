@@ -137,6 +137,12 @@ export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, user
                             <div className="flex shrink-0 items-center gap-0.5">{toggles('bar')}</div>
                         </div>
                         <nav aria-label={m.nav_label} className="flex gap-1 overflow-x-auto px-3 pb-2">
+                            {extraLink && (
+                                <Link href={extraLink.href} className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/30 px-3 py-2 text-xs font-bold text-espresso-50 hover:bg-white/20 ${focusRing}`}>
+                                    <extraLink.icon size={14} aria-hidden="true" />
+                                    {extraLink.label}
+                                </Link>
+                            )}
                             {nav.map((item) => {
                                 const Icon = item.icon;
                                 return (
@@ -154,12 +160,6 @@ export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, user
                                     </Link>
                                 );
                             })}
-                            {extraLink && (
-                                <Link href={extraLink.href} className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/30 px-3 py-2 text-xs font-bold text-espresso-50 hover:bg-white/20 ${focusRing}`}>
-                                    <extraLink.icon size={14} aria-hidden="true" />
-                                    {extraLink.label}
-                                </Link>
-                            )}
                         </nav>
                     </header>
 
