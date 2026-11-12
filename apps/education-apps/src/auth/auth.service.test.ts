@@ -7,6 +7,7 @@ jest.mock('../config/database', () => ({
     __esModule: true,
     default: {
         user: { findUnique: jest.fn() },
+        salesAgent: { findUnique: jest.fn() },
     },
 }));
 
@@ -61,5 +62,31 @@ describe('loginUser', () => {
             schoolId: null,
             branchId: 'b1',
         });
+    });
+
+    it('flags a user who is also a sales agent', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            id: 'u1', email: 'o@example.com', password: 'h', role: 'OWNER', name: 'O', schoolId: 's1', branchId: null,
+        });
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ code: 'ABC' });
+        jest.spyOn(bcryptUtil, 'comparePassword').mockResolvedValue(true);
+        jest.spyOn(jwtUtil, 'generateToken').mockReturnValue('t');
+
+        const result = await loginUser({ email: 'o@example.com', password: 'pw' });
+
+        expect(result.user).toEqual({ id: 'u1', email: 'o@example.com', name: 'O', role: 'OWNER', salesAgent: { code: 'ABC' } });
+    });
+
+    it('returns salesAgent null for a plain user', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            id: 'u1', email: 'o@example.com', password: 'h', role: 'OWNER', name: 'O', schoolId: 's1', branchId: null,
+        });
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(null);
+        jest.spyOn(bcryptUtil, 'comparePassword').mockResolvedValue(true);
+        jest.spyOn(jwtUtil, 'generateToken').mockReturnValue('t');
+
+        const result = await loginUser({ email: 'o@example.com', password: 'pw' });
+
+        expect(result.user.salesAgent).toBeNull();
     });
 });

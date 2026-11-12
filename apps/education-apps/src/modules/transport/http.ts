@@ -21,6 +21,12 @@ export const respond = async (res: Response, action: () => Promise<unknown>, opt
         }
         const message = error instanceof Error ? error.message : String(error);
         const status = /not found$/i.test(message) ? 404 : 400;
+        // Errors may carry machine-readable `details`, returned as `data` next to the message.
+        const details = (error as { details?: unknown } | null)?.details;
+        if (details !== undefined) {
+            res.status(status).json({ success: false, error: message, message: options.failure, data: details });
+            return;
+        }
         sendError(res, message, options.failure, status);
     }
 };

@@ -117,11 +117,52 @@ export const listAgents = async () => {
     }));
 };
 
+const LINKABLE_ROLES = ['OWNER', 'ADMIN', 'SECRETARY'];
+
+// An existing school account can also be a sales agent: the agent is linked to it, nothing on the user changes.
+const assertLinkable = async (user: { id: string; role: string }) => {
+    if (user.role === 'SALES_AGENT') throw new Error('This account is already a sales agent');
+    if (!LINKABLE_ROLES.includes(user.role)) throw new Error("A super admin account can't be a sales agent");
+    if (await prisma.salesAgent.findUnique({ where: { userId: user.id } })) {
+        throw new Error('This account is already a sales agent');
+    }
+};
+
+const createLinkedAgent = async (data: ReturnType<typeof sanitizeNewAgent>, userId: string) => {
+    try {
+        const { userId: _userId, ...created } = await prisma.salesAgent.create({
+            data: {
+                name: data.name,
+                phone: data.phone,
+                code: data.code,
+                monthlyRate: data.monthlyRate,
+                semiannualRate: data.semiannualRate,
+                yearlyRate: data.yearlyRate,
+                packRates: data.packRates,
+                userId,
+            },
+        });
+        return created;
+    } catch (error) {
+        if ((error as { code?: string })?.code === 'P2002') throw new Error('Email or code already exists');
+        throw error;
+    }
+};
+
 export const createAgent = async (input: Record<string, unknown>) => {
     const data = sanitizeNewAgent(input);
 
     if (await prisma.salesAgent.findUnique({ where: { code: data.code } })) throw new Error('This code is already used');
-    if (await prisma.user.findUnique({ where: { email: data.email } })) throw new Error('Email already exists');
+    const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existingUser) {
+        if (!data.linkExistingUser) {
+            throw Object.assign(new Error('Email already exists'), { details: { existingRole: existingUser.role } });
+        }
+        await assertLinkable(existingUser);
+        await assertPacksExist(data.packRates);
+        return createLinkedAgent(data, existingUser.id);
+    }
+    if (data.linkExistingUser) throw new Error('No account found with this email');
     await assertPacksExist(data.packRates);
 
     const password = await hashPassword(data.password);
@@ -167,8 +208,13 @@ export const updateAgent = async (id: string, input: Record<string, unknown>) =>
     const agentData = { ...fields, ...(packRates !== undefined && { packRates: { set: packRates } }) };
 
     // The login account shows the agent's name (e.g. in the /agent header), so keep it in sync.
+    // A linked school account keeps its own name.
+    const linkedOwner =
+        existing.userId && data.name !== undefined
+            ? ((await prisma.user.findUnique({ where: { id: existing.userId } }))?.role ?? 'SALES_AGENT') !== 'SALES_AGENT'
+            : false;
     const userData = {
-        ...(data.name !== undefined && { name: data.name }),
+        ...(data.name !== undefined && !linkedOwner && { name: data.name }),
         ...(data.phone !== undefined && { gsm: data.phone }),
     };
     const userId = existing.userId;
@@ -316,6 +362,12 @@ export const getAgentReport = (id: string) => {
     return reportFor({ id });
 };
 
+// The agent linked to a login account (any role), or null.
+export const findAgentByUserId = async (userId: string) => {
+    assertId('User id', userId);
+    return prisma.salesAgent.findUnique({ where: { userId } });
+};
+
 export const getAgentReportForUser = (userId: string) => {
     assertId('User id', userId);
     return reportFor({ userId });
@@ -368,6 +420,14 @@ export const changeOwnPassword = async (userId: string, input: Record<string, un
     return { changed: true };
 };
 
+// A linked school account (OWNER...) keeps its own credentials: they are not managed from the agent screen.
+const assertAgentOwnsLogin = async (userId: string) => {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (user && user.role !== 'SALES_AGENT') {
+        throw new Error('This account is also a school account: change its email/password from its own profile');
+    }
+};
+
 // Super admin sets a new password on the agent's login account. The house agent has no login.
 export const resetAgentPassword = async (agentId: string, input: Record<string, unknown>) => {
     assertId('Sales agent id', agentId);
@@ -375,6 +435,7 @@ export const resetAgentPassword = async (agentId: string, input: Record<string, 
     const agent = await prisma.salesAgent.findUnique({ where: { id: agentId } });
     if (!agent) throw new Error('Sales agent not found');
     if (agent.isHouse || !agent.userId) throw new Error('The company code has no login');
+    await assertAgentOwnsLogin(agent.userId);
     await prisma.user.update({ where: { id: agent.userId }, data: { password: await hashPassword(newPassword) } });
     return { changed: true };
 };
@@ -386,6 +447,7 @@ export const changeAgentEmail = async (agentId: string, input: Record<string, un
     const agent = await prisma.salesAgent.findUnique({ where: { id: agentId } });
     if (!agent) throw new Error('Sales agent not found');
     if (agent.isHouse || !agent.userId) throw new Error('The company code has no login');
+    await assertAgentOwnsLogin(agent.userId);
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing && existing.id !== agent.userId) throw new Error('Email already exists');
     try {

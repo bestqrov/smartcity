@@ -109,6 +109,14 @@ describe('sanitizeNewAgent', () => {
         yearlyRate: 25,
     };
 
+    it('does not require a password when linking an existing account', () => {
+        const { password: _p, ...noPassword } = valid as any;
+        expect(sanitizeNewAgent({ ...noPassword, linkExistingUser: true })).toEqual(
+            expect.objectContaining({ linkExistingUser: true, password: '' })
+        );
+        expect(() => sanitizeNewAgent(noPassword)).toThrow('Password must be at least 8 characters');
+    });
+
     it('returns clean data with no pack exceptions by default', () => {
         expect(sanitizeNewAgent(valid)).toEqual({
             name: 'Youssef',
@@ -120,6 +128,7 @@ describe('sanitizeNewAgent', () => {
             semiannualRate: 15,
             yearlyRate: 25,
             packRates: [],
+            linkExistingUser: false,
         });
         expect(sanitizeNewAgent({ ...valid, packRates: null }).packRates).toEqual([]);
     });

@@ -39,6 +39,8 @@ export const loginUser = async (data: LoginData) => {
         branchId: user.branchId,
     });
 
+    const agent = await prisma.salesAgent.findUnique({ where: { userId: user.id }, select: { code: true } });
+
     return {
         token,
         user: {
@@ -46,6 +48,7 @@ export const loginUser = async (data: LoginData) => {
             email: user.email,
             name: user.name,
             role: user.role,
+            salesAgent: agent ? { code: agent.code } : null,
         },
     };
 };

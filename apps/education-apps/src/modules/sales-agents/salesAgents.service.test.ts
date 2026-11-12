@@ -22,7 +22,7 @@ jest.mock('../../config/database', () => {
     return {
         __esModule: true,
         default: {
-            salesAgent: { findFirst: jest.fn(), findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn() },
+            salesAgent: { findFirst: jest.fn(), findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn() },
             user: { findUnique: jest.fn(), update: jest.fn() },
             pack: { findMany: jest.fn(), count: jest.fn() },
             agentPayout: { create: jest.fn(), findFirst: jest.fn(), delete: jest.fn() },
@@ -686,6 +686,7 @@ describe('changeOwnPassword', () => {
 describe('resetAgentPassword', () => {
     it('hashes the new password onto the linked user and never returns it', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', isHouse: false, userId: 'u1' });
+        (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'u1', role: 'SALES_AGENT' });
         jest.spyOn(bcryptUtil, 'hashPassword').mockResolvedValue('new-hash');
 
         await expect(resetAgentPassword('6ab050b281878c35b0f00752', { newPassword: 'newpass123' })).resolves.toEqual({ changed: true });
@@ -716,7 +717,7 @@ describe('changeAgentEmail', () => {
 
     it('trims, lowercases and updates the linked user, returning no hash', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(agent);
-        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+        (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'u1', role: 'SALES_AGENT' }).mockResolvedValue(null);
         (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'u1', email: 'new@x.com', password: 'secret-hash' });
 
         const result = await changeAgentEmail(ID, { email: '  New@X.com ' });
@@ -733,14 +734,14 @@ describe('changeAgentEmail', () => {
 
     it('400s when another user already has the email', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(agent);
-        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u2' });
+        (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'u1', role: 'SALES_AGENT' }).mockResolvedValue({ id: 'u2' });
         await expect(changeAgentEmail(ID, { email: 'a@b.com' })).rejects.toThrow('Email already exists');
         expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
     it('translates a P2002 race to the same message', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(agent);
-        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+        (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'u1', role: 'SALES_AGENT' }).mockResolvedValue(null);
         (prisma.user.update as jest.Mock).mockRejectedValue({ code: 'P2002' });
         await expect(changeAgentEmail(ID, { email: 'a@b.com' })).rejects.toThrow('Email already exists');
     });
@@ -750,5 +751,102 @@ describe('changeAgentEmail', () => {
         await expect(changeAgentEmail(ID, { email: 'a@b.com' })).rejects.toThrow('The company code has no login');
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValueOnce(null);
         await expect(changeAgentEmail(ID, { email: 'a@b.com' })).rejects.toThrow('Sales agent not found');
+    });
+});
+
+describe('createAgent linking an existing account', () => {
+    const input = {
+        name: 'Youssef',
+        email: 'owner@example.com',
+        code: 'youssef22',
+        monthlyRate: 10,
+        semiannualRate: 15,
+        yearlyRate: 25,
+    };
+
+    beforeEach(() => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(null);
+        (prisma.salesAgent.create as jest.Mock).mockResolvedValue({ id: 'a1', code: 'YOUSSEF22', userId: 'u1' });
+    });
+
+    it('refuses without the flag and reports the existing role', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', role: 'OWNER' });
+        const error = await createAgent({ ...input, password: 'secret123' }).catch((e) => e);
+        expect(error.message).toBe('Email already exists');
+        expect(error.details).toEqual({ existingRole: 'OWNER' });
+    });
+
+    it.each(['OWNER', 'ADMIN', 'SECRETARY'])('links a %s without touching the user and ignores the password', async (role) => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', role });
+        const hash = jest.spyOn(bcryptUtil, 'hashPassword');
+
+        await expect(createAgent({ ...input, linkExistingUser: true })).resolves.toEqual({ id: 'a1', code: 'YOUSSEF22' });
+
+        expect(prisma.salesAgent.create).toHaveBeenCalledWith({ data: expect.objectContaining({ userId: 'u1', code: 'YOUSSEF22' }) });
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+        expect(prisma.user.update).not.toHaveBeenCalled();
+        expect(hash).not.toHaveBeenCalled();
+    });
+
+    it('refuses a super admin account', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', role: 'SUPER_ADMIN' });
+        await expect(createAgent({ ...input, linkExistingUser: true })).rejects.toThrow("A super admin account can't be a sales agent");
+        expect(prisma.salesAgent.create).not.toHaveBeenCalled();
+    });
+
+    it('refuses a SALES_AGENT account', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', role: 'SALES_AGENT' });
+        await expect(createAgent({ ...input, linkExistingUser: true })).rejects.toThrow('This account is already a sales agent');
+    });
+
+    it('refuses an account that is already linked', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', role: 'OWNER' });
+        (prisma.salesAgent.findUnique as jest.Mock).mockImplementation(async ({ where }: any) => (where.userId ? { id: 'x' } : null));
+        await expect(createAgent({ ...input, linkExistingUser: true })).rejects.toThrow('This account is already a sales agent');
+        expect(prisma.salesAgent.create).not.toHaveBeenCalled();
+    });
+
+    it('refuses to link when no account has that email', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+        await expect(createAgent({ ...input, linkExistingUser: true })).rejects.toThrow('No account found with this email');
+    });
+});
+
+describe('linked school accounts', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('refuses an admin password reset on a linked owner', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', isHouse: false, userId: 'u1' });
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', role: 'OWNER' });
+        await expect(resetAgentPassword('6ab050b281878c35b0f00752', { newPassword: 'newsecret123' })).rejects.toThrow(
+            'This account is also a school account: change its email/password from its own profile'
+        );
+        expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('refuses an admin email change on a linked owner', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', isHouse: false, userId: 'u1' });
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', role: 'OWNER' });
+        await expect(changeAgentEmail('6ab050b281878c35b0f00752', { email: 'n@example.com' })).rejects.toThrow(
+            'This account is also a school account'
+        );
+        expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('updateOwnProfile only syncs gsm/avatar on a linked owner, never role', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', userId: '6ab050b281878c35b0f00752' });
+        tx.salesAgent.update.mockResolvedValue({ id: 'a1', userId: 'u1' });
+        await updateOwnProfile('6ab050b281878c35b0f00752', { phone: '0600' });
+        const data = tx.user.update.mock.calls[0][0].data;
+        expect(data).toEqual({ gsm: '0600' });
+        expect(data.role).toBeUndefined();
+    });
+
+    it('updateAgent does not rename a linked owner', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({ id: 'a1', isHouse: false, userId: 'u1' });
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'u1', role: 'OWNER' });
+        (prisma.salesAgent.update as jest.Mock).mockResolvedValue({ id: 'a1', name: 'New', userId: 'u1' });
+        await updateAgent('6ab050b281878c35b0f00752', { name: 'New' });
+        expect(prisma.user.update).not.toHaveBeenCalled();
     });
 });

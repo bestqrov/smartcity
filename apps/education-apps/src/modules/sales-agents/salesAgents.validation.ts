@@ -94,12 +94,15 @@ export interface NewAgentData extends AgentRates {
     phone?: string;
     code: string;
     packRates: PackRateData[];
+    // True: attach the agent to the existing account with this email (password ignored).
+    linkExistingUser: boolean;
 }
 
 export const sanitizeNewAgent = (input: Record<string, unknown>): NewAgentData => {
     if (input.commissionRate !== undefined) throw new Error(LEGACY_RATE_ERROR);
-    const password = typeof input.password === 'string' ? input.password : '';
-    if (password.length < 8) throw new Error('Password must be at least 8 characters');
+    const linkExistingUser = input.linkExistingUser === true;
+    const password = linkExistingUser ? '' : typeof input.password === 'string' ? input.password : '';
+    if (!linkExistingUser && password.length < 8) throw new Error('Password must be at least 8 characters');
     const name = requireText('Name', input.name);
     const email = sanitizeEmail(input.email);
     return {
@@ -112,6 +115,7 @@ export const sanitizeNewAgent = (input: Record<string, unknown>): NewAgentData =
         semiannualRate: parseRate('Semi-annual rate', input.semiannualRate),
         yearlyRate: parseRate('Yearly rate', input.yearlyRate),
         packRates: input.packRates === undefined || input.packRates === null ? [] : sanitizePackRates(input.packRates),
+        linkExistingUser,
     };
 };
 

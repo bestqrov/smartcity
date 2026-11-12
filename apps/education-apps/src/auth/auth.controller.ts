@@ -94,7 +94,9 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        sendSuccess(res, user, 'User profile retrieved', 200);
+        const agent = await prisma.salesAgent.findUnique({ where: { userId }, select: { code: true } });
+
+        sendSuccess(res, { ...user, salesAgent: agent ? { code: agent.code } : null }, 'User profile retrieved', 200);
     } catch (error: any) {
         sendError(res, error.message, 'Failed to fetch user profile', 500);
     }
