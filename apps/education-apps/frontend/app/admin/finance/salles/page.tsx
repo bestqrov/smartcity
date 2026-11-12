@@ -191,7 +191,7 @@ export default function ManageRoomsPage() {
     const tabs = ['All', 'Classroom', 'Lab', 'Library', 'Auditorium'];
 
     return (
-        <div className="min-h-screen bg-gray-50/50 p-6 space-y-8">
+        <div className="min-h-screen bg-gray-50/50 p-0 lg:p-6 space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Gestion des Salles</h1>

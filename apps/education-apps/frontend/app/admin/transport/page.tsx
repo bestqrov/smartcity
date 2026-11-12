@@ -21,10 +21,10 @@ export default function TransportPage() {
     const [tab, setTab] = useState<TabId>('routes');
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Transport scolaire</h1>
+        <div className="p-0 lg:p-6 space-y-6">
+            <div className="flex justify-between items-center gap-3">
+                <div className="min-w-0">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Transport scolaire</h1>
                     <p className="text-gray-600 mt-1">Lignes, véhicules, abonnements et paiements mensuels</p>
                 </div>
                 <div className="p-3 rounded-xl bg-blue-100">
@@ -32,12 +32,12 @@ export default function TransportPage() {
                 </div>
             </div>
 
-            <div className="flex gap-2 border-b border-gray-200">
+            <div className="flex gap-1 sm:gap-2 border-b border-gray-200 overflow-x-auto">
                 {TABS.map((t) => (
                     <button
                         key={t.id}
                         onClick={() => setTab(t.id)}
-                        className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px ${
+                        className={`px-4 py-3 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap ${
                             tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                     >

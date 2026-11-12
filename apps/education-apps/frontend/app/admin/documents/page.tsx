@@ -134,12 +134,12 @@ export default function DocumentsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Documents</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Documents</h1>
                     <p className="text-gray-600 mt-1">{isCrecheMode ? 'Générer des fiches de renseignements pour les enfants' : 'Générer des fiches de renseignements pour les élèves'}</p>
                 </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
+                <div className="hidden sm:block bg-blue-100 p-3 rounded-lg">
                     <FileText className="text-blue-600" size={32} />
                 </div>
             </div>

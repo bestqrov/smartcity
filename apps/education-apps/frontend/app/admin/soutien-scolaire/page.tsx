@@ -59,8 +59,8 @@ export default function SoutienDashboard() {
     if (loading) return <div className="p-8 text-center text-gray-500">Chargement des données...</div>;
 
     return (
-        <div className="p-6 space-y-8">
-            <div className="flex justify-between items-center">
+        <div className="p-0 lg:p-6 space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Etat de Soutien Scolaire</h1>
                     <p className="text-gray-500 mt-1">Vue d'ensemble de l'activité</p>
@@ -133,7 +133,7 @@ export default function SoutienDashboard() {
                 {/* Quick Actions or Charts Placeholder */}
                 <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-lg p-6 text-white">
                     <h3 className="text-lg font-bold mb-4">Actions Rapides</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button
                             onClick={() => router.push('/admin/inscriptions')}
                             className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"

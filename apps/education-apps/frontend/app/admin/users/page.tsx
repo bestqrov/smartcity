@@ -112,10 +112,10 @@ export default function UsersCRUD() {
     );
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-0 lg:p-6 space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center gap-3">
                         <UserCog className="text-blue-600" size={32} />
                         Gestion des Utilisateurs
                     </h1>
@@ -143,7 +143,7 @@ export default function UsersCRUD() {
             </div>
 
             {/* Users Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
@@ -222,7 +222,7 @@ export default function UsersCRUD() {
             {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
                         <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                                 {editingUser ? <Edit className="text-blue-600" size={20} /> : <UserPlus className="text-blue-600" size={20} />}
@@ -265,7 +265,7 @@ export default function UsersCRUD() {
 
                             <div className="space-y-1">
                                 <label className="text-sm font-bold text-gray-700">Rôle</label>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, role: 'SECRETARY' })}

@@ -53,9 +53,9 @@ export default function SecretaryTransactionsPage() {
 
     return (
         <div className="p-6 space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Caisse & Transactions</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Caisse & Transactions</h1>
                     <p className="text-gray-500">Suivi des flux financiers de l'établissement</p>
                 </div>
             </div>

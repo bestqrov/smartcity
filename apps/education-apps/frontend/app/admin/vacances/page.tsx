@@ -52,13 +52,13 @@ export default function VacancesPage() {
     };
 
     return (
-        <div className="p-6 space-y-8">
-            <div className="flex justify-between items-center">
+        <div className="p-0 lg:p-6 space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Vacances & congés</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Vacances & congés</h1>
                     <p className="text-gray-600 mt-1">Périodes de fermeture affichées aux élèves</p>
                 </div>
-                <div className="p-3 rounded-xl bg-orange-100">
+                <div className="hidden sm:block p-3 rounded-xl bg-orange-100">
                     <CalendarOff className="text-orange-600" size={24} />
                 </div>
             </div>

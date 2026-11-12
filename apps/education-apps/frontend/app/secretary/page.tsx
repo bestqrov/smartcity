@@ -15,9 +15,9 @@ export default function SecretaryDashboard() {
     }, [user]);
 
     return (
-        <div className="p-6">
+        <div className="p-0 lg:p-6">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Tableau de Bord</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
                 <p className="text-gray-600 mt-2">Bienvenue sur votre espace, {name}</p>
             </div>
 

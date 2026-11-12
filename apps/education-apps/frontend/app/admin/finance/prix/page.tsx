@@ -189,12 +189,12 @@ export default function PrixPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Gestion des Prix</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gestion des Prix</h1>
                     <p className="text-gray-600 mt-1">Configurez les tarifs pour les cours et formations</p>
                 </div>
-                <div className="bg-green-100 p-3 rounded-lg">
+                <div className="hidden sm:block bg-green-100 p-3 rounded-lg">
                     <DollarSign className="text-green-600" size={32} />
                 </div>
             </div>

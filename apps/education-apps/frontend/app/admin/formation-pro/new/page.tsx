@@ -44,7 +44,7 @@ export default function NewFormationPage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
+        <div className="max-w-4xl mx-auto p-0 lg:p-6">
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-8 text-white">
@@ -53,7 +53,7 @@ export default function NewFormationPage() {
                             <GraduationCap size={32} className="text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold">Nouvelle Formation</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold">Nouvelle Formation</h1>
                             <p className="text-purple-100 mt-1">Créer une nouvelle formation professionnelle</p>
                         </div>
                     </div>

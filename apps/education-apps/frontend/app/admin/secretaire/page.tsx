@@ -133,9 +133,9 @@ export default function SecretairePage() {
     if (!secretary) {
         return (
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-800">Gestion Secrétaire</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gestion Secrétaire</h1>
                         <p className="text-gray-600 mt-1">Gérer le compte secrétaire</p>
                     </div>
                     <div className="bg-purple-100 p-3 rounded-lg">
@@ -156,9 +156,9 @@ export default function SecretairePage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Gestion Secrétaire</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gestion Secrétaire</h1>
                     <p className="text-gray-600 mt-1">Modifier les informations du compte secrétaire</p>
                 </div>
                 <div className="bg-purple-100 p-3 rounded-lg">

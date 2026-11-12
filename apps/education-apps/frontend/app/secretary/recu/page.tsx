@@ -221,8 +221,8 @@ export default function SecretaryRecuPage() {
         <div className="p-6 space-y-6">
             {view === 'list' ? (
                 <>
-                    <div className="flex justify-between items-center">
-                        <h1 className="text-3xl font-bold text-gray-800">Gestion des Reçus</h1>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gestion des Reçus</h1>
                         <Button onClick={() => setView('form')} className="flex items-center gap-2">
                             <PlusCircle size={20} /> Nouveau Reçu
                         </Button>
@@ -272,7 +272,7 @@ export default function SecretaryRecuPage() {
                         <button onClick={() => setView('list')} className="text-white/80 hover:text-white"><X size={24} /></button>
                     </div>
                     <form onSubmit={handleFormSubmit} className="p-8 space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-1">Nom du Client</label>
                                 <input type="text" value={formData.issuedTo} onChange={e => setFormData({ ...formData, issuedTo: e.target.value })} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" required />

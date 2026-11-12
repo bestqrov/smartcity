@@ -540,7 +540,7 @@ export default function RecuPage() {
     const renderListView = () => (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-3xl font-bold text-gray-800">Reçus</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Reçus</h1>
                 <Button onClick={() => {
                     const defaultType = 'Soutien';
                     setFormData({
@@ -665,7 +665,7 @@ export default function RecuPage() {
 
             <form onSubmit={handleFormSubmit} className="bg-white rounded-2xl shadow-xl overflow-hidden">
                 <div className="p-6 bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-                    <h1 className="text-3xl font-bold">{editingReceipt ? 'Modifier le Reçu' : 'Nouveau Reçu'}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold">{editingReceipt ? 'Modifier le Reçu' : 'Nouveau Reçu'}</h1>
                     <p className="opacity-90 mt-1">Remplissez les informations du reçu</p>
                 </div>
 

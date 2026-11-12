@@ -45,7 +45,7 @@ export default function SecretaryPaiementsPage() {
     return (
         <div className="p-6 space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-800">Suivi des Salaires</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Suivi des Salaires</h1>
                 <p className="text-gray-500">Consultation des paiements du personnel pour le mois en cours</p>
             </div>
 
@@ -67,7 +67,7 @@ export default function SecretaryPaiementsPage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
                 <table className="w-full text-left">
                     <thead className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
                         <tr>

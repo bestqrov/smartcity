@@ -63,7 +63,7 @@ export default function StudentGroupModal({ isOpen, onClose, student }: StudentG
 
     return (
         <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
                 <div className="p-6">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Assigner au Groupe</h3>
                     <p className="text-gray-500 text-sm mb-6">

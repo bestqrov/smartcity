@@ -103,12 +103,12 @@ export default function FormationDashboard() {
     if (loading) return <div className="p-8 text-center text-gray-500">Chargement des données...</div>;
 
     return (
-        <div className="p-6 space-y-8">
+        <div className="p-0 lg:p-6 space-y-8">
 
             {/* Dashboard View */}
             {!isModalOpen && !isInscriptionModalOpen && (
                 <>
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-800">Tableau de Bord Formations</h1>
                             <p className="text-gray-500 mt-1">Vue d'ensemble de l'activité</p>
@@ -262,7 +262,7 @@ export default function FormationDashboard() {
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-1">Durée <span className="text-red-500">*</span></label>
                                         <div className="relative">

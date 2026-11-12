@@ -366,7 +366,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     <h3 className="text-xl font-bold text-gray-800">Informations Personnelles</h3>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <Input
                                         label="PRENOM *"
                                         name="surname"
@@ -385,7 +385,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <Input
                                         label="Date de naissance"
                                         name="birthDate"
@@ -409,7 +409,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     <h3 className="text-xl font-bold text-gray-800">Parents</h3>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <Input
                                         label="Nom du Parent (Tuteur) *"
                                         name="parentName"
@@ -437,7 +437,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6 mt-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
                                     <Input
                                         label="Téléphone Parent *"
                                         name="parentPhone"
@@ -502,7 +502,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     <h3 className="text-xl font-bold text-gray-800">Scolarité</h3>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Niveau scolaire
@@ -766,7 +766,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
 
                 {showSuccessModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+                        <div className="bg-white rounded-lg p-6 sm:p-8 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
                             <div className="text-center mb-6">
                                 <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                                     <CheckCircle className="text-green-600" size={32} />

@@ -278,12 +278,12 @@ export default function PaiementsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Gestion des Salaires</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gestion des Salaires</h1>
                     <p className="text-gray-600 mt-1">Gérer les salaires du personnel</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                     <button
                         onClick={() => setShowPaymentModal(true)}
                         className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all"
@@ -525,7 +525,7 @@ export default function PaiementsPage() {
             {/* Add/Edit Personnel Modal */}
             {showPersonnelModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-gray-800">
                                 {editingPersonnel ? 'Modifier Personnel' : 'Ajouter Personnel'}
@@ -552,7 +552,7 @@ export default function PaiementsPage() {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, type: 'TEACHER', salaryType: 'FIXED_MONTHLY' })}
@@ -683,7 +683,7 @@ export default function PaiementsPage() {
             {/* Manual Payment Modal */}
             {showPaymentModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-gray-800">
                                 {editingPayment ? 'Modifier Paiement' : 'Effectuer un Paiement'}

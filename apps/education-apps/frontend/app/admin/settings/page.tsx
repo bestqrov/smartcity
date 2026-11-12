@@ -286,12 +286,12 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Paramètres</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Paramètres</h1>
                     <p className="text-gray-600 mt-1">Gérer les paramètres de l'application</p>
                 </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
+                <div className="hidden sm:block bg-blue-100 p-3 rounded-lg">
                     <SettingsIcon className="text-blue-600" size={32} />
                 </div>
             </div>
@@ -357,7 +357,7 @@ export default function SettingsPage() {
                     })}
                 </div>
 
-                <div className="p-8">
+                <div className="p-4 sm:p-8">
                     {/* School Profile Tab */}
                     {activeTab === 'profile' && (
                         <div className="space-y-6">
@@ -367,12 +367,12 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Logo Upload Section */}
-                            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 sm:p-6 border border-blue-200">
                                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                     <School size={20} />
                                     Logo de l'école
                                 </h3>
-                                <div className="flex items-start gap-6">
+                                <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                                     {/* Logo Preview */}
                                     <div className="flex-shrink-0">
                                         <div className="w-32 h-32 bg-white rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
@@ -516,7 +516,7 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Admin Section */}
-                            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                            <div className="bg-blue-50 rounded-xl p-4 sm:p-6 border border-blue-200">
                                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                     <div className="bg-blue-100 p-2 rounded-lg">
                                         <Users className="text-blue-600" size={20} />
@@ -660,7 +660,7 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Secretary Section */}
-                            <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
+                            <div className="bg-purple-50 rounded-xl p-4 sm:p-6 border border-purple-200">
                                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                     <div className="bg-purple-100 p-2 rounded-lg">
                                         <Users className="text-purple-600" size={20} />
@@ -885,7 +885,7 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Backup Section */}
-                            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                            <div className="bg-blue-50 rounded-xl p-4 sm:p-6 border border-blue-200">
                                 <div className="flex items-start gap-4">
                                     <div className="bg-blue-100 p-3 rounded-lg">
                                         <Download className="text-blue-600" size={24} />
@@ -908,7 +908,7 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Restore Section */}
-                            <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
+                            <div className="bg-orange-50 rounded-xl p-4 sm:p-6 border border-orange-200">
                                 <div className="flex items-start gap-4">
                                     <div className="bg-orange-100 p-3 rounded-lg">
                                         <Upload className="text-orange-600" size={24} />
