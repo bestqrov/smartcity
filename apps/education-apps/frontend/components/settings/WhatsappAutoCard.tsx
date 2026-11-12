@@ -13,6 +13,8 @@ interface StatusDto {
     sendAttendance: boolean;
     sendGrades: boolean;
     sendAnnouncements: boolean;
+    sendActivities: boolean;
+    sendHomework: boolean;
 }
 interface ConnectDto extends StatusDto {
     qr?: { base64: string | null; code: string | null } | null;
@@ -20,7 +22,7 @@ interface ConnectDto extends StatusDto {
 interface MessageRow {
     id: string;
     channel: 'PUSH' | 'WHATSAPP';
-    kind: 'ATTENDANCE' | 'GRADE' | 'ANNOUNCEMENT';
+    kind: 'ATTENDANCE' | 'GRADE' | 'ANNOUNCEMENT' | 'ACTIVITY' | 'HOMEWORK';
     to: string | null;
     title: string;
     body: string;
@@ -31,17 +33,19 @@ interface MessageRow {
     sentAt: string | null;
 }
 
-const KIND_LABEL: Record<MessageRow['kind'], string> = { ATTENDANCE: 'Absence', GRADE: 'Notes', ANNOUNCEMENT: 'Annonce' };
+const KIND_LABEL: Record<MessageRow['kind'], string> = { ATTENDANCE: 'Absence', GRADE: 'Notes', ANNOUNCEMENT: 'Annonce', ACTIVITY: 'Activité', HOMEWORK: 'Devoirs' };
 const STATUS_META: Record<MessageRow['status'], { label: string; cls: string }> = {
     PENDING: { label: 'En attente', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' },
     SENT: { label: 'Envoyé', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' },
     FAILED: { label: 'Échec', cls: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300' },
     SKIPPED: { label: 'Ignoré', cls: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300' },
 };
-const TOGGLES: { key: 'sendAttendance' | 'sendGrades' | 'sendAnnouncements'; label: string }[] = [
+const TOGGLES: { key: 'sendAttendance' | 'sendGrades' | 'sendAnnouncements' | 'sendActivities' | 'sendHomework'; label: string }[] = [
     { key: 'sendAttendance', label: 'Absences et retards' },
     { key: 'sendGrades', label: 'Publication des notes' },
     { key: 'sendAnnouncements', label: 'Annonces' },
+    { key: 'sendActivities', label: 'Activités et sorties' },
+    { key: 'sendHomework', label: 'Devoirs' },
 ];
 
 const errMsg = (e: any) => e?.response?.data?.message || e?.response?.data?.error || e?.message || 'Erreur';

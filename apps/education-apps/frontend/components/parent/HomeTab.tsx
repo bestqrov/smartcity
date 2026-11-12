@@ -1,12 +1,14 @@
 'use client';
 
-import { CalendarClock, CheckCircle2, Clock, GraduationCap, Megaphone, Palmtree, Wallet } from 'lucide-react';
+import { BookOpen, CalendarClock, MapPin, PartyPopper, CheckCircle2, Clock, GraduationCap, Megaphone, Palmtree, Wallet } from 'lucide-react';
 import type { Parent, Student } from '@/types';
 import { ATTENDANCE_META } from '@/lib/attendanceStatus';
 import type { ParentLang, ParentMessages } from '@/lib/parent/messages';
 import { formatDate, formatMoney, isSameLocalDay, nextSession, studentBalance } from '@/lib/parent/helpers';
 import { Card, EmptyState, Ltr, SectionTitle } from './ui';
 import { PushPrompt } from './PushPrompt';
+import { upcomingActivities } from '@/lib/parent/activities';
+import { dayKey, dueKey } from '@/lib/parent/homework';
 
 interface Props {
     token: string;
@@ -26,6 +28,14 @@ export default function HomeTab({ token, parent, student, t, lang, goTo }: Props
     const balance = studentBalance(student);
     const latest = (parent.announcements || [])[0];
     const holiday = (parent.holidays || [])[0];
+    const nextActivity = upcomingActivities(parent.activities, now).find(
+        (a) => a.children.length === 0 || a.children.some((c) => c.studentId === student.id),
+    );
+    const tmr = new Date(now);
+    tmr.setDate(tmr.getDate() + 1);
+    const soonKeys = [dayKey(now), dayKey(tmr)];
+    const homeworkSoon = (student.homework || []).filter((h) => soonKeys.includes(dueKey(h))).sort((a, b) => dueKey(a).localeCompare(dueKey(b)));
+    const hasHomework = (student.homework || []).length > 0;
     const latestGrades = (student.grades || []).filter((g) => g.absent || g.score != null).slice(0, 3);
 
     return (
@@ -103,6 +113,68 @@ export default function HomeTab({ token, parent, student, t, lang, goTo }: Props
                     </Card>
                 </button>
             </div>
+
+            {nextActivity && (
+                <button type="button" onClick={() => goTo('school')} className="block w-full text-start">
+                    <Card className="overflow-hidden !p-0">
+                        {nextActivity.coverImage ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={nextActivity.coverImage} alt="" className="h-32 w-full object-cover" />
+                        ) : (
+                            <div className="flex h-20 items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white">
+                                <PartyPopper className="h-8 w-8" aria-hidden />
+                            </div>
+                        )}
+                        <div className="p-4">
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{t.nextActivity}</p>
+                            <p className="mt-0.5 truncate font-semibold text-slate-900 dark:text-white">{nextActivity.title}</p>
+                            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-slate-500 dark:text-slate-400">
+                                <Ltr>{formatDate(nextActivity.startAt, lang, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</Ltr>
+                                {nextActivity.location && (
+                                    <span className="inline-flex min-w-0 items-center gap-1">
+                                        <MapPin className="h-3 w-3 shrink-0" aria-hidden />
+                                        <span className="truncate">{nextActivity.location}</span>
+                                    </span>
+                                )}
+                            </p>
+                        </div>
+                    </Card>
+                </button>
+            )}
+
+            {hasHomework && (
+                <Card>
+                    <SectionTitle
+                        icon={BookOpen}
+                        action={
+                            <button type="button" onClick={() => goTo('grades')} className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                                {t.seeAll}
+                            </button>
+                        }
+                    >
+                        {t.homeworkSoon}
+                    </SectionTitle>
+                    {homeworkSoon.length === 0 ? (
+                        <p className="text-sm text-slate-400">{t.noHomeworkSoon}</p>
+                    ) : (
+                        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {homeworkSoon.slice(0, 4).map((h) => (
+                                <li key={h.id}>
+                                    <button type="button" onClick={() => goTo('grades')} className="flex w-full items-center justify-between gap-3 py-2 text-start">
+                                        <span className="min-w-0">
+                                            <span className="block truncate text-sm font-medium text-slate-900 dark:text-white">{h.title}</span>
+                                            <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{h.subject || h.groupName}</span>
+                                        </span>
+                                        <span className="shrink-0 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700 dark:bg-teal-500/10 dark:text-teal-300">
+                                            {dueKey(h) === soonKeys[0] ? t.hwGroups.today : t.hwGroups.tomorrow}
+                                        </span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </Card>
+            )}
 
             {latestGrades.length > 0 && (
                 <Card>
