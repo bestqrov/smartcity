@@ -23,3 +23,8 @@ export const whatsappNumber = (phone: string | null | undefined): string | null 
 export const parentPortalMessage = (parentName: string) =>
     `Bonjour ${parentName}, voici votre accès pour suivre la présence, les paiements et les annonces de vos enfants :\n` +
     `السلام عليكم، هذا هو الرابط ديالكم باش تتبعو الحضور والأداءات والإعلانات ديال وليداتكم:`;
+
+/** WhatsApp text sent with a teacher's grade-entry link (French + Darija). */
+export const teacherPortalMessage = (teacherName: string) =>
+    `Bonjour ${teacherName}, voici votre lien pour saisir les notes de vos groupes :\n` +
+    `السلام عليكم، هذا هو الرابط ديالكم باش تدخلو النقط ديال الأقسام ديالكم:`;

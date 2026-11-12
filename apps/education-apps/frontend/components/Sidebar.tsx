@@ -18,7 +18,8 @@ import {
   Bus,
   Package,
   Briefcase,
-  BookOpen
+  BookOpen,
+  ClipboardList
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
@@ -138,6 +139,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       ]
     },
     {
+      id: 'grades',
+      label: 'Notes',
+      icon: ClipboardList,
+      path: '/admin/grades',
+      activeColor: 'bg-[#334155]/50 border-[#FBBF24]',
+      iconColor: 'text-[#FBBF24]'
+    },
+    {
       id: 'parents',
       label: 'Parents',
       icon: Users,
@@ -226,6 +235,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       path: '/secretary/formation-pro',
       activeColor: 'bg-[#334155]/50 border-[#C084FC]',
       iconColor: 'text-[#C084FC]'
+    },
+    {
+      id: 'grades',
+      label: 'Notes',
+      icon: ClipboardList,
+      path: '/secretary/grades',
+      activeColor: 'bg-[#334155]/50 border-[#FBBF24]',
+      iconColor: 'text-[#FBBF24]'
     },
     {
       id: 'parents-access',

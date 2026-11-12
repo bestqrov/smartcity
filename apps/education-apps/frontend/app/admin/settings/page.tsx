@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
+import GradingPeriodsEditor from '@/components/grades/GradingPeriodsEditor';
 import api from '@/lib/api';
 import useAuthStore from '@/store/useAuthStore';
 import { getMySchool, updateMySchool } from '@/lib/services/schools';
@@ -504,6 +505,8 @@ export default function SettingsPage() {
                                     Enregistrer le profil
                                 </Button>
                             </div>
+
+                            <GradingPeriodsEditor />
                         </div>
                     )}
 
