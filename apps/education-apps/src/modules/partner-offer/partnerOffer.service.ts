@@ -9,7 +9,7 @@ export const OFFER_KEY = 'default';
 export const DEFAULT_PARTNER_OFFER = {
     key: OFFER_KEY,
     active: true,
-    monthlyPrice: 120,
+    monthlyPrice: 250,
     semiannualPrice: 1299,
     yearlyPrice: 2000,
 };

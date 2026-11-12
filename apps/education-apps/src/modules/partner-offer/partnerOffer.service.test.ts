@@ -78,11 +78,18 @@ describe('offerPriceFor', () => {
 });
 
 describe('seedPartnerOffer', () => {
+    it('defaults to prices where longer periods are cheaper per month', () => {
+        const { monthlyPrice, semiannualPrice, yearlyPrice } = DEFAULT_PARTNER_OFFER;
+        expect(semiannualPrice).toBeLessThan(6 * monthlyPrice);
+        expect(yearlyPrice).toBeLessThan(12 * monthlyPrice);
+        expect(yearlyPrice / 12).toBeLessThan(semiannualPrice / 6);
+    });
+
     it('creates the default offer when none exists', async () => {
         (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(null);
         await seedPartnerOffer(prisma as any);
         expect(prisma.partnerOffer.create).toHaveBeenCalledWith({ data: DEFAULT_PARTNER_OFFER });
-        expect(DEFAULT_PARTNER_OFFER).toEqual({ key: 'default', active: true, monthlyPrice: 120, semiannualPrice: 1299, yearlyPrice: 2000 });
+        expect(DEFAULT_PARTNER_OFFER).toEqual({ key: 'default', active: true, monthlyPrice: 250, semiannualPrice: 1299, yearlyPrice: 2000 });
     });
 
     it('leaves an existing offer untouched', async () => {
