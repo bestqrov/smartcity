@@ -1,3 +1,4 @@
+import { isTargeted } from '../activities/activities.service';
 import prisma from '../../config/database';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
 import { tuitionPayments } from '../payments/tuitionFilter';
@@ -97,6 +98,10 @@ interface ParentGrade {
 }
 
 const PROFILE_ATTENDANCE_DAYS = 60;
+const PROFILE_ACTIVITY_PAST_DAYS = 30;
+const PROFILE_HOMEWORK_PAST_DAYS = 14;
+const PROFILE_HOMEWORK_AHEAD_DAYS = 60;
+const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_LINKS_PER_REQUEST = 200;
 
 export const getParentByRawToken = async (rawToken: string) => {
@@ -143,9 +148,10 @@ export const getParentByRawToken = async (rawToken: string) => {
     if (!parent.branchId) {
         return {
             ...parent,
-            students: parent.students.map((s) => ({ ...s, grades: [] })),
+            students: parent.students.map((s) => ({ ...s, grades: [], homework: [] })),
             announcements: [],
             holidays: [],
+            activities: [],
             school: null,
             gradingPeriods: [...DEFAULT_PERIODS],
         };
@@ -156,7 +162,10 @@ export const getParentByRawToken = async (rawToken: string) => {
 
     const branchId = parent.branchId;
     const studentIds = parent.students.map((s) => s.id);
-    const [announcements, holidays, branch, gradingPeriods, grades] = await Promise.all([
+    const now = Date.now();
+    const activeChildren = parent.students.filter((s) => s.active !== false);
+    const childGroupIds = [...new Set(parent.students.flatMap((s) => s.groupIds ?? []))];
+    const [announcements, holidays, branch, gradingPeriods, grades, activityRows, homeworkRows] = await Promise.all([
         prisma.announcement.findMany({
             where: { branchId, active: true },
             orderBy: { createdAt: 'desc' },
@@ -184,7 +193,60 @@ export const getParentByRawToken = async (rawToken: string) => {
                   },
                   include: { evaluation: true },
               }),
+        activeChildren.length === 0
+            ? Promise.resolve([])
+            : prisma.activity.findMany({
+                  where: { branchId, published: true, startAt: { gte: new Date(now - PROFILE_ACTIVITY_PAST_DAYS * DAY_MS) } },
+                  orderBy: { startAt: 'asc' },
+                  select: {
+                      id: true,
+                      title: true,
+                      description: true,
+                      startAt: true,
+                      endAt: true,
+                      location: true,
+                      price: true,
+                      needsConsent: true,
+                      deadline: true,
+                      coverImage: true,
+                      audience: true,
+                      groupIds: true,
+                  },
+              }),
+        childGroupIds.length === 0
+            ? Promise.resolve([])
+            : prisma.homework.findMany({
+                  where: {
+                      branchId,
+                      groupId: { in: childGroupIds },
+                      dueDate: { gte: new Date(now - PROFILE_HOMEWORK_PAST_DAYS * DAY_MS), lte: new Date(now + PROFILE_HOMEWORK_AHEAD_DAYS * DAY_MS) },
+                  },
+                  orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }],
+                  select: { id: true, groupId: true, subject: true, title: true, details: true, dueDate: true },
+              }),
     ]);
+
+    // Activities: only those whose audience includes at least one (active) child, with each targeted child's answer.
+    const visibleActivities = activityRows
+        .map((a) => ({ a, children: activeChildren.filter((s) => isTargeted(a, s)) }))
+        .filter(({ children }) => children.length > 0);
+    const responses =
+        visibleActivities.length === 0
+            ? []
+            : await prisma.activityResponse.findMany({
+                  where: { branchId, activityId: { in: visibleActivities.map(({ a }) => a.id) }, studentId: { in: activeChildren.map((s) => s.id) } },
+                  select: { activityId: true, studentId: true, answer: true, paid: true },
+              });
+    const activities = visibleActivities.map(({ a, children }) => {
+        const { audience: _audience, groupIds: _groupIds, ...fields } = a;
+        return {
+            ...fields,
+            children: children.map((s) => {
+                const r = responses.find((x) => x.activityId === a.id && x.studentId === s.id);
+                return { studentId: s.id, answer: r?.answer ?? null, paid: r?.paid ?? false };
+            }),
+        };
+    });
 
     const gradesByStudent = new Map<string, ParentGrade[]>();
     for (const g of grades) {
@@ -209,9 +271,12 @@ export const getParentByRawToken = async (rawToken: string) => {
     const students = parent.students.map((s) => ({
         ...s,
         grades: (gradesByStudent.get(s.id) ?? []).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+        homework: homeworkRows
+            .filter((h) => (s.groupIds ?? []).includes(h.groupId))
+            .map(({ groupId, ...h }) => ({ ...h, groupName: s.groups.find((g) => g.id === groupId)?.name ?? null })),
     }));
 
-    return { ...parent, students, announcements, holidays, school: branch?.school || null, gradingPeriods };
+    return { ...parent, students, announcements, holidays, activities, school: branch?.school || null, gradingPeriods };
 };
 
 /** Re-issues the access link of many parents at once (bulk QR cards). All-or-nothing, branch-scoped. */

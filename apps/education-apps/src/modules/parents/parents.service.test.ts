@@ -22,6 +22,9 @@ jest.mock('../../config/database', () => ({
         branch: { findUnique: jest.fn() },
         accessLog: { groupBy: jest.fn() },
         grade: { findMany: jest.fn() },
+        activity: { findMany: jest.fn().mockResolvedValue([]) },
+        activityResponse: { findMany: jest.fn().mockResolvedValue([]) },
+        homework: { findMany: jest.fn().mockResolvedValue([]) },
         settings: { findUnique: jest.fn() },
         $transaction: jest.fn(),
     },
@@ -192,6 +195,44 @@ describe('parents.service', () => {
                 { evaluationId: 'e1', title: 'Contrôle e1', subject: 'Maths', period: 'T1', date: new Date('2026-10-01'), maxScore: 20, coefficient: 2, score: 14, absent: false, comment: 'Bien' },
             ]);
             expect(result.students[1].grades).toEqual([]);
+        });
+
+        it('includes activities targeting a child (with answers) and each child homework', async () => {
+            (prisma.parent.findUnique as jest.Mock).mockResolvedValue({
+                id: 'p1',
+                branchId: 'b1',
+                students: [
+                    { id: 's1', branchId: 'b1', active: true, groupIds: ['g1'], groups: [{ id: 'g1', name: '6A' }] },
+                    { id: 's2', branchId: 'b1', active: true, groupIds: ['g2'], groups: [{ id: 'g2', name: '4B' }] },
+                ],
+            });
+            (prisma.settings.findUnique as jest.Mock).mockResolvedValue(null);
+            (prisma.grade.findMany as jest.Mock).mockResolvedValue([]);
+            const act = (id: string, audience: string, groupIds: string[]) => ({
+                id, title: id, description: null, startAt: new Date(), endAt: null, location: null, price: 20,
+                needsConsent: true, deadline: null, coverImage: null, audience, groupIds,
+            });
+            (prisma.activity.findMany as jest.Mock).mockResolvedValueOnce([act('a1', 'ALL', []), act('a2', 'GROUPS', ['g2']), act('a3', 'GROUPS', ['g9'])]);
+            (prisma.activityResponse.findMany as jest.Mock).mockResolvedValueOnce([{ activityId: 'a1', studentId: 's1', answer: 'YES', paid: true }]);
+            (prisma.homework.findMany as jest.Mock).mockResolvedValueOnce([
+                { id: 'h1', groupId: 'g1', subject: 'Maths', title: 'Ex', details: null, dueDate: new Date('2026-11-13') },
+            ]);
+
+            const result: any = await getParentByRawToken('tok');
+
+            expect((prisma.activity.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ branchId: 'b1', published: true, startAt: { gte: expect.any(Date) } });
+            expect(result.activities.map((a: any) => a.id)).toEqual(['a1', 'a2']);
+            expect(result.activities[0]).not.toHaveProperty('audience');
+            expect(result.activities[0].children).toEqual([
+                { studentId: 's1', answer: 'YES', paid: true },
+                { studentId: 's2', answer: null, paid: false },
+            ]);
+            expect(result.activities[1].children).toEqual([{ studentId: 's2', answer: null, paid: false }]);
+            expect((prisma.homework.findMany as jest.Mock).mock.calls[0][0].where).toMatchObject({ branchId: 'b1', groupId: { in: ['g1', 'g2'] } });
+            expect(result.students[0].homework).toEqual([
+                { id: 'h1', subject: 'Maths', title: 'Ex', details: null, dueDate: new Date('2026-11-13'), groupName: '6A' },
+            ]);
+            expect(result.students[1].homework).toEqual([]);
         });
 
         it('drops cleared grades (no score, not absent)', async () => {
