@@ -49,9 +49,24 @@ export interface Student {
     // only present on the parent portal profile response
     transportSubscriptions?: TransportSubscription[];
     holidays?: Holiday[];
+    // only present on the parent portal profile response: published grades, newest first
+    grades?: ParentGrade[];
     school?: { name: string; logo?: string | null; phone?: string | null; email?: string | null } | null;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface ParentGrade {
+    evaluationId: string;
+    title: string;
+    subject: string;
+    period: string;
+    date: string;
+    maxScore: number;
+    coefficient: number;
+    score: number | null;
+    absent: boolean;
+    comment: string | null;
 }
 
 // Shape of a Group as embedded in the student portal profile response — a subset of the
@@ -84,6 +99,7 @@ export interface Parent {
     // only present on the public parent space response (/parents/profile/:token)
     announcements?: Pick<Announcement, 'id' | 'title' | 'body' | 'createdAt'>[];
     holidays?: Holiday[];
+    gradingPeriods?: string[];
     school?: { name: string; logo?: string | null; phone?: string | null; email?: string | null } | null;
     createdAt: string;
     updatedAt: string;

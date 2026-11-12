@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CalendarCheck2, Home, LinkIcon, MessageCircle, Phone, School, Wallet, type LucideIcon } from 'lucide-react';
+import { CalendarCheck2, GraduationCap, Home, LinkIcon, MessageCircle, Phone, School, Wallet, type LucideIcon } from 'lucide-react';
 import type { Parent } from '@/types';
 import { PARENT_MESSAGES } from '@/lib/parent/messages';
 import { useParentLang } from '@/lib/parent/useParentLang';
@@ -11,14 +11,16 @@ import HomeTab from './HomeTab';
 import AttendanceTab from './AttendanceTab';
 import PaymentsTab from './PaymentsTab';
 import SchoolTab from './SchoolTab';
+import GradesTab from './GradesTab';
 import InstallBanner from './InstallBanner';
 import { Card, EmptyState } from './ui';
 
-type Tab = 'home' | 'attendance' | 'payments' | 'school';
+type Tab = 'home' | 'attendance' | 'payments' | 'grades' | 'school';
 const TABS: { id: Tab; icon: LucideIcon }[] = [
     { id: 'home', icon: Home },
     { id: 'attendance', icon: CalendarCheck2 },
     { id: 'payments', icon: Wallet },
+    { id: 'grades', icon: GraduationCap },
     { id: 'school', icon: School },
 ];
 
@@ -81,6 +83,10 @@ export default function ParentShell({ parent, error }: Props) {
     const student = students.find((s) => s.id === childId) || students[0];
     const school = parent?.school;
     const wa = whatsappNumber(school?.phone);
+    // Crèches never have grades: the tab only exists when any child has at least one.
+    const hasGrades = students.some((s) => (s.grades || []).length > 0);
+    const tabs = TABS.filter((x) => x.id !== 'grades' || hasGrades);
+    const activeTab: Tab = tab === 'grades' && !hasGrades ? 'home' : tab;
 
     return (
         <div dir={dir} className="min-h-screen bg-slate-100 dark:bg-black">
@@ -181,10 +187,11 @@ export default function ParentShell({ parent, error }: Props) {
                     ) : (
                         <>
                             <InstallBanner t={t} />
-                            {tab === 'home' && <HomeTab parent={parent} student={student} t={t} lang={lang} goTo={setTab} />}
-                            {tab === 'attendance' && <AttendanceTab student={student} t={t} lang={lang} />}
-                            {tab === 'payments' && <PaymentsTab student={student} t={t} lang={lang} />}
-                            {tab === 'school' && <SchoolTab parent={parent} student={student} t={t} lang={lang} />}
+                            {activeTab === 'home' && <HomeTab parent={parent} student={student} t={t} lang={lang} goTo={setTab} />}
+                            {activeTab === 'attendance' && <AttendanceTab student={student} t={t} lang={lang} />}
+                            {activeTab === 'payments' && <PaymentsTab student={student} t={t} lang={lang} />}
+                            {activeTab === 'grades' && <GradesTab parent={parent} student={student} t={t} lang={lang} />}
+                            {activeTab === 'school' && <SchoolTab parent={parent} student={student} t={t} lang={lang} />}
                         </>
                     )}
                 </main>
@@ -192,20 +199,20 @@ export default function ParentShell({ parent, error }: Props) {
                 {/* Bottom tab bar */}
                 {parent && student && !error && (
                     <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-md border-t border-slate-200/60 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl dark:border-slate-800/60 dark:bg-slate-950/90">
-                        <ul className="grid grid-cols-4">
-                            {TABS.map(({ id, icon: Icon }) => {
-                                const active = tab === id;
+                        <ul className={tabs.length === 5 ? 'grid grid-cols-5' : 'grid grid-cols-4'}>
+                            {tabs.map(({ id, icon: Icon }) => {
+                                const active = activeTab === id;
                                 return (
                                     <li key={id}>
                                         <button
                                             type="button"
                                             onClick={() => setTab(id)}
                                             aria-current={active ? 'page' : undefined}
-                                            className={`flex w-full flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition ${
+                                            className={`flex w-full flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition ${
                                                 active ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'
                                             }`}
                                         >
-                                            <span className={`flex h-7 w-12 items-center justify-center rounded-full transition ${active ? 'bg-indigo-100 dark:bg-indigo-500/15' : ''}`}>
+                                            <span className={`flex h-7 w-10 items-center justify-center rounded-full transition ${active ? 'bg-indigo-100 dark:bg-indigo-500/15' : ''}`}>
                                                 <Icon className="h-5 w-5" aria-hidden />
                                             </span>
                                             {t.tabs[id]}

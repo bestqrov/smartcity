@@ -4,7 +4,7 @@ export type ParentLang = 'fr' | 'ar';
 
 const fr = {
     appName: 'Espace parent',
-    tabs: { home: 'Accueil', attendance: 'Présence', payments: 'Paiements', school: 'École' },
+    tabs: { home: 'Accueil', attendance: 'Présence', payments: 'Paiements', school: 'École', grades: 'Notes' },
     call: 'Appeler',
     whatsapp: 'WhatsApp',
     langSwitch: 'عربي',
@@ -83,6 +83,12 @@ const fr = {
         iosHint: "Touchez Partager puis « Sur l'écran d'accueil ».",
         dismiss: 'Fermer',
     },
+    latestGrades: 'Dernières notes',
+    generalAverage: 'Moyenne générale',
+    subjectAverage: 'Moyenne',
+    noGrades: 'Aucune note publiée pour le moment',
+    absentGrade: 'Absent',
+    coefficient: (c: number) => `coef. ${c}`,
     currency: 'MAD',
 };
 
@@ -90,7 +96,7 @@ export type ParentMessages = typeof fr;
 
 const ar: ParentMessages = {
     appName: 'فضاء الولي',
-    tabs: { home: 'الرئيسية', attendance: 'الحضور', payments: 'الأداءات', school: 'المؤسسة' },
+    tabs: { home: 'الرئيسية', attendance: 'الحضور', payments: 'الأداءات', school: 'المؤسسة', grades: 'النقط' },
     call: 'اتصال',
     whatsapp: 'واتساب',
     langSwitch: 'FR',
@@ -168,6 +174,12 @@ const ar: ParentMessages = {
         iosHint: 'اضغط على زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».',
         dismiss: 'إغلاق',
     },
+    latestGrades: 'آخر النقط',
+    generalAverage: 'المعدل العام',
+    subjectAverage: 'المعدل',
+    noGrades: 'لا توجد نقط منشورة حاليا',
+    absentGrade: 'غائب',
+    coefficient: (c: number) => `المعامل ${c}`,
     currency: 'درهم',
 };
 
