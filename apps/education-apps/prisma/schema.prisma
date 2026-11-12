@@ -141,6 +141,7 @@ model School {
   salesAgentId String?          @db.ObjectId
   salesAgent   SalesAgent?      @relation(fields: [salesAgentId], references: [id])
   payments     SchoolPayment[]
+  packUpgrades PackUpgrade[]
 
   // Partner offer taken at signup through a partner's referral link: period and price are frozen then.
   partnerOffer Boolean             @default(false)
@@ -707,6 +708,29 @@ model SchoolPayment {
   @@index([schoolId, paidAt])
   @@index([salesAgentId, paidAt])
   @@map("school_payments")
+}
+
+// A school moving itself to a bigger pack from the student-limit dialog. The new pack applies at once;
+// `dueAt` is the payment deadline (null for a school still on trial). `settledAt` is set when the super
+// admin records a school payment dated on or after the upgrade. Nothing happens automatically at `dueAt`.
+model PackUpgrade {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  schoolId       String    @db.ObjectId
+  school         School    @relation(fields: [schoolId], references: [id])
+  fromPackId     String?   @db.ObjectId
+  fromPackName   String?
+  toPackId       String    @db.ObjectId
+  toPackName     String
+  toMonthlyPrice Float
+  byUserId       String    @db.ObjectId
+  reason         String
+  createdAt      DateTime  @default(now())
+  dueAt          DateTime?
+  settledAt      DateTime?
+
+  @@index([schoolId, createdAt])
+  @@index([settledAt, dueAt])
+  @@map("pack_upgrades")
 }
 
 // Money paid out to an agent against their commissions.
