@@ -34,7 +34,7 @@ export function Slicer({
                 id={id}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full rounded-lg border border-transparent bg-white px-2 py-1.5 text-sm font-semibold text-espresso-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-espresso-300 dark:border-espresso-700 dark:bg-espresso-900 dark:text-espresso-50"
+                className="w-full min-h-10 rounded-lg border border-transparent bg-white px-2 py-2 text-sm font-semibold text-espresso-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-espresso-300 dark:border-espresso-700 dark:bg-espresso-900 dark:text-espresso-50"
             >
                 <option value="">{all}</option>
                 {options.map((option) => (
@@ -57,7 +57,7 @@ export function TabButton({ id, selected, controls, onClick, children }: { id: s
             aria-selected={selected}
             aria-controls={controls}
             onClick={onClick}
-            className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-espresso-500 ${
+            className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-espresso-500 ${
                 selected
                     ? 'bg-espresso-800 text-white dark:bg-espresso-200 dark:text-espresso-950'
                     : 'border border-espresso-100 bg-white text-espresso-700 hover:bg-espresso-50 dark:border-espresso-800 dark:bg-espresso-900 dark:text-espresso-200 dark:hover:bg-espresso-800'

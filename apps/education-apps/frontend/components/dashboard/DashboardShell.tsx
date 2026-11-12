@@ -57,7 +57,7 @@ export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, user
         const btn =
             variant === 'sidebar'
                 ? `flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-espresso-50 hover:bg-white/20 ${focusRing}`
-                : `flex h-9 w-9 items-center justify-center rounded-full text-espresso-50 hover:bg-white/10 ${focusRing}`;
+                : `flex h-10 w-10 items-center justify-center rounded-full text-espresso-50 hover:bg-white/10 ${focusRing}`;
         return (
             <>
                 <button type="button" onClick={() => setLang(lang === 'fr' ? 'ar' : 'fr')} aria-label={m.lang_switch_label} title={m.lang_switch_label} className={`${btn} text-sm font-bold`}>
@@ -137,7 +137,7 @@ export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, user
                                         href={item.href}
                                         onClick={item.onClick}
                                         aria-current={item.active ? 'page' : undefined}
-                                        className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-bold ${focusRing} ${
+                                        className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-xs font-bold ${focusRing} ${
                                             item.active ? 'bg-espresso-50 text-espresso-800 dark:bg-espresso-200 dark:text-espresso-950' : 'bg-white/10 text-espresso-50 hover:bg-white/20'
                                         }`}
                                     >
