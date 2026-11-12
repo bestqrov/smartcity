@@ -8,7 +8,7 @@ import { Sidebar } from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
 import useAuthStore, { getActiveBranchId } from '@/store/useAuthStore';
 
-const SUPER_ADMIN_HOME = '/admin/schools';
+const SUPER_ADMIN_HOME = '/admin/platform';
 const SUPER_ADMIN_PAGES = ['/admin/schools', '/admin/packs', '/admin/sales-agents', '/admin/platform'];
 
 export default function AdminLayout({
@@ -29,6 +29,11 @@ export default function AdminLayout({
             router.replace(SUPER_ADMIN_HOME);
         }
     }, [user, pathname, router]);
+
+    // The platform dashboard brings its own espresso shell (sidebar, toggles, credit).
+    if (pathname?.startsWith('/admin/platform')) {
+        return <RequireRole allowedRoles={['ADMIN', 'OWNER']}>{children}</RequireRole>;
+    }
 
     return (
         <RequireRole allowedRoles={['ADMIN', 'OWNER']}>

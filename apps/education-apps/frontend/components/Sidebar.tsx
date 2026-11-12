@@ -226,6 +226,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
 
   const superAdminMenuItems = [
     {
+      id: 'platform',
+      label: 'Tableau de bord',
+      icon: LayoutDashboard,
+      path: '/admin/platform',
+      activeColor: 'bg-[#334155]/50 border-[#60A5FA]',
+      iconColor: 'text-[#60A5FA]'
+    },
+    {
       id: 'schools',
       label: 'Écoles',
       icon: Building,

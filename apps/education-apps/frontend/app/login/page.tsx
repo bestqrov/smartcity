@@ -30,7 +30,7 @@ export default function LoginPage() {
 
         const user = useAuthStore.getState().user;
         if (user?.role === 'OWNER') router.push('/admin/select-branch');
-        else if (user?.role === 'SUPER_ADMIN') router.push('/admin/schools');
+        else if (user?.role === 'SUPER_ADMIN') router.push('/admin/platform');
         else if (user?.role === 'ADMIN') router.push('/admin');
         else if (user?.role === 'SECRETARY') router.push('/secretary');
         else if (user?.role === 'SALES_AGENT') router.push('/agent');

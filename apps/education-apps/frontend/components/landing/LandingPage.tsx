@@ -34,7 +34,7 @@ export default function LandingPage() {
     useEffect(() => {
         if (!user) return;
         if (user.role === 'OWNER') router.replace('/admin/select-branch');
-        else if (user.role === 'SUPER_ADMIN') router.replace('/admin/schools');
+        else if (user.role === 'SUPER_ADMIN') router.replace('/admin/platform');
         else if (user.role === 'ADMIN') router.replace('/admin');
         else if (user.role === 'SECRETARY') router.replace('/secretary');
         else if (user.role === 'SALES_AGENT') router.replace('/agent');
