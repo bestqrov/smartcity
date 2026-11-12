@@ -81,6 +81,10 @@ export interface Parent {
     cin?: string;
     address?: string;
     students: Student[];
+    // only present on the public parent space response (/parents/profile/:token)
+    announcements?: Pick<Announcement, 'id' | 'title' | 'body' | 'createdAt'>[];
+    holidays?: Holiday[];
+    school?: { name: string; logo?: string | null; phone?: string | null; email?: string | null } | null;
     createdAt: string;
     updatedAt: string;
 }
