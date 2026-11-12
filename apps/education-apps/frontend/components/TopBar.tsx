@@ -98,9 +98,9 @@ export default function TopBar() {
     };
 
     return (
-        <header className="h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 fixed top-0 right-0 left-64 z-20 px-6 flex items-center justify-end transition-all duration-300">
+        <header className="h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 fixed top-0 right-0 left-0 lg:left-72 z-20 pl-16 pr-4 sm:px-6 lg:pl-6 flex items-center justify-end transition-all duration-300">
             {/* Right: Actions & Profile */}
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 sm:gap-4 lg:gap-6">
                 {/* Athan Widget */}
                 {nextPrayer && (
                     <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 text-emerald-700 dark:text-emerald-300 rounded-2xl text-sm font-bold shadow-sm border border-emerald-100/50 dark:border-emerald-800/50 group hover:scale-105 transition-all cursor-pointer">
@@ -122,20 +122,20 @@ export default function TopBar() {
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}
-                    className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                    className="p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                     title={theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair'}
                 >
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                 </button>
 
                 {/* Notifications */}
-                <button className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors relative">
+                <button className="p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors relative">
                     <Bell size={20} />
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
                 </button>
 
                 {/* Vertical Divider */}
-                <div className="h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
+                <div className="hidden sm:block h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
 
                 {/* Admin Profile */}
                 <div className="flex items-center gap-3">

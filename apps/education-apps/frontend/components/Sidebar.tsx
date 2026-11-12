@@ -298,7 +298,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     <>
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 rounded-xl bg-[#1e293b] text-white shadow-lg border border-[#334155]"
+        className={`lg:hidden fixed top-3 z-50 w-11 h-11 flex items-center justify-center rounded-xl bg-[#1e293b] text-white shadow-lg border border-[#334155] transition-all duration-300 ${isMobileMenuOpen ? 'left-[calc(min(18rem,85vw)+0.5rem)]' : 'left-4'}`}
         aria-label="Toggle menu"
       >
         {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -313,7 +313,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
 
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-40
-        w-72 text-slate-300
+        w-72 max-w-[85vw] text-slate-300
         flex flex-col border-r border-[#334155]/50 shadow-2xl
         transition-transform duration-300 ease-spring
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -360,7 +360,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                     <button
                       onClick={() => toggleMenu(item.id)}
                       className={`
-                        w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 group
+                        w-full flex items-center justify-between px-3 py-2.5 lg:py-2 rounded-lg transition-all duration-200 group
                         ${active || expandedMenus.includes(item.id)
                           ? 'bg-white/5 text-white'
                           : 'text-slate-400 hover:bg-white/5 hover:text-white'
@@ -388,7 +388,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                               <button
                                 onClick={() => handleNavigation(sub.path)}
                                 className={`
-                                  w-full text-left px-2.5 py-1.5 rounded-md text-[13px] transition-all duration-200 relative
+                                  w-full text-left px-2.5 py-2.5 lg:py-1.5 rounded-md text-[13px] transition-all duration-200 relative
                                   ${isSubActive
                                     ? 'text-white font-bold bg-white/10'
                                     : 'text-slate-500 hover:text-white'
@@ -411,7 +411,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                     onClick={() => !item.comingSoon && handleNavigation(item.path!)}
                     disabled={item.comingSoon}
                     className={`
-                      w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200 group relative overflow-hidden
+                      w-full flex items-center gap-2.5 px-3 py-2.5 lg:py-2 rounded-lg transition-all duration-200 group relative overflow-hidden
                       ${item.comingSoon ? 'opacity-60 cursor-not-allowed text-slate-400' : activeClass}
                     `}
                   >
