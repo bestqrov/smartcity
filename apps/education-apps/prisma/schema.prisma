@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -289,6 +290,12 @@ model Teacher {
   specialties String[] // Subjects
   levels      String[] // Levels
 
+  // Teacher portal (/t/<token>): only the hash of the secret link is stored.
+  // Not @unique: MongoDB's non-sparse unique index rejects many teachers without a link (null dup keys);
+  // a 256-bit token hash is unique in practice, lookups use findFirst.
+  accessTokenHash String?
+  linkIssuedAt    DateTime?
+
   groups Group[]
 
   createdAt DateTime @default(now())
@@ -297,6 +304,7 @@ model Teacher {
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
 
+  @@index([accessTokenHash])
   @@map("teachers")
 }
 
@@ -407,6 +415,8 @@ model Settings {
 
   transportPricingMode  TransportPricingMode? // null is treated as ROUTE
   transportUniformPrice Float?
+
+  gradingPeriods String[] // empty = defaults ["Semestre 1", "Semestre 2"]
 
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
@@ -762,4 +772,40 @@ model PartnerOffer {
   updatedAt       DateTime @updatedAt
 
   @@map("partner_offers")
+}
+
+model Evaluation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  branchId    String   @db.ObjectId
+  groupId     String   @db.ObjectId
+  title       String
+  subject     String
+  period      String
+  date        DateTime
+  maxScore    Float    @default(20)
+  coefficient Float    @default(1)
+  published   Boolean  @default(false)
+  createdBy   String? // "teacher:<id>" or "user:<id>"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  grades      Grade[]
+
+  @@index([branchId, groupId, period])
+  @@map("evaluations")
+}
+
+model Grade {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  branchId     String     @db.ObjectId
+  evaluationId String     @db.ObjectId
+  evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  studentId    String     @db.ObjectId
+  score        Float? // null = not entered yet
+  absent       Boolean    @default(false)
+  comment      String?
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([evaluationId, studentId])
+  @@index([studentId])
+  @@map("grades")
 }

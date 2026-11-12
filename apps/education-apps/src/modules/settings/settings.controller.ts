@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { getSettings, updateSettings } from './settings.service';
+import { getSettings, updateSettings, validateGradingPeriods } from './settings.service';
 import { sendSuccess, sendError } from '../../utils/response';
 import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
@@ -14,7 +14,7 @@ export const get = async (req: TenantRequest, res: Response): Promise<void> => {
 
 export const update = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const { schoolName, logo, academicYear, contactInfo, transportPricingMode, transportUniformPrice } = req.body;
+        const { schoolName, logo, academicYear, contactInfo, transportPricingMode, transportUniformPrice, gradingPeriods } = req.body;
 
         if (transportPricingMode !== undefined && !['ROUTE', 'STOP', 'UNIFORM'].includes(transportPricingMode)) {
             sendError(res, 'transportPricingMode must be ROUTE, STOP or UNIFORM', 'Validation error', 400);
@@ -29,7 +29,18 @@ export const update = async (req: TenantRequest, res: Response): Promise<void> =
             return;
         }
 
+        let periods: string[] | undefined;
+        if (gradingPeriods !== undefined) {
+            try {
+                periods = validateGradingPeriods(gradingPeriods);
+            } catch (e: any) {
+                sendError(res, e.message, 'Validation error', 400);
+                return;
+            }
+        }
+
         const updateData: any = {};
+        if (periods !== undefined) updateData.gradingPeriods = periods;
         if (schoolName) updateData.schoolName = schoolName;
         if (logo !== undefined) updateData.logo = logo;
         if (academicYear) updateData.academicYear = academicYear;

@@ -60,7 +60,7 @@ export const INSTITUTION_TYPE_CONFIG: Record<InstitutionType, InstitutionTypeCon
     LANGUAGE_CENTER: NONE,
     VOCATIONAL_TRAINING: { ...NONE, menuOrderFirst: ['formation'] },
     CRECHE: {
-        hiddenMenuIds: ['formation'],
+        hiddenMenuIds: ['formation', 'grades'],
         menuOrderFirst: [],
         menuLabels: { soutien: 'Enfants' },
         subLabels: {

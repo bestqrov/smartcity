@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarClock, CheckCircle2, Clock, Megaphone, Palmtree, Wallet } from 'lucide-react';
+import { CalendarClock, CheckCircle2, Clock, GraduationCap, Megaphone, Palmtree, Wallet } from 'lucide-react';
 import type { Parent, Student } from '@/types';
 import { ATTENDANCE_META } from '@/lib/attendanceStatus';
 import type { ParentLang, ParentMessages } from '@/lib/parent/messages';
@@ -12,7 +12,7 @@ interface Props {
     student: Student;
     t: ParentMessages;
     lang: ParentLang;
-    goTo: (tab: 'payments' | 'school') => void;
+    goTo: (tab: 'payments' | 'school' | 'grades') => void;
 }
 
 export default function HomeTab({ parent, student, t, lang, goTo }: Props) {
@@ -24,6 +24,7 @@ export default function HomeTab({ parent, student, t, lang, goTo }: Props) {
     const balance = studentBalance(student);
     const latest = (parent.announcements || [])[0];
     const holiday = (parent.holidays || [])[0];
+    const latestGrades = (student.grades || []).filter((g) => g.absent || g.score != null).slice(0, 3);
 
     return (
         <div className="space-y-4">
@@ -98,6 +99,42 @@ export default function HomeTab({ parent, student, t, lang, goTo }: Props) {
                     </Card>
                 </button>
             </div>
+
+            {latestGrades.length > 0 && (
+                <Card>
+                    <SectionTitle
+                        icon={GraduationCap}
+                        action={
+                            <button type="button" onClick={() => goTo('grades')} className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                                {t.seeAll}
+                            </button>
+                        }
+                    >
+                        {t.latestGrades}
+                    </SectionTitle>
+                    <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {latestGrades.map((g) => (
+                            <li key={g.evaluationId}>
+                                <button type="button" onClick={() => goTo('grades')} className="flex w-full items-center justify-between gap-3 py-2 text-start">
+                                    <span className="min-w-0">
+                                        <span className="block truncate text-sm font-medium text-slate-900 dark:text-white">{g.subject}</span>
+                                        <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{g.title}</span>
+                                    </span>
+                                    <span className="shrink-0 text-sm font-bold text-slate-900 dark:text-white">
+                                        {g.absent ? (
+                                            <span className="text-xs font-semibold text-slate-400">{t.absentGrade}</span>
+                                        ) : (
+                                            <Ltr>
+                                                {g.score}/{g.maxScore}
+                                            </Ltr>
+                                        )}
+                                    </span>
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </Card>
+            )}
 
             <Card>
                 <SectionTitle

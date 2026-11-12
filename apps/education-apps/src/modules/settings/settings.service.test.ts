@@ -1,5 +1,5 @@
 import prisma from '../../config/database';
-import { getSettings, updateSettings } from './settings.service';
+import { getSettings, updateSettings, validateGradingPeriods } from './settings.service';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
@@ -76,5 +76,25 @@ describe('transport pricing settings', () => {
         const call = (prisma.settings.upsert as jest.Mock).mock.calls[0][0];
         expect(call.create).not.toHaveProperty('transportPricingMode');
         expect(call.create).not.toHaveProperty('transportUniformPrice');
+    });
+});
+
+describe('validateGradingPeriods', () => {
+    it('accepts 1 to 6 distinct trimmed names', () => {
+        expect(validateGradingPeriods([' Trimestre 1 ', 'Trimestre 2', 'Trimestre 3'])).toEqual(['Trimestre 1', 'Trimestre 2', 'Trimestre 3']);
+    });
+
+    it.each([
+        [[]],
+        [['a', 'b', 'c', 'd', 'e', 'f', 'g']],
+        [['a', 'a']],
+        [['a', ' a ']],
+        [['']],
+        [['   ']],
+        [['x'.repeat(31)]],
+        [[1]],
+        ['Semestre 1'],
+    ])('rejects %o', (value) => {
+        expect(() => validateGradingPeriods(value)).toThrow('gradingPeriods');
     });
 });

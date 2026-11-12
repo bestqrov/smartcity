@@ -2,6 +2,7 @@ import { Response } from 'express';
 import * as teachersService from './teachers.service';
 import { sendSuccess, sendError } from '../../utils/response';
 import { TenantRequest } from '../../middlewares/tenantScope.middleware';
+import { respond } from '../transport/http';
 
 export const createTeacher = async (req: TenantRequest, res: Response) => {
     try {
@@ -37,4 +38,11 @@ export const deleteTeacher = async (req: TenantRequest, res: Response) => {
     } catch (error: any) {
         sendError(res, error.message, 'Failed to delete teacher', 400);
     }
+};
+
+export const issuePortalLink = async (req: TenantRequest, res: Response) => {
+    await respond(res, () => teachersService.issueTeacherLink(req.params.id, req.branchId!), {
+        message: 'Teacher link issued successfully',
+        failure: 'Failed to issue teacher link',
+    });
 };

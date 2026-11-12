@@ -20,8 +20,13 @@ import {
     Calculator,
     Briefcase,
     DollarSign,
-    Percent
+    Percent,
+    Link2,
+    X
 } from 'lucide-react';
+import PortalLinkCard from '@/components/PortalLinkCard';
+import { issueTeacherPortalLink } from '@/lib/services/grades';
+import { publicUrl, teacherPortalMessage } from '@/lib/publicUrl';
 import { teachersService } from '@/lib/services/teachers';
 import { formationsService } from '@/lib/services/formations';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
@@ -158,6 +163,24 @@ const TeachersContent = () => {
         }
     };
 
+    const [portalLink, setPortalLink] = useState<{ teacher: Teacher; url: string } | null>(null);
+    const [linkLoadingId, setLinkLoadingId] = useState<string | null>(null);
+
+    const handleTeacherLink = async (teacher: Teacher) => {
+        if (teacher.linkIssuedAt && !confirm('Un nouveau lien remplacera l\'ancien, qui ne fonctionnera plus. Continuer ?')) return;
+        setLinkLoadingId(teacher.id);
+        try {
+            const { rawToken, linkIssuedAt } = await issueTeacherPortalLink(teacher.id);
+            setTeachers(prev => prev.map(t => (t.id === teacher.id ? { ...t, linkIssuedAt } : t)));
+            setPortalLink({ teacher: { ...teacher, linkIssuedAt }, url: publicUrl(`/t/${rawToken}`) });
+        } catch (error) {
+            console.error(error);
+            alert('Impossible de générer le lien enseignant');
+        } finally {
+            setLinkLoadingId(null);
+        }
+    };
+
     const handleDelete = async (id: string) => {
         if (confirm('Supprimer ce professeur ?')) {
             try {
@@ -267,6 +290,21 @@ const TeachersContent = () => {
                             <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
                                 <Phone size={14} className="text-green-500" />
                                 <span>{teacher.phone || 'Non renseigné'}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => handleTeacherLink(teacher)}
+                                    disabled={linkLoadingId === teacher.id}
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-60"
+                                >
+                                    <Link2 size={14} /> Lien enseignant
+                                </button>
+                                {teacher.linkIssuedAt && (
+                                    <span className="text-xs text-gray-500">
+                                        Lien envoyé le {new Date(teacher.linkIssuedAt).toLocaleDateString('fr-FR')}
+                                    </span>
+                                )}
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 {(teacher.specialties || []).map((s, idx) => (
@@ -487,6 +525,28 @@ const TeachersContent = () => {
                                 <Button type="submit" className={`${buttonClass}`}>Enregistrer</Button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {portalLink && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setPortalLink(null)}>
+                    <div className="relative w-full max-w-xl" onClick={e => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            onClick={() => setPortalLink(null)}
+                            aria-label="Fermer"
+                            className="absolute right-3 top-3 z-10 rounded-lg p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        >
+                            <X size={18} />
+                        </button>
+                        <PortalLinkCard
+                            title="Lien enseignant"
+                            url={portalLink.url}
+                            phone={portalLink.teacher.phone}
+                            message={teacherPortalMessage(portalLink.teacher.name)}
+                            warning="Ce lien remplace le précédent. Envoyez-le uniquement à l'enseignant."
+                        />
                     </div>
                 </div>
             )}

@@ -2,6 +2,7 @@ import prisma from '../../config/database';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
 import { tuitionPayments } from '../payments/tuitionFilter';
 import { currentMonth } from '../transport/month';
+import { periodsFor, DEFAULT_PERIODS } from '../grades/grades.service';
 
 export interface CreateParentData {
     name: string;
@@ -82,6 +83,19 @@ export const assertParentInBranch = async (parentId: string | null | undefined, 
     await findOwnParent(parentId, branchId);
 };
 
+interface ParentGrade {
+    evaluationId: string;
+    title: string;
+    subject: string;
+    period: string;
+    date: Date;
+    maxScore: number;
+    coefficient: number;
+    score: number | null;
+    absent: boolean;
+    comment: string | null;
+}
+
 const PROFILE_ATTENDANCE_DAYS = 60;
 const MAX_LINKS_PER_REQUEST = 200;
 
@@ -127,14 +141,22 @@ export const getParentByRawToken = async (rawToken: string) => {
     if (!parent) return null;
 
     if (!parent.branchId) {
-        return { ...parent, announcements: [], holidays: [], school: null };
+        return {
+            ...parent,
+            students: parent.students.map((s) => ({ ...s, grades: [] })),
+            announcements: [],
+            holidays: [],
+            school: null,
+            gradingPeriods: [...DEFAULT_PERIODS],
+        };
     }
 
     // Defence in depth: never expose a linked student that belongs to another branch.
     parent.students = parent.students.filter((s) => s.branchId === parent.branchId);
 
     const branchId = parent.branchId;
-    const [announcements, holidays, branch] = await Promise.all([
+    const studentIds = parent.students.map((s) => s.id);
+    const [announcements, holidays, branch, gradingPeriods, grades] = await Promise.all([
         prisma.announcement.findMany({
             where: { branchId, active: true },
             orderBy: { createdAt: 'desc' },
@@ -148,9 +170,48 @@ export const getParentByRawToken = async (rawToken: string) => {
             where: { id: branchId },
             include: { school: { select: { name: true, logo: true, phone: true, email: true } } },
         }),
+        periodsFor(branchId),
+        // Only grades of published evaluations ever reach parents.
+        studentIds.length === 0
+            ? Promise.resolve([])
+            : prisma.grade.findMany({
+                  where: {
+                      branchId,
+                      studentId: { in: studentIds },
+                      evaluation: { is: { published: true, branchId } },
+                      // A cleared grade (no score, not absent) is not a grade.
+                      OR: [{ absent: true }, { score: { not: null } }],
+                  },
+                  include: { evaluation: true },
+              }),
     ]);
 
-    return { ...parent, announcements, holidays, school: branch?.school || null };
+    const gradesByStudent = new Map<string, ParentGrade[]>();
+    for (const g of grades) {
+        const ev = g.evaluation;
+        if (!ev || ev.published !== true || ev.branchId !== branchId) continue; // defence in depth
+        if (!g.absent && g.score == null) continue;
+        const list = gradesByStudent.get(g.studentId) ?? [];
+        list.push({
+            evaluationId: ev.id,
+            title: ev.title,
+            subject: ev.subject,
+            period: ev.period,
+            date: ev.date,
+            maxScore: ev.maxScore,
+            coefficient: ev.coefficient,
+            score: g.score,
+            absent: g.absent,
+            comment: g.comment,
+        });
+        gradesByStudent.set(g.studentId, list);
+    }
+    const students = parent.students.map((s) => ({
+        ...s,
+        grades: (gradesByStudent.get(s.id) ?? []).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    }));
+
+    return { ...parent, students, announcements, holidays, school: branch?.school || null, gradingPeriods };
 };
 
 /** Re-issues the access link of many parents at once (bulk QR cards). All-or-nothing, branch-scoped. */

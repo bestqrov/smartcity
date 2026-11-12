@@ -21,6 +21,8 @@ jest.mock('../../config/database', () => ({
         holiday: { findMany: jest.fn() },
         branch: { findUnique: jest.fn() },
         accessLog: { groupBy: jest.fn() },
+        grade: { findMany: jest.fn() },
+        settings: { findUnique: jest.fn() },
         $transaction: jest.fn(),
     },
 }));
@@ -72,6 +74,7 @@ describe('parents.service', () => {
         beforeEach(() => {
             (prisma.announcement.findMany as jest.Mock).mockResolvedValue([{ id: 'a1' }]);
             (prisma.holiday.findMany as jest.Mock).mockResolvedValue([{ id: 'h1' }]);
+            (prisma.grade.findMany as jest.Mock).mockResolvedValue([]);
             (prisma.branch.findUnique as jest.Mock).mockResolvedValue({ school: { name: 'Ecole', logo: null, phone: '05', email: 'e@x' } });
         });
 
@@ -144,6 +147,74 @@ describe('parents.service', () => {
             expect(prisma.announcement.findMany).not.toHaveBeenCalled();
             expect(prisma.holiday.findMany).not.toHaveBeenCalled();
             expect(prisma.branch.findUnique).not.toHaveBeenCalled();
+            expect(result.gradingPeriods).toEqual(['Semestre 1', 'Semestre 2']);
+            expect(prisma.grade.findMany).not.toHaveBeenCalled();
+        });
+
+        it('gives each child only published grades, newest first, and the branch grading periods', async () => {
+            (prisma.parent.findUnique as jest.Mock).mockResolvedValue({
+                id: 'p1',
+                branchId: 'b1',
+                students: [{ id: 's1', branchId: 'b1' }, { id: 's2', branchId: 'b1' }],
+            });
+            (prisma.settings.findUnique as jest.Mock).mockResolvedValue({ gradingPeriods: ['T1', 'T2', 'T3'] });
+            const evaluation = (id: string, date: string) => ({
+                id,
+                title: 'Contrôle ' + id,
+                subject: 'Maths',
+                period: 'T1',
+                date: new Date(date),
+                maxScore: 20,
+                coefficient: 2,
+                published: true,
+                branchId: 'b1',
+                groupId: 'g1',
+            });
+            (prisma.grade.findMany as jest.Mock).mockResolvedValue([
+                { id: 'gr1', studentId: 's1', score: 14, absent: false, comment: 'Bien', evaluationId: 'e1', evaluation: evaluation('e1', '2026-10-01') },
+                { id: 'gr2', studentId: 's1', score: null, absent: true, comment: null, evaluationId: 'e2', evaluation: evaluation('e2', '2026-11-01') },
+            ]);
+
+            const result: any = await getParentByRawToken('tok');
+
+            expect(prisma.grade.findMany).toHaveBeenCalledWith({
+                where: {
+                    branchId: 'b1',
+                    studentId: { in: ['s1', 's2'] },
+                    evaluation: { is: { published: true, branchId: 'b1' } },
+                    OR: [{ absent: true }, { score: { not: null } }],
+                },
+                include: { evaluation: true },
+            });
+            expect(result.gradingPeriods).toEqual(['T1', 'T2', 'T3']);
+            expect(result.students[0].grades).toEqual([
+                { evaluationId: 'e2', title: 'Contrôle e2', subject: 'Maths', period: 'T1', date: new Date('2026-11-01'), maxScore: 20, coefficient: 2, score: null, absent: true, comment: null },
+                { evaluationId: 'e1', title: 'Contrôle e1', subject: 'Maths', period: 'T1', date: new Date('2026-10-01'), maxScore: 20, coefficient: 2, score: 14, absent: false, comment: 'Bien' },
+            ]);
+            expect(result.students[1].grades).toEqual([]);
+        });
+
+        it('drops cleared grades (no score, not absent)', async () => {
+            (prisma.parent.findUnique as jest.Mock).mockResolvedValue({ id: 'p1', branchId: 'b1', students: [{ id: 's1', branchId: 'b1' }] });
+            (prisma.settings.findUnique as jest.Mock).mockResolvedValue(null);
+            (prisma.grade.findMany as jest.Mock).mockResolvedValue([
+                { studentId: 's1', score: null, absent: false, comment: null, evaluationId: 'e1', evaluation: { id: 'e1', published: true, branchId: 'b1', date: new Date() } },
+            ]);
+            const result: any = await getParentByRawToken('tok');
+            expect(result.students[0].grades).toEqual([]);
+        });
+
+        it('never exposes a grade of an unpublished evaluation even if the query returned one', async () => {
+            (prisma.parent.findUnique as jest.Mock).mockResolvedValue({ id: 'p1', branchId: 'b1', students: [{ id: 's1', branchId: 'b1' }] });
+            (prisma.settings.findUnique as jest.Mock).mockResolvedValue(null);
+            (prisma.grade.findMany as jest.Mock).mockResolvedValue([
+                { studentId: 's1', score: 3, absent: false, comment: null, evaluationId: 'e9', evaluation: { id: 'e9', published: false, branchId: 'b1' } },
+            ]);
+
+            const result: any = await getParentByRawToken('tok');
+
+            expect(result.students[0].grades).toEqual([]);
+            expect(result.gradingPeriods).toEqual(['Semestre 1', 'Semestre 2']);
         });
     });
 });
