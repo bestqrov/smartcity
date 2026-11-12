@@ -19,12 +19,14 @@ export interface ImportValidation {
     counts: { valid: number; duplicate: number; error: number };
     missingGroups: string[];
     capacity: { limit: number | null; current: number; remaining: number | null; packName: string | null };
+    parents: { toCreate: number; toLink: number };
 }
 
 export interface ImportCommitResult {
     rows: { rowNumber: number; status: 'created' | 'duplicate' | 'error'; errors: string[]; warnings: string[] }[];
     counts: { created: number; duplicate: number; error: number };
     createdGroups: string[];
+    parents: { created: number; linked: number };
 }
 
 export async function validateStudentImport(rows: ImportRowInput[]): Promise<ImportValidation> {

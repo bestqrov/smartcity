@@ -4,5 +4,5 @@
 import StudentImportWizard from '@/components/import/StudentImportWizard';
 
 export default function AdminStudentImportPage() {
-    return <StudentImportWizard studentsPath="/admin/students" />;
+    return <StudentImportWizard studentsPath="/admin/students" parentsPath="/admin/parents" />;
 }

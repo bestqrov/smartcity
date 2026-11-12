@@ -3,7 +3,7 @@ import prisma from '../../config/database';
 import { getSchoolCapacity, remainingPlaces } from '../packs/packs.limits';
 import { assertStudentCapacity } from '../packs/packs.limits';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
-import { duplicateKey, foldText, normalizeRow, type ImportRow, type NormalizedRow } from './normalize';
+import { duplicateKey, foldText, normalizePhone, normalizeRow, type ImportRow, type NormalizedRow } from './normalize';
 
 export const MAX_IMPORT_ROWS = 1000;
 
@@ -19,6 +19,8 @@ export interface ImportValidation {
     missingGroups: string[];
     groupIds: Map<string, string>; // folded group name -> id (existing groups)
     capacity: { limit: number | null; current: number; remaining: number | null; packName: string | null };
+    parents: { toCreate: number; toLink: number };
+    parentIds: Map<string, string>; // normalized phone -> id (existing parents of the branch)
 }
 
 const assertRows = (rows: unknown): ImportRow[] => {
@@ -36,11 +38,18 @@ const assertRows = (rows: unknown): ImportRow[] => {
 export const validateImport = async (branchId: string, input: unknown, today: Date = new Date()): Promise<ImportValidation> => {
     const rows = assertRows(input);
 
-    const [existing, groups, capacity] = await Promise.all([
+    const [existing, groups, capacity, parentList] = await Promise.all([
         prisma.student.findMany({ where: { branchId }, select: { surname: true, name: true, birthDate: true, massarNumber: true } }),
         prisma.group.findMany({ where: { branchId }, select: { id: true, name: true } }),
         getSchoolCapacity(branchId),
+        prisma.parent.findMany({ where: { branchId }, select: { id: true, phone: true } }),
     ]);
+
+    const parentIds = new Map<string, string>();
+    for (const parent of parentList) {
+        const phone = normalizePhone(parent.phone).value;
+        if (phone && !parentIds.has(phone)) parentIds.set(phone, parent.id);
+    }
 
     const known = new Set(existing.map((student) => duplicateKey(student)).filter((key): key is string => key !== null));
     const groupIds = new Map(groups.map((group) => [foldText(group.name), group.id]));
@@ -71,11 +80,22 @@ export const validateImport = async (branchId: string, input: unknown, today: Da
     const counts = { valid: 0, duplicate: 0, error: 0 };
     for (const row of checked) counts[row.status] += 1;
 
+    const newPhones = new Set<string>();
+    let toLink = 0;
+    for (const row of checked) {
+        const phone = row.status === 'valid' ? row.data.parentPhone : undefined;
+        if (!phone) continue;
+        if (parentIds.has(phone)) toLink += 1;
+        else newPhones.add(phone);
+    }
+
     return {
         rows: checked,
         counts,
         missingGroups: [...missing.values()],
         groupIds,
+        parents: { toCreate: newPhones.size, toLink },
+        parentIds,
         capacity: { limit: capacity.limit, current: capacity.current, remaining: remainingPlaces(capacity), packName: capacity.packName },
     };
 };
@@ -93,6 +113,7 @@ export interface ImportCommitResult {
     rows: CommitRow[];
     counts: Record<CommitStatus, number>;
     createdGroups: string[];
+    parents: { created: number; linked: number };
 }
 
 const CHUNK = 50;
@@ -125,16 +146,54 @@ export const commitImport = async (
         }
     }
 
+    // One parent per distinct phone: reuse the branch's, else create (the access link is made later).
+    const parentIds = new Map(validation.parentIds);
+    const existingPhones = new Set(parentIds.keys());
+    const failedPhones = new Set<string>();
+    let parentsCreated = 0;
+    for (const row of valid) {
+        const phone = row.data.parentPhone;
+        if (!phone || parentIds.has(phone) || failedPhones.has(phone)) continue;
+        const name =
+            valid.find((other) => other.data.parentPhone === phone && (other.data.parentName || other.data.fatherName || other.data.motherName)) ??
+            row;
+        try {
+            const parent = await prisma.parent.create({
+                data: {
+                    name:
+                        name.data.parentName ||
+                        name.data.fatherName ||
+                        name.data.motherName ||
+                        `Parent de ${row.data.name} ${row.data.surname}`,
+                    phone,
+                    branchId,
+                    accessTokenHash: hashToken(generateRawToken()),
+                },
+                select: { id: true },
+            });
+            parentIds.set(phone, parent.id);
+            parentsCreated += 1;
+        } catch (error) {
+            console.error(`Import parent for row ${row.rowNumber} failed`, error);
+            failedPhones.add(phone);
+        }
+    }
+    let parentsLinked = 0;
+
     const outcome = new Map<number, CommitRow>();
     for (let start = 0; start < valid.length; start += CHUNK) {
         await Promise.all(
             valid.slice(start, start + CHUNK).map(async (row) => {
+                const phone = row.data.parentPhone;
+                const parentId = phone ? parentIds.get(phone) : undefined;
+                const warnings = phone && !parentId ? [...row.warnings, 'Profil parent non créé'] : row.warnings;
                 const groupId = row.group ? groupIds.get(foldText(row.group)) : undefined;
                 try {
                     await prisma.student.create({
                         data: {
                             branchId,
                             ...row.data,
+                            ...(parentId && { parentId }),
                             active: true,
                             accessTokenHash: hashToken(generateRawToken()),
                             portalTokenHash: hashToken(generateRawToken()),
@@ -142,14 +201,15 @@ export const commitImport = async (
                         },
                         select: { id: true },
                     });
-                    outcome.set(row.rowNumber, { rowNumber: row.rowNumber, status: 'created', errors: [], warnings: row.warnings });
+                    outcome.set(row.rowNumber, { rowNumber: row.rowNumber, status: 'created', errors: [], warnings });
+                    if (parentId && phone && existingPhones.has(phone)) parentsLinked += 1;
                 } catch (error) {
                     console.error(`Import row ${row.rowNumber} failed`, error);
                     outcome.set(row.rowNumber, {
                         rowNumber: row.rowNumber,
                         status: 'error',
                         errors: ["Échec de l'enregistrement"],
-                        warnings: row.warnings,
+                        warnings,
                     });
                 }
             })
@@ -168,5 +228,5 @@ export const commitImport = async (
     const counts = { created: 0, duplicate: 0, error: 0 };
     for (const row of rows) counts[row.status] += 1;
 
-    return { rows, counts, createdGroups };
+    return { rows, counts, createdGroups, parents: { created: parentsCreated, linked: parentsLinked } };
 };

@@ -22,7 +22,7 @@ export const validate = async (req: TenantRequest, res: Response): Promise<void>
         // groupIds is an internal Map (group ids): not sent to the client.
         sendSuccess(
             res,
-            { rows: result.rows, counts: result.counts, missingGroups: result.missingGroups, capacity: result.capacity },
+            { rows: result.rows, counts: result.counts, missingGroups: result.missingGroups, capacity: result.capacity, parents: result.parents },
             'Import validated'
         );
     } catch (error) {

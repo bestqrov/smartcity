@@ -13,6 +13,7 @@ jest.mock('../../config/database', () => ({
     default: {
         student: { findMany: jest.fn(), create: jest.fn() },
         group: { findMany: jest.fn(), create: jest.fn() },
+        parent: { findMany: jest.fn(), create: jest.fn() },
     },
 }));
 
@@ -25,6 +26,7 @@ beforeEach(() => {
         { surname: 'X', name: 'Y', birthDate: null, massarNumber: 'J1' },
     ]);
     (prisma.group.findMany as jest.Mock).mockResolvedValue([{ id: 'g1', name: 'CE2-A' }]);
+    (prisma.parent.findMany as jest.Mock).mockResolvedValue([]);
     (getSchoolCapacity as jest.Mock).mockResolvedValue({ schoolId: 'sc1', limit: 300, current: 120, packName: 'Pro' });
 });
 
@@ -81,6 +83,22 @@ describe('validateImport', () => {
         expect(result.missingGroups).toEqual(['CM1-B']);
         expect(result.rows[0].warnings).toEqual([]);
         expect(result.rows[1].warnings).toEqual(['Groupe « CM1-B » inexistant']);
+    });
+
+    it('counts the parents to create (distinct new phones) and to link (existing)', async () => {
+        (prisma.parent.findMany as jest.Mock).mockResolvedValue([{ id: 'p9', phone: '06 12 34 56 78' }]);
+        const result = await validateImport(
+            'b1',
+            [
+                { rowNumber: 2, surname: 'A', name: 'B', parentPhone: '0611111111' },
+                { rowNumber: 3, surname: 'C', name: 'D', parentPhone: '+212611111111' },
+                { rowNumber: 4, surname: 'E', name: 'F', parentPhone: '0612345678' },
+                { rowNumber: 5, surname: 'G', name: 'H' },
+                { rowNumber: 6, surname: '', name: 'Bad', parentPhone: '0699999999' },
+            ],
+            TODAY
+        );
+        expect(result.parents).toEqual({ toCreate: 1, toLink: 1 });
     });
 
     it('reports the capacity left for the valid rows', async () => {
@@ -172,5 +190,78 @@ describe('commitImport', () => {
         expect(result.rows[0]).toMatchObject({ rowNumber: 2, status: 'error', errors: ["Échec de l'enregistrement"] });
         expect(result.rows[2]).toMatchObject({ rowNumber: 4, status: 'created' });
         expect(result.counts).toEqual({ created: 1, duplicate: 1, error: 2 });
+    });
+
+    describe('parents', () => {
+        beforeEach(() => {
+            (prisma.parent.create as jest.Mock).mockImplementation(({ data }: any) => Promise.resolve({ id: `p-${data.phone}` }));
+        });
+        const studentData = (i: number) => (prisma.student.create as jest.Mock).mock.calls[i][0].data;
+
+        it('creates one parent for siblings sharing a phone in different formats', async () => {
+            const result = await commitImport(
+                'b1',
+                [
+                    { rowNumber: 2, surname: 'Alaoui', name: 'Sara', parentPhone: '+212612345678', parentName: 'M. Alaoui' },
+                    { rowNumber: 3, surname: 'Alaoui', name: 'Adam', parentPhone: '0612345678' },
+                ],
+                false,
+                TODAY
+            );
+            expect(prisma.parent.findMany).toHaveBeenCalledWith({ where: { branchId: 'b1' }, select: { id: true, phone: true } });
+            expect(prisma.parent.create).toHaveBeenCalledTimes(1);
+            expect(prisma.parent.create).toHaveBeenCalledWith({
+                data: { name: 'M. Alaoui', phone: '0612345678', branchId: 'b1', accessTokenHash: expect.any(String) },
+                select: { id: true },
+            });
+            expect(studentData(0).parentId).toBe('p-0612345678');
+            expect(studentData(1).parentId).toBe('p-0612345678');
+            expect(result.parents).toEqual({ created: 1, linked: 0 });
+        });
+
+        it('reuses an existing branch parent whose phone matches after normalization', async () => {
+            (prisma.parent.findMany as jest.Mock).mockResolvedValue([{ id: 'p9', phone: '06 12 34 56 78' }]);
+            const rows = [{ rowNumber: 2, surname: 'Alaoui', name: 'Sara', parentPhone: '0612345678' }];
+            const preview = await validateImport('b1', rows, TODAY);
+            expect(preview.parents).toEqual({ toCreate: 0, toLink: 1 });
+            const result = await commitImport('b1', rows, false, TODAY);
+            expect(prisma.parent.create).not.toHaveBeenCalled();
+            expect(studentData(0).parentId).toBe('p9');
+            expect(result.parents).toEqual({ created: 0, linked: 1 });
+        });
+
+        it('gives no parent to a row without a phone', async () => {
+            const result = await commitImport('b1', [{ rowNumber: 2, surname: 'A', name: 'B', parentName: 'Someone' }], false, TODAY);
+            expect(prisma.parent.create).not.toHaveBeenCalled();
+            expect('parentId' in studentData(0)).toBe(false);
+            expect(result.rows[0].warnings).toEqual([]);
+            expect(result.parents).toEqual({ created: 0, linked: 0 });
+        });
+
+        it('names the parent from parentName, then father, then mother, then the child', async () => {
+            await commitImport(
+                'b1',
+                [
+                    { rowNumber: 2, surname: 'A', name: 'a', parentPhone: '0611111111', parentName: 'P', fatherName: 'F', motherName: 'M' },
+                    { rowNumber: 3, surname: 'B', name: 'b', parentPhone: '0622222222', fatherName: 'F2', motherName: 'M2' },
+                    { rowNumber: 4, surname: 'C', name: 'c', parentPhone: '0633333333', motherName: 'M3' },
+                    { rowNumber: 5, surname: 'D', name: 'd', parentPhone: '0644444444' },
+                    { rowNumber: 6, surname: 'E', name: 'e', parentPhone: '0655555555' },
+                    { rowNumber: 7, surname: 'E', name: 'f', parentPhone: '0655555555', parentName: 'Late' },
+                ],
+                false,
+                TODAY
+            );
+            const names = (prisma.parent.create as jest.Mock).mock.calls.map((call) => call[0].data.name);
+            expect(names).toEqual(['P', 'F2', 'M3', 'Parent de d D', 'Late']);
+        });
+
+        it('still creates the student, with a warning, when the parent cannot be created', async () => {
+            (prisma.parent.create as jest.Mock).mockRejectedValue(new Error('boom'));
+            const result = await commitImport('b1', [{ rowNumber: 2, surname: 'A', name: 'B', parentPhone: '0612345678' }], false, TODAY);
+            expect('parentId' in studentData(0)).toBe(false);
+            expect(result.rows[0]).toMatchObject({ status: 'created', warnings: ['Profil parent non créé'] });
+            expect(result.parents).toEqual({ created: 0, linked: 0 });
+        });
     });
 });

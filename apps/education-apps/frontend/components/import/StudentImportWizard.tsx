@@ -39,9 +39,10 @@ const secondaryBtn = 'inline-flex items-center justify-center gap-2 rounded-lg b
 
 interface Props {
     studentsPath: string; // where "Voir les élèves" goes after the import
+    parentsPath?: string; // where the parents page lives; no link when absent
 }
 
-export default function StudentImportWizard({ studentsPath }: Props) {
+export default function StudentImportWizard({ studentsPath, parentsPath }: Props) {
     const { profile } = useSchoolProfile();
     const fields = useMemo(() => fieldsFor(profile.institutionType === 'CRECHE'), [profile.institutionType]);
 
@@ -279,6 +280,12 @@ export default function StudentImportWizard({ studentsPath }: Props) {
                         ))}
                     </div>
 
+                    {validation.parents.toCreate + validation.parents.toLink > 0 && (
+                        <p className="text-sm text-gray-700 dark:text-gray-200">
+                            {validation.parents.toCreate} profil(s) parent seront créés, {validation.parents.toLink} élève(s) rattaché(s) à un parent existant.
+                        </p>
+                    )}
+
                     {overCapacity && (
                         <div role="alert" className="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200 sm:flex-row sm:items-center sm:justify-between">
                             <span>
@@ -363,8 +370,17 @@ export default function StudentImportWizard({ studentsPath }: Props) {
                         <li><CheckCircle2 className="me-1 inline h-4 w-4 text-emerald-500" />{result.counts.created} élève(s) créé(s)</li>
                         <li><AlertTriangle className="me-1 inline h-4 w-4 text-amber-500" />{result.counts.duplicate} doublon(s) ignoré(s)</li>
                         <li><XCircle className="me-1 inline h-4 w-4 text-red-500" />{result.counts.error} ligne(s) en erreur</li>
+                        <li>{result.parents.created} profil(s) parent créé(s)</li>
                         {result.createdGroups.length > 0 && <li>Groupes créés : {result.createdGroups.join(', ')}</li>}
                     </ul>
+                    {parentsPath && (
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Créez les liens d’accès des parents depuis la page Parents.{' '}
+                            <Link href={parentsPath} className="font-semibold text-indigo-600 hover:underline dark:text-indigo-300">
+                                Ouvrir la page Parents
+                            </Link>
+                        </p>
+                    )}
                     <div className="flex flex-wrap gap-2">
                         {result.counts.error > 0 && (
                             <button
