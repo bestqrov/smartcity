@@ -156,6 +156,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       iconColor: 'text-[#F472B6]'
     },
     {
+      id: 'homework',
+      label: 'Devoirs',
+      icon: BookOpen,
+      path: '/admin/homework',
+      activeColor: 'bg-[#334155]/50 border-[#2DD4BF]',
+      iconColor: 'text-[#2DD4BF]'
+    },
+    {
       id: 'parents',
       label: 'Parents',
       icon: Users,
@@ -260,6 +268,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       path: '/secretary/activities',
       activeColor: 'bg-[#334155]/50 border-[#F472B6]',
       iconColor: 'text-[#F472B6]'
+    },
+    {
+      id: 'homework',
+      label: 'Devoirs',
+      icon: BookOpen,
+      path: '/secretary/homework',
+      activeColor: 'bg-[#334155]/50 border-[#2DD4BF]',
+      iconColor: 'text-[#2DD4BF]'
     },
     {
       id: 'parents-access',

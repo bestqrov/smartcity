@@ -92,6 +92,7 @@ export interface TeacherPortalGroup {
     type: string;
     students: GradeStudent[];
     evaluations: EvaluationWithGrades[];
+    homework?: import('./homework').Homework[];
 }
 
 export interface TeacherPortal {
