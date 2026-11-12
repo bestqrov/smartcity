@@ -42,12 +42,61 @@ Success means:
   `Payment` row.
 - **Vocational training (Formation Pro).** Its enrollment logic is different.
 - **Transport subscriptions.**
-- **The pack's `maxStudents` limit.** It is not enforced anywhere in the app yet, so
-  the import does not enforce it either. When the limit is enforced, the import must go
-  through the same check.
+- **Pack features** (`Pack.features`, for example TRANSPORT). Like the student limit,
+  they are not enforced anywhere yet. Enforcing them is a separate piece of work.
 - **Automatic recognition of the Massar export format.** Manual column mapping works
   with a Massar file. Auto-detection will be added once we have a real Massar file to
   build it against.
+
+## Pack student limit
+
+The import makes it possible to add hundreds of students in a minute, so it must respect
+the school's pack. Today `Pack.maxStudents` is shown on the pricing page but is not
+enforced anywhere. This work enforces it **for every way a student is created**, not
+only for the import. Otherwise a school could get around the limit one student at a
+time, and the two paths would disagree.
+
+**The rule**
+- The limit applies to the whole school, across all its branches: the packs are sold
+  per school, and `maxBranches` sits next to `maxStudents` on the same pack.
+- Only active students count (`Student.active = true`). There is no deactivate action
+  in the app today, so in practice every student counts. Deleting a student frees a
+  place.
+- `maxStudents = null` (Premium, Crèche Plus) means no limit.
+- A school with no pack has no limit. Signup gives every school its type's default pack
+  when one exists, so this only covers old data.
+- The limit applies during the trial as well. A school on trial that needs more places
+  is moved to a bigger pack by the platform admin (`assignPackToSchool`). This is also
+  the upsell moment for the sales team.
+
+**Shared check:** `assertStudentCapacity(branchId, adding)` in a new
+`src/modules/packs/packs.limits.ts`.
+- It finds the branch's school and pack, counts the active students in all of the
+  school's branches, and throws `STUDENT_LIMIT_REACHED` when `count + adding > maxStudents`.
+- The error carries `{ limit, current, adding }`, so the frontend can show the numbers.
+- The controllers turn it into HTTP 403 with code `STUDENT_LIMIT_REACHED`.
+
+**Where it is called**
+- `POST /students`, with `adding = 1`. This covers the Soutien, crèche and Formation
+  forms, since they all create students through it.
+- The import's `validate`, with `adding` = the number of valid rows. This returns
+  `capacity: { limit, current, remaining }` in the response instead of throwing, so the
+  preview can show it.
+- The import's `commit`, with `adding` = the number of valid rows. This is checked
+  once, before anything is written.
+
+**When the file has more valid rows than places left**
+- The commit is refused as a whole. Importing only the first N rows would pick, at
+  random, which students exist in the app.
+- The preview shows a red banner before the admin confirms: *"Votre pack « Pro » permet
+  300 élèves. Vous en avez 120, ce fichier en ajoute 250 : il manque 70 places. Retirez
+  des lignes du fichier ou passez à un pack supérieur."* The confirm button is disabled.
+- The single-student forms show the same message when `POST /students` returns
+  `STUDENT_LIMIT_REACHED`.
+
+**Known gap.** The count and the inserts are not atomic. Two imports running at the same
+moment in the same school could overshoot the limit slightly. This is accepted: it
+needs two people importing at once, and the overshoot is bounded by one file.
 
 ## Approach
 
@@ -179,7 +228,8 @@ A new module, `src/modules/students-import/`, with its routes mounted under
   strings, plus `rowNumber`.
 - Writes nothing.
 - Returns, for each row, `{ rowNumber, status: 'valid' | 'duplicate' | 'error', errors: string[], warnings: string[] }`,
-  together with `missingGroups: string[]`.
+  together with `missingGroups: string[]` and
+  `capacity: { limit: number | null, current: number, remaining: number | null }`.
 
 **`POST /students/import/commit`**
 - Body: `{ rows: ImportRow[], createMissingGroups: boolean }`.
@@ -242,6 +292,14 @@ A new module, `src/modules/students-import/`, with its routes mounted under
 - The 1000-row limit.
 - No `Inscription` and no `Payment` created.
 - One failing row does not stop the others.
+- Pack limit: a commit over the limit writes nothing; a commit exactly at the limit
+  succeeds; `validate` reports the capacity.
+
+**Backend (jest), `assertStudentCapacity`:**
+- It counts across all branches of the school and ignores other schools.
+- It ignores inactive students.
+- A `null` limit and a school with no pack are unlimited.
+- `POST /students` returns 403 `STUDENT_LIMIT_REACHED` when the school is full.
 
 **Frontend:**
 - Header matching against a set of real-looking headers in French, Arabic and mixed
