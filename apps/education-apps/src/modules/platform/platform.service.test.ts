@@ -8,6 +8,7 @@ jest.mock('../../config/database', () => ({
         schoolPayment: { findMany: jest.fn() },
         salesAgent: { findMany: jest.fn() },
         agentPayout: { findMany: jest.fn() },
+        packUpgrade: { findMany: jest.fn() },
     },
 }));
 
@@ -97,6 +98,18 @@ const mockAll = () => {
     (prisma.schoolPayment.findMany as jest.Mock).mockResolvedValue(PAYMENTS);
     (prisma.salesAgent.findMany as jest.Mock).mockResolvedValue(AGENTS);
     (prisma.agentPayout.findMany as jest.Mock).mockResolvedValue(PAYOUTS);
+    (prisma.packUpgrade.findMany as jest.Mock).mockResolvedValue([
+        {
+            id: 'u1',
+            schoolId: 's1',
+            fromPackName: 'Pro',
+            toPackName: 'Premium',
+            toMonthlyPrice: 650,
+            createdAt: d('2026-11-01T10:00:00Z'),
+            dueAt: d('2026-12-01T10:00:00Z'),
+            school: { name: 'École Atlas' },
+        },
+    ]);
 };
 
 // Every key of a value, at any depth.
@@ -209,6 +222,38 @@ describe('getPlatformOverview', () => {
         expect(overview.payouts).toEqual([{ agentId: 'a1', amount: 25, paidAt: d('2026-10-20T00:00:00Z') }]);
     });
 
+    it('returns the unsettled upgrades that have a deadline, earliest deadline first', async () => {
+        mockAll();
+        const overview = await getPlatformOverview();
+
+        expect(prisma.packUpgrade.findMany).toHaveBeenCalledWith({
+            where: { dueAt: { not: null }, OR: [{ settledAt: null }, { settledAt: { isSet: false } }] },
+            orderBy: { dueAt: 'asc' },
+            select: {
+                id: true,
+                schoolId: true,
+                fromPackName: true,
+                toPackName: true,
+                toMonthlyPrice: true,
+                createdAt: true,
+                dueAt: true,
+                school: { select: { name: true } },
+            },
+        });
+        expect(overview.pendingUpgrades).toEqual([
+            {
+                id: 'u1',
+                schoolId: 's1',
+                schoolName: 'École Atlas',
+                fromPackName: 'Pro',
+                toPackName: 'Premium',
+                toMonthlyPrice: 650,
+                createdAt: d('2026-11-01T10:00:00Z'),
+                dueAt: d('2026-12-01T10:00:00Z'),
+            },
+        ]);
+    });
+
     it('selects explicit fields only: no password, user id, owner contact or bank details', async () => {
         mockAll();
         await getPlatformOverview();
@@ -246,6 +291,7 @@ describe('getPlatformOverview', () => {
         (prisma.schoolPayment.findMany as jest.Mock).mockResolvedValue([]);
         (prisma.salesAgent.findMany as jest.Mock).mockResolvedValue([]);
         (prisma.agentPayout.findMany as jest.Mock).mockResolvedValue([]);
-        await expect(getPlatformOverview()).resolves.toEqual({ schools: [], payments: [], agents: [], payouts: [] });
+        (prisma.packUpgrade.findMany as jest.Mock).mockResolvedValue([]);
+        await expect(getPlatformOverview()).resolves.toEqual({ schools: [], payments: [], agents: [], payouts: [], pendingUpgrades: [] });
     });
 });
