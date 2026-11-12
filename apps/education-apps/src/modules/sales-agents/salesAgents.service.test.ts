@@ -94,7 +94,7 @@ describe('listAgents', () => {
         isHouse: false,
         active: true,
         userId: 'u1',
-        user: { email: 'y@example.com', avatar: 'data:image/png;base64,AAAA' },
+        user: { email: 'y@example.com', avatar: 'data:image/png;base64,AAAA', role: 'SALES_AGENT' },
         schools: [{ status: 'ACTIVE' }, { status: 'PENDING' }],
         payments: [{ commissionAmount: 52.5 }, { commissionAmount: 30.25 }],
         payouts: [{ amount: 50 }],
@@ -125,8 +125,24 @@ describe('listAgents', () => {
             active: true,
             email: 'y@example.com',
             avatar: 'data:image/png;base64,AAAA',
+            accountRole: 'SALES_AGENT',
+            isSchoolAccount: false,
             totals: { schools: 2, activeSchools: 1, totalCommissions: 82.75, totalPayouts: 50, balance: 32.75 },
         });
+    });
+
+    it('flags an agent linked to a school account, and not one without a user', async () => {
+        (prisma.salesAgent.findMany as jest.Mock).mockResolvedValue([
+            { ...stored([]), user: { email: 'o@example.com', avatar: null, role: 'OWNER' } },
+            { ...stored([]), id: 'a2', user: null },
+        ]);
+
+        const [linked, orphan] = await listAgents();
+
+        expect(linked).toEqual(expect.objectContaining({ accountRole: 'OWNER', isSchoolAccount: true }));
+        expect(orphan).toEqual(expect.objectContaining({ accountRole: null, isSchoolAccount: false }));
+        expect(linked).not.toHaveProperty('userId');
+        expect(linked).not.toHaveProperty('password');
     });
 
     it('does not query packs when no agent has exceptions', async () => {
@@ -376,7 +392,7 @@ describe('agent report', () => {
         userId: 'u1',
         createdAt: new Date('2026-01-01'),
         updatedAt: new Date('2026-01-01'),
-        user: { email: 'y@example.com', avatar: 'data:image/png;base64,AAAA' },
+        user: { email: 'y@example.com', avatar: 'data:image/png;base64,AAAA', role: 'SALES_AGENT' },
         schools: [
             school('s1', 'Ecole A', 'ACTIVE'), // has credited payments -> CONFIRMED
             school('s2', 'Ecole B', 'PENDING'),
@@ -450,6 +466,27 @@ describe('agent report', () => {
         expect(report.rateTable.map((row) => row.packId)).toEqual([PACK_A, PACK_B]);
     });
 
+    it('flags an agent linked to a school account without exposing credentials', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({
+            ...stored,
+            user: { email: 'o@example.com', avatar: null, role: 'ADMIN' },
+        });
+
+        const { agent } = await getAgentReport('a1');
+
+        expect(agent).toEqual(expect.objectContaining({ isSchoolAccount: true, accountRole: 'ADMIN' }));
+        expect(agent).not.toHaveProperty('userId');
+        expect(agent).not.toHaveProperty('password');
+    });
+
+    it('does not flag a dedicated sales-agent login', async () => {
+        (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue(stored);
+
+        const { agent } = await getAgentReport('a1');
+
+        expect(agent).toEqual(expect.objectContaining({ isSchoolAccount: false, accountRole: 'SALES_AGENT' }));
+    });
+
     it('exposes the payout method fields on the agent', async () => {
         (prisma.salesAgent.findUnique as jest.Mock).mockResolvedValue({
             ...stored,
@@ -486,6 +523,8 @@ describe('agent report', () => {
             active: true,
             email: 'y@example.com',
             avatar: 'data:image/png;base64,AAAA',
+            accountRole: 'SALES_AGENT',
+            isSchoolAccount: false,
             referralPath: '/signup?ref=YOUSSEF22',
             payoutMethod: null,
             bankName: null,

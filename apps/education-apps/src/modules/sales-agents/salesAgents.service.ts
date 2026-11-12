@@ -96,11 +96,17 @@ const earnsCommission = (data: AgentUpdateData): boolean =>
     [data.monthlyRate, data.semiannualRate, data.yearlyRate].some((rate) => rate !== undefined && rate !== 0) ||
     (data.packRates?.length ?? 0) > 0;
 
+// A linked non-agent login is a school account: its credentials belong to the school, not to the admin screens.
+const accountFlags = (user: { role: string } | null | undefined) => ({
+    accountRole: user?.role ?? null,
+    isSchoolAccount: !!user && user.role !== 'SALES_AGENT',
+});
+
 export const listAgents = async () => {
     const agents = await prisma.salesAgent.findMany({
         orderBy: [{ isHouse: 'desc' }, { createdAt: 'asc' }],
         include: {
-            user: { select: { email: true, avatar: true } },
+            user: { select: { email: true, avatar: true, role: true } },
             schools: { select: { status: true } },
             payments: { select: { commissionAmount: true } },
             payouts: { select: { amount: true } },
@@ -113,6 +119,7 @@ export const listAgents = async () => {
         packRates: withPackNames(packRates, labels),
         email: user?.email ?? null,
         avatar: user?.avatar ?? null,
+        ...accountFlags(user),
         totals: buildTotals(schools, payments, payouts),
     }));
 };
@@ -263,7 +270,7 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
     const agent = await prisma.salesAgent.findUnique({
         where,
         include: {
-            user: { select: { email: true, avatar: true } },
+            user: { select: { email: true, avatar: true, role: true } },
             schools: {
                 orderBy: { createdAt: 'desc' },
                 select: {
@@ -337,6 +344,7 @@ const reportFor = async (where: Prisma.SalesAgentWhereUniqueInput) => {
             active: agent.active,
             email: agent.user?.email ?? null,
             avatar: agent.user?.avatar ?? null,
+            ...accountFlags(agent.user),
             referralPath: `/signup?ref=${agent.code}`,
             payoutMethod: agent.payoutMethod,
             bankName: agent.bankName,

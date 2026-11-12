@@ -163,11 +163,18 @@ export default function SalesAgentDetailPage() {
                         <AgentAvatar src={report.agent.avatar} name={report.agent.name} size={64} className="bg-indigo-100 text-indigo-700" />
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
                             {report.agent.name}
-                            {report.agent.isHouse && <span className="ml-3 align-middle px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>}
+                            {report.agent.isHouse && <span className="ms-3 align-middle px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>}
+                            {report.agent.isSchoolAccount && <span className="ms-3 align-middle px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Compte école</span>}
                         </h1>
                     </div>
 
-                    {!report.agent.isHouse && (
+                    {!report.agent.isHouse && report.agent.isSchoolAccount && (
+                        <p className="text-sm text-gray-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                            Ce commercial utilise son compte d&apos;école : il change son e-mail et son mot de passe depuis son propre profil.
+                        </p>
+                    )}
+
+                    {!report.agent.isHouse && !report.agent.isSchoolAccount && (
                         <div className="flex flex-wrap gap-2">
                         <button type="button" onClick={() => { setEmailValue(report.agent.email ?? ''); setEmailOpen(true); }} className="inline-flex items-center gap-2 px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50">
                             <Mail size={16} aria-hidden="true" /> Modifier l&apos;e-mail

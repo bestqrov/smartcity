@@ -45,6 +45,9 @@ export interface SalesAgentListItem extends AgentRates {
     active: boolean;
     email: string | null;
     avatar: string | null;
+    // True when the agent is linked to a school account (OWNER/ADMIN/SECRETARY): its credentials are managed by that user.
+    isSchoolAccount: boolean;
+    accountRole: string | null;
     totals: AgentTotals;
 }
 
@@ -97,6 +100,8 @@ export interface AgentReport {
         active: boolean;
         email: string | null;
         avatar: string | null;
+        isSchoolAccount: boolean;
+        accountRole: string | null;
         referralPath: string;
     };
     totals: AgentTotals & { statusCounts: StatusCounts };
