@@ -77,7 +77,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
         }
     };
 
-    const inputClass = 'px-3 py-2 border border-gray-200 rounded-lg';
+    const inputClass = 'min-h-10 px-3 py-2 border border-gray-200 rounded-lg';
 
     return (
         <Modal isOpen onClose={onClose} title={`Paiements — ${school.name}`} size="lg">
@@ -95,12 +95,13 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                     </select>
                     <input className={inputClass} type="date" aria-label="Date du paiement" value={form.paidAt} onChange={(e) => setForm({ ...form, paidAt: e.target.value })} required />
                     <input className={inputClass} aria-label="Note" placeholder="Note" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
-                    <button disabled={busy} className="sm:col-span-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold disabled:opacity-50">
+                    <button disabled={busy} className="sm:col-span-4 min-h-10 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold disabled:opacity-50">
                         Enregistrer le paiement
                     </button>
                 </form>
 
-                <table className="w-full text-left text-sm">
+                <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-left text-sm">
                     <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
                         <tr>
                             <th className="px-3 py-2">Date</th>
@@ -133,6 +134,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                         )}
                     </tbody>
                 </table>
+                </div>
             </div>
         </Modal>
     );

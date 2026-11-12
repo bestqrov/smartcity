@@ -243,7 +243,7 @@ export default function SuperAdminPacksPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Packs</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Packs</h1>
                     <p className="text-gray-600 mt-1">Catalogue des offres vendues aux établissements</p>
                 </div>
                 <div className="flex items-center gap-3">

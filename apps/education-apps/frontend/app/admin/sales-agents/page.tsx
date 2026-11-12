@@ -128,7 +128,7 @@ export default function SalesAgentsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Commerciaux</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Commerciaux</h1>
                     <p className="text-gray-600 mt-1">Codes, écoles apportées et commissions</p>
                 </div>
                 <button
@@ -167,21 +167,21 @@ export default function SalesAgentsPage() {
                     <table className="w-full text-left">
                         <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
                             <tr>
-                                <th className="px-6 py-4">Commercial</th>
-                                <th className="px-6 py-4">Code</th>
-                                <th className="px-6 py-4">Taux</th>
-                                <th className="px-6 py-4">Écoles</th>
-                                <th className="px-6 py-4">Commissions</th>
-                                <th className="px-6 py-4">Versé</th>
-                                <th className="px-6 py-4">Reste à payer</th>
-                                <th className="px-6 py-4">Statut</th>
+                                <th className="px-3 py-3 sm:px-6 sm:py-4">Commercial</th>
+                                <th className="px-3 py-3 sm:px-6 sm:py-4">Code</th>
+                                <th className="px-3 py-3 sm:px-6 sm:py-4">Taux</th>
+                                <th className="px-3 py-3 sm:px-6 sm:py-4">Écoles</th>
+                                <th className="px-3 py-3 sm:px-6 sm:py-4">Commissions</th>
+                                <th className="px-3 py-3 sm:px-6 sm:py-4">Versé</th>
+                                <th className="px-3 py-3 sm:px-6 sm:py-4">Reste à payer</th>
+                                <th className="px-3 py-3 sm:px-6 sm:py-4">Statut</th>
                             </tr>
                         </thead>
                         <tbody>
                             {agents.map((agent) => (
                                 <Fragment key={agent.id}>
                                 <tr className="border-t border-gray-100 hover:bg-gray-50">
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-3 sm:px-6 sm:py-4">
                                         <div className="flex items-center gap-2">
                                             <AgentAvatar src={agent.avatar} name={agent.name} size={28} className="bg-indigo-100 text-indigo-700" />
                                             <div className="min-w-0">
@@ -195,8 +195,8 @@ export default function SalesAgentsPage() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 font-mono font-bold">{agent.code}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-3 py-3 sm:px-6 sm:py-4 font-mono font-bold">{agent.code}</td>
+                                    <td className="px-3 py-3 sm:px-6 sm:py-4 whitespace-nowrap">
                                         {formatRates(agent)}
                                         {agent.packRates.length > 0 && (
                                             <div className="text-xs text-indigo-700">
@@ -204,7 +204,7 @@ export default function SalesAgentsPage() {
                                             </div>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-3 sm:px-6 sm:py-4">
                                         <button
                                             type="button"
                                             onClick={() => toggleSchools(agent.id)}
@@ -217,12 +217,12 @@ export default function SalesAgentsPage() {
                                         </button>
                                         <div className="text-xs text-gray-500">actives / total</div>
                                     </td>
-                                    <td className="px-6 py-4">{formatMAD(agent.totals.totalCommissions)}</td>
-                                    <td className="px-6 py-4">{formatMAD(agent.totals.totalPayouts)}</td>
+                                    <td className="px-3 py-3 sm:px-6 sm:py-4">{formatMAD(agent.totals.totalCommissions)}</td>
+                                    <td className="px-3 py-3 sm:px-6 sm:py-4">{formatMAD(agent.totals.totalPayouts)}</td>
                                     <td className={`px-6 py-4 font-bold whitespace-nowrap ${balanceClass(agent.totals.balance)}`}>
                                         {formatMAD(agent.totals.balance)}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-3 sm:px-6 sm:py-4">
                                         <span
                                             className={`px-3 py-1 rounded-full text-xs font-bold ${
                                                 agent.active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
@@ -234,7 +234,7 @@ export default function SalesAgentsPage() {
                                 </tr>
                                 {expandedId === agent.id && (
                                     <tr className="bg-gray-50 border-t border-gray-100">
-                                        <td colSpan={8} className="px-6 py-4">
+                                        <td colSpan={8} className="px-3 py-3 sm:px-6 sm:py-4">
                                             {schoolsLoading === agent.id ? (
                                                 <p className="text-sm text-gray-500">Chargement…</p>
                                             ) : schoolsError && !schoolsByAgent[agent.id] ? (

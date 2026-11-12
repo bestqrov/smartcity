@@ -94,14 +94,85 @@ export default function SuperAdminSchoolsPage() {
         return null;
     }
 
+    const statusBadge = (status: string) => (
+        <span
+            className={`px-3 py-1 rounded-full text-xs font-bold ${
+                status === 'ACTIVE' ? 'bg-green-100 text-green-700' : status === 'SUSPENDED' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+            }`}
+        >
+            {status}
+        </span>
+    );
+    const partnerBadge = (school: SchoolListItem) =>
+        school.partnerOffer && school.offerPeriod ? (
+            <span className="ms-2 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+                Partenaire · {OFFER_BADGE_LABELS[school.offerPeriod]}
+                {school.offerPrice != null && ` · ${formatOfferMoney(school.offerPrice)} MAD`}
+            </span>
+        ) : null;
+    const packSelect = (school: SchoolListItem, className: string) => (
+        <select
+            value={school.packId ?? ''}
+            disabled={assigningId === school.id}
+            onChange={(e) => handleAssignPack(school.id, e.target.value)}
+            className={`${className} border border-gray-200 rounded-lg text-sm disabled:opacity-50`}
+        >
+            <option value="">Aucun pack</option>
+            {packs
+                .filter((pack) => (pack.active && pack.institutionTypes.includes(school.institutionType ?? DEFAULT_INSTITUTION_TYPE)) || pack.id === school.packId)
+                .map((pack) => (
+                    <option key={pack.id} value={pack.id}>
+                        {pack.active ? pack.name : `${pack.name} (inactif)`}
+                    </option>
+                ))}
+        </select>
+    );
+    const agentSelect = (school: SchoolListItem, className: string) => (
+        <select
+            value={school.salesAgentId ?? ''}
+            disabled={assigningId === school.id}
+            onChange={(e) => handleAssignAgent(school.id, e.target.value)}
+            className={`${className} border border-gray-200 rounded-lg text-sm disabled:opacity-50`}
+        >
+            <option value="">Aucun commercial</option>
+            {agents.map((agent) => (
+                <option key={agent.id} value={agent.id}>
+                    {agent.name} ({agent.code}){agent.active ? '' : ' — inactif'}
+                </option>
+            ))}
+        </select>
+    );
+    const actionButtons = (school: SchoolListItem, btn: string) => (
+        <>
+            {school.status === 'PENDING' && (
+                <button
+                    onClick={() => handleActivate(school.id)}
+                    disabled={activatingId === school.id}
+                    className={`${btn} bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50`}
+                >
+                    <CheckCircle size={16} />
+                    {activatingId === school.id ? 'Activation…' : 'Activer'}
+                </button>
+            )}
+            <button
+                onClick={() => setPaymentsSchool({ id: school.id, name: school.name, offerPeriod: school.offerPeriod ?? null, offerPrice: school.offerPrice ?? null })}
+                className={`${btn} bg-gray-100 hover:bg-gray-200 text-gray-800`}
+            >
+                <Wallet size={16} /> Paiements
+            </button>
+        </>
+    );
+    const typeLabel = (school: SchoolListItem) => INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE];
+    const trialLabel = (school: SchoolListItem) => (school.trialEndsAt ? new Date(school.trialEndsAt).toLocaleDateString('fr-FR') : '—');
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Écoles</h1>
+            <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                    <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">Écoles</h1>
                     <p className="text-gray-600 mt-1">Gérer l'activation des écoles sur la plateforme</p>
                 </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
+                <div className="shrink-0 rounded-lg bg-blue-100 p-2.5 sm:p-3">
                     <Building2 className="text-blue-600" size={32} />
                 </div>
             </div>
@@ -112,9 +183,30 @@ export default function SuperAdminSchoolsPage() {
 
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-x-auto">
                 {loading ? (
-                    <p className="p-8 text-gray-500">Chargement…</p>
+                    <p className="p-6 text-gray-500 sm:p-8">Chargement…</p>
                 ) : (
-                    <table className="w-full text-left">
+                    <>
+                    <ul className="divide-y divide-gray-100 md:hidden">
+                        {schools.map((school) => (
+                            <li key={school.id} className="space-y-3 p-4">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                        <div className="font-semibold text-gray-800">{school.name}</div>
+                                        <div className="break-all text-sm text-gray-600">{school.ownerEmail}</div>
+                                    </div>
+                                    {statusBadge(school.status)}
+                                </div>
+                                {partnerBadge(school) && <div>{partnerBadge(school)}</div>}
+                                <div className="text-sm text-gray-600">
+                                    {typeLabel(school)} · Fin essai : {trialLabel(school)}
+                                </div>
+                                {packSelect(school, 'w-full min-h-10 px-3 py-2')}
+                                {agentSelect(school, 'w-full min-h-10 px-3 py-2')}
+                                <div className="flex flex-wrap gap-2">{actionButtons(school, 'flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold')}</div>
+                            </li>
+                        ))}
+                    </ul>
+                    <table className="hidden w-full text-left md:table">
                         <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
                             <tr>
                                 <th className="px-6 py-4">École</th>
@@ -132,89 +224,22 @@ export default function SuperAdminSchoolsPage() {
                                 <tr key={school.id} className="border-t border-gray-100">
                                     <td className="px-6 py-4 font-semibold text-gray-800">
                                         {school.name}
-                                        {school.partnerOffer && school.offerPeriod && (
-                                            <span className="ms-2 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">
-                                                Partenaire · {OFFER_BADGE_LABELS[school.offerPeriod]}
-                                                {school.offerPrice != null && ` · ${formatOfferMoney(school.offerPrice)} MAD`}
-                                            </span>
-                                        )}
+                                        {partnerBadge(school)}
                                     </td>
                                     <td className="px-6 py-4 text-gray-600">{school.ownerEmail}</td>
+                                    <td className="px-6 py-4">{statusBadge(school.status)}</td>
+                                    <td className="px-6 py-4 text-gray-600">{trialLabel(school)}</td>
+                                    <td className="px-6 py-4 text-gray-600">{typeLabel(school)}</td>
+                                    <td className="px-6 py-4">{packSelect(school, 'px-3 py-1.5')}</td>
+                                    <td className="px-6 py-4">{agentSelect(school, 'px-3 py-1.5')}</td>
                                     <td className="px-6 py-4">
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                                school.status === 'ACTIVE'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : school.status === 'SUSPENDED'
-                                                    ? 'bg-red-100 text-red-700'
-                                                    : 'bg-amber-100 text-amber-700'
-                                            }`}
-                                        >
-                                            {school.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-600">
-                                        {school.trialEndsAt ? new Date(school.trialEndsAt).toLocaleDateString('fr-FR') : '—'}
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-600">
-                                        {INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE]}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <select
-                                            value={school.packId ?? ''}
-                                            disabled={assigningId === school.id}
-                                            onChange={(e) => handleAssignPack(school.id, e.target.value)}
-                                            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm disabled:opacity-50"
-                                        >
-                                            <option value="">Aucun pack</option>
-                                            {packs
-                                                .filter((pack) => (pack.active && pack.institutionTypes.includes(school.institutionType ?? DEFAULT_INSTITUTION_TYPE)) || pack.id === school.packId)
-                                                .map((pack) => (
-                                                    <option key={pack.id} value={pack.id}>
-                                                        {pack.active ? pack.name : `${pack.name} (inactif)`}
-                                                    </option>
-                                                ))}
-                                        </select>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <select
-                                            value={school.salesAgentId ?? ''}
-                                            disabled={assigningId === school.id}
-                                            onChange={(e) => handleAssignAgent(school.id, e.target.value)}
-                                            className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm disabled:opacity-50"
-                                        >
-                                            <option value="">Aucun commercial</option>
-                                            {agents.map((agent) => (
-                                                <option key={agent.id} value={agent.id}>
-                                                    {agent.name} ({agent.code}){agent.active ? '' : ' — inactif'}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                        {school.status === 'PENDING' && (
-                                            <button
-                                                onClick={() => handleActivate(school.id)}
-                                                disabled={activatingId === school.id}
-                                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm disabled:opacity-50"
-                                            >
-                                                <CheckCircle size={16} />
-                                                {activatingId === school.id ? 'Activation…' : 'Activer'}
-                                            </button>
-                                        )}
-                                            <button
-                                                onClick={() => setPaymentsSchool({ id: school.id, name: school.name, offerPeriod: school.offerPeriod ?? null, offerPrice: school.offerPrice ?? null })}
-                                                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-semibold text-sm"
-                                            >
-                                                <Wallet size={16} /> Paiements
-                                            </button>
-                                        </div>
+                                        <div className="flex items-center gap-2">{actionButtons(school, 'flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm')}</div>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
+                    </>
                 )}
             </div>
             {paymentsSchool && <SchoolPaymentsModal key={paymentsSchool.id} school={paymentsSchool} onClose={() => setPaymentsSchool(null)} />}
