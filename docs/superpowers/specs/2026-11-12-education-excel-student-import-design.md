@@ -65,9 +65,9 @@ time, and the two paths would disagree.
 - `maxStudents = null` (Premium, Crèche Plus) means no limit.
 - A school with no pack has no limit. Signup gives every school its type's default pack
   when one exists, so this only covers old data.
-- The limit applies during the trial as well. A school on trial that needs more places
-  is moved to a bigger pack by the platform admin (`assignPackToSchool`). This is also
-  the upsell moment for the sales team.
+- The limit applies during the trial as well. A school on trial upgrades through the same
+  dialog (see "Upgrading from the limit dialog"). Its new pack is simply the pack it
+  pays for when the trial ends, so no payment deadline is set.
 
 **Shared check:** `assertStudentCapacity(branchId, adding)` in a new
 `src/modules/packs/packs.limits.ts`.
@@ -85,14 +85,107 @@ time, and the two paths would disagree.
 - The import's `commit`, with `adding` = the number of valid rows. This is checked
   once, before anything is written.
 
-**When the file has more valid rows than places left**
+**When the school needs more places than it has**
 - The commit is refused as a whole. Importing only the first N rows would pick, at
   random, which students exist in the app.
-- The preview shows a red banner before the admin confirms: *"Votre pack « Pro » permet
-  300 élèves. Vous en avez 120, ce fichier en ajoute 250 : il manque 70 places. Retirez
-  des lignes du fichier ou passez à un pack supérieur."* The confirm button is disabled.
-- The single-student forms show the same message when `POST /students` returns
-  `STUDENT_LIMIT_REACHED`.
+- Instead of a dead end, the school gets the **upgrade dialog**:
+  - In the import, it opens from the preview, before the admin confirms. The confirm
+    button stays disabled until the school has enough places.
+  - In the single-student forms, it opens when `POST /students` returns
+    `STUDENT_LIMIT_REACHED`.
+- Once the upgrade is done, the admin continues where they stopped. The import preview
+  re-validates and enables the confirm button, and the form re-submits.
+
+## Upgrading from the limit dialog
+
+**The dialog**
+- It states the numbers: *"Votre pack « Pro » permet 300 élèves. Vous en avez 120, ce
+  fichier en ajoute 250 : il manque 70 places."*
+- It lists the active packs of the school's institution type that have room for
+  `current + adding` students (`maxStudents` big enough, or `null`), with their monthly
+  and yearly price and their limit. The smallest pack that fits is pre-selected and
+  marked "Recommandé".
+- It states the payment terms before the admin confirms: *"Votre nouveau pack est actif
+  immédiatement. Vous avez jusqu'au {date} pour régler le nouveau tarif."* The date is
+  the deadline described below.
+- It has two buttons: "Passer au pack {name}" and "Annuler". Cancel leaves everything
+  unchanged, and the admin can still remove rows from the file instead.
+- If no pack fits, which only happens if the type has no unlimited pack, the dialog
+  says to contact the Arwa team and shows no upgrade button.
+
+**Who can upgrade**
+- `ADMIN` and `OWNER`, since it commits the school to a higher price.
+- A `SECRETARY` sees the same numbers, with *"Demandez à l'administrateur de
+  l'établissement de changer de pack"*, and no upgrade button.
+
+**Only upgrades.** The target pack must be active, serve the school's institution type,
+and give more places than the current pack (`null` counts as infinite). The server
+rejects anything else. Moving to a smaller pack stays a platform admin action.
+
+**The payment deadline**
+- The new pack applies immediately, and the school gets one month to pay:
+  `dueAt = upgradedAt + 1 calendar month`.
+- A school on trial (`PENDING` status) gets no deadline. It pays for the new pack when the
+  trial ends, through the existing flow.
+- Billing in the app is manual: the platform admin records payments with
+  `recordSchoolPayment`. The deadline follows the same model:
+  - The upgrade counts as **settled** as soon as the platform admin records a school
+    payment dated on or after the upgrade.
+  - Nothing happens automatically when the deadline passes. The school is not suspended
+    and the pack is not reverted. Reverting would leave the school over its limit, and
+    suspending is already a deliberate platform admin decision in this app.
+- Visibility:
+  - The school's admin sees a banner on the dashboard while the upgrade is unsettled:
+    *"Nouveau pack « Premium » : paiement attendu avant le {date}."* It turns red once the
+    date has passed.
+  - The platform dashboard gets an **"Upgrades en attente de paiement"** list: school,
+    old pack, new pack, new monthly price, date, deadline. Overdue rows show first, in red.
+    The sales team uses it for follow-up.
+- **Partner-offer schools.** Their price was frozen at signup, in `offerPrice`. An
+  upgrade does not change the offer fields. The upgrade row shows the new pack's list
+  price, and the platform admin agrees the new price with the school. Agent commission
+  needs no change: it is computed from the school's pack at the time each payment is
+  recorded, so payments after the upgrade use the new pack's rate.
+
+**Data:** a new model, `PackUpgrade`.
+
+```prisma
+model PackUpgrade {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  schoolId      String    @db.ObjectId
+  fromPackId    String?   @db.ObjectId
+  fromPackName  String?
+  toPackId      String    @db.ObjectId
+  toPackName    String
+  toMonthlyPrice Float    // snapshot, for the follow-up list
+  byUserId      String    @db.ObjectId
+  reason        String    // "STUDENT_LIMIT"
+  createdAt     DateTime  @default(now())
+  dueAt         DateTime? // null for a school on trial
+  settledAt     DateTime? // set when a school payment is recorded on or after createdAt
+  @@index([schoolId, createdAt])
+  @@index([settledAt, dueAt])
+  @@map("pack_upgrades")
+}
+```
+
+- `recordSchoolPayment` sets `settledAt` on the school's unsettled upgrades with
+  `createdAt <= paidAt`, inside its existing transaction.
+- `deleteSchoolPayment` does not un-settle an upgrade. The platform admin records the
+  payment again if it was deleted by mistake, and that settles the upgrade again.
+
+**API**
+- `GET /school/pack-options?adding=N` (ADMIN, OWNER, SECRETARY). Returns the current pack,
+  the current count, the limit, and the packs that fit, with `recommended` set on the
+  smallest.
+- `POST /school/pack-upgrade` (ADMIN, OWNER). Body: `{ packId }`. In one transaction it
+  checks the rules above, updates `School.packId`, and creates the `PackUpgrade`. Returns
+  the new capacity and `dueAt`.
+- `GET /school/pack-upgrade/pending` (ADMIN, OWNER). Feeds the dashboard banner.
+- The platform overview (`getPlatformOverview`) also returns the unsettled upgrades, for
+  the follow-up list.
+- The school is always the caller's own school: the branch from `tenantScope`, then its
+  school. It never comes from the request.
 
 **Known gap.** The count and the inserts are not atomic. Two imports running at the same
 moment in the same school could overshoot the limit slightly. This is accepted: it
@@ -300,6 +393,20 @@ A new module, `src/modules/students-import/`, with its routes mounted under
 - It ignores inactive students.
 - A `null` limit and a school with no pack are unlimited.
 - `POST /students` returns 403 `STUDENT_LIMIT_REACHED` when the school is full.
+
+**Backend (jest), pack upgrade:**
+- Only a bigger, active pack of the school's type is accepted. Smaller packs, the same
+  pack, packs of another type and inactive packs are rejected.
+- `SECRETARY` gets 403.
+- An `ACTIVE` school gets `dueAt` one calendar month later, including at month ends
+  (31 January becomes 28 or 29 February). A `PENDING` school gets `dueAt = null`.
+- Recording a school payment settles the open upgrades dated on or before it, and only
+  those of that school.
+- The school always comes from the caller's branch: an id in the body is ignored.
+
+**Manual check:** take a school on Essentiel (100 students), import a file of 150 rows,
+upgrade from the dialog, confirm that the import completes and that the banner and the
+platform list show the upgrade, then record a payment and confirm that both clear.
 
 **Frontend:**
 - Header matching against a set of real-looking headers in French, Arabic and mixed
