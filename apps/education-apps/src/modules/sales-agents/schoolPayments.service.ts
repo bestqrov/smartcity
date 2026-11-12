@@ -49,6 +49,12 @@ export const recordSchoolPayment = async (schoolId: string, input: Record<string
         });
         if (!school) throw new Error('School not found');
 
+        // A school that pays is a customer: a pending signup becomes active. A suspended school stays
+        // suspended (reactivating it is a deliberate super admin decision).
+        if (school.status === 'PENDING') {
+            await tx.school.update({ where: { id: schoolId }, data: { status: 'ACTIVE' } });
+        }
+
         const packId = school.pack?.id ?? null;
         const rate = resolveCommissionRate(school.salesAgent, packId, data.period);
         return tx.schoolPayment.create({

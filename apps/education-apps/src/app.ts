@@ -29,6 +29,14 @@ import platformRoutes from './modules/platform/platform.routes';
 
 const app: Application = express();
 
+// Behind proxies (Traefik, then the Next.js /api rewrite) every request comes from the proxy's IP, so the
+// per-IP rate limits (signup, code check) were shared by all visitors. TRUST_PROXY = number of proxy hops
+// in front of this server (e.g. 2 on Coolify). Unset locally: Express keeps using the socket address.
+const trustProxyHops = Number.parseInt(process.env.TRUST_PROXY ?? '', 10);
+if (Number.isInteger(trustProxyHops) && trustProxyHops > 0) {
+    app.set('trust proxy', trustProxyHops);
+}
+
 // ================= MIDDLEWARE =================
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));

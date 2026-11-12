@@ -7,7 +7,7 @@ import {
 } from './schoolPayments.service';
 
 jest.mock('../../config/database', () => {
-    const tx = { school: { findUnique: jest.fn() }, schoolPayment: { create: jest.fn() } };
+    const tx = { school: { findUnique: jest.fn(), update: jest.fn() }, schoolPayment: { create: jest.fn() } };
     return {
         __esModule: true,
         default: {
@@ -70,6 +70,20 @@ describe('assignSchoolAgent', () => {
 });
 
 describe('recordSchoolPayment', () => {
+    it('activates a PENDING school on its payment, and leaves ACTIVE or SUSPENDED schools alone', async () => {
+        tx.school.update.mockClear();
+        tx.school.findUnique.mockResolvedValueOnce({ id: 's1', status: 'PENDING', salesAgent: null, pack: null });
+        await recordSchoolPayment('s1', { amount: 350, period: 'MONTHLY', paidAt: '2026-11-01' });
+        expect(tx.school.update).toHaveBeenCalledWith({ where: { id: 's1' }, data: { status: 'ACTIVE' } });
+
+        tx.school.update.mockClear();
+        for (const status of ['ACTIVE', 'SUSPENDED']) {
+            tx.school.findUnique.mockResolvedValueOnce({ id: 's1', status, salesAgent: null, pack: null });
+            await recordSchoolPayment('s1', { amount: 350, period: 'MONTHLY', paidAt: '2026-11-01' });
+        }
+        expect(tx.school.update).not.toHaveBeenCalled();
+    });
+
     beforeEach(() => tx.schoolPayment.create.mockResolvedValue({ id: 'p1' }));
 
     it("freezes the agent, the resolved exception rate and the school's pack on the payment", async () => {

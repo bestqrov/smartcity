@@ -84,7 +84,14 @@ PORT=3010
 DATABASE_URL=<connection string du cluster Atlas dédié ArwaEduc, base arwaeduc — voir §0bis>
 JWT_SECRET=<secret long et aléatoire, dédié à ArwaEduc, PAS le même que JWT_SECRET de tourism/user-service>
 JWT_EXPIRES_IN=7d
+TRUST_PROXY=2
 ```
+
+> **`TRUST_PROXY`** = nombre de proxys devant le backend (Traefik, puis la réécriture `/api` de
+> Next.js → `2`). Sans lui, les limites par IP (inscription : 5/h, vérification du code commercial :
+> 20/min) sont partagées par **tous** les visiteurs. Vérification après déploiement : deux appareils
+> sur des réseaux différents doivent chacun pouvoir s'inscrire ; si un visiteur peut contourner la
+> limite en envoyant un en-tête `X-Forwarded-For` inventé, la valeur est trop haute (essayer `1`).
 
 > **Important :** ce `JWT_SECRET` doit être cohérent entre `education-backend` et
 > `education-frontend` s'il est utilisé côté frontend pour décoder un JWT (vérifiez
