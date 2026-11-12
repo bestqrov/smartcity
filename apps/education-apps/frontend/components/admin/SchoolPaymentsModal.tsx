@@ -17,13 +17,13 @@ import {
 import { PERIODS, PERIOD_LABELS } from '@/lib/salesAgentLabels';
 
 interface Props {
-    school: { id: string; name: string };
+    school: { id: string; name: string; offerPeriod?: SubscriptionPeriod | null; offerPrice?: number | null };
     onClose: () => void;
 }
 
 export default function SchoolPaymentsModal({ school, onClose }: Props) {
     const [payments, setPayments] = useState<SchoolPaymentItem[]>([]);
-    const [form, setForm] = useState({ amount: '', period: 'MONTHLY' as SubscriptionPeriod, paidAt: todayLocal(), note: '' });
+    const [form, setForm] = useState({ amount: school.offerPrice != null ? String(school.offerPrice) : '', period: (school.offerPeriod ?? 'MONTHLY') as SubscriptionPeriod, paidAt: todayLocal(), note: '' });
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -55,7 +55,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                 paidAt: form.paidAt,
                 note: form.note || undefined,
             });
-            setForm({ amount: '', period: form.period, paidAt: todayLocal(), note: '' });
+            setForm({ amount: school.offerPrice != null ? String(school.offerPrice) : '', period: form.period, paidAt: todayLocal(), note: '' });
             await load(school.id);
         } catch (err) {
             setError(apiErrorMessage(err));

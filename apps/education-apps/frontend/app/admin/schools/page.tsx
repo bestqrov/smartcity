@@ -6,9 +6,12 @@ import useAuthStore from '@/store/useAuthStore';
 import { getAllSchools, updateSchoolStatus, SchoolListItem } from '@/lib/services/schools';
 import { Building2, CheckCircle, Wallet } from 'lucide-react';
 import SchoolPaymentsModal from '@/components/admin/SchoolPaymentsModal';
-import { assignSchoolAgent, getSalesAgents, type SalesAgentListItem } from '@/lib/services/salesAgents';
+import { assignSchoolAgent, getSalesAgents, type SalesAgentListItem, type SubscriptionPeriod } from '@/lib/services/salesAgents';
 import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
+import { formatOfferMoney } from '@/lib/services/partnerOffer';
 import { apiErrorMessage, assignSchoolPack, getAllPacks, type AdminPack } from '@/lib/services/packs';
+
+const OFFER_BADGE_LABELS = { MONTHLY: 'Mensuel', SEMIANNUAL: '6 mois', YEARLY: 'Annuel' } as const;
 
 export default function SuperAdminSchoolsPage() {
     const router = useRouter();
@@ -20,7 +23,7 @@ export default function SuperAdminSchoolsPage() {
     const [packs, setPacks] = useState<AdminPack[]>([]);
     const [assigningId, setAssigningId] = useState<string | null>(null);
     const [agents, setAgents] = useState<SalesAgentListItem[]>([]);
-    const [paymentsSchool, setPaymentsSchool] = useState<{ id: string; name: string } | null>(null);
+    const [paymentsSchool, setPaymentsSchool] = useState<{ id: string; name: string; offerPeriod: SubscriptionPeriod | null; offerPrice: number | null } | null>(null);
 
     useEffect(() => {
         if (user && user.role !== 'SUPER_ADMIN') {
@@ -127,7 +130,15 @@ export default function SuperAdminSchoolsPage() {
                         <tbody>
                             {schools.map((school) => (
                                 <tr key={school.id} className="border-t border-gray-100">
-                                    <td className="px-6 py-4 font-semibold text-gray-800">{school.name}</td>
+                                    <td className="px-6 py-4 font-semibold text-gray-800">
+                                        {school.name}
+                                        {school.partnerOffer && school.offerPeriod && (
+                                            <span className="ms-2 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+                                                Partenaire · {OFFER_BADGE_LABELS[school.offerPeriod]}
+                                                {school.offerPrice != null && ` · ${formatOfferMoney(school.offerPrice)} MAD`}
+                                            </span>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 text-gray-600">{school.ownerEmail}</td>
                                     <td className="px-6 py-4">
                                         <span
@@ -193,7 +204,7 @@ export default function SuperAdminSchoolsPage() {
                                             </button>
                                         )}
                                             <button
-                                                onClick={() => setPaymentsSchool({ id: school.id, name: school.name })}
+                                                onClick={() => setPaymentsSchool({ id: school.id, name: school.name, offerPeriod: school.offerPeriod ?? null, offerPrice: school.offerPrice ?? null })}
                                                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-semibold text-sm"
                                             >
                                                 <Wallet size={16} /> Paiements

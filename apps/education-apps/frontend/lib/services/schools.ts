@@ -8,6 +8,7 @@ export interface SignupSchoolData {
     password: string;
     institutionType: InstitutionType;
     packCode?: string;
+    offerPeriod?: 'MONTHLY' | 'SEMIANNUAL' | 'YEARLY';
     referralCode: string;
 }
 
@@ -80,6 +81,9 @@ export interface SchoolListItem {
     pack?: { id: string; code: string; name: string } | null;
     salesAgentId?: string | null;
     salesAgent?: { id: string; name: string; code: string } | null;
+    partnerOffer?: boolean;
+    offerPeriod?: 'MONTHLY' | 'SEMIANNUAL' | 'YEARLY' | null;
+    offerPrice?: number | null;
 }
 
 export async function getAllSchools(): Promise<SchoolListItem[]> {

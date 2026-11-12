@@ -6,6 +6,7 @@ import { Package, Plus, Star } from 'lucide-react';
 import useAuthStore from '@/store/useAuthStore';
 import { Modal } from '@/components/ui/Modal';
 import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, type InstitutionType } from '@/lib/institutionTypes';
+import { getAdminPartnerOffer, updatePartnerOffer } from '@/lib/services/partnerOffer';
 import { PACK_FEATURES, type PackFeature } from '@/lib/packs';
 import {
     apiErrorMessage,
@@ -75,6 +76,86 @@ const toggle = <T,>(list: T[], value: T): T[] =>
 const inputCls =
     'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400';
 const labelCls = 'block text-xs font-medium text-gray-500 mb-1';
+
+function PartnerOfferCard() {
+    const [form, setForm] = useState({ active: true, monthlyPrice: '', semiannualPrice: '', yearlyPrice: '' });
+    const [loaded, setLoaded] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+
+    useEffect(() => {
+        getAdminPartnerOffer()
+            .then((offer) => {
+                setForm({
+                    active: offer.active,
+                    monthlyPrice: String(offer.monthlyPrice),
+                    semiannualPrice: String(offer.semiannualPrice),
+                    yearlyPrice: String(offer.yearlyPrice),
+                });
+                setLoaded(true);
+            })
+            .catch((err) => setMessage({ ok: false, text: apiErrorMessage(err) }));
+    }, []);
+
+    const save = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setBusy(true);
+        setMessage(null);
+        try {
+            await updatePartnerOffer({
+                active: form.active,
+                monthlyPrice: Number(form.monthlyPrice),
+                semiannualPrice: Number(form.semiannualPrice),
+                yearlyPrice: Number(form.yearlyPrice),
+            });
+            setMessage({ ok: true, text: 'Offre partenaire enregistrée.' });
+        } catch (err) {
+            setMessage({ ok: false, text: apiErrorMessage(err) });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const field = (key: 'monthlyPrice' | 'semiannualPrice' | 'yearlyPrice', label: string) => (
+        <label className="block text-sm font-semibold text-gray-700">
+            {label}
+            <input
+                type="number"
+                min={0.01}
+                step="0.01"
+                required
+                disabled={!loaded}
+                value={form[key]}
+                onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg font-normal"
+            />
+        </label>
+    );
+
+    return (
+        <form onSubmit={save} className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-bold text-gray-800">Offre partenaire</h2>
+                    <p className="text-sm text-gray-600">Prix (MAD) proposés aux visiteurs arrivés via le lien d&apos;un commercial partenaire (hors code maison).</p>
+                </div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <input type="checkbox" disabled={!loaded} checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
+                    Offre active
+                </label>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+                {field('monthlyPrice', 'Mensuel (MAD / mois)')}
+                {field('semiannualPrice', '6 mois (MAD)')}
+                {field('yearlyPrice', 'Annuel (MAD)')}
+            </div>
+            {message && <p className={`text-sm font-semibold ${message.ok ? 'text-green-700' : 'text-red-600'}`}>{message.text}</p>}
+            <button disabled={busy || !loaded} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm disabled:opacity-50">
+                Enregistrer
+            </button>
+        </form>
+    );
+}
 
 export default function SuperAdminPacksPage() {
     const router = useRouter();
@@ -177,6 +258,8 @@ export default function SuperAdminPacksPage() {
                     </div>
                 </div>
             </div>
+
+            <PartnerOfferCard />
 
             {error && !modalOpen && (
                 <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100">{error}</div>

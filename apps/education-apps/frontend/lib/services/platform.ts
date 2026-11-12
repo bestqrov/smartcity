@@ -12,6 +12,9 @@ export interface PlatformSchool {
     institutionType: InstitutionType | null; // null is treated as PRIVATE_SCHOOL
     status: SchoolStatus;
     packName: string | null;
+    partnerOffer: boolean;
+    offerPeriod: SubscriptionPeriod | null;
+    offerPrice: number | null;
     salesAgent: { id: string; name: string; code: string } | null;
     createdAt: string;
     trialEndsAt: string | null;

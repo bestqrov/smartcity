@@ -10,6 +10,18 @@ import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, isInstitutionType, type Ins
 import { checkReferralCode } from '../../lib/services/salesAgents';
 import { whatsappUrl } from '../../lib/landing/whatsapp';
 import { fetchPublicPacks, type PublicPack } from '../../lib/services/packs';
+import {
+    OFFER_PERIODS,
+    fetchPartnerOffer,
+    formatOfferMoney,
+    isOfferPeriod,
+    offerPerMonth,
+    offerPrice,
+    type OfferPeriod,
+    type PartnerOfferPrices,
+} from '../../lib/services/partnerOffer';
+
+const OFFER_LABELS: Record<OfferPeriod, string> = { MONTHLY: 'Mensuel', SEMIANNUAL: '6 mois', YEARLY: 'Annuel' };
 
 function SignupForm() {
     const router = useRouter();
@@ -25,6 +37,9 @@ function SignupForm() {
     const [packCode, setPackCode] = useState<string>(searchParams.get('pack') ?? '');
     const [packs, setPacks] = useState<PublicPack[]>([]);
     const [referralCode, setReferralCode] = useState<string>((searchParams.get('ref') ?? '').trim().toUpperCase());
+    const [offer, setOffer] = useState<PartnerOfferPrices | null>(null);
+    const initialOffer = searchParams.get('offer');
+    const [offerPeriod, setOfferPeriod] = useState<OfferPeriod>(isOfferPeriod(initialOffer) ? initialOffer : 'MONTHLY');
     const [codeStatus, setCodeStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
 
     // The code a pending check is for; a response for an older code is dropped so it can't overwrite the status.
@@ -32,6 +47,7 @@ function SignupForm() {
 
     const verifyCode = async (code: string) => {
         checkedCode.current = code;
+        setOffer(null);
         if (!code) {
             setCodeStatus('idle');
             return;
@@ -39,7 +55,13 @@ function SignupForm() {
         setCodeStatus('checking');
         try {
             const valid = await checkReferralCode(code);
-            if (checkedCode.current === code) setCodeStatus(valid ? 'valid' : 'invalid');
+            if (checkedCode.current !== code) return;
+            setCodeStatus(valid ? 'valid' : 'invalid');
+            if (valid) {
+                // A partner code replaces the packs with the partner offer; failure just keeps the packs.
+                const result = await fetchPartnerOffer(code).catch(() => null);
+                if (checkedCode.current === code && result?.eligible && result.offer) setOffer(result.offer);
+            }
         } catch {
             // network/rate-limit problem: let the server decide at submit
             if (checkedCode.current === code) setCodeStatus('idle');
@@ -99,7 +121,7 @@ function SignupForm() {
                 ...form,
                 referralCode: code,
                 institutionType,
-                ...(packCode ? { packCode } : {}),
+                ...(offer ? { offerPeriod } : packCode ? { packCode } : {}),
             });
             setAccessTokenState(token);
             setUser(user);
@@ -110,6 +132,9 @@ function SignupForm() {
             if (msg === 'Invalid referral code' || msg === 'Referral code is required') {
                 setCodeStatus('invalid');
                 setError(msg === 'Invalid referral code' ? 'Code commercial invalide.' : 'Le code commercial est obligatoire.');
+            } else if (msg === 'This offer is only available through a partner') {
+                setOffer(null);
+                setError("Cette offre n'est disponible que via un partenaire.");
             } else {
                 setError(msg);
             }
@@ -196,7 +221,41 @@ function SignupForm() {
                                 ))}
                             </select>
 
-                            {packs.length > 0 && (
+                            {offer && (
+                                <div className="grid gap-2" role="radiogroup" aria-label="Offre partenaire">
+                                    <p className="text-xs font-extrabold uppercase tracking-wider text-amber-600">Offre partenaire</p>
+                                    {OFFER_PERIODS.map((period) => (
+                                        <label
+                                            key={period}
+                                            className={`flex cursor-pointer items-center justify-between rounded-2xl border-2 px-5 py-3 ${
+                                                offerPeriod === period ? 'border-amber-500 bg-amber-50' : 'border-slate-100 bg-slate-50'
+                                            }`}
+                                        >
+                                            <span className="flex items-center gap-3 font-bold text-slate-800">
+                                                <input
+                                                    type="radio"
+                                                    name="offer"
+                                                    value={period}
+                                                    checked={offerPeriod === period}
+                                                    onChange={() => setOfferPeriod(period)}
+                                                />
+                                                {OFFER_LABELS[period]}
+                                            </span>
+                                            <span className="text-right text-sm font-semibold text-slate-500">
+                                                {formatOfferMoney(offerPrice(offer, period))} MAD
+                                                {period !== 'MONTHLY' && (
+                                                    <span className="block text-xs font-normal">
+                                                        ≈ {formatOfferMoney(offerPerMonth(offer, period))} MAD / mois
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </label>
+                                    ))}
+                                    <p className="text-xs text-slate-400">15 jours d&apos;essai gratuit, sans carte bancaire.</p>
+                                </div>
+                            )}
+
+                            {!offer && packs.length > 0 && (
                                 <div className="grid gap-2" role="radiogroup" aria-label="Pack">
                                     {packs.map((pack) => (
                                         <label
@@ -242,6 +301,7 @@ function SignupForm() {
                                     setReferralCode(e.target.value.toUpperCase());
                                     checkedCode.current = ''; // ignore any check still in flight
                                     setCodeStatus('idle');
+                                    setOffer(null);
                                 }}
                                 onBlur={() => verifyCode(referralCode.trim())}
                                 required
