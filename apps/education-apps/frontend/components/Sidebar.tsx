@@ -19,7 +19,8 @@ import {
   Package,
   Briefcase,
   BookOpen,
-  ClipboardList
+  ClipboardList,
+  PartyPopper
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
@@ -147,6 +148,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       iconColor: 'text-[#FBBF24]'
     },
     {
+      id: 'activities',
+      label: 'Activités',
+      icon: PartyPopper,
+      path: '/admin/activities',
+      activeColor: 'bg-[#334155]/50 border-[#F472B6]',
+      iconColor: 'text-[#F472B6]'
+    },
+    {
       id: 'parents',
       label: 'Parents',
       icon: Users,
@@ -243,6 +252,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       path: '/secretary/grades',
       activeColor: 'bg-[#334155]/50 border-[#FBBF24]',
       iconColor: 'text-[#FBBF24]'
+    },
+    {
+      id: 'activities',
+      label: 'Activités',
+      icon: PartyPopper,
+      path: '/secretary/activities',
+      activeColor: 'bg-[#334155]/50 border-[#F472B6]',
+      iconColor: 'text-[#F472B6]'
     },
     {
       id: 'parents-access',
