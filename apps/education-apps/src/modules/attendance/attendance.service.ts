@@ -12,6 +12,7 @@ import {
 } from '../../utils/attendanceStatus';
 import { ConsoleNotificationProvider } from '../notifications/notification.provider';
 import { sendAttendanceNotification } from '../notifications/notification.service';
+import { notifySafely, splitBilingual, ATTENDANCE_TITLE } from '../notifications/dispatcher';
 import { arrivedMessage, lateMessage } from './attendance.messages';
 
 export const MARKABLE_STATUSES = ['PRESENT', 'LATE', 'ABSENT', 'JUSTIFIED'] as const;
@@ -117,6 +118,12 @@ export const scanAttendance = async (rawStudentToken: string, groupId: string, b
         } catch (error) {
             console.error('[attendance] failed to send notification, attendance was still recorded:', error);
         }
+        await notifySafely([student.parentId], {
+            kind: 'ATTENDANCE',
+            branchId,
+            title: ATTENDANCE_TITLE,
+            body: splitBilingual(message),
+        });
     }
 
     return attendance;

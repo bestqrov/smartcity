@@ -18,9 +18,13 @@ jest.mock('../../config/database', () => ({
         settings: { findUnique: jest.fn() },
         evaluation: { findFirst: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() },
         grade: { findFirst: jest.fn(), findMany: jest.fn(), upsert: jest.fn(), deleteMany: jest.fn() },
+        student: { findMany: jest.fn() },
         $transaction: jest.fn(),
     },
 }));
+
+jest.mock('../notifications/dispatcher', () => ({ notifySafely: jest.fn().mockResolvedValue(undefined) }));
+import { notifySafely } from '../notifications/dispatcher';
 
 const m = (fn: unknown) => fn as jest.Mock;
 
@@ -242,12 +246,50 @@ describe('saveGrades', () => {
 });
 
 describe('setPublished', () => {
-    it('publishes and unpublishes', async () => {
+    it('unpublishing does not notify', async () => {
+        m(prisma.evaluation.findFirst).mockResolvedValue({ ...evaluation, published: true, notifiedAt: new Date() });
+        m(prisma.evaluation.update).mockResolvedValue({ id: 'e1', published: false });
+        await setPublished(staff, 'e1', false);
+        expect(prisma.evaluation.update).toHaveBeenLastCalledWith({ where: { id: 'e1' }, data: { published: false } });
+        expect(notifySafely).not.toHaveBeenCalled();
+    });
+
+    it('first publish stamps notifiedAt and notifies one message per graded or absent child', async () => {
+        m(prisma.evaluation.findFirst).mockResolvedValue({ ...evaluation, notifiedAt: null });
+        m(prisma.evaluation.update).mockResolvedValue({ ...evaluation, subject: 'Maths', title: 'Contrôle 1', published: true });
+        m(prisma.grade.findMany).mockResolvedValue([
+            { studentId: 's1', score: 15, absent: false },
+            { studentId: 's2', score: null, absent: true },
+            { studentId: 's3', score: 12, absent: false },
+        ]);
+        m(prisma.student.findMany).mockResolvedValue([
+            { id: 's1', name: 'Amine', surname: 'B', parentId: 'p1' },
+            { id: 's2', name: 'Sara', surname: null, parentId: 'p2' },
+            { id: 's3', name: 'No', surname: 'Parent', parentId: null },
+        ]);
+        await setPublished(teacher, 'e1', true);
+        expect(prisma.evaluation.update).toHaveBeenCalledWith({
+            where: { id: 'e1' },
+            data: { published: true, notifiedAt: expect.any(Date) },
+        });
+        expect(prisma.grade.findMany).toHaveBeenCalledWith(expect.objectContaining({
+            where: { evaluationId: 'e1', OR: [{ score: { not: null } }, { absent: true }] },
+        }));
+        expect(notifySafely).toHaveBeenCalledTimes(2);
+        expect(notifySafely).toHaveBeenCalledWith(['p1'], expect.objectContaining({
+            kind: 'GRADE',
+            branchId: 'b1',
+            body: { fr: 'Nouvelle note — Maths · Contrôle 1 : 15/20', ar: 'نقطة جديدة — Maths · Contrôle 1 : 15/20' },
+        }));
+    });
+
+    it('re-publishing after an unpublish does not notify again', async () => {
+        m(prisma.evaluation.findFirst).mockResolvedValue({ ...evaluation, published: false, notifiedAt: new Date() });
         m(prisma.evaluation.update).mockResolvedValue({ id: 'e1', published: true });
         await setPublished(staff, 'e1', true);
         expect(prisma.evaluation.update).toHaveBeenCalledWith({ where: { id: 'e1' }, data: { published: true } });
-        await setPublished(staff, 'e1', false);
-        expect(prisma.evaluation.update).toHaveBeenLastCalledWith({ where: { id: 'e1' }, data: { published: false } });
+        expect(notifySafely).not.toHaveBeenCalled();
+        expect(prisma.grade.findMany).not.toHaveBeenCalled();
     });
 
     it('requires a boolean', async () => {

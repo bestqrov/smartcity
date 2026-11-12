@@ -3,6 +3,7 @@ import prisma from '../../config/database';
 import { holidayOn, parseTimeOnDate, slotsOnDate, startOfDay, TimeSlot } from '../../utils/attendanceStatus';
 import { ConsoleNotificationProvider } from '../notifications/notification.provider';
 import { sendAttendanceNotification } from '../notifications/notification.service';
+import { notifySafely, splitBilingual, ATTENDANCE_TITLE } from '../notifications/dispatcher';
 import { absentMessage } from './attendance.messages';
 import { findSessionRecord } from './attendance.service';
 
@@ -76,6 +77,12 @@ export const runAbsenceSweep = async (): Promise<void> => {
                             parentId: student.parentId,
                             channel: 'WHATSAPP',
                             message: absentMessage(fullName, group.name, slot.startTime, slot.endTime),
+                        });
+                        await notifySafely([student.parentId], {
+                            kind: 'ATTENDANCE',
+                            branchId: group.branchId,
+                            title: ATTENDANCE_TITLE,
+                            body: splitBilingual(absentMessage(fullName, group.name, slot.startTime, slot.endTime)),
                         });
                     }
                 } catch (error) {
