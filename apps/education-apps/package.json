@@ -38,7 +38,8 @@
     "express-rate-limit": "^8.6.2",
     "http-proxy-middleware": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
-    "node-cron": "^4.6.0"
+    "node-cron": "^4.6.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -50,6 +51,7 @@
     "@types/node": "^20.10.5",
     "@types/node-cron": "^3.0.11",
     "@types/supertest": "^7.2.1",
+    "@types/web-push": "^3.6.4",
     "jest": "^30.5.0",
     "prisma": "^5.7.1",
     "supertest": "^7.2.2",

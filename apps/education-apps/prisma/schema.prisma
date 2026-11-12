@@ -785,6 +785,7 @@ model Evaluation {
   maxScore    Float    @default(20)
   coefficient Float    @default(1)
   published   Boolean  @default(false)
+  notifiedAt  DateTime? // set on the first publish: parents are notified once, never on re-publish
   createdBy   String? // "teacher:<id>" or "user:<id>"
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -808,4 +809,56 @@ model Grade {
   @@unique([evaluationId, studentId])
   @@index([studentId])
   @@map("grades")
+}
+
+model PushSubscription {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  parentId  String   @db.ObjectId
+  branchId  String   @db.ObjectId
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  lang      String   @default("fr")
+  createdAt DateTime @default(now())
+
+  @@index([parentId])
+  @@map("push_subscriptions")
+}
+
+model WhatsappChannel {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  branchId          String   @unique @db.ObjectId
+  instance          String   @unique // "arwa-<branchId>"
+  status            String   @default("DISCONNECTED") // DISCONNECTED | CONNECTING | CONNECTED
+  phone             String?
+  sendAttendance    Boolean  @default(true)
+  sendGrades        Boolean  @default(true)
+  sendAnnouncements Boolean  @default(false)
+  updatedAt         DateTime @updatedAt
+
+  @@map("whatsapp_channels")
+}
+
+model OutboundMessage {
+  id        String              @id @default(auto()) @map("_id") @db.ObjectId
+  branchId  String              @db.ObjectId
+  parentId  String              @db.ObjectId
+  channel   NotificationChannel
+  kind      String // ATTENDANCE | GRADE | ANNOUNCEMENT | TEST
+  to        String?
+  title     String?
+  body      String
+  url       String?
+  status    String              @default("PENDING") // PENDING | SENDING | SENT | FAILED | SKIPPED
+  priority  Int                 @default(5) // 1 = most urgent (ATTENDANCE) … 5 (ANNOUNCEMENT)
+  lockedAt  DateTime?
+  error     String?
+  attempts  Int                 @default(0)
+  sendAfter DateTime            @default(now())
+  sentAt    DateTime?
+  createdAt DateTime            @default(now())
+
+  @@index([status, sendAfter])
+  @@index([branchId, createdAt])
+  @@map("outbound_messages")
 }

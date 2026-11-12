@@ -1,5 +1,6 @@
 import prisma from '../../config/database';
 import { assertId } from '../transport/ids';
+import { notifySafely } from '../notifications/dispatcher';
 import { subjectAverages, generalAverage, rankStudents, MathEvaluation } from './grades.math';
 
 /**
@@ -206,9 +207,61 @@ export const saveGrades = async (scope: GradesScope, evaluationId: string, entri
 };
 
 export const setPublished = async (scope: GradesScope, evaluationId: string, published: boolean) => {
-    await loadEvaluation(scope, evaluationId);
+    const { evaluation } = await loadEvaluation(scope, evaluationId);
     if (typeof published !== 'boolean') throw new Error('published must be a boolean');
-    return prisma.evaluation.update({ where: { id: evaluationId }, data: { published } });
+    const updated = await prisma.evaluation.update({ where: { id: evaluationId }, data: { published } });
+    // Parents hear about an evaluation once: the first publish with grades claims notifiedAt.
+    if (published && !evaluation.notifiedAt) await notifyGradePublished(updated);
+    return updated;
+};
+
+const fmt = (n: number) => String(Math.round(n * 100) / 100).replace('.', ',');
+
+/**
+ * One message per graded (or absent) child to their parent. Nobody graded yet → nothing is stamped,
+ * so a later publish still notifies. notifiedAt is claimed atomically so concurrent publishes notify once.
+ * Never throws.
+ */
+const notifyGradePublished = async (evaluation: {
+    id: string; branchId: string; subject: string; title: string; maxScore: number;
+}) => {
+    try {
+        const grades = await prisma.grade.findMany({
+            where: { evaluationId: evaluation.id, OR: [{ score: { not: null } }, { absent: true }] },
+            select: { studentId: true, score: true, absent: true },
+        });
+        if (grades.length === 0) return;
+        const { count } = await prisma.evaluation.updateMany({
+            where: { id: evaluation.id, OR: [{ notifiedAt: null }, { notifiedAt: { isSet: false } }] },
+            data: { notifiedAt: new Date() },
+        });
+        if (count !== 1) return;
+        const students = await prisma.student.findMany({
+            where: { id: { in: grades.map((g) => g.studentId) } },
+            select: { id: true, name: true, surname: true, parentId: true },
+        });
+        const byId = new Map(students.map((s) => [s.id, s]));
+        for (const grade of grades) {
+            const student = byId.get(grade.studentId);
+            if (!student?.parentId) continue;
+            const name = `${student.name} ${student.surname || ''}`.trim();
+            const result = grade.absent ? { fr: 'absent(e)', ar: 'غائب(ة)' } : {
+                fr: `${fmt(grade.score!)}/${fmt(evaluation.maxScore)}`,
+                ar: `${fmt(grade.score!)}/${fmt(evaluation.maxScore)}`,
+            };
+            await notifySafely([student.parentId], {
+                kind: 'GRADE',
+                branchId: evaluation.branchId,
+                title: { fr: `Nouvelle note — ${name}`, ar: `نقطة جديدة — ${name}` },
+                body: {
+                    fr: `Nouvelle note — ${evaluation.subject} · ${evaluation.title} : ${result.fr}`,
+                    ar: `نقطة جديدة — ${evaluation.subject} · ${evaluation.title} : ${result.ar}`,
+                },
+            });
+        }
+    } catch (error) {
+        console.error('[grades] failed to notify parents:', error);
+    }
 };
 
 /** Per-student subject averages, general average and rank for one group and period (published evaluations only). */

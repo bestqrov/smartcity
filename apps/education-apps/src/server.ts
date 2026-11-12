@@ -2,6 +2,7 @@ import app from './app';
 import { env } from './config/env';
 import prisma from './config/database';
 import { startAbsenceCronJob } from './modules/attendance/absence-job';
+import { startOutboxWorker } from './modules/notifications/worker';
 import { ensureBaseData } from './startup/ensureBaseData';
 
 const startServer = async () => {
@@ -49,6 +50,10 @@ const startServer = async () => {
 
             startAbsenceCronJob();
             console.log('⏰ Absence sweep cron job started');
+            if (process.env.OUTBOX_WORKER !== '0') {
+                startOutboxWorker();
+                console.log('📨 Notification outbox worker started');
+            }
         });
     } catch (error) {
         console.error('❌ Failed to start server:', error);

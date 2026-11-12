@@ -90,6 +90,12 @@ const fr = {
     absentGrade: 'Absent',
     coefficient: (c: number) => `coef. ${c}`,
     currency: 'MAD',
+    pushTitle: 'Activer les notifications',
+    pushHint: 'Absences, notes et annonces directement sur votre téléphone.',
+    pushEnable: 'Activer',
+    pushEnabled: 'Notifications activées',
+    pushRow: 'Notifications',
+    pushDenied: 'Bloquées dans les réglages du navigateur',
 };
 
 export type ParentMessages = typeof fr;
@@ -181,6 +187,12 @@ const ar: ParentMessages = {
     absentGrade: 'غائب',
     coefficient: (c: number) => `المعامل ${c}`,
     currency: 'درهم',
+    pushTitle: 'تفعيل الإشعارات',
+    pushHint: 'الغياب والنقط والإعلانات مباشرة على هاتفك.',
+    pushEnable: 'تفعيل',
+    pushEnabled: 'تم تفعيل الإشعارات',
+    pushRow: 'الإشعارات',
+    pushDenied: 'محظورة في إعدادات المتصفح',
 };
 
 export const PARENT_MESSAGES: Record<ParentLang, ParentMessages> = { fr, ar };

@@ -6,8 +6,10 @@ import { ATTENDANCE_META } from '@/lib/attendanceStatus';
 import type { ParentLang, ParentMessages } from '@/lib/parent/messages';
 import { formatDate, formatMoney, isSameLocalDay, nextSession, studentBalance } from '@/lib/parent/helpers';
 import { Card, EmptyState, Ltr, SectionTitle } from './ui';
+import { PushPrompt } from './PushPrompt';
 
 interface Props {
+    token: string;
     parent: Parent;
     student: Student;
     t: ParentMessages;
@@ -15,7 +17,7 @@ interface Props {
     goTo: (tab: 'payments' | 'school' | 'grades') => void;
 }
 
-export default function HomeTab({ parent, student, t, lang, goTo }: Props) {
+export default function HomeTab({ token, parent, student, t, lang, goTo }: Props) {
     const now = new Date();
     const todays = (student.attendances || []).filter((a) => isSameLocalDay(a.date, now));
     // Newest session first (backend sorts slotStart desc within a day).
@@ -54,6 +56,8 @@ export default function HomeTab({ parent, student, t, lang, goTo }: Props) {
                     </div>
                 </div>
             </div>
+
+            <PushPrompt token={token} t={t} lang={lang} />
 
             <div className="grid grid-cols-2 gap-3">
                 {/* Next session */}

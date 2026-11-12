@@ -21,6 +21,7 @@ import {
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 import GradingPeriodsEditor from '@/components/grades/GradingPeriodsEditor';
+import WhatsappAutoCard from '@/components/settings/WhatsappAutoCard';
 import api from '@/lib/api';
 import useAuthStore from '@/store/useAuthStore';
 import { getMySchool, updateMySchool } from '@/lib/services/schools';
@@ -59,6 +60,9 @@ export default function SettingsPage() {
     // Theme State
     const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('light');
     const [accentColor, setAccentColor] = useState('#3B82F6');
+
+    const authRole = useAuthStore((s) => s.user?.role);
+    const canManageWhatsapp = authRole === 'ADMIN' || authRole === 'OWNER';
 
     // Users State
     const [adminUser, setAdminUser] = useState<User | null>(null);
@@ -507,6 +511,8 @@ export default function SettingsPage() {
                             </div>
 
                             <GradingPeriodsEditor />
+
+                            {canManageWhatsapp && <WhatsappAutoCard />}
                         </div>
                     )}
 

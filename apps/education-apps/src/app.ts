@@ -31,6 +31,8 @@ import platformRoutes from './modules/platform/platform.routes';
 import subscriptionRoutes from './modules/subscription/subscription.routes';
 import gradesRoutes from './modules/grades/grades.routes';
 import teacherPortalRoutes from './modules/teacher-portal/teacherPortal.routes';
+import pushRoutes from './modules/notifications/push.routes';
+import whatsappRoutes from './modules/notifications/whatsapp.routes';
 
 const app: Application = express();
 
@@ -82,6 +84,8 @@ apiRouter.use('/platform', platformRoutes);
 apiRouter.use('/school', subscriptionRoutes);
 apiRouter.use('/grades', gradesRoutes);
 apiRouter.use('/teacher-portal', teacherPortalRoutes);
+apiRouter.use('/push', pushRoutes);
+apiRouter.use('/whatsapp', whatsappRoutes);
 
 app.use('/api', apiRouter);
 
