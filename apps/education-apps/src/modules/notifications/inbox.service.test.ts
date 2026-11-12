@@ -77,7 +77,7 @@ describe('markRead', () => {
         m(prisma.parentNotification.count).mockResolvedValue(0);
         const res = await markRead('tok');
         expect(prisma.parentNotification.updateMany).toHaveBeenCalledWith({
-            where: { parentId: 'p1', readAt: null }, data: { readAt: expect.any(Date) },
+            where: { parentId: 'p1', OR: [{ readAt: null }, { readAt: { isSet: false } }] }, data: { readAt: expect.any(Date) },
         });
         expect(res).toEqual({ unread: 0 });
     });
@@ -86,7 +86,7 @@ describe('markRead', () => {
         const good = 'a'.repeat(24);
         await markRead('tok', [good, 'junk']);
         expect(m(prisma.parentNotification.updateMany).mock.calls[0][0].where).toEqual({
-            parentId: 'p1', readAt: null, id: { in: [good] },
+            parentId: 'p1', OR: [{ readAt: null }, { readAt: { isSet: false } }], id: { in: [good] },
         });
     });
 

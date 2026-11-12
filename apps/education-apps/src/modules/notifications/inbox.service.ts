@@ -10,7 +10,7 @@ const findParentId = async (rawToken: string): Promise<string> => {
     return parent.id;
 };
 
-const unreadCount = (parentId: string) => prisma.parentNotification.count({ where: { parentId, readAt: null } });
+const unreadCount = (parentId: string) => prisma.parentNotification.count({ where: { parentId, OR: [{ readAt: null }, { readAt: { isSet: false } }] } });
 
 export const parseLimit = (raw: unknown): number => {
     const n = parseInt(String(raw ?? ''), 10);
@@ -55,7 +55,7 @@ export const listInbox = async (rawToken: string, before?: unknown, limitRaw?: u
 /** No ids = mark everything read. Always scoped to the token's parent. */
 export const markRead = async (rawToken: string, ids?: unknown) => {
     const parentId = await findParentId(rawToken);
-    const where: any = { parentId, readAt: null };
+    const where: any = { parentId, OR: [{ readAt: null }, { readAt: { isSet: false } }] };
     if (ids !== undefined && ids !== null) {
         if (!Array.isArray(ids) || ids.some((i) => typeof i !== 'string')) throw new Error('ids must be an array of strings');
         where.id = { in: ids.filter((i: string) => /^[0-9a-f]{24}$/i.test(i)) };

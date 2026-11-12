@@ -145,7 +145,7 @@ export const getParentByRawToken = async (rawToken: string) => {
 
     if (!parent) return null;
 
-    const unreadNotifications = await prisma.parentNotification.count({ where: { parentId: parent.id, readAt: null } });
+    const unreadNotifications = await prisma.parentNotification.count({ where: { parentId: parent.id, OR: [{ readAt: null }, { readAt: { isSet: false } }] } });
 
     if (!parent.branchId) {
         return {
