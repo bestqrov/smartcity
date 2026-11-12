@@ -125,11 +125,13 @@ export const splitFullName = (raw: string): { surname: string; name: string } =>
     return { surname: words[0] ?? '', name: words.slice(1).join(' ') };
 };
 
-// Massar code first; otherwise surname + name + birth date; with neither there is no safe key.
-export const duplicateKey = (student: { massarNumber?: string | null; surname: string; name: string; birthDate?: Date | null }): string | null => {
-    if (student.massarNumber) return `m:${student.massarNumber.toUpperCase()}`;
-    if (student.birthDate) return `n:${foldText(student.surname)}|${foldText(student.name)}|${student.birthDate.toISOString().slice(0, 10)}`;
-    return null;
+// Every key a student can be matched on: the Massar code and/or surname + name + birth date.
+// Two students are the same person when ANY of their keys match.
+export const duplicateKeys = (student: { massarNumber?: string | null; surname: string; name: string; birthDate?: Date | null }): string[] => {
+    const keys: string[] = [];
+    if (student.massarNumber) keys.push(`m:${student.massarNumber.toUpperCase()}`);
+    if (student.birthDate) keys.push(`n:${foldText(student.surname)}|${foldText(student.name)}|${student.birthDate.toISOString().slice(0, 10)}`);
+    return keys;
 };
 
 export const normalizeRow = (row: ImportRow, today: Date = new Date()): NormalizedRow => {

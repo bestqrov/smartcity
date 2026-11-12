@@ -3,7 +3,7 @@ import prisma from '../../config/database';
 import { getSchoolCapacity, remainingPlaces } from '../packs/packs.limits';
 import { assertStudentCapacity } from '../packs/packs.limits';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
-import { duplicateKey, foldText, normalizePhone, normalizeRow, type ImportRow, type NormalizedRow } from './normalize';
+import { duplicateKeys, foldText, normalizePhone, normalizeRow, type ImportRow, type NormalizedRow } from './normalize';
 
 export const MAX_IMPORT_ROWS = 1000;
 
@@ -21,6 +21,7 @@ export interface ImportValidation {
     capacity: { limit: number | null; current: number; remaining: number | null; packName: string | null };
     parents: { toCreate: number; toLink: number };
     parentIds: Map<string, string>; // normalized phone -> id (existing parents of the branch)
+    institutionType: string;
 }
 
 const assertRows = (rows: unknown): ImportRow[] => {
@@ -51,23 +52,24 @@ export const validateImport = async (branchId: string, input: unknown, today: Da
         if (phone && !parentIds.has(phone)) parentIds.set(phone, parent.id);
     }
 
-    const known = new Set(existing.map((student) => duplicateKey(student)).filter((key): key is string => key !== null));
+    const known = new Set(existing.flatMap((student) => duplicateKeys(student)));
     const groupIds = new Map(groups.map((group) => [foldText(group.name), group.id]));
-    const seen = new Map<string, number>(); // key -> first row number in the file
+    const seen = new Map<string, number>(); // any key -> first row number in the file
     const missing = new Map<string, string>(); // folded -> name as first written
 
     const checked: CheckedRow[] = rows.map((row) => {
         const normalized = normalizeRow(row, today);
         if (normalized.errors.length > 0) return { ...normalized, status: 'error' };
 
-        const key = duplicateKey(normalized.data);
-        if (key && known.has(key)) {
+        const keys = duplicateKeys(normalized.data);
+        if (keys.some((key) => known.has(key))) {
             return { ...normalized, status: 'duplicate', errors: ['Élève déjà inscrit dans cet établissement'] };
         }
-        if (key && seen.has(key)) {
-            return { ...normalized, status: 'duplicate', errors: [`Doublon de la ligne ${seen.get(key)} du fichier`] };
+        const firstKey = keys.find((key) => seen.has(key));
+        if (firstKey) {
+            return { ...normalized, status: 'duplicate', errors: [`Doublon de la ligne ${seen.get(firstKey)} du fichier`] };
         }
-        if (key) seen.set(key, normalized.rowNumber);
+        for (const key of keys) seen.set(key, normalized.rowNumber);
 
         if (normalized.group && !groupIds.has(foldText(normalized.group))) {
             const folded = foldText(normalized.group);
@@ -96,6 +98,7 @@ export const validateImport = async (branchId: string, input: unknown, today: Da
         groupIds,
         parents: { toCreate: newPhones.size, toLink },
         parentIds,
+        institutionType: capacity.institutionType,
         capacity: { limit: capacity.limit, current: capacity.current, remaining: remainingPlaces(capacity), packName: capacity.packName },
     };
 };
@@ -133,7 +136,8 @@ export const commitImport = async (
 
     const groupIds = new Map(validation.groupIds);
     const createdGroups: string[] = [];
-    if (createMissingGroups) {
+    // Formation groups need a formationId: vocational schools create them from the Groups page.
+    if (createMissingGroups && validation.institutionType !== 'VOCATIONAL_TRAINING') {
         for (const name of validation.missingGroups) {
             const folded = foldText(name);
             const level = valid.find((row) => row.group && foldText(row.group) === folded && row.data.schoolLevel)?.data.schoolLevel;

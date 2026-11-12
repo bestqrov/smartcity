@@ -1,5 +1,5 @@
 // src/modules/students-import/normalize.test.ts
-import { duplicateKey, foldText, normalizeRow, parseImportDate, normalizePhone, splitFullName } from './normalize';
+import { duplicateKeys, foldText, normalizeRow, parseImportDate, normalizePhone, splitFullName } from './normalize';
 
 const TODAY = new Date('2026-11-12T12:00:00Z');
 
@@ -49,17 +49,21 @@ describe('splitFullName', () => {
     });
 });
 
-describe('foldText and duplicateKey', () => {
+describe('foldText and duplicateKeys', () => {
     it('ignores case, accents and extra spaces', () => {
         expect(foldText('  Élodie   GARÇON ')).toBe('elodie garcon');
     });
 
-    it('prefers the Massar code, then name + birth date, else no key', () => {
-        expect(duplicateKey({ massarNumber: 'J130000001', surname: 'A', name: 'B', birthDate: null })).toBe('m:J130000001');
-        expect(duplicateKey({ massarNumber: null, surname: 'Bennani', name: 'Omar', birthDate: new Date('2015-03-05T00:00:00Z') })).toBe(
-            'n:bennani|omar|2015-03-05'
-        );
-        expect(duplicateKey({ massarNumber: null, surname: 'Bennani', name: 'Omar', birthDate: null })).toBeNull();
+    it('returns the Massar key and the name + birth date key when available', () => {
+        expect(duplicateKeys({ massarNumber: 'j130000001', surname: 'A', name: 'B', birthDate: null })).toEqual(['m:J130000001']);
+        expect(duplicateKeys({ massarNumber: null, surname: 'Bennani', name: 'Omar', birthDate: new Date('2015-03-05T00:00:00Z') })).toEqual([
+            'n:bennani|omar|2015-03-05',
+        ]);
+        expect(duplicateKeys({ massarNumber: 'M1', surname: 'Bennani', name: 'Omar', birthDate: new Date('2015-03-05T00:00:00Z') })).toEqual([
+            'm:M1',
+            'n:bennani|omar|2015-03-05',
+        ]);
+        expect(duplicateKeys({ massarNumber: null, surname: 'Bennani', name: 'Omar', birthDate: null })).toEqual([]);
     });
 });
 

@@ -70,6 +70,37 @@ describe('validateImport', () => {
         expect(result.counts).toEqual({ valid: 3, duplicate: 3, error: 1 });
     });
 
+    it('catches duplicates across different keys (DB Massar vs row name+date, and the reverse)', async () => {
+        (prisma.student.findMany as jest.Mock).mockResolvedValue([
+            { surname: 'Alami', name: 'Lina', birthDate: new Date('2014-01-02T00:00:00Z'), massarNumber: 'M123' },
+            { surname: 'Chraibi', name: 'Yassin', birthDate: new Date('2013-05-06T00:00:00Z'), massarNumber: null },
+        ]);
+        const result = await validateImport(
+            'b1',
+            [
+                { rowNumber: 2, surname: 'Alami', name: 'Lina', birthDate: '02/01/2014' },
+                { rowNumber: 3, surname: 'Chraibi', name: 'Yassin', birthDate: '06/05/2013', massarNumber: 'Z999' },
+            ],
+            TODAY
+        );
+        expect(result.rows.map((row) => row.status)).toEqual(['duplicate', 'duplicate']);
+        expect(result.rows[0].errors).toEqual(['Élève déjà inscrit dans cet établissement']);
+    });
+
+    it('catches duplicates within the file via different keys', async () => {
+        const result = await validateImport(
+            'b1',
+            [
+                { rowNumber: 2, surname: 'Nouri', name: 'Hind', birthDate: '01/01/2012' },
+                { rowNumber: 3, surname: 'Nouri', name: 'Hind', birthDate: '01/01/2012', massarNumber: 'K5' },
+                { rowNumber: 4, surname: 'Autre', name: 'Nom', massarNumber: 'k5' },
+            ],
+            TODAY
+        );
+        expect(result.rows.map((row) => row.status)).toEqual(['valid', 'duplicate', 'valid']);
+        expect(result.rows[1].errors).toEqual(['Doublon de la ligne 2 du fichier']);
+    });
+
     it('lists missing groups once, matched case-insensitively, and warns on their rows', async () => {
         const result = await validateImport(
             'b1',
@@ -180,6 +211,18 @@ describe('commitImport', () => {
         const second = (prisma.student.create as jest.Mock).mock.calls[1][0].data;
         expect(second.groups).toEqual({ connect: [{ id: 'g-CM1-B' }] });
         expect(result.createdGroups).toEqual(['CM1-B']);
+    });
+
+    it('does not create groups for vocational schools and keeps the warning', async () => {
+        (getSchoolCapacity as jest.Mock).mockResolvedValue({
+            schoolId: 'sc1', limit: 300, current: 120, packName: 'Pro', institutionType: 'VOCATIONAL_TRAINING',
+        });
+        const result = await commitImport('b1', ROWS, true, TODAY);
+        expect(prisma.group.create).not.toHaveBeenCalled();
+        expect(result.createdGroups).toEqual([]);
+        expect((prisma.student.create as jest.Mock).mock.calls[1][0].data.groups).toBeUndefined();
+        expect(result.rows[2].warnings).toEqual(['Groupe « CM1-B » inexistant']);
+        expect(result.rows[2].status).toBe('created');
     });
 
     it('records a failing row as an error and goes on with the next ones', async () => {

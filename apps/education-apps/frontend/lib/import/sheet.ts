@@ -5,6 +5,7 @@ import type { ImportFieldDef } from './fields';
 export interface SheetData {
     headers: string[];
     rows: { rowNumber: number; cells: string[] }[]; // rowNumber = line number in the sheet (1-based)
+    date1904: boolean; // Mac Excel date system: serials need +1462 days
 }
 
 const cellText = (value: unknown): string => (value === null || value === undefined ? '' : String(value).trim());
@@ -17,6 +18,8 @@ export async function readSheet(file: File): Promise<SheetData> {
     const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', raw: csv });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) throw new Error('Le fichier ne contient aucune feuille.');
+    // sheet_to_json starts at the used range, which may not begin at row 1.
+    const firstRow = XLSX.utils.decode_range(sheet['!ref'] ?? 'A1').s.r;
     const lines = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true, defval: '', blankrows: true });
 
     const headerIndex = lines.findIndex((line) => line.some((cell) => cellText(cell) !== ''));
@@ -25,9 +28,10 @@ export async function readSheet(file: File): Promise<SheetData> {
 
     const rows = lines
         .slice(headerIndex + 1)
-        .map((line, offset) => ({ rowNumber: headerIndex + offset + 2, cells: headers.map((_, i) => cellText(line[i])) }))
+        .map((line, offset) => ({ rowNumber: firstRow + headerIndex + offset + 2, cells: headers.map((_, i) => cellText(line[i])) }))
         .filter((row) => row.cells.some((cell) => cell !== ''));
-    return { headers, rows };
+    const date1904 = !!(workbook.Workbook?.WBProps as { date1904?: boolean } | undefined)?.date1904;
+    return { headers, rows, date1904 };
 }
 
 const download = async (aoa: string[][], filename: string, widths?: number[]) => {

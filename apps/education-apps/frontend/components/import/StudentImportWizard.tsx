@@ -3,7 +3,7 @@
 
 // Four steps: file -> column mapping -> preview (server validation) -> report.
 // The server re-validates on commit; the preview only shows what will happen.
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Upload, XCircle } from 'lucide-react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
@@ -44,6 +44,7 @@ interface Props {
 
 export default function StudentImportWizard({ studentsPath, parentsPath }: Props) {
     const { profile } = useSchoolProfile();
+    const vocational = profile.institutionType === 'VOCATIONAL_TRAINING';
     const fields = useMemo(() => fieldsFor(profile.institutionType === 'CRECHE'), [profile.institutionType]);
 
     const [step, setStep] = useState<Step>('file');
@@ -55,6 +56,8 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
     const [filter, setFilter] = useState<Filter>('all');
     const [result, setResult] = useState<ImportCommitResult | null>(null);
     const [busy, setBusy] = useState(false);
+    const [date1904, setDate1904] = useState(false);
+    const running = useRef(false);
     const [error, setError] = useState('');
 
     const mapped = new Set(mapping.filter(Boolean));
@@ -64,7 +67,10 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
         (sheet?.rows ?? []).map((row) => {
             const out: ImportRowInput = { rowNumber: row.rowNumber };
             mapping.forEach((key, column) => {
-                if (key && row.cells[column]) out[key] = row.cells[column];
+                if (!key || !row.cells[column]) return;
+                const cell = row.cells[column];
+                // Mac Excel 1904 date system: serials are 1462 days behind the 1900 system.
+                out[key] = date1904 && key === 'birthDate' && /^\d{5}$/.test(cell) ? String(Number(cell) + 1462) : cell;
             });
             return out;
         });
@@ -78,6 +84,7 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
             if (data.rows.length === 0) throw new Error('Aucune ligne d’élève sous les en-têtes.');
             if (data.rows.length > MAX_ROWS) throw new Error(`Le fichier contient ${data.rows.length} lignes : maximum ${MAX_ROWS} par import. Découpez-le en plusieurs fichiers.`);
             setSheet(data);
+            setDate1904(data.date1904);
             setFileName(file.name);
             setMapping(autoMapping(data.headers, fields.map((field) => field.key)));
             setStep('mapping');
@@ -91,16 +98,28 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
     const setColumn = (column: number, key: ImportFieldKey | null) =>
         setMapping((current) => current.map((value, i) => (i === column ? key : key && value === key ? null : value)));
 
-    const runValidation = async () => {
-        setError('');
-        setBusy(true);
+    // Returns true when the preview was built; sets the error otherwise. Leaves `busy` to the caller.
+    const validateRows = async (): Promise<boolean> => {
         try {
             setValidation(await validateStudentImport(buildRows()));
             setFilter('all');
             setStep('preview');
+            return true;
         } catch (err) {
             setError(apiErrorMessage(err));
+            return false;
+        }
+    };
+
+    const runValidation = async () => {
+        if (running.current) return;
+        running.current = true;
+        setError('');
+        setBusy(true);
+        try {
+            await validateRows();
         } finally {
+            running.current = false;
             setBusy(false);
         }
     };
@@ -109,7 +128,7 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
         validation && validation.capacity.remaining !== null && validation.counts.valid > validation.capacity.remaining;
 
     const openUpgrade = async () => {
-        if (!validation || validation.capacity.limit === null) return;
+        if (!validation || validation.capacity.limit === null || running.current) return;
         const upgraded = await askForUpgrade({
             limit: validation.capacity.limit,
             current: validation.capacity.current,
@@ -119,22 +138,34 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
         if (upgraded) await runValidation();
     };
 
+    // busy stays true for the whole run, including the upgrade dialog and the retry.
     const runCommit = async () => {
+        if (running.current) return;
+        running.current = true;
         setError('');
         setBusy(true);
         try {
-            setResult(await commitStudentImport(buildRows(), createGroups));
-            setStep('done');
-        } catch (err) {
-            const details = studentLimitDetails(err);
-            if (details) {
-                setBusy(false);
-                if (await askForUpgrade(details)) return runCommit();
-                setError(studentLimitMessage(details));
-                return;
+            for (;;) {
+                try {
+                    setResult(await commitStudentImport(buildRows(), createGroups && !vocational));
+                    setStep('done');
+                    return;
+                } catch (err) {
+                    const details = studentLimitDetails(err);
+                    if (!details) {
+                        setError(apiErrorMessage(err));
+                        return;
+                    }
+                    if (!(await askForUpgrade(details))) {
+                        setError(studentLimitMessage(details));
+                        return;
+                    }
+                    // Capacity changed: refresh the preview, then try again.
+                    if (!(await validateRows())) return;
+                }
             }
-            setError(apiErrorMessage(err));
         } finally {
+            running.current = false;
             setBusy(false);
         }
     };
@@ -308,11 +339,15 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                             <p className="text-sm text-gray-800 dark:text-gray-100">
                                 Ces groupes n’existent pas encore : <strong>{validation.missingGroups.join(', ')}</strong>
                             </p>
-                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
-                                <input type="checkbox" checked={createGroups} onChange={(event) => setCreateGroups(event.target.checked)} className="h-4 w-4" />
-                                Créer ces groupes automatiquement
-                            </label>
-                            {!createGroups && (
+                            {vocational ? (
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Créez les groupes de formation depuis la page Groupes.</p>
+                            ) : (
+                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                                    <input type="checkbox" checked={createGroups} onChange={(event) => setCreateGroups(event.target.checked)} className="h-4 w-4" />
+                                    Créer ces groupes automatiquement
+                                </label>
+                            )}
+                            {!createGroups && !vocational && (
                                 <p className="text-xs text-gray-500 dark:text-gray-400">Sinon, ces élèves seront créés sans groupe.</p>
                             )}
                         </div>
