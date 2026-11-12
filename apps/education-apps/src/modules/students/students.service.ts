@@ -2,6 +2,7 @@ import { assertParentInBranch } from '../parents/parents.service';
 import prisma from '../../config/database';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
 import { tuitionPayments } from '../payments/tuitionFilter';
+import { assertStudentCapacity } from '../packs/packs.limits';
 
 interface CreateStudentData {
     branchId: string;
@@ -56,6 +57,9 @@ interface UpdateStudentData {
 }
 
 export const createStudent = async (data: CreateStudentData & { inscriptionFee?: number; subjectsTotal?: number; amountPaid?: number }) => {
+    // Every way of adding one student goes through here: the pack limit is enforced once, for all forms.
+    await assertStudentCapacity(data.branchId, 1);
+
     return await prisma.$transaction(async (tx) => {
         // 1. Create Student
         const student = await tx.student.create({

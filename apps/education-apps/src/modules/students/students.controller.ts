@@ -12,6 +12,7 @@ import {
     getStudentByPortalToken,
 } from './students.service';
 import { sendSuccess, sendError } from '../../utils/response';
+import { StudentLimitError, sendStudentLimitError } from '../packs/packs.limits';
 import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
 const stripTokenHash = <T extends { accessTokenHash?: string; portalTokenHash?: string | null }>(student: T) => {
@@ -62,6 +63,10 @@ export const create = async (req: TenantRequest, res: Response): Promise<void> =
 
         sendSuccess(res, stripTokenHash(student), 'Student created successfully', 201);
     } catch (error: any) {
+        if (error instanceof StudentLimitError) {
+            sendStudentLimitError(res, error);
+            return;
+        }
         sendError(res, error.message, 'Failed to create student', 400);
     }
 };
