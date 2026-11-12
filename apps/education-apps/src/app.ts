@@ -6,6 +6,7 @@ import { errorMiddleware } from './middlewares/error.middleware';
 import authRoutes from './auth/auth.routes';
 import usersRoutes from './modules/users/users.routes';
 import studentsRoutes from './modules/students/students.routes';
+import studentsImportRoutes from './modules/students-import/importStudents.routes';
 import inscriptionsRoutes from './modules/inscriptions/inscriptions.routes';
 import paymentsRoutes from './modules/payments/payments.routes';
 import attendanceRoutes from './modules/attendance/attendance.routes';
@@ -53,6 +54,7 @@ app.get('/health', (_req, res) => {
 const apiRouter = express.Router();
 apiRouter.use('/auth', authRoutes);
 apiRouter.use('/users', usersRoutes);
+apiRouter.use('/students/import', studentsImportRoutes);
 apiRouter.use('/students', studentsRoutes);
 apiRouter.use('/parents', parentsRoutes);
 apiRouter.use('/inscriptions', inscriptionsRoutes);
