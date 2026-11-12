@@ -254,7 +254,7 @@ describe('commitImport', () => {
             expect(prisma.parent.findMany).toHaveBeenCalledWith({ where: { branchId: 'b1' }, select: { id: true, phone: true } });
             expect(prisma.parent.create).toHaveBeenCalledTimes(1);
             expect(prisma.parent.create).toHaveBeenCalledWith({
-                data: { name: 'M. Alaoui', phone: '0612345678', branchId: 'b1', accessTokenHash: expect.any(String) },
+                data: { name: 'M. Alaoui', phone: '0612345678', branchId: 'b1', accessTokenHash: expect.any(String), linkIssuedAt: null },
                 select: { id: true },
             });
             expect(studentData(0).parentId).toBe('p-0612345678');

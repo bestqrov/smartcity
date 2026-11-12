@@ -172,6 +172,7 @@ export const commitImport = async (
                     phone,
                     branchId,
                     accessTokenHash: hashToken(generateRawToken()),
+                    linkIssuedAt: null, // no link handed out yet
                 },
                 select: { id: true },
             });
