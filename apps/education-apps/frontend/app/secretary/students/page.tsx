@@ -70,7 +70,7 @@ export default function SecretaryStudentsPage() {
     });
 
     return (
-        <div className="p-6 space-y-6 animate-in fade-in duration-500">
+        <div className="p-0 lg:p-6 space-y-6 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-3">
@@ -278,7 +278,7 @@ export default function SecretaryStudentsPage() {
                         </div>
                     </>
                 ) : (
-                    <div className="p-8 max-w-4xl mx-auto">
+                    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
                         <div className="mb-8 flex items-center justify-between">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-900">

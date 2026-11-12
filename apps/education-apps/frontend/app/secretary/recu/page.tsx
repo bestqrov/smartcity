@@ -218,7 +218,7 @@ export default function SecretaryRecuPage() {
     );
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-0 lg:p-6 space-y-6">
             {view === 'list' ? (
                 <>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -271,7 +271,7 @@ export default function SecretaryRecuPage() {
                         <h2 className="text-xl font-bold">{editingReceipt ? 'Modifier le Reçu' : 'Créer un Nouveau Reçu'}</h2>
                         <button onClick={() => setView('list')} className="text-white/80 hover:text-white"><X size={24} /></button>
                     </div>
-                    <form onSubmit={handleFormSubmit} className="p-8 space-y-6">
+                    <form onSubmit={handleFormSubmit} className="p-4 sm:p-8 space-y-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 mb-1">Nom du Client</label>

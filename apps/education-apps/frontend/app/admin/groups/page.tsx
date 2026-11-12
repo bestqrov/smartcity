@@ -349,7 +349,7 @@ const GroupsContent = () => {
             {/* Form View (Replaces Grid) */}
             {isModalOpen && (
                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <div className={`relative overflow-hidden bg-gradient-to-br ${headerGradient} p-8 text-white`}>
+                    <div className={`relative overflow-hidden bg-gradient-to-br ${headerGradient} p-4 sm:p-8 text-white`}>
                         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
                         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-black/10 rounded-full blur-3xl"></div>
 
@@ -370,7 +370,7 @@ const GroupsContent = () => {
                         </div>
                     </div>
 
-                    <form onSubmit={handleFormSubmit} className="p-8 space-y-8 bg-gray-50/50">
+                    <form onSubmit={handleFormSubmit} className="p-4 sm:p-8 space-y-8 bg-gray-50/50">
                         {/* Section 1: Informations Générales */}
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-300">
                             <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${headerGradient}`}></div>

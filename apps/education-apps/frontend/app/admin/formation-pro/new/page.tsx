@@ -47,7 +47,7 @@ export default function NewFormationPage() {
         <div className="max-w-4xl mx-auto p-0 lg:p-6">
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-8 text-white">
+                <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4 sm:p-8 text-white">
                     <div className="flex items-center gap-4">
                         <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
                             <GraduationCap size={32} className="text-white" />
@@ -60,7 +60,7 @@ export default function NewFormationPage() {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-8 space-y-6">
                     {/* Formation Name */}
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-gray-700 ml-1 flex items-center gap-1">

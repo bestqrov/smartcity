@@ -43,13 +43,13 @@ export default function SecretaryPaiementsPage() {
     const monthlyPayments = payments.filter(p => p.month === selectedMonth);
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-0 lg:p-6 space-y-6">
             <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Suivi des Salaires</h1>
                 <p className="text-gray-500">Consultation des paiements du personnel pour le mois en cours</p>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Calendar className="text-blue-600" />
                     <input
@@ -59,7 +59,7 @@ export default function SecretaryPaiementsPage() {
                         className="px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-bold"
                     />
                 </div>
-                <div className="text-right">
+                <div className="sm:text-right">
                     <div className="text-xs font-bold text-slate-400 uppercase">Masse Salariale du Mois</div>
                     <div className="text-2xl font-bold text-gray-900">
                         {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)} MAD

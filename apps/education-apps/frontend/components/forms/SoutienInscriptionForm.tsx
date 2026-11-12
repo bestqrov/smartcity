@@ -339,7 +339,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
             <div className="max-w-6xl mx-auto space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2">
-                        <form onSubmit={handleSubmit} className="bg-white p-8 shadow-xl rounded-2xl border border-green-100">
+                        <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-8 shadow-xl rounded-2xl border border-green-100">
                             <div className="text-center mb-8 space-y-2 border-b-2 border-green-600 pb-6">
                                 <div className="flex justify-between text-sm font-bold text-gray-700">
                                     <span>Le : {new Date().toLocaleDateString()}</span>

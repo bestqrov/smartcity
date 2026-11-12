@@ -234,7 +234,7 @@ export default function FormationDashboard() {
             {/* New Formation View */}
             {isModalOpen && (
                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 to-purple-500 p-8 text-white">
+                    <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 to-purple-500 p-4 sm:p-8 text-white">
                         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
                         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-black/10 rounded-full blur-3xl"></div>
 
@@ -246,7 +246,7 @@ export default function FormationDashboard() {
                         </div>
                     </div>
 
-                    <form onSubmit={handleCreateSubmit} className="p-8 space-y-6 bg-gray-50/50">
+                    <form onSubmit={handleCreateSubmit} className="p-4 sm:p-8 space-y-6 bg-gray-50/50">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                             <div className="space-y-4">
                                 <div>

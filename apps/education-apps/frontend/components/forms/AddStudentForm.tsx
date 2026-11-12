@@ -98,7 +98,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Branded Header */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white shadow-xl">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-700 p-4 sm:p-8 text-white shadow-xl">
                 <div className="relative z-10 flex items-center justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
@@ -127,7 +127,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Personal Info Card - Blue Theme */}
-                <div className="group bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                <div className="group bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 group-hover:w-2 transition-all"></div>
 
                     <div className="flex items-center gap-4 mb-8">
@@ -209,7 +209,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
 
                 {/* Academic & Location Card - Emerald Theme */}
                 {institutionType !== 'CRECHE' && (
-                <div className="group bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                <div className="group bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500 group-hover:w-2 transition-all"></div>
 
                     <div className="flex items-center gap-4 mb-8">
@@ -267,7 +267,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                 )}
 
                 {institutionType === 'CRECHE' && (
-                    <div className="group bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                    <div className="group bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500 group-hover:w-2 transition-all"></div>
                         <div className="flex items-center gap-4 mb-8">
                             <div className="bg-emerald-50 p-3 rounded-2xl text-emerald-600 group-hover:scale-110 transition-transform">
@@ -410,7 +410,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                 )}
 
                 {/* Parent/Guardian Card - Amber Theme */}
-                <div className="group bg-white rounded-3xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                <div className="group bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500 group-hover:w-2 transition-all"></div>
 
                     <div className="flex items-center gap-4 mb-8">

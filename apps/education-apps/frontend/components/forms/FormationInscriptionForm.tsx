@@ -159,7 +159,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                         {/* Header */}
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-8 text-white">
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-4 sm:p-8 text-white">
                             <div className="flex items-center gap-4">
                                 <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
                                     <GraduationCap size={32} className="text-white" />
@@ -171,7 +171,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                             </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-8 space-y-8">
+                        <form onSubmit={handleSubmit} className="p-4 sm:p-8 space-y-8">
                             {/* Personal Info Group */}
                             <div className="space-y-6">
                                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 border-b pb-2">

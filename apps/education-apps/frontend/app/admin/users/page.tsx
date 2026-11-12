@@ -311,9 +311,9 @@ export default function UsersCRUD() {
                                 <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20">
                                     {editingUser ? 'Mettre à jour' : 'Créer l\'utilisateur'}
                                 </Button>
-                                <Button type="button" onClick={() => setIsModalOpen(false)} className="bg-gray-100 text-gray-600 px-6">
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 rounded-xl font-bold">
                                     Annuler
-                                </Button>
+                                </button>
                             </div>
                         </form>
                     </div>

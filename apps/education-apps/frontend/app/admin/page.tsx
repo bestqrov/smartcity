@@ -165,7 +165,7 @@ export default function AdminDashboard() {
                         </div>
                     )}
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{profile.schoolName}</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.schoolName}</h1>
                         <p className="text-gray-500 flex items-center gap-2 text-sm">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                             En ligne &bull; {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
@@ -241,7 +241,7 @@ export default function AdminDashboard() {
 
                 {/* LEFT COLUMN: Financial Health Details */}
                 <div className="lg:col-span-2 space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <TrendingUp size={20} className="text-blue-600" />
                         Performance Financière
                     </h3>
@@ -311,7 +311,7 @@ export default function AdminDashboard() {
 
                 {/* RIGHT COLUMN: School Vitality & Calendar */}
                 <div className="space-y-6">
-                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <Building size={20} className="text-indigo-600" />
                         Vie de l'École
                     </h3>
