@@ -48,13 +48,15 @@ export const resolvePartnerOffer = async (rawCode: unknown) => {
     return offer;
 };
 
-// Public: prices only, never who the agent is.
+// Public: prices are shown whenever the offer is active (landing teaser); `eligible` is true only when the
+// code also belongs to an active non-house agent. Never reveals who the agent is.
 export const getPartnerOfferFor = async (rawCode: unknown) => {
-    const offer = await resolvePartnerOffer(rawCode);
-    if (!offer) return { eligible: false };
+    const stored = await prisma.partnerOffer.findUnique({ where: { key: OFFER_KEY } });
+    if (!stored || !stored.active) return { eligible: false };
+    const eligible = (await resolvePartnerOffer(rawCode)) !== null;
     return {
-        eligible: true,
-        offer: { monthlyPrice: offer.monthlyPrice, semiannualPrice: offer.semiannualPrice, yearlyPrice: offer.yearlyPrice },
+        eligible,
+        offer: { monthlyPrice: stored.monthlyPrice, semiannualPrice: stored.semiannualPrice, yearlyPrice: stored.yearlyPrice },
     };
 };
 

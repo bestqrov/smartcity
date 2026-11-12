@@ -36,23 +36,26 @@ describe('getPartnerOfferFor', () => {
         expect(prisma.salesAgent.findFirst).toHaveBeenCalledWith({ where: { code: 'PARTNER1', active: true } });
     });
 
-    it.each([undefined, '', '   ', 42])('is not eligible without a usable code (%p)', async (code) => {
-        await expect(getPartnerOfferFor(code)).resolves.toEqual({ eligible: false });
+    const prices = { monthlyPrice: 120, semiannualPrice: 1299, yearlyPrice: 2000 };
+
+    it.each([undefined, '', '   ', 42])('exposes the prices but is not eligible without a usable code (%p)', async (code) => {
+        await expect(getPartnerOfferFor(code)).resolves.toEqual({ eligible: false, offer: prices });
     });
 
-    it('is not eligible for an unknown or inactive agent', async () => {
+    it('exposes the prices but is not eligible for an unknown or inactive agent', async () => {
         (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(null);
-        await expect(getPartnerOfferFor('NOPE')).resolves.toEqual({ eligible: false });
+        await expect(getPartnerOfferFor('NOPE')).resolves.toEqual({ eligible: false, offer: prices });
     });
 
-    it('is not eligible for the house code', async () => {
+    it('exposes the prices but is not eligible for the house code', async () => {
         (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue({ ...agent, isHouse: true, code: 'ARWA' });
-        await expect(getPartnerOfferFor('ARWA')).resolves.toEqual({ eligible: false });
+        await expect(getPartnerOfferFor('ARWA')).resolves.toEqual({ eligible: false, offer: prices });
     });
 
-    it('is not eligible when the offer is switched off or missing', async () => {
+    it('has no offer and is never eligible when the offer is switched off or missing', async () => {
         (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue({ ...offer, active: false });
         await expect(getPartnerOfferFor('PARTNER1')).resolves.toEqual({ eligible: false });
+        await expect(getPartnerOfferFor(undefined)).resolves.toEqual({ eligible: false });
         (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(null);
         await expect(getPartnerOfferFor('PARTNER1')).resolves.toEqual({ eligible: false });
     });
