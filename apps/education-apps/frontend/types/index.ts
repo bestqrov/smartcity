@@ -203,6 +203,7 @@ export interface Settings {
     contactInfo?: string;
     transportPricingMode?: TransportPricingMode | null;
     transportUniformPrice?: number | null;
+    gradingPeriods?: string[];
     createdAt: string;
     updatedAt: string;
 }
@@ -292,6 +293,7 @@ export interface SettingsFormData {
     contactInfo?: string;
     transportPricingMode?: TransportPricingMode | null;
     transportUniformPrice?: number | null;
+    gradingPeriods?: string[];
 }
 
 // Category options
@@ -336,6 +338,7 @@ export interface Teacher {
     gender?: string;
     picture?: string;
     status: 'Active' | 'Inactive';
+    linkIssuedAt?: string | null;
     socialMedia?: {
         linkedin?: string;
         twitter?: string;
