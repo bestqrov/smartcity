@@ -37,7 +37,12 @@ const EXISTING_OWNER_PASSWORD = process.env.EXISTING_OWNER_PASSWORD || DEMO_PASS
 
 type Slot = { day: string; startTime: string; endTime: string };
 interface TeacherSeed { name: string; specialties: string[]; levels: string[]; phone: string }
-interface GroupSeed { name: string; subject: string; level: string; teacher: string; room: string; slots: Slot[]; students: string[] }
+interface GroupSeed {
+    name: string; subject: string; level: string; teacher: string; room: string; slots: Slot[]; students: string[];
+    monthly: number;        // monthly fee in MAD
+    category: string;       // inscription category (SOUTIEN subject slug, or the formation name)
+    formation?: { name: string; duration: string; description: string }; // set => FORMATION group
+}
 interface StudentSeed { name: string; surname: string; level: string; parentName: string; parentPhone: string }
 
 interface SchoolSeed {
@@ -105,7 +110,7 @@ const SCHOOLS: SchoolSeed[] = [
         ],
         groups: [
             {
-                name: 'Maths Terminale - Soir', subject: 'Mathématiques', level: 'Lycée', teacher: 'Youssef El Fassi', room: 'Salle 1',
+                name: 'Maths Terminale - Soir', monthly: 400, category: 'math', subject: 'Mathématiques', level: 'Lycée', teacher: 'Youssef El Fassi', room: 'Salle 1',
                 slots: [
                     { day: 'Lundi', startTime: '18:00', endTime: '20:00' },
                     { day: 'Mercredi', startTime: '18:00', endTime: '20:00' },
@@ -113,7 +118,7 @@ const SCHOOLS: SchoolSeed[] = [
                 students: ['Amine Alaoui', 'Salma Bennani', 'Omar Chraibi', 'Meryem Zniber'],
             },
             {
-                name: 'Physique 1ère Bac - Week-end', subject: 'Physique-Chimie', level: 'Lycée', teacher: 'Nadia Berrada', room: 'Salle 2',
+                name: 'Physique 1ère Bac - Week-end', monthly: 350, category: 'physique', subject: 'Physique-Chimie', level: 'Lycée', teacher: 'Nadia Berrada', room: 'Salle 2',
                 slots: [
                     { day: 'Samedi', startTime: '10:00', endTime: '12:00' },
                     { day: 'Dimanche', startTime: '10:00', endTime: '12:00' },
@@ -121,7 +126,7 @@ const SCHOOLS: SchoolSeed[] = [
                 students: ['Imane El Amrani', 'Khadija Mansouri', 'Omar Chraibi', 'Salma Bennani'],
             },
             {
-                name: 'Français 3ème Collège', subject: 'Français', level: 'Collège', teacher: 'Hicham Tazi', room: 'Salle 3',
+                name: 'Français 3ème Collège', monthly: 250, category: 'francais', subject: 'Français', level: 'Collège', teacher: 'Hicham Tazi', room: 'Salle 3',
                 slots: [
                     { day: 'Mardi', startTime: '17:30', endTime: '19:00' },
                     { day: 'Jeudi', startTime: '17:30', endTime: '19:00' },
@@ -158,7 +163,7 @@ const SCHOOLS: SchoolSeed[] = [
         ],
         groups: [
             {
-                name: 'Développement Informatique - Promo 1', subject: 'Informatique', level: 'Technicien', teacher: 'Mehdi Benkirane', room: 'Labo 1',
+                name: 'Développement Informatique - Promo 1', monthly: 1200, category: 'Informatique', formation: { name: 'Informatique', duration: '6 mois', description: 'Développement web et applications' }, subject: 'Informatique', level: 'Technicien', teacher: 'Mehdi Benkirane', room: 'Labo 1',
                 slots: [
                     { day: 'Lundi', startTime: '09:00', endTime: '12:30' },
                     { day: 'Mercredi', startTime: '09:00', endTime: '12:30' },
@@ -167,7 +172,7 @@ const SCHOOLS: SchoolSeed[] = [
                 students: ['Soufiane Bouzidi', 'Badr Hajji', 'Mounir Guessous', 'Hajar Naciri'],
             },
             {
-                name: 'Comptabilité et Gestion', subject: 'Comptabilité', level: 'Technicien', teacher: 'Zineb Lamrani', room: 'Salle A',
+                name: 'Comptabilité et Gestion', monthly: 800, category: 'Comptabilité', formation: { name: 'Comptabilité', duration: '6 mois', description: 'Comptabilité générale et gestion' }, subject: 'Comptabilité', level: 'Technicien', teacher: 'Zineb Lamrani', room: 'Salle A',
                 slots: [
                     { day: 'Mardi', startTime: '14:00', endTime: '18:00' },
                     { day: 'Jeudi', startTime: '14:00', endTime: '18:00' },
@@ -175,7 +180,7 @@ const SCHOOLS: SchoolSeed[] = [
                 students: ['Lamia Rhazi', 'Chaimae Tahiri', 'Hajar Naciri'],
             },
             {
-                name: 'Design Graphique - Soir', subject: 'Design graphique', level: 'Qualification', teacher: 'Anas Filali', room: 'Atelier',
+                name: 'Design Graphique - Soir', monthly: 900, category: 'Design graphique', formation: { name: 'Design graphique', duration: '4 mois', description: 'Photoshop, Illustrator et identité visuelle' }, subject: 'Design graphique', level: 'Qualification', teacher: 'Anas Filali', room: 'Atelier',
                 slots: [
                     { day: 'Mardi', startTime: '18:00', endTime: '21:00' },
                     { day: 'Samedi', startTime: '09:00', endTime: '13:00' },
@@ -210,7 +215,7 @@ const SCHOOLS: SchoolSeed[] = [
         ],
         groups: [
             {
-                name: 'Anglais A1 - Débutants', subject: 'Anglais', level: 'A1', teacher: 'Sarah Johnson', room: 'Salle 1',
+                name: 'Anglais A1 - Débutants', monthly: 500, category: 'anglais', subject: 'Anglais', level: 'A1', teacher: 'Sarah Johnson', room: 'Salle 1',
                 slots: [
                     { day: 'Lundi', startTime: '17:00', endTime: '18:30' },
                     { day: 'Mercredi', startTime: '17:00', endTime: '18:30' },
@@ -218,7 +223,7 @@ const SCHOOLS: SchoolSeed[] = [
                 students: ['Ghita Alami', 'Nour Daoudi', 'Loubna Kabbaj'],
             },
             {
-                name: 'Français B2 - Avancé', subject: 'Français', level: 'B2', teacher: 'Mariam Ouali', room: 'Salle 2',
+                name: 'Français B2 - Avancé', monthly: 600, category: 'francais', subject: 'Français', level: 'B2', teacher: 'Mariam Ouali', room: 'Salle 2',
                 slots: [
                     { day: 'Mardi', startTime: '18:00', endTime: '19:30' },
                     { day: 'Jeudi', startTime: '18:00', endTime: '19:30' },
@@ -226,7 +231,7 @@ const SCHOOLS: SchoolSeed[] = [
                 students: ['Taha Jabri', 'Rania Fassi Fihri', 'Anouar Bakkali'],
             },
             {
-                name: 'Espagnol A1 - Samedi', subject: 'Espagnol', level: 'A1', teacher: 'Carlos Ruiz', room: 'Salle 3',
+                name: 'Espagnol A1 - Samedi', monthly: 450, category: 'espagnol', subject: 'Espagnol', level: 'A1', teacher: 'Carlos Ruiz', room: 'Salle 3',
                 slots: [{ day: 'Samedi', startTime: '10:00', endTime: '12:00' }],
                 students: ['Hamza Essakali', 'Zakaria Moussaoui', 'Ghita Alami'],
             },
@@ -260,7 +265,7 @@ const call = async <T = any>(
     return {
         ok: res.ok && json.success !== false,
         status: res.status,
-        data: json.data,
+        data: json.success === undefined && res.ok ? json : json.data,
         error: json.error || json.message,
     };
 };
@@ -304,14 +309,32 @@ const seedContent = async (seed: SchoolSeed, token: string, branchId: string) =>
         if (r.ok) { studentIds.set(full(s), r.data.id); bump(seed.name, 'students'); } else fail(seed.name, `student ${full(s)}`, r);
     }
 
-    const existingGroups = new Set(groupsRes.data!.map((g) => g.name));
+    // Vocational groups are FORMATION groups linked to a Formation. Group type can't be edited,
+    // so a leftover SOUTIEN version (from an earlier run) is deleted and recreated.
+    const formationsRes = await call<any[]>('GET', '/formations', o);
+    if (!formationsRes.ok) { fail(seed.name, 'list formations', formationsRes); return; }
+    const formationIds = new Map<string, string>(formationsRes.data!.map((f) => [f.name, f.id]));
     for (const g of seed.groups || []) {
-        if (existingGroups.has(g.name)) continue;
+        const f = g.formation;
+        if (!f || formationIds.has(f.name)) continue;
+        const r = await call('POST', '/formations', { ...o, body: { name: f.name, duration: f.duration, price: g.monthly, description: f.description } });
+        if (r.ok) { formationIds.set(f.name, r.data.id); bump(seed.name, 'formations'); } else fail(seed.name, `formation ${f.name}`, r);
+    }
+
+    const existingGroups = new Map<string, any>(groupsRes.data!.map((g) => [g.name, g]));
+    for (const g of seed.groups || []) {
+        const existing = existingGroups.get(g.name);
+        if (existing && !(g.formation && existing.type !== 'FORMATION')) continue;
+        if (existing) {
+            const d = await call('DELETE', `/groups/${existing.id}`, o);
+            if (!d.ok) { fail(seed.name, `replace group ${g.name}`, d); continue; }
+        }
         const r = await call('POST', '/groups', {
             ...o,
             body: {
                 name: g.name,
-                type: 'SOUTIEN',
+                type: g.formation ? 'FORMATION' : 'SOUTIEN',
+                formationId: g.formation ? formationIds.get(g.formation.name) : undefined,
                 subject: g.subject,
                 level: g.level,
                 room: g.room,
@@ -321,6 +344,64 @@ const seedContent = async (seed: SchoolSeed, token: string, branchId: string) =>
             },
         });
         if (r.ok) bump(seed.name, 'groups'); else fail(seed.name, `group ${g.name}`, r);
+    }
+
+    await seedFinance(seed, o, studentIds);
+};
+
+const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
+const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const monthLabel = (iso: string) => `${MONTHS_FR[new Date(iso).getMonth()]} ${new Date(iso).getFullYear()}`;
+
+// One monthly inscription per month for each student, linked to their group's subject/formation.
+// POST /inscriptions auto-creates a payment of the full amount, so "paid" months are plain
+// inscriptions; an owing month is created with amount 0 (no payment) then raised with PUT, and a
+// partially paid one gets a smaller payment through POST /payments. Students rotate through
+// 4 patterns so the finance pages show paid, partially paid and unpaid students.
+const seedFinance = async (
+    seed: SchoolSeed,
+    o: { token: string; branchId: string },
+    studentIds: Map<string, string>
+) => {
+    const inscRes = await call<any[]>('GET', '/inscriptions', o);
+    if (!inscRes.ok) { fail(seed.name, 'list inscriptions', inscRes); return; }
+    const enrolled = new Set(inscRes.data!.map((i) => String(i.studentId)));
+
+    const students = seed.students || [];
+    for (let idx = 0; idx < students.length; idx += 1) {
+        const name = full(students[idx]);
+        const studentId = studentIds.get(name);
+        const group = (seed.groups || []).find((g) => g.students.includes(name));
+        if (!studentId || !group || enrolled.has(studentId)) continue;
+
+        const type = group.formation ? 'FORMATION' : 'SOUTIEN';
+        const pattern = idx % 4;
+        // [days ago, state]: 'paid' | 'partial' | 'unpaid'
+        const months: [number, string][] = [
+            pattern === 2 ? [70, 'paid'] : [75, 'paid'],
+            [45, pattern === 2 ? 'unpaid' : 'paid'],
+        ];
+        if (pattern !== 2) months.push([5, pattern === 0 ? 'paid' : pattern === 1 ? 'partial' : 'unpaid']);
+        if (pattern === 0) months.unshift([105, 'paid']);
+
+        for (const [ago, state] of months) {
+            const date = daysAgo(ago);
+            const base = { studentId, type, category: group.category, date, note: `Mensualité ${monthLabel(date)} - ${group.name}` };
+            const r = await call('POST', '/inscriptions', { ...o, body: { ...base, amount: state === 'paid' ? group.monthly : 0 } });
+            if (!r.ok) { fail(seed.name, `inscription ${name}`, r); break; }
+            bump(seed.name, 'inscriptions');
+            if (state === 'paid') { bump(seed.name, 'payments'); continue; }
+
+            const u = await call('PUT', `/inscriptions/${r.data.id}`, { ...o, body: { amount: group.monthly } });
+            if (!u.ok) { fail(seed.name, `inscription amount ${name}`, u); break; }
+            if (state === 'partial') {
+                const p = await call('POST', '/payments', {
+                    ...o,
+                    body: { studentId, amount: Math.round(group.monthly / 2), method: 'CASH', date, note: `Acompte ${monthLabel(date)}` },
+                });
+                if (p.ok) bump(seed.name, 'payments'); else fail(seed.name, `payment ${name}`, p);
+            }
+        }
     }
 };
 
