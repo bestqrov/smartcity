@@ -875,12 +875,13 @@ model Activity {
   location     String?
   price        Float? // null/0 = free
   needsConsent Boolean            @default(true)
-  deadline     DateTime? // last day to answer
+  deadline     DateTime? // exact datetime after which parents can no longer answer
   audience     String             @default("ALL") // ALL | GROUPS
   groupIds     String[]           @db.ObjectId
   coverImage   String? // data URL
   published    Boolean            @default(false)
   notifiedAt   DateTime?
+  lastRemindedAt DateTime? // staff reminders: at most one per 24 h
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
   responses    ActivityResponse[]
@@ -896,7 +897,7 @@ model ActivityResponse {
   studentId  String   @db.ObjectId
   parentId   String?  @db.ObjectId
   branchId   String   @db.ObjectId
-  answer     String // YES | NO
+  answer     String? // YES | NO | null (paid before answering)
   paid       Boolean  @default(false)
   note       String?
   answeredAt DateTime @default(now())

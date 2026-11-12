@@ -8,6 +8,7 @@ import { formatDate, formatMoney, isSameLocalDay, nextSession, studentBalance } 
 import { Card, EmptyState, Ltr, SectionTitle } from './ui';
 import { PushPrompt } from './PushPrompt';
 import { upcomingActivities } from '@/lib/parent/activities';
+import { apiAssetUrl } from '@/lib/api';
 import { dayKey, dueKey } from '@/lib/parent/homework';
 
 interface Props {
@@ -117,9 +118,9 @@ export default function HomeTab({ token, parent, student, t, lang, goTo }: Props
             {nextActivity && (
                 <button type="button" onClick={() => goTo('school')} className="block w-full text-start">
                     <Card className="overflow-hidden !p-0">
-                        {nextActivity.coverImage ? (
+                        {nextActivity.hasCover && nextActivity.coverUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={nextActivity.coverImage} alt="" className="h-32 w-full object-cover" />
+                            <img src={apiAssetUrl(nextActivity.coverUrl)} alt="" className="h-32 w-full object-cover" />
                         ) : (
                             <div className="flex h-20 items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white">
                                 <PartyPopper className="h-8 w-8" aria-hidden />

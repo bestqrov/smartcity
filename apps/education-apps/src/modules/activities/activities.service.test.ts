@@ -10,14 +10,16 @@ import {
     remind,
     respondAsParent,
     listResponses,
+    getActivity,
+    parentActivityCover,
 } from './activities.service';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
     default: {
         activity: { findFirst: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn(), delete: jest.fn() },
-        activityResponse: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), upsert: jest.fn(), deleteMany: jest.fn() },
-        student: { findMany: jest.fn() },
+        activityResponse: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn(), create: jest.fn(), upsert: jest.fn(), deleteMany: jest.fn() },
+        student: { findMany: jest.fn(), findFirst: jest.fn() },
         group: { findMany: jest.fn() },
         parent: { findUnique: jest.fn(), findMany: jest.fn() },
     },
@@ -48,7 +50,7 @@ describe('activities audience', () => {
     });
 
     it('listActivities computes counters over targeted students', async () => {
-        m(prisma.activity.findMany).mockResolvedValue([{ ...base, audience: 'GROUPS', groupIds: ['g1'] }]);
+        m(prisma.activity.findMany).mockResolvedValueOnce([{ ...base, audience: 'GROUPS', groupIds: ['g1'] }]).mockResolvedValueOnce([]);
         m(prisma.student.findMany).mockResolvedValue([
             { id: 's1', groupIds: ['g1'] },
             { id: 's2', groupIds: ['g1'] },
@@ -62,6 +64,23 @@ describe('activities audience', () => {
         ]);
         const [a] = await listActivities('b1');
         expect(a.counts).toEqual({ targeted: 3, yes: 1, no: 1, noAnswer: 1, paid: 1 });
+        expect(m(prisma.activity.findMany).mock.calls[1][0]).toEqual({ where: { branchId: 'b1', coverImage: { isSet: true, not: null } }, select: { id: true } });
+        expect(a.hasCover).toBe(false);
+        expect(m(prisma.activity.findMany).mock.calls[0][0].select.coverImage).toBeUndefined();
+    });
+
+    it('listActivities: a paid response without answer counts as paid but not answered', async () => {
+        m(prisma.activity.findMany).mockResolvedValueOnce([base]).mockResolvedValueOnce([{ id: 'a1' }]);
+        m(prisma.student.findMany).mockResolvedValue([{ id: 's1', groupIds: [] }, { id: 's2', groupIds: [] }]);
+        m(prisma.activityResponse.findMany).mockResolvedValue([{ activityId: 'a1', studentId: 's1', answer: null, paid: true }]);
+        const [a] = await listActivities('b1');
+        expect(a.counts).toEqual({ targeted: 2, yes: 0, no: 0, noAnswer: 2, paid: 1 });
+        expect(a.hasCover).toBe(true);
+    });
+
+    it('getActivity returns the full activity with its cover', async () => {
+        m(prisma.activity.findFirst).mockResolvedValue({ ...base, coverImage: 'data:image/png;base64,AA' });
+        expect(await getActivity('b1', 'a1')).toMatchObject({ id: 'a1', coverImage: 'data:image/png;base64,AA', hasCover: true });
     });
 });
 
@@ -117,22 +136,75 @@ describe('activities publish / paid / remind', () => {
         expect(notifySafely).not.toHaveBeenCalled();
     });
 
-    it('setPaid requires an existing response', async () => {
+    it('setPaid updates an existing response', async () => {
         m(prisma.activity.findFirst).mockResolvedValue(base);
-        m(prisma.activityResponse.findFirst).mockResolvedValue(null);
-        await expect(setPaid('b1', 'a1', 's1', true)).rejects.toThrow('Pas de réponse');
         m(prisma.activityResponse.findFirst).mockResolvedValue({ id: 'r1' });
         m(prisma.activityResponse.update).mockResolvedValue({ id: 'r1', paid: true });
         await setPaid('b1', 'a1', 's1', true);
         expect(prisma.activityResponse.update).toHaveBeenCalledWith({ where: { id: 'r1' }, data: { paid: true } });
     });
 
-    it('remind notifies only parents without a response', async () => {
+    it('setPaid without a response creates one with a null answer for a targeted student', async () => {
+        m(prisma.activity.findFirst).mockResolvedValue({ ...base, audience: 'GROUPS', groupIds: ['g1'] });
+        m(prisma.activityResponse.findFirst).mockResolvedValue(null);
+        m(prisma.student.findFirst).mockResolvedValue(null);
+        await expect(setPaid('b1', 'a1', 's1', true)).rejects.toThrow('Student not found');
+        m(prisma.student.findFirst).mockResolvedValue({ id: 's1', parentId: 'p1', groupIds: ['g2'] });
+        await expect(setPaid('b1', 'a1', 's1', true)).rejects.toThrow('concerné');
+        m(prisma.student.findFirst).mockResolvedValue({ id: 's1', parentId: 'p1', groupIds: ['g1'] });
+        m(prisma.activityResponse.create).mockResolvedValue({ id: 'r2', paid: true, answer: null });
+        await setPaid('b1', 'a1', 's1', true);
+        expect(prisma.student.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 's1', branchId: 'b1', active: true } }));
+        expect(prisma.activityResponse.create).toHaveBeenCalledWith({
+            data: { activityId: 'a1', studentId: 's1', parentId: 'p1', branchId: 'b1', answer: null, paid: true },
+        });
+    });
+
+    it('remind notifies only parents without an answer, after an atomic 24h claim', async () => {
         m(prisma.activity.findFirst).mockResolvedValue({ ...base, notifiedAt: new Date() });
-        m(prisma.student.findMany).mockResolvedValue([{ id: 's1', parentId: 'p1' }, { id: 's2', parentId: 'p2' }]);
-        m(prisma.activityResponse.findMany).mockResolvedValue([{ studentId: 's1' }]);
-        expect(await remind('b1', 'a1')).toEqual({ parents: 1 });
+        m(prisma.activity.updateMany).mockResolvedValue({ count: 1 });
+        m(prisma.student.findMany).mockResolvedValue([{ id: 's1', parentId: 'p1' }, { id: 's2', parentId: 'p2' }, { id: 's3', parentId: 'p3' }]);
+        m(prisma.activityResponse.findMany).mockResolvedValue([{ studentId: 's1', answer: 'YES' }, { studentId: 's3', answer: null }]);
+        expect(await remind('b1', 'a1')).toMatchObject({ parents: 2, lastRemindedAt: expect.any(Date) });
+        expect(notifySafely).toHaveBeenCalledWith(['p2', 'p3'], expect.objectContaining({ kind: 'ACTIVITY' }));
+        const claim = m(prisma.activity.updateMany).mock.calls[0][0];
+        expect(claim.where.id).toBe('a1');
+        expect(claim.where.OR).toEqual([
+            { lastRemindedAt: null },
+            { lastRemindedAt: { isSet: false } },
+            { lastRemindedAt: { lt: expect.any(Date) } },
+        ]);
+        const cutoff = claim.where.OR[2].lastRemindedAt.lt as Date;
+        expect(Math.abs(Date.now() - 24 * 3600 * 1000 - cutoff.getTime())).toBeLessThan(5000);
+    });
+
+    it('remind refuses a second reminder within 24h', async () => {
+        m(prisma.activity.findFirst).mockResolvedValue({ ...base, notifiedAt: new Date() });
+        m(prisma.activity.updateMany).mockResolvedValue({ count: 0 });
+        await expect(remind('b1', 'a1')).rejects.toThrow('Relance déjà envoyée il y a moins de 24 h');
+        expect(notifySafely).not.toHaveBeenCalled();
+    });
+
+    it('update of a notified activity notifies only newly targeted parents', async () => {
+        m(prisma.activity.findFirst).mockResolvedValue({ ...base, notifiedAt: new Date(), audience: 'GROUPS', groupIds: ['g1'] });
+        m(prisma.group.findMany).mockResolvedValue([{ id: 'g1' }, { id: 'g2' }]);
+        m(prisma.activity.update).mockImplementation(({ data }) => Promise.resolve({ ...base, notifiedAt: new Date(), ...data }));
+        m(prisma.student.findMany)
+            .mockResolvedValueOnce([{ id: 's1', parentId: 'p1' }]) // before
+            .mockResolvedValueOnce([{ id: 's1', parentId: 'p1' }, { id: 's2', parentId: 'p2' }, { id: 's3', parentId: 'p1' }]); // after
+        await updateActivity('b1', 'a1', { groupIds: ['g1', 'g2'] });
         expect(notifySafely).toHaveBeenCalledWith(['p2'], expect.objectContaining({ kind: 'ACTIVITY' }));
+    });
+
+    it('update without audience change, or of an unnotified activity, does not notify', async () => {
+        m(prisma.activity.findFirst).mockResolvedValue({ ...base, notifiedAt: new Date() });
+        m(prisma.activity.update).mockResolvedValue(base);
+        await updateActivity('b1', 'a1', { title: 'Autre' });
+        m(prisma.activity.findFirst).mockResolvedValue({ ...base, published: false, notifiedAt: null });
+        m(prisma.group.findMany).mockResolvedValue([{ id: 'g1' }]);
+        await updateActivity('b1', 'a1', { audience: 'GROUPS', groupIds: ['g1'] });
+        expect(notifySafely).not.toHaveBeenCalled();
+        expect(prisma.student.findMany).not.toHaveBeenCalled();
     });
 
     it('listResponses lists every targeted student with parent and answer', async () => {
@@ -179,11 +251,11 @@ describe('respondAsParent', () => {
         expect(prisma.activityResponse.upsert).not.toHaveBeenCalled();
     });
 
-    it('a deadline of today is still open (end of day)', async () => {
+    it('deadline is an exact datetime: open until then, closed after', async () => {
         m(prisma.parent.findUnique).mockResolvedValue(parent);
-        const today = new Date();
-        today.setUTCHours(0, 0, 0, 0);
-        m(prisma.activity.findFirst).mockResolvedValue({ ...base, deadline: today });
+        m(prisma.activity.findFirst).mockResolvedValue({ ...base, deadline: new Date(Date.now() - 60000) });
+        await expect(respondAsParent('tok', { activityId: 'a1', studentId: 's1', answer: 'NO' })).rejects.toThrow('date limite');
+        m(prisma.activity.findFirst).mockResolvedValue({ ...base, deadline: new Date(Date.now() + 60000) });
         m(prisma.activityResponse.upsert).mockResolvedValue({ activityId: 'a1', studentId: 's1', answer: 'NO', paid: true, note: null });
         const r = await respondAsParent('tok', { activityId: 'a1', studentId: 's1', answer: 'NO' });
         expect(r).toEqual({ activityId: 'a1', studentId: 's1', answer: 'NO', paid: true, note: null });
@@ -191,5 +263,21 @@ describe('respondAsParent', () => {
         expect(call.where).toEqual({ activityId_studentId: { activityId: 'a1', studentId: 's1' } });
         expect(call.update).not.toHaveProperty('paid');
         expect(call.create).toMatchObject({ parentId: 'p1', branchId: 'b1', answer: 'NO' });
+    });
+
+    it('parentActivityCover decodes the image for a targeted child only', async () => {
+        const png = Buffer.from('hello').toString('base64');
+        m(prisma.parent.findUnique).mockResolvedValue(null);
+        await expect(parentActivityCover('tok', 'a1')).rejects.toThrow('Not found');
+        m(prisma.parent.findUnique).mockResolvedValue(parent);
+        m(prisma.activity.findFirst).mockResolvedValue({ audience: 'GROUPS', groupIds: ['g9'], coverImage: `data:image/png;base64,${png}` });
+        await expect(parentActivityCover('tok', 'a1')).rejects.toThrow('Not found');
+        m(prisma.activity.findFirst).mockResolvedValue({ audience: 'GROUPS', groupIds: ['g1'], coverImage: null });
+        await expect(parentActivityCover('tok', 'a1')).rejects.toThrow('Not found');
+        m(prisma.activity.findFirst).mockResolvedValue({ audience: 'GROUPS', groupIds: ['g1'], coverImage: `data:image/png;base64,${png}` });
+        const cover = await parentActivityCover('tok', 'a1');
+        expect(cover.contentType).toBe('image/png');
+        expect(cover.data.toString()).toBe('hello');
+        expect(m(prisma.activity.findFirst).mock.calls[0][0].where).toEqual({ id: 'a1', branchId: 'b1', published: true });
     });
 });

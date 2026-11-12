@@ -16,9 +16,12 @@ export interface Activity {
     deadline: string | null;
     audience: ActivityAudience;
     groupIds: string[];
-    coverImage: string | null;
+    /** Only present on the detail (`get`); lists carry `hasCover` instead. */
+    coverImage?: string | null;
+    hasCover: boolean;
     published: boolean;
     notifiedAt: string | null;
+    lastRemindedAt: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -61,6 +64,8 @@ export interface ActivityResponseRow {
 
 export const activitiesService = {
     list: async () => (await api.get<ApiResponse<ActivityWithCounts[]>>('/activities')).data.data,
+    /** Full activity, cover image included (the list omits it). */
+    get: async (id: string) => (await api.get<ApiResponse<Activity>>(`/activities/${id}`)).data.data,
     create: async (data: ActivityInput) => (await api.post<ApiResponse<Activity>>('/activities', data)).data.data,
     update: async (id: string, data: Partial<ActivityInput>) => (await api.put<ApiResponse<Activity>>(`/activities/${id}`, data)).data.data,
     remove: async (id: string) => {
@@ -71,13 +76,16 @@ export const activitiesService = {
     responses: async (id: string) => (await api.get<ApiResponse<ActivityResponseRow[]>>(`/activities/${id}/responses`)).data.data,
     setPaid: async (id: string, studentId: string, paid: boolean) =>
         (await api.put<ApiResponse<unknown>>(`/activities/${id}/responses/${studentId}`, { paid })).data.data,
-    remind: async (id: string) => (await api.post<ApiResponse<{ parents: number }>>(`/activities/${id}/remind`)).data.data,
+    remind: async (id: string) =>
+        (await api.post<ApiResponse<{ parents: number; lastRemindedAt: string }>>(`/activities/${id}/remind`)).data.data,
 };
 
+/** Target size of a cover data URL (the backend still accepts up to 1.4 MB). */
+export const TARGET_COVER_BYTES = 250 * 1024;
 export const MAX_COVER_BYTES = 1.4 * 1024 * 1024;
 
-/** Resizes an image file to max 1280px and re-encodes it as JPEG (~0.8). Rejects if still too big. */
-export function resizeCover(file: File, maxSide = 1280, quality = 0.8): Promise<string> {
+/** Resizes an image to max 1024px and re-encodes it as JPEG, lowering quality (0.7 → 0.4) until ≤ 250 KB. */
+export function resizeCover(file: File, maxSide = 1024, quality = 0.7): Promise<string> {
     return new Promise((resolve, reject) => {
         const url = URL.createObjectURL(file);
         const img = new Image();
@@ -92,7 +100,12 @@ export function resizeCover(file: File, maxSide = 1280, quality = 0.8): Promise<
             ctx.fillStyle = '#fff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            const data = canvas.toDataURL('image/jpeg', quality);
+            let q = quality;
+            let data = canvas.toDataURL('image/jpeg', q);
+            while (data.length > TARGET_COVER_BYTES && q > 0.4 + 1e-9) {
+                q = Math.max(0.4, Math.round((q - 0.1) * 10) / 10);
+                data = canvas.toDataURL('image/jpeg', q);
+            }
             if (data.length > MAX_COVER_BYTES) return reject(new Error('Image trop lourde, choisissez-en une plus petite.'));
             resolve(data);
         };

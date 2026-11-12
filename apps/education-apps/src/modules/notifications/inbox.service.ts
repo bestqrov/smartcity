@@ -23,12 +23,18 @@ export const listInbox = async (rawToken: string, before?: unknown, limitRaw?: u
     const limit = parseLimit(limitRaw);
     const where: any = { parentId };
     if (before !== undefined && before !== '') {
-        const d = new Date(String(before));
-        if (Number.isNaN(d.getTime())) throw new Error('Invalid before');
-        where.createdAt = { lt: d };
+        // Cursor: `<ISO>_<id>` (stable on equal timestamps) or a plain ISO date (legacy).
+        const raw = String(before);
+        const sep = raw.lastIndexOf('_');
+        const iso = sep === -1 ? raw : raw.slice(0, sep);
+        const id = sep === -1 ? null : raw.slice(sep + 1);
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime()) || (id !== null && !/^[0-9a-f]{24}$/i.test(id))) throw new Error('Invalid before');
+        if (id) where.OR = [{ createdAt: { lt: d } }, { createdAt: d, id: { lt: id } }];
+        else where.createdAt = { lt: d };
     }
     const [rows, unread] = await Promise.all([
-        prisma.parentNotification.findMany({ where, orderBy: { createdAt: 'desc' }, take: limit + 1 }),
+        prisma.parentNotification.findMany({ where, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: limit + 1 }),
         unreadCount(parentId),
     ]);
     const page = rows.slice(0, limit);
@@ -42,7 +48,7 @@ export const listInbox = async (rawToken: string, before?: unknown, limitRaw?: u
         read: !!r.readAt,
         createdAt: r.createdAt,
     }));
-    const nextBefore = rows.length > limit && page.length > 0 ? page[page.length - 1].createdAt.toISOString() : null;
+    const nextBefore = rows.length > limit && page.length > 0 ? `${page[page.length - 1].createdAt.toISOString()}_${page[page.length - 1].id}` : null;
     return { items, unread, nextBefore };
 };
 

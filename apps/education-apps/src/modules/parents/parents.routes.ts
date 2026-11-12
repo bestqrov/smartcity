@@ -15,7 +15,7 @@ import {
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
-import { parentRespond } from '../activities/activities.controller';
+import { parentRespond, parentCover } from '../activities/activities.controller';
 
 const router = Router();
 
@@ -50,6 +50,16 @@ router.get('/notifications/:token', notificationsLimiter, getNotifications);
 router.post('/notifications/:token/read', notificationsLimiter, readNotifications);
 
 router.post('/activity-response/:token', activityResponseLimiter, parentRespond);
+
+const activityCoverLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    keyGenerator: (req) => `ac:${req.params.token}`,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { keyGeneratorIpFallback: false },
+});
+router.get('/activity-cover/:token/:id', activityCoverLimiter, parentCover);
 
 router.use(authMiddleware);
 // Branch staff only: parents are scoped to the branch their children study in.

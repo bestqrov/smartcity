@@ -15,6 +15,7 @@ import GradesTab from './GradesTab';
 import InstallBanner from './InstallBanner';
 import HomeworkSection from './HomeworkSection';
 import NotificationsSheet from './NotificationsSheet';
+import { getParentNotifications } from '@/lib/services/parents';
 import { Card, EmptyState, Ltr } from './ui';
 
 type Tab = 'home' | 'attendance' | 'payments' | 'grades' | 'school';
@@ -72,6 +73,26 @@ export default function ParentShell({ token, parent: loaded, error }: Props) {
     useEffect(() => setParent(loaded), [loaded]);
     const [unread, setUnread] = useState(0);
     useEffect(() => setUnread(loaded?.unreadNotifications ?? 0), [loaded]);
+    // Keep the bell fresh: on focus / tab shown, and every 60 s while visible.
+    useEffect(() => {
+        if (!token || !loaded) return;
+        let alive = true;
+        const refresh = () => {
+            if (document.visibilityState !== 'visible') return;
+            getParentNotifications(token, { limit: 1 })
+                .then((r) => alive && setUnread(r.unread))
+                .catch(() => undefined);
+        };
+        const timer = window.setInterval(refresh, 60_000);
+        window.addEventListener('focus', refresh);
+        document.addEventListener('visibilitychange', refresh);
+        return () => {
+            alive = false;
+            window.clearInterval(timer);
+            window.removeEventListener('focus', refresh);
+            document.removeEventListener('visibilitychange', refresh);
+        };
+    }, [token, loaded]);
     const [inboxOpen, setInboxOpen] = useState(false);
     const setActivities = useCallback(
         (updater: (prev: ParentActivity[]) => ParentActivity[]) => setParent((p) => (p ? { ...p, activities: updater(p.activities || []) } : p)),

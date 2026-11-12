@@ -7,6 +7,7 @@ import type { ParentLang, ParentMessages } from '@/lib/parent/messages';
 import { formatDate, formatMoney } from '@/lib/parent/helpers';
 import { answersOpen, upcomingActivities } from '@/lib/parent/activities';
 import { answerParentActivity } from '@/lib/services/parents';
+import { apiAssetUrl } from '@/lib/api';
 import { Card, EmptyState, Ltr, SectionTitle } from './ui';
 
 interface Props {
@@ -43,9 +44,11 @@ export default function ActivitiesSection({ token, parent, t, lang, setActivitie
         patch(a.id, studentId, value);
         try {
             await answerParentActivity(token, { activityId: a.id, studentId, answer: value });
-        } catch {
+        } catch (err) {
             patch(a.id, studentId, before);
-            setError(t.answerError);
+            // The backend reason (deadline passed, already started…) when there is one.
+            const reason = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+            setError(reason && reason !== 'Internal server error' ? reason : t.answerError);
         } finally {
             setPending(null);
         }
@@ -63,9 +66,9 @@ export default function ActivitiesSection({ token, parent, t, lang, setActivitie
                         const open = answersOpen(a);
                         return (
                             <li key={a.id} className="overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-800/60">
-                                {a.coverImage && (
+                                {a.hasCover && a.coverUrl && (
                                     // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={a.coverImage} alt="" className="h-36 w-full object-cover" />
+                                    <img src={apiAssetUrl(a.coverUrl)} alt="" loading="lazy" className="h-36 w-full object-cover" />
                                 )}
                                 <div className="space-y-1.5 p-3">
                                     <p className="font-semibold text-slate-900 dark:text-white">{a.title}</p>

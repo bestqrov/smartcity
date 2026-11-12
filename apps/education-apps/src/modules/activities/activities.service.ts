@@ -2,6 +2,7 @@ import prisma from '../../config/database';
 import { assertId } from '../transport/ids';
 import { hashToken } from '../../utils/accessToken';
 import { notifySafely } from '../notifications/dispatcher';
+import { formatDayMonth } from '../notifications/format';
 
 export interface ActivityInput {
     title?: string;
@@ -150,13 +151,9 @@ const validate = async (branchId: string, input: ActivityInput, current?: Record
     return data;
 };
 
-const formatDate = (d: Date) => {
-    const p = (n: number) => String(n).padStart(2, '0');
-    return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}`;
-};
-
 const notifyParents = async (branchId: string, activity: { title: string; startAt: Date }, parentIds: (string | null)[], reminder: boolean) => {
-    const date = formatDate(new Date(activity.startAt));
+    const fr = formatDayMonth(activity.startAt, 'fr');
+    const ar = formatDayMonth(activity.startAt, 'ar');
     await notifySafely(
         parentIds.filter((id): id is string => !!id),
         {
@@ -164,15 +161,43 @@ const notifyParents = async (branchId: string, activity: { title: string; startA
             branchId,
             title: reminder ? { fr: 'Rappel activité', ar: 'تذكير بنشاط' } : { fr: 'Nouvelle activité', ar: 'نشاط جديد' },
             body: reminder
-                ? { fr: `${activity.title} (le ${date}) : merci de répondre.`, ar: `${activity.title} (يوم ${date}) : المرجو الرد.` }
-                : { fr: `${activity.title} (le ${date})`, ar: `${activity.title} (يوم ${date})` },
+                ? { fr: `${activity.title} (le ${fr}) : merci de répondre.`, ar: `${activity.title} (يوم ${ar}) : المرجو الرد.` }
+                : { fr: `${activity.title} (le ${fr})`, ar: `${activity.title} (يوم ${ar})` },
         }
     );
 };
 
+/** Every scalar except the (heavy) cover image; `hasCover` tells whether one exists. */
+const LIST_SELECT = {
+    id: true,
+    branchId: true,
+    title: true,
+    description: true,
+    startAt: true,
+    endAt: true,
+    location: true,
+    price: true,
+    needsConsent: true,
+    deadline: true,
+    audience: true,
+    groupIds: true,
+    published: true,
+    notifiedAt: true,
+    lastRemindedAt: true,
+    createdAt: true,
+    updatedAt: true,
+} as const;
+
+/** Ids (among `where`) of activities having a cover, without loading the images. */
+export const activityIdsWithCover = async (where: Record<string, unknown>) => {
+    const rows = await prisma.activity.findMany({ where: { ...where, coverImage: { isSet: true, not: null } }, select: { id: true } });
+    return new Set(rows.map((r) => r.id));
+};
+
 export const listActivities = async (branchId: string) => {
-    const activities = await prisma.activity.findMany({ where: { branchId }, orderBy: { startAt: 'desc' } });
+    const activities = await prisma.activity.findMany({ where: { branchId }, orderBy: { startAt: 'desc' }, select: LIST_SELECT });
     if (activities.length === 0) return [];
+    const withCover = await activityIdsWithCover({ branchId });
     const [students, responses] = await Promise.all([
         prisma.student.findMany({ where: { branchId, active: true }, select: { id: true, groupIds: true } }),
         prisma.activityResponse.findMany({
@@ -187,9 +212,16 @@ export const listActivities = async (branchId: string) => {
         const no = own.filter((r) => r.answer === 'NO').length;
         return {
             ...a,
+            hasCover: withCover.has(a.id),
             counts: { targeted: targeted.size, yes, no, noAnswer: targeted.size - yes - no, paid: own.filter((r) => r.paid).length },
         };
     });
+};
+
+/** Full activity (with its cover data URL), used by the staff edit form / detail. */
+export const getActivity = async (branchId: string, id: unknown) => {
+    const activity = await loadActivity(branchId, id);
+    return { ...activity, hasCover: !!activity.coverImage };
 };
 
 export const createActivity = async (branchId: string, input: ActivityInput) => {
@@ -197,10 +229,29 @@ export const createActivity = async (branchId: string, input: ActivityInput) => 
     return prisma.activity.create({ data: { ...(data as any), branchId, published: false } });
 };
 
+const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
+
 export const updateActivity = async (branchId: string, id: unknown, input: ActivityInput) => {
     const activity = await loadActivity(branchId, id);
     const data = await validate(branchId, input || {}, activity);
-    return prisma.activity.update({ where: { id: activity.id }, data });
+    const updated = await prisma.activity.update({ where: { id: activity.id }, data });
+
+    // Already announced: parents that the new audience adds get the announcement too (and only them).
+    const audienceChanged =
+        data.audience !== undefined &&
+        (data.audience !== activity.audience || !sameIds((data.groupIds as string[]) ?? [], activity.groupIds ?? []));
+    if (activity.published && activity.notifiedAt && audienceChanged) {
+        try {
+            const before = await targetedStudents(branchId, activity);
+            const after = await targetedStudents(branchId, { audience: data.audience as string, groupIds: (data.groupIds as string[]) ?? [] });
+            const known = new Set(before.map((s) => s.parentId).filter(Boolean));
+            const added = [...new Set(after.map((s) => s.parentId).filter((p): p is string => !!p && !known.has(p)))];
+            if (added.length > 0) await notifyParents(branchId, updated, added, false);
+        } catch (error) {
+            console.error('[activities] failed to notify newly targeted parents:', error);
+        }
+    }
+    return updated;
 };
 
 export const deleteActivity = async (branchId: string, id: unknown) => {
@@ -264,28 +315,67 @@ export const setPaid = async (branchId: string, id: unknown, studentId: unknown,
     assertId('studentId', studentId);
     const activity = await loadActivity(branchId, id);
     const response = await prisma.activityResponse.findFirst({ where: { activityId: activity.id, studentId, branchId } });
-    if (!response) throw new Error('Pas de réponse');
-    return prisma.activityResponse.update({ where: { id: response.id }, data: { paid } });
+    if (response) return prisma.activityResponse.update({ where: { id: response.id }, data: { paid } });
+
+    // Paid before (or without) answering: record the payment with no answer yet.
+    const student = await prisma.student.findFirst({
+        where: { id: studentId, branchId, active: true },
+        select: { id: true, parentId: true, groupIds: true },
+    });
+    if (!student) throw new Error('Student not found');
+    if (!isTargeted(activity, student)) throw new Error("Cet élève n'est pas concerné par cette activité");
+    return prisma.activityResponse.create({
+        data: { activityId: activity.id, studentId: student.id, parentId: student.parentId ?? null, branchId, answer: null, paid },
+    });
 };
 
-/** Re-notifies the parents of targeted students who have not answered yet. */
+/** Re-notifies the parents of targeted students who have not answered yet — at most once per 24 h (atomic claim). */
 export const remind = async (branchId: string, id: unknown) => {
     const activity = await loadActivity(branchId, id);
     if (!activity.published) throw new Error("L'activité n'est pas publiée");
+    const now = new Date();
+    const claim = await prisma.activity.updateMany({
+        where: {
+            id: activity.id,
+            OR: [{ lastRemindedAt: null }, { lastRemindedAt: { isSet: false } }, { lastRemindedAt: { lt: new Date(now.getTime() - DAY) } }],
+        },
+        data: { lastRemindedAt: now },
+    });
+    if (claim.count !== 1) throw new Error('Relance déjà envoyée il y a moins de 24 h');
     const [students, responses] = await Promise.all([
         targetedStudents(branchId, activity),
-        prisma.activityResponse.findMany({ where: { activityId: activity.id }, select: { studentId: true } }),
+        prisma.activityResponse.findMany({ where: { activityId: activity.id }, select: { studentId: true, answer: true } }),
     ]);
-    const answered = new Set(responses.map((r) => r.studentId));
+    const answered = new Set(responses.filter((r) => r.answer).map((r) => r.studentId));
     const parentIds = [...new Set(students.filter((s) => !answered.has(s.id)).map((s) => s.parentId).filter((p): p is string => !!p))];
     await notifyParents(branchId, activity, parentIds, true);
-    return { parents: parentIds.length };
+    return { parents: parentIds.length, lastRemindedAt: now };
 };
 
-const endOfDayUtc = (d: Date) => {
-    const e = new Date(d);
-    e.setUTCHours(23, 59, 59, 999);
-    return e;
+/** Public: the cover image of an activity visible to this parent (published, branch, targets an active child). */
+export const parentActivityCover = async (rawToken: string, activityId: unknown) => {
+    if (typeof rawToken !== 'string' || !rawToken) throw new Error('Not found');
+    assertId('activityId', activityId);
+    const parent = await prisma.parent.findUnique({
+        where: { accessTokenHash: hashToken(rawToken) },
+        select: { id: true, branchId: true, students: { select: { id: true, branchId: true, active: true, groupIds: true } } },
+    });
+    if (!parent || !parent.branchId) throw new Error('Not found');
+    let activity;
+    try {
+        activity = await prisma.activity.findFirst({
+            where: { id: activityId, branchId: parent.branchId, published: true },
+            select: { audience: true, groupIds: true, coverImage: true },
+        });
+    } catch {
+        activity = null;
+    }
+    if (!activity || !activity.coverImage) throw new Error('Not found');
+    const children = parent.students.filter((s) => s.branchId === parent.branchId && s.active !== false);
+    if (!children.some((s) => isTargeted(activity!, s))) throw new Error('Not found');
+    const match = /^data:(image\/(?:jpeg|png|webp));base64,(.*)$/s.exec(activity.coverImage);
+    if (!match) throw new Error('Not found');
+    return { contentType: match[1], data: Buffer.from(match[2], 'base64') };
 };
 
 /** Public: a parent answers (YES/NO) for one of their children. Upserts by (activityId, studentId), keeps `paid`. */
@@ -314,7 +404,7 @@ export const respondAsParent = async (rawToken: string, body: { activityId?: unk
     if (!activity) throw new Error('Activity not found');
     if (!isTargeted(activity, student)) throw new Error("Cet élève n'est pas concerné par cette activité");
     const now = new Date();
-    if (activity.deadline && now > endOfDayUtc(activity.deadline)) throw new Error('La date limite de réponse est passée');
+    if (activity.deadline && now > new Date(activity.deadline)) throw new Error('La date limite de réponse est passée');
     if (now > new Date(activity.startAt)) throw new Error("L'activité a déjà commencé");
 
     const response = await prisma.activityResponse.upsert({

@@ -8,6 +8,41 @@ import ActivityForm from './ActivityForm';
 import ActivityDetail from './ActivityDetail';
 import { fmtDateTime, isPast } from './utils';
 
+// Covers are not in the list payload (hasCover only): each card lazily loads its activity once.
+const coverCache = new Map<string, Promise<string | null>>();
+const loadCover = (id: string) => {
+    if (!coverCache.has(id)) {
+        coverCache.set(
+            id,
+            activitiesService.get(id).then(
+                (a) => a.coverImage ?? null,
+                () => {
+                    coverCache.delete(id);
+                    return null;
+                },
+            ),
+        );
+    }
+    return coverCache.get(id)!;
+};
+
+function CoverThumb({ id, updatedAt }: { id: string; updatedAt: string }) {
+    const [src, setSrc] = useState<string | null>(null);
+    useEffect(() => {
+        let alive = true;
+        loadCover(id).then((s) => alive && setSrc(s));
+        return () => {
+            alive = false;
+        };
+    }, [id, updatedAt]);
+    return src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" className="h-36 w-full object-cover" />
+    ) : (
+        <div className="h-36 w-full animate-pulse bg-gradient-to-br from-pink-200 to-violet-200 dark:from-pink-900/40 dark:to-violet-900/40" />
+    );
+}
+
 export default function ActivitiesManager() {
     const [items, setItems] = useState<ActivityWithCounts[] | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -55,11 +90,26 @@ export default function ActivitiesManager() {
         }
     };
 
+    // The form needs the cover image, which only the detail endpoint returns.
+    const edit = async (a: ActivityWithCounts) => {
+        if (!a.hasCover) return setForm({ activity: a });
+        setBusyId(a.id);
+        try {
+            setForm({ activity: await activitiesService.get(a.id) });
+        } catch (e) {
+            window.alert(apiErrorMessage(e));
+        } finally {
+            setBusyId(null);
+        }
+    };
+
     const open = items?.find((a) => a.id === openId) ?? null;
     if (open) {
         return (
             <div className="mx-auto max-w-5xl p-4 sm:p-6">
-                <ActivityDetail activity={open} onBack={() => setOpenId(null)} onCountsChange={load} />
+                <ActivityDetail activity={open} onBack={() => setOpenId(null)} onCountsChange={load} onReminded={(at) =>
+                    setItems((p) => p?.map((x) => (x.id === open.id ? { ...x, lastRemindedAt: at } : x)) ?? p)
+                } />
             </div>
         );
     }
@@ -114,9 +164,8 @@ export default function ActivitiesManager() {
                 {list.map((a) => (
                     <article key={a.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                         <button type="button" onClick={() => setOpenId(a.id)} className="text-start">
-                            {a.coverImage ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={a.coverImage} alt="" className="h-36 w-full object-cover" />
+                            {a.hasCover ? (
+                                <CoverThumb id={a.id} updatedAt={a.updatedAt} />
                             ) : (
                                 <div className="flex h-24 items-center justify-center bg-gradient-to-br from-pink-500 to-violet-600 text-white">
                                     <PartyPopper size={32} />
@@ -170,7 +219,8 @@ export default function ActivitiesManager() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setForm({ activity: a })}
+                                onClick={() => edit(a)}
+                                disabled={busyId === a.id}
                                 aria-label="Modifier"
                                 className="px-4 py-2 text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700"
                             >
@@ -193,7 +243,8 @@ export default function ActivitiesManager() {
                 <ActivityForm
                     activity={form.activity}
                     onClose={() => setForm(null)}
-                    onSaved={() => {
+                    onSaved={(saved) => {
+                        coverCache.delete(saved.id);
                         setForm(null);
                         load();
                     }}

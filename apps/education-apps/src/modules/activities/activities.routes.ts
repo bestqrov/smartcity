@@ -12,6 +12,7 @@ router.use(tenantScopeMiddleware);
 
 router.get('/', c.list);
 router.post('/', c.create);
+router.get('/:id', c.get);
 router.put('/:id', c.update);
 router.delete('/:id', c.remove);
 router.post('/:id/publish', c.publish);

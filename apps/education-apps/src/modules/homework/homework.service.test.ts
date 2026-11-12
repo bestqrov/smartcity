@@ -48,6 +48,17 @@ describe('homework.service', () => {
         expect(m(prisma.homework.create).mock.calls[0][0].data).toMatchObject({ branchId: 'b1', groupId: 'g1', createdBy: 'teacher:t1' });
         expect(notifySafely).toHaveBeenCalledWith(['p1', 'p2'], expect.objectContaining({ kind: 'HOMEWORK', branchId: 'b1' }));
         expect(m(notifySafely).mock.calls[0][1].body.fr).toBe('Devoir — Maths : Ex 3 p.12 (pour le 20/11)');
+        // Recipients follow students' own group membership (same source as the parent profile).
+        expect(m(prisma.student.findMany).mock.calls[0][0].where).toEqual({ branchId: 'b1', active: true, groupIds: { has: 'g1' } });
+    });
+
+    it('notification date uses the Casablanca day', async () => {
+        m(prisma.group.findFirst).mockResolvedValue({ ...group, studentIds: [] });
+        m(prisma.homework.create).mockImplementation(({ data }) => Promise.resolve({ id: 'h1', ...data }));
+        m(prisma.student.findMany).mockResolvedValue([{ parentId: 'p1' }]);
+        await createHomework(staff, { groupId: 'g1', title: 'Ex', dueDate: '2026-11-19T23:30:00Z' });
+        expect(m(notifySafely).mock.calls[0][1].body.fr).toContain('(pour le 20/11)');
+        expect(m(notifySafely).mock.calls[0][1].body.ar).toContain('20/11');
     });
 
     it('update/delete refuse homework of another teacher group', async () => {

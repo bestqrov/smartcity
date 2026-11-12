@@ -77,7 +77,9 @@ export interface ParentActivity {
     price: number | null;
     needsConsent: boolean;
     deadline: string | null;
-    coverImage: string | null;
+    hasCover: boolean;
+    /** Server path (`/api/parents/activity-cover/...`); resolve with `apiAssetUrl`. */
+    coverUrl: string | null;
     children: { studentId: string; answer: 'YES' | 'NO' | null; paid: boolean }[];
 }
 

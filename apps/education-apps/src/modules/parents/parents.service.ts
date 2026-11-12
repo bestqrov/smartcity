@@ -1,4 +1,4 @@
-import { isTargeted } from '../activities/activities.service';
+import { isTargeted, activityIdsWithCover } from '../activities/activities.service';
 import prisma from '../../config/database';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
 import { tuitionPayments } from '../payments/tuitionFilter';
@@ -211,7 +211,6 @@ export const getParentByRawToken = async (rawToken: string) => {
                       price: true,
                       needsConsent: true,
                       deadline: true,
-                      coverImage: true,
                       audience: true,
                       groupIds: true,
                   },
@@ -233,19 +232,28 @@ export const getParentByRawToken = async (rawToken: string) => {
     const visibleActivities = activityRows
         .map((a) => ({ a, children: activeChildren.filter((s) => isTargeted(a, s)) }))
         .filter(({ children }) => children.length > 0);
-    const responses =
+    const visibleIds = visibleActivities.map(({ a }) => a.id);
+    const [responses, withCover] =
         visibleActivities.length === 0
-            ? []
-            : await prisma.activityResponse.findMany({
-                  where: { branchId, activityId: { in: visibleActivities.map(({ a }) => a.id) }, studentId: { in: activeChildren.map((s) => s.id) } },
-                  select: { activityId: true, studentId: true, answer: true, paid: true },
-              });
+            ? [[], new Set<string>()]
+            : await Promise.all([
+                  prisma.activityResponse.findMany({
+                      where: { branchId, activityId: { in: visibleIds }, studentId: { in: activeChildren.map((s) => s.id) } },
+                      select: { activityId: true, studentId: true, answer: true, paid: true },
+                  }),
+                  activityIdsWithCover({ branchId, id: { in: visibleIds } }),
+              ]);
+    const responseByKey = new Map(responses.map((r) => [`${r.activityId}:${r.studentId}`, r]));
     const activities = visibleActivities.map(({ a, children }) => {
         const { audience: _audience, groupIds: _groupIds, ...fields } = a;
+        const hasCover = withCover.has(a.id);
         return {
             ...fields,
+            // The image itself is served by a public, token-checked endpoint (keeps this JSON small).
+            hasCover,
+            coverUrl: hasCover ? `/api/parents/activity-cover/${encodeURIComponent(rawToken)}/${a.id}` : null,
             children: children.map((s) => {
-                const r = responses.find((x) => x.activityId === a.id && x.studentId === s.id);
+                const r = responseByKey.get(`${a.id}:${s.id}`);
                 return { studentId: s.id, answer: r?.answer ?? null, paid: r?.paid ?? false };
             }),
         };

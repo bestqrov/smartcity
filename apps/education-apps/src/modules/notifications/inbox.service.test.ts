@@ -46,12 +46,25 @@ describe('listInbox', () => {
         const arg = m(prisma.parentNotification.findMany).mock.calls[0][0];
         expect(arg.take).toBe(3);
         expect(arg.where.createdAt).toEqual({ lt: new Date('2026-02-01T00:00:00.000Z') });
+        expect(arg.orderBy).toEqual([{ createdAt: 'desc' }, { id: 'desc' }]);
         expect(res.items).toHaveLength(2);
-        expect(res.nextBefore).toBe(row(2).createdAt.toISOString());
+        expect(res.nextBefore).toBe(`${row(2).createdAt.toISOString()}_n2`);
         await listInbox('tok', undefined, '999');
         expect(m(prisma.parentNotification.findMany).mock.calls[1][0].take).toBe(51);
         await listInbox('tok', undefined, 'abc');
         expect(m(prisma.parentNotification.findMany).mock.calls[2][0].take).toBe(31);
+    });
+
+    it('composite cursor <ISO>_<id> pages through equal timestamps', async () => {
+        m(prisma.parentNotification.findMany).mockResolvedValue([]);
+        const id = 'a'.repeat(24);
+        await listInbox('tok', `2026-02-01T00:00:00.000Z_${id}`);
+        const d = new Date('2026-02-01T00:00:00.000Z');
+        expect(m(prisma.parentNotification.findMany).mock.calls[0][0].where).toEqual({
+            parentId: 'p1',
+            OR: [{ createdAt: { lt: d } }, { createdAt: d, id: { lt: id } }],
+        });
+        await expect(listInbox('tok', '2026-02-01T00:00:00.000Z_zz')).rejects.toThrow('Invalid before');
     });
 
     it('invalid before rejected', async () => {

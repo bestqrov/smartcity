@@ -211,9 +211,11 @@ describe('parents.service', () => {
             (prisma.grade.findMany as jest.Mock).mockResolvedValue([]);
             const act = (id: string, audience: string, groupIds: string[]) => ({
                 id, title: id, description: null, startAt: new Date(), endAt: null, location: null, price: 20,
-                needsConsent: true, deadline: null, coverImage: null, audience, groupIds,
+                needsConsent: true, deadline: null, audience, groupIds,
             });
-            (prisma.activity.findMany as jest.Mock).mockResolvedValueOnce([act('a1', 'ALL', []), act('a2', 'GROUPS', ['g2']), act('a3', 'GROUPS', ['g9'])]);
+            (prisma.activity.findMany as jest.Mock)
+                .mockResolvedValueOnce([act('a1', 'ALL', []), act('a2', 'GROUPS', ['g2']), act('a3', 'GROUPS', ['g9'])])
+                .mockResolvedValueOnce([{ id: 'a2' }]);
             (prisma.activityResponse.findMany as jest.Mock).mockResolvedValueOnce([{ activityId: 'a1', studentId: 's1', answer: 'YES', paid: true }]);
             (prisma.homework.findMany as jest.Mock).mockResolvedValueOnce([
                 { id: 'h1', groupId: 'g1', subject: 'Maths', title: 'Ex', details: null, dueDate: new Date('2026-11-13') },
@@ -224,6 +226,9 @@ describe('parents.service', () => {
             expect((prisma.activity.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ branchId: 'b1', published: true, startAt: { gte: expect.any(Date) } });
             expect(result.activities.map((a: any) => a.id)).toEqual(['a1', 'a2']);
             expect(result.activities[0]).not.toHaveProperty('audience');
+            expect((prisma.activity.findMany as jest.Mock).mock.calls[0][0].select.coverImage).toBeUndefined();
+            expect(result.activities[0]).toMatchObject({ hasCover: false, coverUrl: null });
+            expect(result.activities[1]).toMatchObject({ hasCover: true, coverUrl: '/api/parents/activity-cover/tok/a2' });
             expect(result.activities[0].children).toEqual([
                 { studentId: 's1', answer: 'YES', paid: true },
                 { studentId: 's2', answer: null, paid: false },

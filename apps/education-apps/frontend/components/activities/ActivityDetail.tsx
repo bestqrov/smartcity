@@ -16,9 +16,19 @@ interface Props {
     activity: ActivityWithCounts;
     onBack: () => void;
     onCountsChange: () => void;
+    onReminded?: (at: string) => void;
 }
 
-export default function ActivityDetail({ activity, onBack, onCountsChange }: Props) {
+const REMIND_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+/** The specific reason from the API (`error`), else its generic message. */
+const reasonOf = (e: unknown) => {
+    const d = (e as { response?: { data?: { error?: string } } })?.response?.data;
+    return d?.error && d.error !== 'Internal server error' ? d.error : apiErrorMessage(e);
+};
+
+export default function ActivityDetail({ activity, onBack, onCountsChange, onReminded }: Props) {
+    const [lastRemindedAt, setLastRemindedAt] = useState<string | null>(activity.lastRemindedAt ?? null);
+    const remindLocked = !!lastRemindedAt && Date.now() - new Date(lastRemindedAt).getTime() < REMIND_COOLDOWN_MS;
     const [rows, setRows] = useState<ActivityResponseRow[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState<string | null>(null);
@@ -33,11 +43,11 @@ export default function ActivityDetail({ activity, onBack, onCountsChange }: Pro
     const togglePaid = async (r: ActivityResponseRow) => {
         setBusy(r.studentId);
         try {
-            await activitiesService.setPaid(activity.id, r.studentId, !r.paid);
+            await activitiesService.setPaid(activity.id, r.studentId, !r.paid); // also allowed before any answer
             setRows((p) => p?.map((x) => (x.studentId === r.studentId ? { ...x, paid: !r.paid } : x)) ?? p);
             onCountsChange();
         } catch (e) {
-            window.alert(apiErrorMessage(e));
+            window.alert(reasonOf(e));
         } finally {
             setBusy(null);
         }
@@ -46,10 +56,12 @@ export default function ActivityDetail({ activity, onBack, onCountsChange }: Pro
     const remind = async () => {
         setBusy('remind');
         try {
-            const { parents } = await activitiesService.remind(activity.id);
+            const { parents, lastRemindedAt: at } = await activitiesService.remind(activity.id);
+            setLastRemindedAt(at);
+            onReminded?.(at);
             window.alert(parents ? `Relance envoyée à ${parents} parent(s).` : 'Aucun parent à relancer.');
         } catch (e) {
-            window.alert(apiErrorMessage(e));
+            window.alert(reasonOf(e));
         } finally {
             setBusy(null);
         }
@@ -95,11 +107,18 @@ export default function ActivityDetail({ activity, onBack, onCountsChange }: Pro
                     <button
                         type="button"
                         onClick={remind}
-                        disabled={busy === 'remind'}
+                        disabled={busy === 'remind' || remindLocked}
+                        title={remindLocked ? 'Une seule relance par 24 h' : undefined}
                         className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
                     >
                         {busy === 'remind' ? <Loader2 size={16} className="animate-spin" /> : <BellRing size={16} />} Relancer les sans réponse
                     </button>
+                )}
+                {activity.published && activity.needsConsent && lastRemindedAt && (
+                    <span className="self-center text-xs text-slate-500 dark:text-slate-400">
+                        Dernière relance : {fmtDateTime(lastRemindedAt)}
+                        {remindLocked ? ' (prochaine possible 24 h après)' : ''}
+                    </span>
                 )}
                 <button
                     type="button"
@@ -133,7 +152,7 @@ export default function ActivityDetail({ activity, onBack, onCountsChange }: Pro
                                     {r.note && <p className="mt-1 text-xs italic text-slate-500">{r.note}</p>}
                                     {showPaid && (
                                         <label className="mt-2 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                                            <input type="checkbox" className="h-4 w-4" checked={r.paid} disabled={!r.answer || busy === r.studentId} onChange={() => togglePaid(r)} />
+                                            <input type="checkbox" className="h-4 w-4" checked={r.paid} disabled={busy === r.studentId} onChange={() => togglePaid(r)} />
                                             Payé
                                         </label>
                                     )}
@@ -170,7 +189,7 @@ export default function ActivityDetail({ activity, onBack, onCountsChange }: Pro
                                             <td className="px-3 py-2 text-xs text-slate-500">{r.note ?? ''}</td>
                                             {showPaid && (
                                                 <td className="px-3 py-2">
-                                                    <input type="checkbox" className="h-4 w-4" checked={r.paid} disabled={!r.answer || busy === r.studentId} onChange={() => togglePaid(r)} />
+                                                    <input type="checkbox" className="h-4 w-4" checked={r.paid} disabled={busy === r.studentId} onChange={() => togglePaid(r)} />
                                                 </td>
                                             )}
                                         </tr>

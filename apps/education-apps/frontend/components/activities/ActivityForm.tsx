@@ -33,10 +33,15 @@ export default function ActivityForm({ activity, onClose, onSaved }: Props) {
     const [location, setLocation] = useState(activity?.location ?? '');
     const [price, setPrice] = useState(activity?.price != null ? String(activity.price) : '');
     const [needsConsent, setNeedsConsent] = useState(activity?.needsConsent ?? true);
-    const [deadline, setDeadline] = useState(toLocalInput(activity?.deadline));
+    // Deadline = exact datetime; picking only a day means "until 23:59 that day".
+    const initialDeadline = toLocalInput(activity?.deadline);
+    const [deadlineDate, setDeadlineDate] = useState(initialDeadline.slice(0, 10));
+    const [deadlineTime, setDeadlineTime] = useState(initialDeadline.slice(11, 16) || '23:59');
+    const deadline = deadlineDate ? `${deadlineDate}T${deadlineTime || '23:59'}` : '';
     const [audience, setAudience] = useState<ActivityAudience>(activity?.audience ?? 'ALL');
     const [groupIds, setGroupIds] = useState<string[]>(activity?.groupIds ?? []);
     const [cover, setCover] = useState<string | null>(activity?.coverImage ?? null);
+    const [coverChanged, setCoverChanged] = useState(false);
     const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -54,6 +59,7 @@ export default function ActivityForm({ activity, onClose, onSaved }: Props) {
         setError(null);
         try {
             setCover(await resizeCover(file));
+            setCoverChanged(true);
         } catch (e) {
             setError((e as Error).message);
         }
@@ -79,7 +85,8 @@ export default function ActivityForm({ activity, onClose, onSaved }: Props) {
             deadline: needsConsent ? fromLocalInput(deadline) : null,
             audience,
             groupIds: audience === 'GROUPS' ? groupIds : [],
-            coverImage: cover,
+            // Only send the (heavy) image when it changed; new activities always carry it.
+            ...((!activity || coverChanged) && { coverImage: cover }),
         };
         setBusy(true);
         try {
@@ -111,7 +118,10 @@ export default function ActivityForm({ activity, onClose, onSaved }: Props) {
                                 <img src={cover} alt="" className="h-40 w-full rounded-xl object-cover" />
                                 <button
                                     type="button"
-                                    onClick={() => setCover(null)}
+                                    onClick={() => {
+                                        setCover(null);
+                                        setCoverChanged(true);
+                                    }}
                                     aria-label="Retirer l’image"
                                     className="absolute end-2 top-2 rounded-full bg-black/60 p-1.5 text-white"
                                 >
@@ -173,7 +183,24 @@ export default function ActivityForm({ activity, onClose, onSaved }: Props) {
                     {needsConsent && (
                         <div>
                             <label className={label}>Date limite de réponse</label>
-                            <input type="datetime-local" className={input} value={deadline} max={startAt || undefined} onChange={(e) => setDeadline(e.target.value)} />
+                            <div className="flex gap-2">
+                                <input
+                                    type="date"
+                                    className={input}
+                                    value={deadlineDate}
+                                    max={startAt ? startAt.slice(0, 10) : undefined}
+                                    onChange={(e) => setDeadlineDate(e.target.value)}
+                                />
+                                <input
+                                    type="time"
+                                    className={`${input} max-w-[8rem]`}
+                                    value={deadlineTime}
+                                    disabled={!deadlineDate}
+                                    onChange={(e) => setDeadlineTime(e.target.value || '23:59')}
+                                    aria-label="Heure limite"
+                                />
+                            </div>
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Les réponses ferment exactement à cette date et heure.</p>
                         </div>
                     )}
                     <div>

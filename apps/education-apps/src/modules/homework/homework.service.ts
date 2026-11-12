@@ -1,6 +1,7 @@
 import prisma from '../../config/database';
 import { assertId } from '../transport/ids';
 import { notifySafely } from '../notifications/dispatcher';
+import { formatDayMonth } from '../notifications/format';
 
 /** Same scope as grades: staff get their branch, a teacher (portal link) is limited to their own groups. */
 export interface HomeworkScope {
@@ -77,11 +78,6 @@ const validate = (input: HomeworkInput, full: boolean) => {
     return data;
 };
 
-const formatDate = (d: Date) => {
-    const p = (n: number) => String(n).padStart(2, '0');
-    return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}`;
-};
-
 export const listGroupHomework = async (scope: HomeworkScope, groupId: unknown) => {
     const group = await loadGroup(scope, groupId);
     return prisma.homework.findMany({
@@ -106,23 +102,20 @@ export const createHomework = async (scope: HomeworkScope, input: HomeworkInput,
     });
 
     try {
-        const students =
-            group.studentIds.length === 0
-                ? []
-                : await prisma.student.findMany({
-                      where: { id: { in: group.studentIds }, branchId: scope.branchId, active: true },
-                      select: { parentId: true },
-                  });
-        const date = formatDate(homework.dueDate);
+        // Same membership source as the parent profile: the student's own groupIds.
+        const students = await prisma.student.findMany({
+            where: { branchId: scope.branchId, active: true, groupIds: { has: group.id } },
+            select: { parentId: true },
+        });
         await notifySafely(
-            students.map((s) => s.parentId).filter((id): id is string => !!id),
+            [...new Set(students.map((s) => s.parentId).filter((id): id is string => !!id))],
             {
                 kind: 'HOMEWORK',
                 branchId: scope.branchId,
                 title: { fr: 'Devoir', ar: 'واجب منزلي' },
                 body: {
-                    fr: `Devoir — ${homework.subject} : ${homework.title} (pour le ${date})`,
-                    ar: `واجب — ${homework.subject} : ${homework.title} (ليوم ${date})`,
+                    fr: `Devoir — ${homework.subject} : ${homework.title} (pour le ${formatDayMonth(homework.dueDate, 'fr')})`,
+                    ar: `واجب — ${homework.subject} : ${homework.title} (ليوم ${formatDayMonth(homework.dueDate, 'ar')})`,
                 },
             }
         );
