@@ -1,5 +1,6 @@
 import prisma from '../../config/database';
 import { assertId } from '../transport/ids';
+import { UNSETTLED } from '../subscription/packUpgrade.service';
 import { computeCommission, resolveCommissionRate, sanitizePayment } from './salesAgents.validation';
 
 // Changing a school's agent only affects payments recorded afterwards: past payments keep their frozen agent.
@@ -54,6 +55,17 @@ export const recordSchoolPayment = async (schoolId: string, input: Record<string
         if (school.status === 'PENDING') {
             await tx.school.update({ where: { id: schoolId }, data: { status: 'ACTIVE' } });
         }
+
+        // A payment settles the school's pack upgrades made up to the end of the payment day (paidAt is a
+        // date at midnight UTC, the upgrade a timestamp, so an upgrade and its payment the same day match).
+        await tx.packUpgrade.updateMany({
+            where: {
+                schoolId,
+                createdAt: { lt: new Date(data.paidAt.getTime() + 86_400_000) },
+                ...UNSETTLED,
+            },
+            data: { settledAt: data.paidAt },
+        });
 
         const packId = school.pack?.id ?? null;
         const rate = resolveCommissionRate(school.salesAgent, packId, data.period);

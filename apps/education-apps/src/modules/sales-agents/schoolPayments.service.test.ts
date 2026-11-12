@@ -7,7 +7,11 @@ import {
 } from './schoolPayments.service';
 
 jest.mock('../../config/database', () => {
-    const tx = { school: { findUnique: jest.fn(), update: jest.fn() }, schoolPayment: { create: jest.fn() } };
+    const tx = {
+        school: { findUnique: jest.fn(), update: jest.fn() },
+        schoolPayment: { create: jest.fn() },
+        packUpgrade: { updateMany: jest.fn() },
+    };
     return {
         __esModule: true,
         default: {
@@ -70,6 +74,21 @@ describe('assignSchoolAgent', () => {
 });
 
 describe('recordSchoolPayment', () => {
+    it('settles the open upgrades of that school made up to the end of the payment day', async () => {
+        tx.school.findUnique.mockResolvedValue(crecheSchool);
+
+        await recordSchoolPayment('s1', { amount: 350, period: 'MONTHLY', paidAt: '2026-11-12' });
+
+        expect(tx.packUpgrade.updateMany).toHaveBeenCalledWith({
+            where: {
+                schoolId: 's1',
+                createdAt: { lt: new Date('2026-11-13T00:00:00.000Z') },
+                OR: [{ settledAt: null }, { settledAt: { isSet: false } }],
+            },
+            data: { settledAt: new Date('2026-11-12') },
+        });
+    });
+
     it('activates a PENDING school on its payment, and leaves ACTIVE or SUSPENDED schools alone', async () => {
         tx.school.update.mockClear();
         tx.school.findUnique.mockResolvedValueOnce({ id: 's1', status: 'PENDING', salesAgent: null, pack: null });
