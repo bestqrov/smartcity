@@ -8,8 +8,11 @@ import {
     updateParent,
     regenerateParentToken,
     getParentByRawToken,
+    issueParentLinks,
+    getParentsAccess,
 } from './parents.service';
 import { sendSuccess, sendError } from '../../utils/response';
+import { respond } from '../transport/http';
 
 export const create = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
@@ -34,7 +37,7 @@ const stripTokenHashes = (parent: any) => {
         return safeParent;
     }
 
-    const safeStudents = students.map(({ accessTokenHash, ...student }: any) => student);
+    const safeStudents = students.map(({ accessTokenHash, portalTokenHash, ...student }: any) => student);
     return { ...safeParent, students: safeStudents };
 };
 
@@ -91,4 +94,18 @@ export const getPublicProfile = async (req: Request, res: Response): Promise<voi
     } catch (error: any) {
         sendError(res, 'Not found', 'Not found', 404);
     }
+};
+
+export const issueLinks = async (req: TenantRequest, res: Response): Promise<void> => {
+    await respond(res, () => issueParentLinks(req.body?.parentIds, req.branchId!), {
+        message: 'Links issued successfully',
+        failure: 'Failed to issue links',
+    });
+};
+
+export const getAccess = async (req: TenantRequest, res: Response): Promise<void> => {
+    await respond(res, () => getParentsAccess(req.branchId!), {
+        message: 'Parents access retrieved successfully',
+        failure: 'Failed to retrieve parents access',
+    });
 };

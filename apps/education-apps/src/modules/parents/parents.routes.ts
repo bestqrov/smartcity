@@ -7,6 +7,8 @@ import {
     update,
     regenerateToken,
     getPublicProfile,
+    issueLinks,
+    getAccess,
 } from './parents.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
@@ -31,6 +33,9 @@ router.use(tenantScopeMiddleware);
 
 router.post('/', create);
 router.get('/', getAll);
+// Fixed paths must stay above '/:id'.
+router.get('/access', getAccess);
+router.post('/links', issueLinks);
 router.get('/:id', getById);
 router.put('/:id', update);
 router.post('/:id/regenerate-token', regenerateToken);

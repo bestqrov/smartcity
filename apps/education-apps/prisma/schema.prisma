@@ -99,6 +99,8 @@ model Parent {
   cin             String?
   address         String?
   accessTokenHash String   @unique
+  // When the current access link was created or re-issued; null for parents created by an import (no link handed out yet).
+  linkIssuedAt    DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

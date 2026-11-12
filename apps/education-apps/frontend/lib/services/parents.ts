@@ -32,3 +32,23 @@ export async function getPublicParentProfile(token: string): Promise<Parent> {
     const response = await api.get<ApiResponse<Parent>>(`/parents/profile/${token}`);
     return response.data.data;
 }
+
+export interface ParentAccessRow {
+    id: string;
+    name: string;
+    phone: string;
+    whatsapp: string | null;
+    linkIssuedAt: string | null;
+    lastVisitAt: string | null;
+    children: { id: string; name: string; surname: string }[];
+}
+
+export async function getParentsAccess(): Promise<ParentAccessRow[]> {
+    const response = await api.get<ApiResponse<ParentAccessRow[]>>('/parents/access');
+    return response.data.data;
+}
+
+export async function issueParentLinks(parentIds: string[]): Promise<{ id: string; rawToken: string }[]> {
+    const response = await api.post<ApiResponse<{ id: string; rawToken: string }[]>>('/parents/links', { parentIds });
+    return response.data.data;
+}
