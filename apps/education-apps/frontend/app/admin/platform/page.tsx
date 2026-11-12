@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { DashboardBanner } from '@/components/dashboard/DashboardShell';
+import PendingUpgradesCard from '@/components/platform/PendingUpgradesCard';
 import PlatformDashboard from '@/components/platform/PlatformDashboard';
 import { apiErrorMessage } from '@/lib/services/packs';
 import { getPlatformOverview, type PlatformOverview } from '@/lib/services/platform';
@@ -35,6 +36,7 @@ export default function PlatformPage() {
     return (
         <div className="space-y-4">
             <DashboardBanner title={m.banner_title} subtitle={m.banner_sub(data.schools.length, data.agents.length)} />
+            <PendingUpgradesCard upgrades={data.pendingUpgrades ?? []} lang={lang} m={m} />
             <PlatformDashboard data={data} lang={lang} m={m} />
         </div>
     );

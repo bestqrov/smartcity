@@ -74,6 +74,16 @@ const fr = {
     balance_note: 'Le solde dû est global (il ne dépend pas des filtres).',
 
     school_status: { PENDING: 'En attente', ACTIVE: 'Active', SUSPENDED: 'Suspendue' } as Record<SchoolStatus, string>,
+
+    // pack upgrades awaiting payment
+    upgrades_title: 'Upgrades en attente de paiement',
+    upgrades_hint: 'Écoles passées à un pack supérieur depuis la limite d’élèves. Réglé dès qu’un paiement est enregistré.',
+    upgrades_school: 'École',
+    upgrades_change: 'Pack',
+    upgrades_price: 'Nouveau tarif',
+    upgrades_date: 'Date',
+    upgrades_due: 'Échéance',
+    upgrades_overdue: 'En retard',
 };
 
 export type PlatformMessages = typeof fr;
@@ -143,6 +153,15 @@ const ar: PlatformMessages = {
     balance_note: 'الرصيد المستحق إجمالي (لا يتأثر بعوامل التصفية).',
 
     school_status: { PENDING: 'قيد الانتظار', ACTIVE: 'نشطة', SUSPENDED: 'موقوفة' },
+
+    upgrades_title: 'ترقيات في انتظار الدفع',
+    upgrades_hint: 'مدارس انتقلت إلى باقة أعلى عند بلوغ حد التلاميذ. تُسوّى بمجرد تسجيل دفعة.',
+    upgrades_school: 'المدرسة',
+    upgrades_change: 'الباقة',
+    upgrades_price: 'السعر الجديد',
+    upgrades_date: 'التاريخ',
+    upgrades_due: 'آخر أجل',
+    upgrades_overdue: 'متأخرة',
 };
 
 export const platformMessages: Record<AgentLang, PlatformMessages> = { fr, ar };
