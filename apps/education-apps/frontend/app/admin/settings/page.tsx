@@ -47,7 +47,7 @@ export default function SettingsPage() {
 
     // School Profile State
     const [schoolProfile, setSchoolProfile] = useState({
-        schoolName: 'Smart School',
+        schoolName: 'ArwaEduc',
         city: '',
         address: '',
         phone: '',
@@ -82,7 +82,7 @@ export default function SettingsPage() {
         try {
             const school = await getMySchool();
             setSchoolProfile({
-                schoolName: school.name || 'Smart School',
+                schoolName: school.name || 'ArwaEduc',
                 city: school.city || '',
                 address: school.address || '',
                 phone: school.phone || '',

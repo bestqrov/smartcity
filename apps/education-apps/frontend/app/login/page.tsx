@@ -54,7 +54,7 @@ export default function LoginPage() {
                         </div>
                     </div>
                     <h2 className="text-6xl font-black text-white mb-6 tracking-tight leading-[1.1]">
-                        Smart<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300">School</span>
+                        Arwa<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300">Educ</span>
                     </h2>
                     <div className="h-1.5 w-24 bg-emerald-500 rounded-full mx-auto mb-8 shadow-[0_0_20px_rgba(16,185,129,0.6)]"></div>
                     <p className="text-emerald-100/60 text-xl font-medium leading-relaxed">

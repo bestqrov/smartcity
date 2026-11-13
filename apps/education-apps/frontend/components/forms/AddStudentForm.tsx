@@ -110,7 +110,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         <h2 className="text-3xl font-extrabold flex items-center gap-3">
                             {initialData ? 'Modification Dossier' : 'Nouvelle Inscription'}
                             <span className="text-blue-200/50 text-xl font-light">|</span>
-                            <span className="text-white/90">{profile?.schoolName || 'Smart School'}</span>
+                            <span className="text-white/90">{profile?.schoolName || 'ArwaEduc'}</span>
                         </h2>
                         <p className="text-blue-100/80 mt-2 text-sm max-w-md">
                             Gérez les informations académiques et personnelles de l'élève avec précision et simplicité.

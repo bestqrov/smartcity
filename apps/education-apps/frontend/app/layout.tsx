@@ -11,7 +11,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-    title: 'Smart School',
+    title: 'ArwaEduc',
     description: 'Système de gestion scolaire',
 };
 

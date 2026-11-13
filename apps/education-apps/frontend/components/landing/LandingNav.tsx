@@ -15,7 +15,7 @@ export default function LandingNav({ m, lang, onLangChange }: Props) {
                 <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-gradient-to-br from-indigo-400 to-violet-500 text-white">
                     <GraduationCap size={18} />
                 </span>
-                Smart School
+                ArwaEduc
             </Link>
             <div className="flex items-center gap-2">
                 <a href="#pricing" className="hidden rounded-full border border-[#22294a] bg-[#131a30] px-4 py-1.5 text-sm font-semibold text-slate-200 hover:bg-[#1a2342] sm:inline-block">

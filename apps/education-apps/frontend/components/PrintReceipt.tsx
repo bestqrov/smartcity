@@ -38,7 +38,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '15px' }}>
                 <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>
-                    {profile?.schoolName || 'Smart School'}
+                    {profile?.schoolName || 'ArwaEduc'}
                 </div>
                 {profile?.address && (
                     <div style={{ fontSize: '10px', marginBottom: '2px' }}>

@@ -231,7 +231,7 @@ export default function DocumentsPage() {
                                             </div>
                                         )}
                                         <div>
-                                            <h1 className="text-3xl font-black uppercase tracking-tight">{profile?.schoolName || 'Smart School'}</h1>
+                                            <h1 className="text-3xl font-black uppercase tracking-tight">{profile?.schoolName || 'ArwaEduc'}</h1>
                                             <div className="flex flex-col gap-1 mt-2 text-sm text-white/80 print:text-gray-600">
                                                 {profile?.address && (
                                                     <div className="flex items-center gap-2">
@@ -603,7 +603,7 @@ export default function DocumentsPage() {
                                     </table>
                                 </div>
                                 <div className="mt-8 text-center text-green-600 font-bold text-lg font-serif">
-                                    Signed by {profile?.schoolName || 'Smart School'}{profile?.address ? ` — ${profile.address}` : ''}
+                                    Signed by {profile?.schoolName || 'ArwaEduc'}{profile?.address ? ` — ${profile.address}` : ''}
                                 </div>
                             </div>
                         </div>

@@ -217,7 +217,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                 </style>
             </head>
             <body>
-                <div class="center header bold">${profile?.schoolName || 'Smart School'}</div>
+                <div class="center header bold">${profile?.schoolName || 'ArwaEduc'}</div>
                 ${profile?.address ? `<div class="center small">${profile.address}</div>` : ''}
                 ${profile?.phone ? `<div class="center small">Tél: ${profile.phone}</div>` : ''}
                 
@@ -347,7 +347,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     <span>ROYAUME DU MAROC</span>
                                 </div>
                                 <h2 className="font-bold text-lg text-gray-800">MINISTERE D'EDUCATION NATIONALE</h2>
-                                <h1 className="font-bold text-3xl tracking-wider text-green-700">{profile?.schoolName || 'Smart School'}</h1>
+                                <h1 className="font-bold text-3xl tracking-wider text-green-700">{profile?.schoolName || 'ArwaEduc'}</h1>
                                 <div className="mt-4 inline-block border-2 border-green-600 px-6 py-3 font-bold text-lg bg-green-50 rounded-lg">
                                     Fiche de renseignements individuelle
                                 </div>

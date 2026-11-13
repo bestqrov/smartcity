@@ -177,7 +177,7 @@ function SignupForm() {
                         </div>
                     </div>
                     <h2 className="text-6xl font-black text-white mb-6 tracking-tight leading-[1.1]">
-                        Smart<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">School</span>
+                        Arwa<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">Educ</span>
                     </h2>
                     <div className="h-1.5 w-24 bg-indigo-500 rounded-full mx-auto mb-8 shadow-[0_0_20px_rgba(99,102,241,0.6)]"></div>
                     <p className="text-indigo-100/60 text-xl font-medium leading-relaxed">

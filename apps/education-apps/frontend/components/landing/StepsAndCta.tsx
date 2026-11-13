@@ -34,7 +34,7 @@ export default function StepsAndCta({ m }: { m: Messages }) {
                 </div>
             </section>
 
-            <footer className="py-8 text-center text-sm text-slate-500">© Smart School</footer>
+            <footer className="py-8 text-center text-sm text-slate-500">© ArwaEduc</footer>
         </>
     );
 }

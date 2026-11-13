@@ -18,7 +18,7 @@ export interface SchoolProfile {
 }
 
 const DEFAULT_PROFILE: SchoolProfile = {
-    schoolName: 'Smart School',
+    schoolName: 'ArwaEduc',
     logo: null,
 };
 
@@ -33,7 +33,7 @@ export function useSchoolProfile() {
                 const parsed = JSON.parse(savedProfile);
                 setProfile({
                     ...parsed,
-                    schoolName: parsed.schoolName || 'Smart School',
+                    schoolName: parsed.schoolName || 'ArwaEduc',
                     logo: parsed.logo || parsed.logoUrl || null,
                 });
             }
@@ -53,7 +53,7 @@ export function useSchoolProfile() {
             const response = await api.get('/schools/me');
             const school = response.data.data;
             const next: SchoolProfile = {
-                schoolName: school.name || 'Smart School',
+                schoolName: school.name || 'ArwaEduc',
                 logo: school.logo || null,
                 director: school.director || '',
                 email: school.email || '',

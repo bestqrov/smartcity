@@ -68,7 +68,7 @@ export default function RecuPage() {
 
     const [formData, setFormData] = useState(initialFormState);
     const [schoolProfile, setSchoolProfile] = useState({
-        schoolName: 'Smart School',
+        schoolName: 'ArwaEduc',
         address: '',
         phone: '',
         logo: null as string | null
@@ -102,7 +102,7 @@ export default function RecuPage() {
             try {
                 const profile = JSON.parse(savedProfile);
                 setSchoolProfile({
-                    schoolName: profile.schoolName || 'Smart School',
+                    schoolName: profile.schoolName || 'ArwaEduc',
                     address: profile.address || '',
                     phone: profile.phone || '',
                     logo: profile.logo || profile.logoUrl || null
