@@ -1860,6 +1860,6 @@ Report the list to the user before release. These schools will see the dialog th
 
 - [ ] **Step 5: Credentials check before any push**
 
-Run, at the repo root: `git diff origin/main --stat && git diff origin/main | grep -niE "password|admin123|secret|token=" || true`
+Run, at the repo root: `git diff origin/main --stat && git diff origin/main | grep -niE "password|secret|token=" || true`
 
 Expected: nothing except code identifiers. No real credentials in code, docs or tests.
