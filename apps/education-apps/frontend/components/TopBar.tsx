@@ -10,7 +10,7 @@ import useAuthStore from '@/store/useAuthStore';
 
 export default function TopBar() {
     const { profile } = useSchoolProfile();
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
+    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [prayerTimes, setPrayerTimes] = useState<any>(null);
     const [nextPrayer, setNextPrayer] = useState<any>(null);
     const [adminName, setAdminName] = useState('');
@@ -28,10 +28,10 @@ export default function TopBar() {
         } catch {
             // storage blocked: keep the default
         }
-        if (savedTheme) {
-            setTheme(savedTheme);
-            document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-        }
+        // Dark is the default: only an explicit 'light' choice switches it off.
+        const initial = savedTheme === 'light' ? 'light' : 'dark';
+        setTheme(initial);
+        document.documentElement.classList.toggle('dark', initial === 'dark');
 
         if (user) {
             const name = `${user.name} ${user.surname || ''}`.trim();
