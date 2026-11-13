@@ -615,5 +615,18 @@ function buildGroups(items: any[]) {
     }
     if (stay.length > 0) push(home, { ...item, key: item.id, submenu: stay });
   }
+  const pedagogie = buckets.pedagogie;
+  if (pedagogie) pedagogie.sort((a, b) => pedagogieRank(a) - pedagogieRank(b));
   return GROUPS.filter((g) => buckets[g.id]?.length).map((g) => ({ ...g, items: buckets[g.id] }));
+}
+
+// Pédagogie order asked by the school owner: Professeurs, Présence, Devoirs, Notes, then Groupes.
+function pedagogieRank(entry: any): number {
+  const key = `${entry.id ?? ''} ${entry.path ?? ''}`;
+  if (/teacher/.test(key)) return 0;
+  if (/presence|attendance/.test(key)) return 1;
+  if (/homework/.test(key)) return 2;
+  if (/grades/.test(key)) return 3;
+  if (/groups/.test(key)) return 4;
+  return 5;
 }
