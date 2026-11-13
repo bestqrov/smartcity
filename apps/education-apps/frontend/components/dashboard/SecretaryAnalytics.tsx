@@ -1,11 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getInscriptionAnalytics, InscriptionAnalytics } from '@/lib/services/inscriptions';
-import { TrendingUp, Users, Calendar, DollarSign, BookOpen, GraduationCap } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { CalendarCheck, ChevronRight, Users, Wallet, BookOpen } from 'lucide-react';
+import { getInscriptionAnalytics, getInscriptions, InscriptionAnalytics } from '@/lib/services/inscriptions';
+import { getStudents } from '@/lib/services/students';
+import { ChartCard, DonutChart, SplineChart, VBarChart, VibrantKpi } from '@/components/dashboard/Charts';
+import { lastMonths, mad, madShort, num, pct, sumByMonth } from '@/lib/dashboard/vibrant';
+import { useSchoolProfile } from '@/hooks/useSchoolProfile';
+import type { Inscription, Student } from '@/types';
 
 export default function SecretaryAnalytics() {
+    const router = useRouter();
+    const { profile } = useSchoolProfile();
     const [analytics, setAnalytics] = useState<InscriptionAnalytics | null>(null);
+    const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
+    const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -20,22 +30,30 @@ export default function SecretaryAnalytics() {
             } finally {
                 setLoading(false);
             }
+            // Chart data: optional, the KPIs still show if these fail.
+            const [ins, stu] = await Promise.allSettled([getInscriptions(), getStudents()]);
+            if (ins.status === 'fulfilled') setInscriptions(ins.value);
+            if (stu.status === 'fulfilled') setStudents(stu.value);
         };
 
         fetchAnalytics();
     }, []);
 
+    const months = useMemo(() => lastMonths(12), []);
+    const amountPoints = useMemo(() => sumByMonth(inscriptions, months, (i) => i.date || i.createdAt, (i) => i.amount), [inscriptions, months]);
+    const countBars = useMemo(() => sumByMonth(inscriptions, months, (i) => i.date || i.createdAt, () => 1).slice(-6), [inscriptions, months]);
+
     if (loading) {
         return (
             <div className="flex items-center justify-center p-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-vib-indigo"></div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="rounded-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300">
                 {error}
             </div>
         );
@@ -43,93 +61,78 @@ export default function SecretaryAnalytics() {
 
     if (!analytics) return null;
 
-    const StatCard = ({ title, value, subtitle, icon: Icon, color }: any) => (
-        <div className={`bg-white rounded-xl shadow-md p-6 border-l-4 ${color}`}>
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-                    <p className="text-3xl font-bold text-gray-900">{value}</p>
-                    {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
-                </div>
-                <div className={`p-3 rounded-full ${color.replace('border-', 'bg-').replace('-500', '-100')}`}>
-                    <Icon className={color.replace('border-', 'text-')} size={24} />
-                </div>
-            </div>
-        </div>
-    );
+    const isCreche = profile.institutionType === 'CRECHE';
+    const activeStudents = students.filter((s) => s.active !== false);
+    const withoutInscription = activeStudents.filter((s) => (s.inscriptions?.length ?? 0) === 0).length;
+    const typeSlices = [
+        { key: 'soutien', label: isCreche ? 'Enfants' : 'Soutien scolaire', value: analytics.monthly.soutien, tone: 0 },
+        { key: 'formation', label: 'Formation pro', value: analytics.monthly.formation, tone: 4 },
+    ];
 
     return (
-        <div className="space-y-8">
-            {/* Daily Analytics */}
-            <div>
-                <div className="flex items-center gap-2 mb-4">
-                    <Calendar className="text-blue-600" size={24} />
-                    <h2 className="text-2xl font-bold text-gray-800">Statistiques du Jour</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard
-                        title="Inscriptions Totales"
-                        value={analytics.daily.count}
-                        icon={Users}
-                        color="border-blue-500"
-                    />
-                    <StatCard
-                        title="Montant Total"
-                        value={`${analytics.daily.total.toFixed(2)} DH`}
-                        icon={DollarSign}
-                        color="border-green-500"
-                    />
-                    <StatCard
-                        title="Soutien Scolaire"
-                        value={analytics.daily.soutien}
-                        subtitle="inscriptions"
-                        icon={BookOpen}
-                        color="border-purple-500"
-                    />
-                    <StatCard
-                        title="Formation Pro"
-                        value={analytics.daily.formation}
-                        subtitle="inscriptions"
-                        icon={GraduationCap}
-                        color="border-orange-500"
-                    />
-                </div>
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <VibrantKpi
+                    tone="indigo"
+                    label="Inscriptions du jour"
+                    value={num(analytics.daily.count)}
+                    sub={mad(analytics.daily.total)}
+                    icon={<CalendarCheck size={18} />}
+                    onClick={() => router.push('/secretary/inscriptions')}
+                />
+                <VibrantKpi
+                    tone="emerald"
+                    label="Montant du mois"
+                    value={mad(analytics.monthly.total)}
+                    sub="Total des inscriptions"
+                    icon={<Wallet size={18} />}
+                    onClick={() => router.push('/secretary/recus')}
+                />
+                <VibrantKpi
+                    tone="violet"
+                    label="Inscriptions du mois"
+                    value={num(analytics.monthly.count)}
+                    sub={`${num(analytics.monthly.soutien)} soutien · ${num(analytics.monthly.formation)} formation`}
+                    icon={<BookOpen size={18} />}
+                />
+                <VibrantKpi
+                    tone="pink"
+                    label={isCreche ? 'Enfants actifs' : 'Élèves actifs'}
+                    value={num(activeStudents.length)}
+                    sub={`${num(students.length)} au total`}
+                    icon={<Users size={18} />}
+                />
             </div>
 
-            {/* Monthly Analytics */}
-            <div>
-                <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp className="text-green-600" size={24} />
-                    <h2 className="text-2xl font-bold text-gray-800">Statistiques du Mois</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard
-                        title="Inscriptions Totales"
-                        value={analytics.monthly.count}
-                        icon={Users}
-                        color="border-blue-500"
-                    />
-                    <StatCard
-                        title="Montant Total"
-                        value={`${analytics.monthly.total.toFixed(2)} DH`}
-                        icon={DollarSign}
-                        color="border-green-500"
-                    />
-                    <StatCard
-                        title="Soutien Scolaire"
-                        value={analytics.monthly.soutien}
-                        subtitle="inscriptions"
-                        icon={BookOpen}
-                        color="border-purple-500"
-                    />
-                    <StatCard
-                        title="Formation Pro"
-                        value={analytics.monthly.formation}
-                        subtitle="inscriptions"
-                        icon={GraduationCap}
-                        color="border-orange-500"
-                    />
-                </div>
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                <ChartCard palette="vibrant" className="xl:col-span-2" title="Montant des inscriptions" hint="12 derniers mois">
+                    <SplineChart palette="vibrant" points={amountPoints} rtl={false} format={mad} formatShort={madShort} />
+                </ChartCard>
+                <ChartCard palette="vibrant" title="Inscriptions du mois par type">
+                    <DonutChart palette="vibrant" data={typeSlices} totalLabel="inscriptions" formatValue={num} formatPct={pct} empty="Aucune inscription ce mois" />
+                </ChartCard>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <ChartCard palette="vibrant" title="Inscriptions par mois" hint="6 derniers mois">
+                    <VBarChart palette="vibrant" data={countBars} format={num} empty="Aucune inscription sur la période" />
+                </ChartCard>
+                <section className="vib-card p-5">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">À faire</h3>
+                    {withoutInscription === 0 ? (
+                        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Rien d&apos;urgent pour le moment.</p>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => router.push('/secretary/inscriptions')}
+                            className="mt-3 w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
+                        >
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#059669]" aria-hidden="true" />
+                            <span className="flex-1">{num(withoutInscription)} {isCreche ? 'enfants' : 'élèves'} actifs sans inscription</span>
+                            <ChevronRight size={16} className="shrink-0 text-gray-400" />
+                        </button>
+                    )}
+                </section>
             </div>
         </div>
     );
