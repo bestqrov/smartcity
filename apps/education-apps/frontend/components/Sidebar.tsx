@@ -20,7 +20,8 @@ import {
   Briefcase,
   BookOpen,
   ClipboardList,
-  PartyPopper
+  PartyPopper,
+  Layers
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
@@ -48,12 +49,9 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     }
   }, [currentPath, user]);
 
-  const toggleMenu = (menu: string) => {
-    setExpandedMenus(prev =>
-      prev.includes(menu)
-        ? prev.filter(m => m !== menu)
-        : [...prev, menu]
-    );
+  // Opens `add` and forgets `remove` (an active sub-menu is open unless explicitly closed).
+  const toggleMenu = (add: string, remove: string) => {
+    setExpandedMenus(prev => [...prev.filter(m => m !== remove && m !== add), add]);
   };
 
   const adminMenuItems = [
@@ -339,16 +337,37 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
 
   const institutionType = effectiveRole === 'SUPER_ADMIN' ? null : profile.institutionType;
   const typeConfig = getInstitutionTypeConfig(institutionType);
+  // Hidden ids, relabels and ordering of the institution type apply first; entries are then sorted into the groups.
   const visibleMenuItems: any[] = [
     ...applyInstitutionType(menuItems as any[], institutionType),
     ...typeConfig.comingSoon.map((entry) => ({
       ...entry,
       icon: BookOpen,
-      activeColor: 'bg-[#334155]/50 border-[#FBBF24]',
-      iconColor: 'text-[#FBBF24]',
       comingSoon: true,
     })),
   ];
+  const groupedMenu = buildGroups(visibleMenuItems);
+
+  const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || '[]');
+      if (Array.isArray(saved)) setCollapsedGroups(saved.filter((g) => typeof g === 'string'));
+    } catch {
+      // storage blocked or corrupted: every group stays open
+    }
+  }, []);
+  const toggleGroup = (id: string) => {
+    setCollapsedGroups((prev) => {
+      const next = prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id];
+      try {
+        localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next));
+      } catch {
+        // not persisted
+      }
+      return next;
+    });
+  };
 
   const handleNavigation = (path: string) => {
     router.push(path);
@@ -365,11 +384,13 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     return false;
   };
 
+  const roleLabel = effectiveRole === 'SUPER_ADMIN' ? 'Maintenance (Super Admin)' : (effectiveRole === 'SECRETARY' ? 'Secrétaire' : (effectiveRole === 'OWNER' ? 'Propriétaire' : (profile.director || 'Administrateur')));
+
   return (
     <>
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className={`lg:hidden fixed top-3 z-50 w-11 h-11 flex items-center justify-center rounded-xl bg-[#1e293b] text-white shadow-lg border border-[#334155] transition-all duration-300 ${isMobileMenuOpen ? 'left-[calc(min(18rem,85vw)+0.5rem)]' : 'left-4'}`}
+        className={`lg:hidden fixed top-3 z-50 w-11 h-11 flex items-center justify-center rounded-2xl bg-white text-gray-900 shadow-lg border border-gray-200 dark:bg-vib-panel dark:text-white dark:border-white/10 transition-all duration-300 ${isMobileMenuOpen ? 'left-[calc(min(18rem,85vw)+0.5rem)]' : 'left-4'}`}
         aria-label="Toggle menu"
       >
         {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -377,134 +398,136 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
 
       {isMobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-40
-        w-72 max-w-[85vw] text-slate-300
-        flex flex-col border-r border-[#334155]/50 shadow-2xl
+        w-72 max-w-[85vw] shrink-0
+        flex flex-col bg-white text-gray-700 shadow-2xl
+        dark:bg-vib-panel dark:text-gray-300 dark:border-r dark:border-white/5
+        lg:rounded-3xl lg:shadow-sm lg:dark:border lg:dark:shadow-none
         transition-transform duration-300 ease-spring
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
-        style={{
-          background: 'radial-gradient(circle at 0% 0%, #2e3b4e 0%, #1e293b 100%)'
-        }}
       >
-        <div className="p-3.5">
-          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/10 shadow-inner backdrop-blur-sm">
+        <div className="p-4">
+          <div className="flex items-center gap-3">
             {profile.logo ? (
-              <div className="w-9 h-9 bg-white rounded-lg p-1 shadow-sm flex-shrink-0">
+              <div className="w-10 h-10 bg-white rounded-xl p-1 shadow-sm border border-gray-100 dark:border-white/10 flex-shrink-0">
                 <img src={profile.logo} alt="Logo" className="w-full h-full object-contain" />
               </div>
             ) : (
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
-                <GraduationCap size={18} className="text-white" />
+              <div className="w-10 h-10 bg-vib-indigo rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                <GraduationCap size={20} className="text-white" />
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="font-bold text-white truncate text-sm">
+              <h1 className="font-bold text-gray-900 dark:text-white truncate text-sm">
                 {profile.schoolName}
               </h1>
-              <p className="text-xs text-slate-400 font-medium truncate mt-0.5">
-                {effectiveRole === 'SUPER_ADMIN' ? 'Maintenance (Super Admin)' : (effectiveRole === 'SECRETARY' ? 'Secrétaire' : (effectiveRole === 'OWNER' ? 'Propriétaire' : (profile.director || 'Administrateur')))}
-              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate mt-0.5">{roleLabel}</p>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-0.5 scrollbar-hide">
-          <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Menu Principal</p>
-
-          {visibleMenuItems.map((item) => {
-            const active = isActive(item);
-            const activeClass = active
-              ? `${item.activeColor.split(' ')[0]} text-white shadow-md border-r-4 ${item.activeColor.split(' ')[1].replace('border-', 'border-')}`
-              : 'text-slate-400 hover:bg-white/5 hover:text-white';
-
+        <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-3 scrollbar-hide" aria-label="Menu principal">
+          {groupedMenu.map((group) => {
+            const collapsed = collapsedGroups.includes(group.id);
             return (
-              <li key={item.id} className="list-none">
-                {item.submenu ? (
-                  <div>
-                    <button
-                      onClick={() => toggleMenu(item.id)}
-                      className={`
-                        w-full flex items-center justify-between px-3 py-2.5 lg:py-2 rounded-lg transition-all duration-200 group
-                        ${active || expandedMenus.includes(item.id)
-                          ? 'bg-white/5 text-white'
-                          : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                        }
-                      `}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className={`p-1.5 rounded-md transition-colors ${active || expandedMenus.includes(item.id) ? 'bg-white/10' : 'bg-white/5'}`}>
-                          <item.icon size={16} className={active || expandedMenus.includes(item.id) ? item.iconColor : 'text-slate-500'} />
-                        </div>
-                        <span className="font-semibold text-[13px]">{item.label}</span>
-                      </div>
-                      <ChevronDown
-                        size={14}
-                        className={`text-slate-500 transition-transform duration-200 ${expandedMenus.includes(item.id) ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-
-                    {expandedMenus.includes(item.id) && (
-                      <ul className="ml-[2.6rem] border-l-2 border-dashed border-[#334155] pl-2.5 py-0.5">
-                        {item.submenu.map((sub: any) => {
-                          const isSubActive = currentPath === sub.path;
-                          return (
-                            <li key={sub.path}>
-                              <button
-                                onClick={() => handleNavigation(sub.path)}
-                                className={`
-                                  w-full text-left px-2.5 py-2.5 lg:py-1.5 rounded-md text-[13px] transition-all duration-200 relative
-                                  ${isSubActive
-                                    ? 'text-white font-bold bg-white/10'
-                                    : 'text-slate-500 hover:text-white'
-                                  }
-                                `}
-                              >
-                                {isSubActive && (
-                                  <span className={`absolute -left-[16px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${item.iconColor.replace('text-', 'bg-')}`}></span>
-                                )}
-                                {sub.label}
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => !item.comingSoon && handleNavigation(item.path!)}
-                    disabled={item.comingSoon}
-                    className={`
-                      w-full flex items-center gap-2.5 px-3 py-2.5 lg:py-2 rounded-lg transition-all duration-200 group relative overflow-hidden
-                      ${item.comingSoon ? 'opacity-60 cursor-not-allowed text-slate-400' : activeClass}
-                    `}
-                  >
-                    <div className={`p-1.5 rounded-md transition-colors ${active ? 'bg-white/10' : 'bg-white/5 group-hover:bg-white/10'}`}>
-                      <item.icon size={16} className={active ? item.iconColor : 'text-slate-500 group-hover:text-slate-300 transition-transform'} />
-                    </div>
-                    <span className="font-semibold text-[13px]">{item.label}</span>
-                    {item.comingSoon && (
-                      <span className="ml-auto rounded-full bg-amber-400/20 text-amber-300 px-2 py-0.5 text-[10px] font-bold">Bientôt</span>
-                    )}
-                  </button>
+              <div key={group.id}>
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.id)}
+                  aria-expanded={!collapsed}
+                  className="w-full flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                >
+                  <span>{group.label}</span>
+                  <ChevronDown size={12} className={`transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
+                </button>
+                {!collapsed && (
+                  <ul className="mt-0.5 space-y-0.5">
+                    {group.items.map((item: any) => {
+                      const active = isActive(item);
+                      const open = expandedMenus.includes(item.key) || (active && !expandedMenus.includes(`closed:${item.key}`));
+                      const tint = active ? { backgroundColor: `${group.color}1A` } : undefined;
+                      const chip = (
+                        <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg text-white" style={{ backgroundColor: group.color }}>
+                          <item.icon size={15} aria-hidden="true" />
+                        </span>
+                      );
+                      if (item.submenu) {
+                        return (
+                          <li key={item.key}>
+                            <button
+                              type="button"
+                              onClick={() => toggleMenu(open ? `closed:${item.key}` : item.key, open ? item.key : `closed:${item.key}`)}
+                              aria-expanded={open}
+                              style={tint}
+                              className={`w-full flex items-center justify-between gap-2.5 px-2 py-2 rounded-xl transition-colors ${active ? 'font-bold text-gray-900 dark:text-white' : 'font-medium hover:bg-gray-50 dark:hover:bg-white/5'}`}
+                            >
+                              <span className="flex min-w-0 items-center gap-2.5">
+                                {chip}
+                                <span className="truncate text-[13px]">{item.label}</span>
+                              </span>
+                              <ChevronDown size={14} className={`shrink-0 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+                            </button>
+                            {open && (
+                              <ul className="ml-[1.6rem] border-l border-gray-200 dark:border-white/10 pl-3 py-0.5">
+                                {item.submenu.map((sub: any) => {
+                                  const isSubActive = currentPath === sub.path;
+                                  return (
+                                    <li key={sub.path}>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleNavigation(sub.path)}
+                                        aria-current={isSubActive ? 'page' : undefined}
+                                        style={isSubActive ? { backgroundColor: `${group.color}1A`, color: group.color } : undefined}
+                                        className={`w-full text-left px-2.5 py-2.5 lg:py-1.5 rounded-lg text-[13px] transition-colors ${isSubActive ? 'font-bold' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}
+                                      >
+                                        {sub.label}
+                                      </button>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
+                          </li>
+                        );
+                      }
+                      return (
+                        <li key={item.key}>
+                          <button
+                            type="button"
+                            onClick={() => !item.comingSoon && handleNavigation(item.path!)}
+                            disabled={item.comingSoon}
+                            aria-current={active ? 'page' : undefined}
+                            style={tint}
+                            className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-xl transition-colors ${item.comingSoon ? 'opacity-60 cursor-not-allowed' : active ? 'font-bold text-gray-900 dark:text-white' : 'font-medium hover:bg-gray-50 dark:hover:bg-white/5'}`}
+                          >
+                            {chip}
+                            <span className="truncate text-[13px]">{item.label}</span>
+                            {item.comingSoon && (
+                              <span className="ml-auto rounded-full bg-amber-100 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 px-2 py-0.5 text-[10px] font-bold">Bientôt</span>
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 )}
-              </li>
+              </div>
             );
           })}
         </nav>
 
-        <div className="p-3 border-t border-[#334155]/50 space-y-2">
+        <div className="p-3 border-t border-gray-100 dark:border-white/5 space-y-2">
           {user && user.role !== 'SALES_AGENT' && user.salesAgent && (
             <button
               onClick={() => handleNavigation('/agent')}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all border border-emerald-500/20"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20 transition-colors"
             >
               <Briefcase size={16} />
               <span className="font-semibold text-[13px]">Espace commercial</span>
@@ -512,7 +535,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
           )}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-white/5 text-red-400 hover:bg-red-500/10 transition-all group shadow-sm border border-white/5"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors group"
           >
             <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
             <span className="font-semibold text-[13px]">Déconnexion</span>
@@ -521,4 +544,76 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       </aside>
     </>
   );
+}
+
+// ---- grouping ----------------------------------------------------------------------------------------------
+
+const COLLAPSED_KEY = 'sidebar-collapsed-groups';
+
+const GROUPS = [
+  { id: 'accueil', label: 'Accueil', color: '#4F46E5' },
+  { id: 'eleves', label: 'Élèves', color: '#059669' },
+  { id: 'pedagogie', label: 'Pédagogie', color: '#7C3AED' },
+  { id: 'vie', label: 'Vie scolaire', color: '#DB2777' },
+  { id: 'finance', label: 'Finance', color: '#D97706' },
+  { id: 'etablissement', label: 'Établissement', color: '#475569' },
+] as const;
+type GroupId = (typeof GROUPS)[number]['id'];
+
+// Group of each menu entry (by id); anything unknown lands in Établissement so nothing ever disappears.
+const ITEM_GROUP: Record<string, GroupId> = {
+  dashboard: 'accueil',
+  platform: 'accueil',
+  soutien: 'eleves',
+  formation: 'eleves',
+  parents: 'eleves',
+  'parents-access': 'eleves',
+  presence: 'pedagogie',
+  grades: 'pedagogie',
+  homework: 'pedagogie',
+  activities: 'vie',
+  communication: 'vie',
+  'daily-log': 'vie',
+  finance: 'finance',
+  recus: 'finance',
+  personnel: 'etablissement',
+  transport: 'etablissement',
+  documents: 'etablissement',
+  settings: 'etablissement',
+  branches: 'etablissement',
+  schools: 'etablissement',
+  packs: 'etablissement',
+  'sales-agents': 'etablissement',
+};
+
+// Sub-entries that belong to another group than their parent menu, with their own icon.
+const SUB_GROUP: Record<string, { group: GroupId; icon: any }> = {
+  '/admin/groups': { group: 'pedagogie', icon: Layers },
+  '/admin/teachers': { group: 'pedagogie', icon: Briefcase },
+};
+
+function buildGroups(items: any[]) {
+  const buckets: Record<string, any[]> = {};
+  const push = (group: GroupId, entry: any) => {
+    (buckets[group] ||= []).push(entry);
+  };
+  for (const item of items) {
+    const home: GroupId = ITEM_GROUP[item.id] ?? 'etablissement';
+    if (!item.submenu) {
+      push(home, { ...item, key: item.id });
+      continue;
+    }
+    // Split the sub-menu: entries moved to another group become plain links there.
+    const stay: any[] = [];
+    for (const sub of item.submenu) {
+      const moved = SUB_GROUP[sub.path];
+      if (moved && moved.group !== home) {
+        push(moved.group, { id: `${item.id}:${sub.path}`, key: `${item.id}:${sub.path}`, label: sub.label, path: sub.path, icon: moved.icon });
+      } else {
+        stay.push(sub);
+      }
+    }
+    if (stay.length > 0) push(home, { ...item, key: item.id, submenu: stay });
+  }
+  return GROUPS.filter((g) => buckets[g.id]?.length).map((g) => ({ ...g, items: buckets[g.id] }));
 }
