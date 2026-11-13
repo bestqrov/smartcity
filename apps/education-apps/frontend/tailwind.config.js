@@ -8,7 +8,24 @@ module.exports = {
     darkMode: 'class',
     theme: {
         extend: {
+            fontFamily: {
+                vibrant: ['var(--font-poppins)', 'system-ui', 'sans-serif'],
+            },
             colors: {
+                // "Vibrant" theme of the staff spaces (admin, owner, secretary).
+                vib: {
+                    bg: '#F5F5FA',
+                    ink: '#111827',
+                    night: '#0B0D14',
+                    panel: '#12141C',
+                    card: '#161925',
+                    indigo: '#4F46E5',
+                    emerald: '#047857',
+                    amber: '#B45309',
+                    pink: '#BE185D',
+                    violet: '#6D28D9',
+                    cyan: '#0E7490',
+                },
                 // Warm espresso palette of the sales agent space.
                 espresso: {
                     50: '#F3EFEC',
