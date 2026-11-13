@@ -48,7 +48,7 @@ export function Modal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             onClick={(e) => {
                 if (e.target === e.currentTarget) onClose();
             }}
@@ -58,16 +58,16 @@ export function Modal({
         >
             <div
                 ref={modalRef}
-                className={`bg-white rounded-lg shadow-xl w-full ${sizeStyles[size]} max-h-[90vh] flex flex-col`}
+                className={`bg-white dark:bg-vib-card dark:border dark:border-white/5 rounded-3xl shadow-xl w-full ${sizeStyles[size]} max-h-[90vh] flex flex-col`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b">
-                    <h2 id="modal-title" className="text-xl font-semibold text-gray-900">
+                <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-white/5">
+                    <h2 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-white">
                         {title}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                         aria-label="Close modal"
                     >
                         <X className="h-6 w-6" />
@@ -79,7 +79,7 @@ export function Modal({
 
                 {/* Footer */}
                 {footer && (
-                    <div className="flex items-center justify-end gap-3 p-6 border-t bg-gray-50">
+                    <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50 rounded-b-3xl dark:border-white/5 dark:bg-white/5">
                         {footer}
                     </div>
                 )}

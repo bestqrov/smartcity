@@ -10,7 +10,7 @@ import useAuthStore from '@/store/useAuthStore';
 
 export default function TopBar() {
     const { profile } = useSchoolProfile();
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
+    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [prayerTimes, setPrayerTimes] = useState<any>(null);
     const [nextPrayer, setNextPrayer] = useState<any>(null);
     const [adminName, setAdminName] = useState('');
@@ -22,11 +22,16 @@ export default function TopBar() {
 
     // Load theme and user info
     useEffect(() => {
-        const savedTheme = localStorage.getItem('app-theme') as 'light' | 'dark';
-        if (savedTheme) {
-            setTheme(savedTheme);
-            document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+        let savedTheme: 'light' | 'dark' | null = null;
+        try {
+            savedTheme = localStorage.getItem('app-theme') as 'light' | 'dark' | null;
+        } catch {
+            // storage blocked: keep the default
         }
+        // Dark is the default: only an explicit 'light' choice switches it off.
+        const initial = savedTheme === 'light' ? 'light' : 'dark';
+        setTheme(initial);
+        document.documentElement.classList.toggle('dark', initial === 'dark');
 
         if (user) {
             const name = `${user.name} ${user.surname || ''}`.trim();
@@ -94,12 +99,16 @@ export default function TopBar() {
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
         setTheme(newTheme);
-        localStorage.setItem('app-theme', newTheme);
+        try {
+            localStorage.setItem('app-theme', newTheme);
+        } catch {
+            // storage blocked: the choice lasts for this page only
+        }
         document.documentElement.classList.toggle('dark', newTheme === 'dark');
     };
 
     return (
-        <header className="h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 fixed top-0 right-0 left-0 lg:left-72 z-20 pl-16 pr-4 sm:px-6 lg:pl-6 flex items-center justify-end transition-all duration-300">
+        <header className="h-16 bg-white/80 dark:bg-vib-panel/90 backdrop-blur-md border-b border-gray-200/70 dark:border-white/5 fixed top-0 right-0 left-0 z-20 pl-16 pr-4 sm:px-6 lg:top-4 lg:right-4 lg:left-[20rem] lg:pl-6 lg:rounded-3xl lg:border lg:shadow-sm flex items-center justify-end transition-all duration-300">
             {/* Right: Actions & Profile */}
             <div className="flex items-center gap-2 sm:gap-4 lg:gap-6">
                 {/* Athan Widget */}
@@ -132,23 +141,32 @@ export default function TopBar() {
                     </Link>
                 )}
 
-                {/* Theme Toggle */}
+                {/* Theme Toggle: sun / moon switch */}
                 <button
+                    type="button"
+                    role="switch"
+                    aria-checked={theme === 'dark'}
                     onClick={toggleTheme}
-                    className="p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                    className="relative flex h-9 w-16 shrink-0 items-center rounded-full bg-gray-100 p-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vib-indigo dark:bg-white/10"
                     title={theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair'}
+                    aria-label={theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair'}
                 >
-                    {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                    <span
+                        aria-hidden="true"
+                        className={`flex h-7 w-7 items-center justify-center rounded-full shadow-sm transition-transform duration-300 ${theme === 'dark' ? 'translate-x-7 bg-vib-indigo text-white' : 'translate-x-0 bg-white text-amber-500'}`}
+                    >
+                        {theme === 'light' ? <Sun size={16} /> : <Moon size={16} />}
+                    </span>
                 </button>
 
                 {/* Notifications */}
-                <button className="p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors relative">
+                <button className="p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors relative">
                     <Bell size={20} />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-vib-panel"></span>
                 </button>
 
                 {/* Vertical Divider */}
-                <div className="hidden sm:block h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
+                <div className="hidden sm:block h-8 w-px bg-gray-200 dark:bg-white/10"></div>
 
                 {/* Admin Profile */}
                 <div className="flex items-center gap-3">
@@ -156,8 +174,8 @@ export default function TopBar() {
                         <p className="text-sm font-bold text-gray-800 dark:text-gray-200 leading-none">{adminName}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{adminRole}</p>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 p-0.5 cursor-pointer">
-                        <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 p-0.5 flex items-center justify-center overflow-hidden">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-vib-indigo to-vib-pink p-0.5 cursor-pointer">
+                        <div className="w-full h-full rounded-full bg-white dark:bg-vib-card p-0.5 flex items-center justify-center overflow-hidden">
                             {profile.logo ? (
                                 <img
                                     src={profile.logo}

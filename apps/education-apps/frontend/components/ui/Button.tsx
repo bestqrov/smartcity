@@ -17,13 +17,13 @@ export function Button({
     disabled,
     ...props
 }: ButtonProps) {
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-vib-night disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variantStyles = {
-        primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
-        secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
+        primary: 'bg-vib-ink text-white hover:bg-gray-800 focus:ring-vib-indigo dark:bg-white dark:text-vib-ink dark:hover:bg-gray-200',
+        secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 dark:bg-white/10 dark:text-gray-100 dark:hover:bg-white/15',
         danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-        ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500',
+        ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500 dark:text-gray-200 dark:hover:bg-white/10',
     };
 
     const sizeStyles = {

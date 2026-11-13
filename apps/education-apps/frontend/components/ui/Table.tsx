@@ -45,39 +45,39 @@ export function Table<T extends { id: string }>({
 
     if (data.length === 0) {
         return (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                 <p>{emptyMessage}</p>
             </div>
         );
     }
 
     return (
-        <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+        <div className="overflow-x-auto rounded-3xl bg-white shadow-sm dark:bg-vib-card dark:border dark:border-white/5">
+            <table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
+                <thead className="bg-gray-50/80 dark:bg-white/5">
                     <tr>
                         {columns.map((column) => (
                             <th
                                 key={String(column.key)}
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                             >
                                 {column.label}
                             </th>
                         ))}
                         {(onEdit || onDelete) && (
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Actions
                             </th>
                         )}
                     </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                     {data.map((item) => (
-                        <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                             {columns.map((column) => (
                                 <td
                                     key={String(column.key)}
-                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
                                 >
                                     {column.render
                                         ? column.render(item)
