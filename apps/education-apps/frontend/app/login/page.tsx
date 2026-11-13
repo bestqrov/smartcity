@@ -132,8 +132,8 @@ export default function LoginPage() {
                     <div className="shrink-0 mt-8 pt-6 border-t border-slate-50 flex flex-col items-center gap-4 animate-in fade-in duration-1000 delay-500 text-center">
                         <div className="flex flex-col gap-2 text-slate-400 font-medium text-xs mt-2">
                             <div className="flex items-center justify-center gap-2">
-                                <span>📧 Email :</span>
-                                <a href="mailto:contact@smartecole.com" className="text-emerald-600 hover:underline font-bold">contact@smartecole.com</a>
+                                <span>🌐 Site :</span>
+                                <a href="https://education.morosmartcitys.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-bold">education.morosmartcitys.com</a>
                             </div>
                             <div className="flex items-center justify-center gap-2">
                                 <span>📱 Gsm / WhatsApp :</span>
