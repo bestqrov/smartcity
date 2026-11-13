@@ -12,6 +12,7 @@ export interface SchoolCapacity {
     limit: number | null;
     current: number;
     remaining: number | null;
+    branches: { limit: number | null; current: number };
     upgradeDueAt: string | null;
 }
 
@@ -36,8 +37,8 @@ export async function getSchoolCapacity(): Promise<SchoolCapacity> {
     return response.data.data;
 }
 
-export async function upgradePack(packCode: string): Promise<UpgradeResult> {
-    const response = await api.post<ApiResponse<UpgradeResult>>('/school/pack-upgrade', { packCode });
+export async function upgradePack(packCode: string, reason: 'STUDENT_LIMIT' | 'BRANCH_LIMIT' = 'STUDENT_LIMIT'): Promise<UpgradeResult> {
+    const response = await api.post<ApiResponse<UpgradeResult>>('/school/pack-upgrade', { packCode, reason });
     return response.data.data;
 }
 
@@ -50,4 +51,10 @@ export async function getPendingUpgrades(): Promise<PendingUpgrade[]> {
 export const studentLimitDetails = (error: any): StudentLimitDetails | null =>
     error?.response?.status === 403 && error?.response?.data?.error === 'STUDENT_LIMIT_REACHED'
         ? (error.response.data.data as StudentLimitDetails)
+        : null;
+
+// The numbers of a 403 BRANCH_LIMIT_REACHED, tagged kind 'branches', or null for any other error.
+export const branchLimitDetails = (error: any): StudentLimitDetails | null =>
+    error?.response?.status === 403 && error?.response?.data?.error === 'BRANCH_LIMIT_REACHED'
+        ? { ...(error.response.data.data as StudentLimitDetails), kind: 'branches' }
         : null;

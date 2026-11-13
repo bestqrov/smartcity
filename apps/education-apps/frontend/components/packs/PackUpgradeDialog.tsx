@@ -9,7 +9,7 @@ import { X } from 'lucide-react';
 import useAuthStore from '@/store/useAuthStore';
 import { messages } from '@/lib/landing/messages';
 import { PACK_FEATURES } from '@/lib/packs';
-import { limitsLine, studentLimitMessage, type StudentLimitDetails } from '@/lib/packs/limits';
+import { limitMessage, limitsLine, type StudentLimitDetails } from '@/lib/packs/limits';
 import { apiErrorMessage, fetchPublicPacks, type PublicPack } from '@/lib/services/packs';
 import { getSchoolCapacity, upgradePack, type SchoolCapacity, type UpgradeResult } from '@/lib/services/subscription';
 
@@ -20,7 +20,14 @@ interface Props {
 
 type Billing = 'm' | 'y';
 
-const room = (pack: PublicPack) => (pack.maxStudents === null ? Infinity : pack.maxStudents);
+type Kind = 'students' | 'branches';
+const room = (pack: PublicPack, kind: Kind = 'students') => {
+    const max = kind === 'branches' ? pack.maxBranches : pack.maxStudents;
+    return max === null ? Infinity : max;
+};
+// Students: the smallest pack that fits (unchanged). Branches: the cheapest pack that fits.
+const cheapestFirst = (kind: Kind) => (a: PublicPack, b: PublicPack) =>
+    kind === 'branches' ? a.monthlyPrice - b.monthlyPrice : room(a) - room(b);
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 const featureLabel = (key: string) => PACK_FEATURES.find((feature) => feature.key === key)?.label ?? key;
 
@@ -35,6 +42,7 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
     const [error, setError] = useState('');
     const [done, setDone] = useState<UpgradeResult | null>(null);
 
+    const kind: Kind = details.kind ?? 'students';
     const needed = details.current + details.adding;
 
     useEffect(() => {
@@ -45,17 +53,17 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
                 if (cancelled) return;
                 setCapacity(cap);
                 setPacks(list);
-                const fitting = list.filter((pack) => pack.code !== cap.packCode && room(pack) >= needed).sort((a, b) => room(a) - room(b));
+                const fitting = list.filter((pack) => pack.code !== cap.packCode && room(pack, kind) >= needed).sort(cheapestFirst(kind));
                 setSelected(fitting[0]?.code ?? null);
             })
             .catch((err) => !cancelled && setError(apiErrorMessage(err)));
         return () => {
             cancelled = true;
         };
-    }, [needed]);
+    }, [needed, kind]);
 
-    const fitting = (packs ?? []).filter((pack) => pack.code !== capacity?.packCode && room(pack) >= needed);
-    const recommended = [...fitting].sort((a, b) => room(a) - room(b))[0]?.code;
+    const fitting = (packs ?? []).filter((pack) => pack.code !== capacity?.packCode && room(pack, kind) >= needed);
+    const recommended = [...fitting].sort(cheapestFirst(kind))[0]?.code;
     const chosen = packs?.find((pack) => pack.code === selected) ?? null;
 
     const confirm = async () => {
@@ -63,7 +71,7 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
         setSaving(true);
         setError('');
         try {
-            setDone(await upgradePack(chosen.code));
+            setDone(await upgradePack(chosen.code, kind === 'branches' ? 'BRANCH_LIMIT' : 'STUDENT_LIMIT'));
         } catch (err) {
             setError(apiErrorMessage(err));
         } finally {
@@ -90,7 +98,7 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
                         <h2 id="pack-upgrade-title" className="text-lg font-bold text-gray-900 dark:text-white">
                             {done ? 'Pack mis à jour' : 'Limite de votre pack atteinte'}
                         </h2>
-                        {!done && <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{studentLimitMessage(details)}</p>}
+                        {!done && <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{limitMessage(details)}</p>}
                     </div>
                     <button type="button" onClick={close} disabled={saving} aria-label="Fermer" className="text-gray-400 disabled:opacity-50 hover:text-gray-600 dark:hover:text-gray-200">
                         <X className="h-5 w-5" />
@@ -134,7 +142,7 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
                             <div className="grid gap-3 md:grid-cols-3">
                                 {packs.map((pack) => {
                                     const current = pack.code === capacity.packCode;
-                                    const fits = room(pack) >= needed && !current;
+                                    const fits = room(pack, kind) >= needed && !current;
                                     const isSelected = pack.code === selected;
                                     return (
                                         <button
@@ -182,7 +190,7 @@ export default function PackUpgradeDialog({ details, onDone }: Props) {
                                 </p>
                             ) : fitting.length === 0 ? (
                                 <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
-                                    Aucun pack ne couvre ce nombre d&apos;élèves. Contactez l&apos;équipe Arwa.
+                                    Aucun pack ne couvre ce nombre {kind === 'branches' ? <>d&apos;établissements</> : <>d&apos;élèves</>}. Contactez l&apos;équipe Arwa.
                                 </p>
                             ) : (
                                 <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">

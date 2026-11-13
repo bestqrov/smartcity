@@ -28,7 +28,17 @@ export interface StudentLimitDetails {
     current: number;
     adding: number;
     packName: string | null;
+    // Which pack limit was hit; absent means students.
+    kind?: 'students' | 'branches';
 }
+
+export const branchLimitMessage = (d: StudentLimitDetails): string => {
+    const pack = d.packName ? `Votre pack « ${d.packName} »` : 'Votre pack';
+    return `${pack} permet ${d.limit} établissement${d.limit > 1 ? 's' : ''}. Vous en avez ${d.current} : passez à un pack supérieur pour en ajouter.`;
+};
+
+export const limitMessage = (d: StudentLimitDetails): string =>
+    d.kind === 'branches' ? branchLimitMessage(d) : studentLimitMessage(d);
 
 export const missingPlaces = (d: StudentLimitDetails) => Math.max(0, d.current + d.adding - d.limit);
 

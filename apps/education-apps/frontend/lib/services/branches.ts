@@ -7,6 +7,20 @@ export interface Branch {
     name: string;
     city: string;
     address?: string;
+    phone?: string;
+}
+
+export interface NewBranch {
+    name: string;
+    city?: string;
+    address?: string;
+    phone?: string;
+}
+
+// OWNER only; the school is the caller's. A full pack answers 403 BRANCH_LIMIT_REACHED.
+export async function createBranch(data: NewBranch): Promise<Branch> {
+    const response = await api.post<ApiResponse<Branch>>('/branches', data);
+    return response.data.data;
 }
 
 export interface BranchSummaryEntry {
