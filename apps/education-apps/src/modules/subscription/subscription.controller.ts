@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 import { respond } from '../transport/http';
-import { getSchoolCapacity, remainingPlaces } from '../packs/packs.limits';
+import { getBranchCapacity, getSchoolCapacity, remainingPlaces } from '../packs/packs.limits';
 import { addOneMonth, getPendingUpgrades, upgradeSchoolPack } from './packUpgrade.service';
 
 // The school is always the caller's own: tenantScope sets req.branchId, nothing is read from the body.
@@ -10,6 +10,7 @@ export const capacity = (req: TenantRequest, res: Response) =>
         res,
         async () => {
             const result = await getSchoolCapacity(req.branchId!);
+            const branches = await getBranchCapacity(result.schoolId);
             return {
                 institutionType: result.institutionType,
                 status: result.status,
@@ -18,6 +19,7 @@ export const capacity = (req: TenantRequest, res: Response) =>
                 limit: result.limit,
                 current: result.current,
                 remaining: remainingPlaces(result),
+                branches: { limit: branches.limit, current: branches.current },
                 // The deadline an upgrade made now would get, shown before the admin confirms.
                 upgradeDueAt: result.status === 'PENDING' ? null : addOneMonth(new Date()),
             };
@@ -26,7 +28,7 @@ export const capacity = (req: TenantRequest, res: Response) =>
     );
 
 export const upgrade = (req: TenantRequest, res: Response) =>
-    respond(res, () => upgradeSchoolPack(req.branchId!, req.user!.id, req.body?.packCode), {
+    respond(res, () => upgradeSchoolPack(req.branchId!, req.user!.id, req.body?.packCode, req.body?.reason), {
         message: 'Pack upgraded',
         failure: 'Failed to upgrade pack',
     });

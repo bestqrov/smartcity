@@ -8,6 +8,7 @@ jest.mock('../../config/database', () => {
     const tx = {
         school: { findUnique: jest.fn(), update: jest.fn() },
         pack: { findFirst: jest.fn() },
+        branch: { count: jest.fn() },
         packUpgrade: { create: jest.fn() },
     };
     return {
@@ -22,14 +23,15 @@ jest.mock('../../config/database', () => {
 
 const tx = (prisma as any).__tx;
 
-const ESSENTIEL = { id: 'p1', code: 'essentiel-soutien', name: 'Essentiel', maxStudents: 150, monthlyPrice: 170, active: true, institutionTypes: ['TUTORING_CENTER'] };
-const PRO = { id: 'p2', code: 'pro-soutien', name: 'Pro', maxStudents: 400, monthlyPrice: 300, active: true, institutionTypes: ['TUTORING_CENTER'] };
-const PREMIUM = { id: 'p3', code: 'premium-soutien', name: 'Premium', maxStudents: null, monthlyPrice: 399, active: true, institutionTypes: ['TUTORING_CENTER'] };
+const ESSENTIEL = { id: 'p1', code: 'essentiel-soutien', name: 'Essentiel', maxStudents: 150, maxBranches: 1, monthlyPrice: 170, active: true, institutionTypes: ['TUTORING_CENTER'] };
+const PRO = { id: 'p2', code: 'pro-soutien', name: 'Pro', maxStudents: 400, maxBranches: 2, monthlyPrice: 300, active: true, institutionTypes: ['TUTORING_CENTER'] };
+const PREMIUM = { id: 'p3', code: 'premium-soutien', name: 'Premium', maxStudents: null, maxBranches: null, monthlyPrice: 399, active: true, institutionTypes: ['TUTORING_CENTER'] };
 const SCHOOL_PRO = { id: 'sc1', status: 'ACTIVE', institutionType: 'TUTORING_CENTER', pack: PRO };
 
 beforeEach(() => {
     jest.clearAllMocks();
     (getSchoolCapacity as jest.Mock).mockResolvedValue({ schoolId: 'sc1', current: 390, limit: 400 });
+    tx.branch.count.mockResolvedValue(1);
     tx.packUpgrade.create.mockImplementation(({ data }: any) => Promise.resolve({ id: 'u1', ...data }));
 });
 
@@ -94,9 +96,35 @@ describe('upgradeSchoolPack', () => {
     });
 
     it('lets a school with no pack pick any pack of its type', async () => {
+        (getSchoolCapacity as jest.Mock).mockResolvedValue({ schoolId: 'sc1', current: 100, limit: null });
         tx.school.findUnique.mockResolvedValue({ ...SCHOOL_PRO, pack: null });
         tx.pack.findFirst.mockResolvedValue(ESSENTIEL);
         await expect(upgradeSchoolPack('b1', 'u', 'essentiel-soutien')).resolves.toMatchObject({ packName: 'Essentiel' });
+    });
+
+    it('allows a pricier pack with the same student limit but more branches (branch-limit upgrade)', async () => {
+        const PRO_PLUS = { ...PRO, id: 'p4', code: 'pro-plus', name: 'Pro+', monthlyPrice: 350, maxBranches: 5 };
+        tx.school.findUnique.mockResolvedValue(SCHOOL_PRO);
+        tx.pack.findFirst.mockResolvedValue(PRO_PLUS);
+        await upgradeSchoolPack('b1', 'u', 'pro-plus', 'BRANCH_LIMIT');
+        expect(tx.packUpgrade.create.mock.calls[0][0].data.reason).toBe('BRANCH_LIMIT');
+    });
+
+    it('refuses a pricier pack that cannot hold the current students or branches', async () => {
+        tx.school.findUnique.mockResolvedValue(SCHOOL_PRO);
+        tx.pack.findFirst.mockResolvedValueOnce({ ...PREMIUM, maxStudents: 200 });
+        await expect(upgradeSchoolPack('b1', 'u', 'x')).rejects.toThrow('Only an upgrade to a bigger pack is allowed');
+        tx.branch.count.mockResolvedValue(3);
+        tx.pack.findFirst.mockResolvedValueOnce({ ...PREMIUM, maxBranches: 2 });
+        await expect(upgradeSchoolPack('b1', 'u', 'x')).rejects.toThrow('Only an upgrade to a bigger pack is allowed');
+        expect(tx.school.update).not.toHaveBeenCalled();
+    });
+
+    it('defaults an unknown reason to STUDENT_LIMIT', async () => {
+        tx.school.findUnique.mockResolvedValue(SCHOOL_PRO);
+        tx.pack.findFirst.mockResolvedValue(PREMIUM);
+        await upgradeSchoolPack('b1', 'u', 'premium-soutien', 'HACK');
+        expect(tx.packUpgrade.create.mock.calls[0][0].data.reason).toBe('STUDENT_LIMIT');
     });
 
     it('requires a pack code', async () => {

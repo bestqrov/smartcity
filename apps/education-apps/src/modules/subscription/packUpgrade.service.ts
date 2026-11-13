@@ -16,11 +16,15 @@ export const addOneMonth = (date: Date): Date => {
 // MongoDB: an unset optional field is not matched by `null`, so "unsettled" checks both.
 export const UNSETTLED = { OR: [{ settledAt: null }, { settledAt: { isSet: false } }] };
 
-const room = (maxStudents: number | null) => (maxStudents === null ? Infinity : maxStudents);
+const room = (max: number | null | undefined) => (max === null || max === undefined ? Infinity : max);
 
-// The school moves itself to a bigger pack of its type. The pack applies at once; an ACTIVE school gets
+export const UPGRADE_REASONS = ['STUDENT_LIMIT', 'BRANCH_LIMIT'] as const;
+export type UpgradeReason = (typeof UPGRADE_REASONS)[number];
+
+// The school moves itself to a pricier pack of its type that still holds its current students and branches. The pack applies at once; an ACTIVE school gets
 // one month to pay, a school on trial pays for it when the trial ends (no deadline).
-export const upgradeSchoolPack = async (branchId: string, userId: string, packCode: unknown) => {
+export const upgradeSchoolPack = async (branchId: string, userId: string, packCode: unknown, reason?: unknown) => {
+    const upgradeReason: UpgradeReason = UPGRADE_REASONS.includes(reason as UpgradeReason) ? (reason as UpgradeReason) : 'STUDENT_LIMIT';
     if (typeof packCode !== 'string' || !packCode.trim()) throw new Error('Pack code is required');
     const capacity = await getSchoolCapacity(branchId);
 
@@ -33,7 +37,10 @@ export const upgradeSchoolPack = async (branchId: string, userId: string, packCo
         if (!pack.institutionTypes.includes(school.institutionType ?? DEFAULT_INSTITUTION_TYPE)) {
             throw new Error('Pack does not serve this institution type');
         }
-        if (school.pack && room(pack.maxStudents) <= room(school.pack.maxStudents)) {
+        const branchCount = await tx.branch.count({ where: { schoolId: school.id } });
+        const pricier = !school.pack || pack.monthlyPrice > school.pack.monthlyPrice;
+        const holdsUsage = room(pack.maxStudents) >= capacity.current && room(pack.maxBranches) >= branchCount;
+        if (!pricier || !holdsUsage) {
             throw new Error('Only an upgrade to a bigger pack is allowed');
         }
 
@@ -48,7 +55,7 @@ export const upgradeSchoolPack = async (branchId: string, userId: string, packCo
                 toPackName: pack.name,
                 toMonthlyPrice: pack.monthlyPrice,
                 byUserId: userId,
-                reason: 'STUDENT_LIMIT',
+                reason: upgradeReason,
                 createdAt: now,
                 dueAt: school.status === 'PENDING' ? null : addOneMonth(now),
                 settledAt: null,

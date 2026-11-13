@@ -86,3 +86,57 @@ export const sendStudentLimitError = (res: Response, error: StudentLimitError): 
         data: error.details,
     });
 };
+
+// Branch limit: the pack's maxBranches (null, or no pack, means unlimited) against the school's branch count.
+export interface BranchCapacity {
+    limit: number | null;
+    current: number;
+    packName: string | null;
+}
+
+export class BranchLimitError extends Error {
+    readonly details: StudentLimitDetails;
+
+    constructor(details: StudentLimitDetails) {
+        super('BRANCH_LIMIT_REACHED');
+        this.name = 'BranchLimitError';
+        this.details = details;
+    }
+}
+
+type BranchCapacityClient = {
+    school: { findUnique: (...args: any[]) => Promise<any> };
+    branch: { count: (...args: any[]) => Promise<number> };
+};
+
+export const getBranchCapacity = async (schoolId: string, client: BranchCapacityClient = prisma): Promise<BranchCapacity> => {
+    const school = await client.school.findUnique({
+        where: { id: schoolId },
+        select: { id: true, pack: { select: { name: true, maxBranches: true } } },
+    });
+    if (!school) throw new Error('School not found');
+    const current = await client.branch.count({ where: { schoolId } });
+    return { limit: school.pack?.maxBranches ?? null, current, packName: school.pack?.name ?? null };
+};
+
+export const assertBranchCapacity = async (
+    schoolId: string,
+    adding = 1,
+    client: BranchCapacityClient = prisma
+): Promise<BranchCapacity> => {
+    const capacity = await getBranchCapacity(schoolId, client);
+    if (capacity.limit !== null && capacity.current + adding > capacity.limit) {
+        throw new BranchLimitError({ limit: capacity.limit, current: capacity.current, adding, packName: capacity.packName });
+    }
+    return capacity;
+};
+
+export const sendBranchLimitError = (res: Response, error: BranchLimitError): void => {
+    const { limit, current } = error.details;
+    res.status(403).json({
+        success: false,
+        error: 'BRANCH_LIMIT_REACHED',
+        message: `Limite du pack atteinte : ${limit} établissement(s) autorisé(s), ${current} existant(s).`,
+        data: error.details,
+    });
+};

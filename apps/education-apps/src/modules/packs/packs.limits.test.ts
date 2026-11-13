@@ -1,11 +1,12 @@
 // src/modules/packs/packs.limits.test.ts
 import prisma from '../../config/database';
-import { assertStudentCapacity, getSchoolCapacity, StudentLimitError } from './packs.limits';
+import { assertBranchCapacity, assertStudentCapacity, BranchLimitError, getBranchCapacity, getSchoolCapacity, StudentLimitError } from './packs.limits';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
     default: {
-        branch: { findUnique: jest.fn(), findMany: jest.fn() },
+        branch: { findUnique: jest.fn(), findMany: jest.fn(), count: jest.fn() },
+        school: { findUnique: jest.fn() },
         student: { count: jest.fn() },
     },
 }));
@@ -79,5 +80,41 @@ describe('assertStudentCapacity', () => {
         await expect(assertStudentCapacity('b1', 1000)).resolves.toBeDefined();
         (prisma.branch.findUnique as jest.Mock).mockResolvedValue(school(null));
         await expect(assertStudentCapacity('b1', 1000)).resolves.toBeDefined();
+    });
+});
+
+describe('getBranchCapacity / assertBranchCapacity', () => {
+    const withPack = (pack: any) => (prisma.school.findUnique as jest.Mock).mockResolvedValue({ id: 'sc1', pack });
+
+    it('returns the pack branch limit and the school branch count', async () => {
+        withPack({ name: 'Pro', maxBranches: 2 });
+        (prisma.branch.count as jest.Mock).mockResolvedValue(1);
+        await expect(getBranchCapacity('sc1')).resolves.toEqual({ limit: 2, current: 1, packName: 'Pro' });
+        expect(prisma.branch.count).toHaveBeenCalledWith({ where: { schoolId: 'sc1' } });
+    });
+
+    it('fails for an unknown school', async () => {
+        (prisma.school.findUnique as jest.Mock).mockResolvedValue(null);
+        await expect(getBranchCapacity('x')).rejects.toThrow('School not found');
+    });
+
+    it('throws BranchLimitError when the pack is full', async () => {
+        withPack({ name: 'Essentiel', maxBranches: 1 });
+        (prisma.branch.count as jest.Mock).mockResolvedValue(1);
+        const error = await assertBranchCapacity('sc1').catch((e) => e);
+        expect(error).toBeInstanceOf(BranchLimitError);
+        expect(error.message).toBe('BRANCH_LIMIT_REACHED');
+        expect(error.details).toEqual({ limit: 1, current: 1, adding: 1, packName: 'Essentiel' });
+    });
+
+    it('passes below the limit, for unlimited packs and without a pack', async () => {
+        (prisma.branch.count as jest.Mock).mockResolvedValue(1);
+        withPack({ name: 'Pro', maxBranches: 2 });
+        await expect(assertBranchCapacity('sc1')).resolves.toMatchObject({ current: 1 });
+        withPack({ name: 'Premium', maxBranches: null });
+        (prisma.branch.count as jest.Mock).mockResolvedValue(40);
+        await expect(assertBranchCapacity('sc1')).resolves.toBeDefined();
+        withPack(null);
+        await expect(assertBranchCapacity('sc1')).resolves.toBeDefined();
     });
 });

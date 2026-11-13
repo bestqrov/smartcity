@@ -163,6 +163,7 @@ model Branch {
   name      String
   city      String
   address   String?
+  phone     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

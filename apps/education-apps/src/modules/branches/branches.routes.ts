@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAll, getSummary } from './branches.controller';
+import { create, getAll, getSummary } from './branches.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 
@@ -10,5 +10,6 @@ router.use(roleMiddleware('OWNER'));
 
 router.get('/', getAll);
 router.get('/summary', getSummary);
+router.post('/', create);
 
 export default router;
