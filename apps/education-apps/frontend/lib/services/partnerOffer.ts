@@ -5,40 +5,38 @@ export type OfferPeriod = 'MONTHLY' | 'SEMIANNUAL' | 'YEARLY';
 
 export const OFFER_PERIODS: OfferPeriod[] = ['MONTHLY', 'SEMIANNUAL', 'YEARLY'];
 
-export interface PartnerOfferPrices {
-    monthlyPrice: number;
-    semiannualPrice: number;
-    yearlyPrice: number;
+// Whole-percent discounts on the chosen pack's price, one per period.
+export interface PartnerOfferDiscounts {
+    monthlyDiscount: number;
+    semiannualDiscount: number;
+    yearlyDiscount: number;
 }
 
 export interface PartnerOfferCheck {
     eligible: boolean;
-    offer?: PartnerOfferPrices;
+    offer?: PartnerOfferDiscounts;
 }
 
-export interface AdminPartnerOffer extends PartnerOfferPrices {
+export interface AdminPartnerOffer extends PartnerOfferDiscounts {
     active: boolean;
 }
 
 export const isOfferPeriod = (value: unknown): value is OfferPeriod =>
     typeof value === 'string' && (OFFER_PERIODS as string[]).includes(value);
 
-const MONTHS: Record<OfferPeriod, number> = { MONTHLY: 1, SEMIANNUAL: 6, YEARLY: 12 };
+export const OFFER_MONTHS: Record<OfferPeriod, number> = { MONTHLY: 1, SEMIANNUAL: 6, YEARLY: 12 };
 
-export const offerPrice = (offer: PartnerOfferPrices, period: OfferPeriod): number =>
-    period === 'MONTHLY' ? offer.monthlyPrice : period === 'SEMIANNUAL' ? offer.semiannualPrice : offer.yearlyPrice;
+type PackPrices = { monthlyPrice: number; yearlyPrice: number };
 
-// Equivalent monthly cost, and the whole-percent saving against paying the monthly price every month
-// (null when there is no saving). Both come from the prices the API returned.
-export const offerPerMonth = (offer: PartnerOfferPrices, period: OfferPeriod): number =>
-    offerPrice(offer, period) / MONTHS[period];
+export const offerDiscount = (offer: PartnerOfferDiscounts, period: OfferPeriod): number =>
+    period === 'MONTHLY' ? offer.monthlyDiscount : period === 'SEMIANNUAL' ? offer.semiannualDiscount : offer.yearlyDiscount;
 
-export const offerSavingPercent = (offer: PartnerOfferPrices, period: OfferPeriod): number | null => {
-    if (period === 'MONTHLY') return null;
-    const full = offer.monthlyPrice * MONTHS[period];
-    const percent = Math.round((1 - offerPrice(offer, period) / full) * 100);
-    return percent > 0 ? percent : null;
-};
+// Same rule as the API: 6 months = 6 × monthly, a year = the pack's yearly price.
+export const packBasePrice = (pack: PackPrices, period: OfferPeriod): number =>
+    period === 'MONTHLY' ? pack.monthlyPrice : period === 'SEMIANNUAL' ? pack.monthlyPrice * 6 : pack.yearlyPrice;
+
+export const packOfferPrice = (pack: PackPrices, offer: PartnerOfferDiscounts, period: OfferPeriod): number =>
+    Math.round(packBasePrice(pack, period) * (1 - offerDiscount(offer, period) / 100) * 100) / 100;
 
 export const formatOfferMoney = (value: number): string =>
     value.toLocaleString('fr-FR', { minimumFractionDigits: Number.isInteger(value) ? 0 : 2, maximumFractionDigits: 2 });

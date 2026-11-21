@@ -5,7 +5,7 @@ import Button from '../../components/Button';
 import useAuthStore, { setActiveBranchId } from '../../store/useAuthStore';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signupSchool, SignupSchoolData } from '../../lib/services/schools';
-import { GraduationCap, Lock, X } from 'lucide-react';
+import { GraduationCap, X } from 'lucide-react';
 import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, isInstitutionType, type InstitutionType } from '../../lib/institutionTypes';
 import { checkReferralCode } from '../../lib/services/salesAgents';
 import { whatsappUrl } from '../../lib/landing/whatsapp';
@@ -15,13 +15,15 @@ import {
     fetchPartnerOffer,
     formatOfferMoney,
     isOfferPeriod,
-    offerPerMonth,
-    offerPrice,
+    offerDiscount,
+    packBasePrice,
+    packOfferPrice,
     type OfferPeriod,
-    type PartnerOfferPrices,
+    type PartnerOfferDiscounts,
 } from '../../lib/services/partnerOffer';
 
 const OFFER_LABELS: Record<OfferPeriod, string> = { MONTHLY: 'Mensuel', SEMIANNUAL: '6 mois', YEARLY: 'Annuel' };
+const PERIOD_SUFFIX: Record<OfferPeriod, string> = { MONTHLY: ' / mois', SEMIANNUAL: ' / 6 mois', YEARLY: ' / an' };
 
 function SignupForm() {
     const router = useRouter();
@@ -38,7 +40,7 @@ function SignupForm() {
     const [packs, setPacks] = useState<PublicPack[]>([]);
     const [referralCode, setReferralCode] = useState<string>((searchParams.get('ref') ?? '').trim().toUpperCase());
     // Offer prices are public; `eligible` (a partner's code was checked) is what unlocks the offer.
-    const [prices, setPrices] = useState<PartnerOfferPrices | null>(null);
+    const [prices, setPrices] = useState<PartnerOfferDiscounts | null>(null);
     const [eligible, setEligible] = useState(false);
     const initialOffer = searchParams.get('offer');
     const [offerPeriod, setOfferPeriod] = useState<OfferPeriod>(isOfferPeriod(initialOffer) ? initialOffer : 'MONTHLY');
@@ -65,7 +67,7 @@ function SignupForm() {
             if (checkedCode.current !== code) return;
             setCodeStatus(valid ? 'valid' : 'invalid');
             if (valid) {
-                // A partner code replaces the packs with the partner offer; failure just keeps the packs.
+                // A partner code unlocks the discount on the packs; failure just keeps the normal prices.
                 const result = await fetchPartnerOffer(code).catch(() => null);
                 if (checkedCode.current === code && result?.offer) {
                     setPrices(result.offer);
@@ -138,7 +140,8 @@ function SignupForm() {
                 ...form,
                 referralCode: code,
                 institutionType,
-                ...(eligible && prices ? { offerPeriod } : packCode ? { packCode } : {}),
+                ...(packCode ? { packCode } : {}),
+                ...(eligible && prices ? { offerPeriod } : {}),
             });
             setAccessTokenState(token);
             setUser(user);
@@ -239,84 +242,53 @@ function SignupForm() {
                             </select>
 
                             {lockedOffer && (
-                                <div className="grid gap-2" role="radiogroup" aria-label="Offre partenaire (verrouillée)">
-                                    <p className="text-xs font-extrabold uppercase tracking-wider text-amber-600">Offre spéciale via Partenaire</p>
-                                    <div className="rounded-2xl border-2 border-amber-400 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
-                                        {codeStatus === 'valid' || codeStatus === 'invalid'
-                                            ? codeStatus === 'valid'
-                                                ? "Ce code n'est pas celui d'un partenaire : l'offre spéciale nécessite le code de votre partenaire (commercial)."
-                                                : "Code introuvable : l'offre spéciale nécessite le code de votre partenaire (commercial)."
-                                            : 'Entrez le code de votre partenaire (commercial) pour bénéficier de cette offre.'}
-                                        {(codeStatus === 'valid' || codeStatus === 'invalid') && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setWantsOffer(false)}
-                                                className="mt-2 block rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-700"
-                                            >
-                                                Continuer sans l&apos;offre
-                                            </button>
-                                        )}
-                                    </div>
-                                    {OFFER_PERIODS.map((period) => (
-                                        <label
-                                            key={period}
-                                            className={`flex cursor-not-allowed items-center justify-between rounded-2xl border-2 px-5 py-3 ${
-                                                offerPeriod === period ? 'border-amber-500 bg-amber-50/70' : 'border-slate-100 bg-slate-50 opacity-50'
-                                            }`}
+                                <div className="rounded-2xl border-2 border-amber-400 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+                                    <p className="mb-1 text-xs font-extrabold uppercase tracking-wider text-amber-600">Offre spéciale via Partenaire</p>
+                                    {codeStatus === 'valid' || codeStatus === 'invalid'
+                                        ? codeStatus === 'valid'
+                                            ? "Ce code n'est pas celui d'un partenaire : la réduction nécessite le code de votre partenaire (commercial)."
+                                            : "Code introuvable : la réduction nécessite le code de votre partenaire (commercial)."
+                                        : `Entrez le code de votre partenaire (commercial) pour bénéficier de −${lockedOffer.monthlyDiscount} % / −${lockedOffer.semiannualDiscount} % / −${lockedOffer.yearlyDiscount} % sur votre pack.`}
+                                    {(codeStatus === 'valid' || codeStatus === 'invalid') && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setWantsOffer(false)}
+                                            className="mt-2 block rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-700"
                                         >
-                                            <span className="flex items-center gap-3 font-bold text-slate-800">
-                                                <input type="radio" name="offer-locked" disabled checked={offerPeriod === period} readOnly />
-                                                {OFFER_LABELS[period]}
-                                                {offerPeriod === period && <Lock size={14} className="text-amber-600" aria-label="Verrouillée" />}
-                                            </span>
-                                            <span className="text-right text-sm font-semibold text-slate-500">
-                                                {formatOfferMoney(offerPrice(lockedOffer, period))} MAD
-                                                {period !== 'MONTHLY' && (
-                                                    <span className="block text-xs font-normal">
-                                                        ≈ {formatOfferMoney(offerPerMonth(lockedOffer, period))} MAD / mois
-                                                    </span>
-                                                )}
-                                            </span>
-                                        </label>
-                                    ))}
+                                            Continuer sans l&apos;offre
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
                             {offer && (
-                                <div className="grid gap-2" role="radiogroup" aria-label="Offre partenaire">
-                                    <p className="text-xs font-extrabold uppercase tracking-wider text-amber-600">Offre partenaire</p>
-                                    {OFFER_PERIODS.map((period) => (
-                                        <label
-                                            key={period}
-                                            className={`flex cursor-pointer items-center justify-between rounded-2xl border-2 px-5 py-3 ${
-                                                offerPeriod === period ? 'border-amber-500 bg-amber-50' : 'border-slate-100 bg-slate-50'
-                                            }`}
-                                        >
-                                            <span className="flex items-center gap-3 font-bold text-slate-800">
+                                <div className="grid gap-2" role="radiogroup" aria-label="Durée (offre partenaire)">
+                                    <p className="text-xs font-extrabold uppercase tracking-wider text-amber-600">Offre partenaire · durée</p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {OFFER_PERIODS.map((period) => (
+                                            <label
+                                                key={period}
+                                                className={`cursor-pointer rounded-2xl border-2 px-3 py-2 text-center ${
+                                                    offerPeriod === period ? 'border-amber-500 bg-amber-50' : 'border-slate-100 bg-slate-50'
+                                                }`}
+                                            >
                                                 <input
                                                     type="radio"
                                                     name="offer"
                                                     value={period}
                                                     checked={offerPeriod === period}
                                                     onChange={() => setOfferPeriod(period)}
+                                                    className="sr-only"
                                                 />
-                                                {OFFER_LABELS[period]}
-                                            </span>
-                                            <span className="text-right text-sm font-semibold text-slate-500">
-                                                {formatOfferMoney(offerPrice(offer, period))} MAD
-                                                {period !== 'MONTHLY' && (
-                                                    <span className="block text-xs font-normal">
-                                                        ≈ {formatOfferMoney(offerPerMonth(offer, period))} MAD / mois
-                                                    </span>
-                                                )}
-                                            </span>
-                                        </label>
-                                    ))}
-                                    <p className="text-xs text-slate-400">15 jours d&apos;essai gratuit, sans carte bancaire.</p>
+                                                <span className="block font-bold text-slate-800">{OFFER_LABELS[period]}</span>
+                                                <span className="block text-xs font-extrabold text-emerald-600">−{offerDiscount(offer, period)} %</span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
-                            {!offer && !lockedOffer && packs.length > 0 && (
+                            {packs.length > 0 && (
                                 <div className="grid gap-2" role="radiogroup" aria-label="Pack">
                                     {packs.map((pack) => (
                                         <label
@@ -340,9 +312,16 @@ function SignupForm() {
                                                     </span>
                                                 )}
                                             </span>
-                                            <span className="text-sm font-semibold text-slate-500">
-                                                {pack.monthlyPrice} MAD / mois
-                                            </span>
+                                            {offer ? (
+                                                <span className="text-right text-sm font-semibold text-slate-500">
+                                                    <span className="block text-xs line-through">{formatOfferMoney(packBasePrice(pack, offerPeriod))} MAD</span>
+                                                    <span className="block font-extrabold text-emerald-700">
+                                                        {formatOfferMoney(packOfferPrice(pack, offer, offerPeriod))} MAD{PERIOD_SUFFIX[offerPeriod]}
+                                                    </span>
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm font-semibold text-slate-500">{pack.monthlyPrice} MAD / mois</span>
+                                            )}
                                         </label>
                                     ))}
                                     <p className="text-xs text-slate-400">15 jours d&apos;essai gratuit, sans carte bancaire.</p>

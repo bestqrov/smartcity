@@ -49,14 +49,14 @@ export const signupSchool = async (data: SignupSchoolData) => {
 
     const agent = await resolveReferralCode(data.referralCode);
 
-    // Partner offer: only through a partner's code while the offer is on. The price is frozen on the school.
-    let offerFields: { partnerOffer: true; offerPeriod: OfferPeriod; offerPrice: number } | null = null;
+    // Partner offer: only through a partner's code while the offer is on. It is a discount on the chosen pack.
+    let offerPeriod: OfferPeriod | null = null;
+    let discounts: Awaited<ReturnType<typeof resolvePartnerOffer>> = null;
     if (data.offerPeriod !== undefined && data.offerPeriod !== null && data.offerPeriod !== '') {
-        const period = OFFER_PERIODS.find((value) => value === data.offerPeriod);
-        if (!period) throw new Error('offerPeriod must be MONTHLY, SEMIANNUAL or YEARLY');
-        const offer = await resolvePartnerOffer(data.referralCode);
-        if (!offer) throw new Error('This offer is only available through a partner');
-        offerFields = { partnerOffer: true, offerPeriod: period, offerPrice: offerPriceFor(offer, period) };
+        offerPeriod = OFFER_PERIODS.find((value) => value === data.offerPeriod) ?? null;
+        if (!offerPeriod) throw new Error('offerPeriod must be MONTHLY, SEMIANNUAL or YEARLY');
+        discounts = await resolvePartnerOffer(data.referralCode);
+        if (!discounts) throw new Error('This offer is only available through a partner');
     }
 
     const email = data.ownerEmail.toLowerCase();
@@ -66,8 +66,14 @@ export const signupSchool = async (data: SignupSchoolData) => {
         throw new Error('Email already exists');
     }
 
-    // An offer signup always gets the type's default pack (its features); the pack picker is not used.
-    const pack = await resolveSignupPack(offerFields ? undefined : data.packCode, data.institutionType);
+    const pack = await resolveSignupPack(data.packCode, data.institutionType);
+
+    // The discounted price is frozen on the school; an offer needs a pack to price against.
+    let offerFields: { partnerOffer: true; offerPeriod: OfferPeriod; offerPrice: number } | null = null;
+    if (offerPeriod && discounts) {
+        if (!pack) throw new Error('Unknown or unavailable pack');
+        offerFields = { partnerOffer: true, offerPeriod, offerPrice: offerPriceFor(pack, discounts, offerPeriod) };
+    }
 
     const hashedPassword = await hashPassword(data.password);
 

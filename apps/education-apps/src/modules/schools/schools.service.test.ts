@@ -66,37 +66,47 @@ describe('signupSchool', () => {
     afterEach(() => jest.restoreAllMocks());
 
     describe('partner offer', () => {
-        const storedOffer = { active: true, monthlyPrice: 120, semiannualPrice: 1299, yearlyPrice: 2000 };
+        const storedOffer = { active: true, monthlyDiscount: 15, semiannualDiscount: 18, yearlyDiscount: 20 };
         const partner = { ...agent, isHouse: false };
+        const pricedPack = pack({ monthlyPrice: 500, yearlyPrice: 5000 });
 
-        it('snapshots period and price and uses the default pack when the code is partner-eligible', async () => {
+        it('applies the period discount to the chosen pack and snapshots it', async () => {
             const { txClient } = arrangeSignup();
             (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(partner);
             (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(storedOffer);
-            (prisma.pack.findFirst as jest.Mock).mockResolvedValue(pack());
+            (prisma.pack.findFirst as jest.Mock).mockResolvedValue(pricedPack);
 
-            await signupSchool({ ...baseInput, offerPeriod: 'SEMIANNUAL' });
+            await signupSchool({ ...baseInput, packCode: 'pro', offerPeriod: 'SEMIANNUAL' });
 
-            expect(prisma.pack.findFirst).toHaveBeenCalledWith({
-                where: { isDefault: true, active: true, institutionTypes: { has: 'PRIVATE_SCHOOL' } },
-            });
+            expect(prisma.pack.findFirst).toHaveBeenCalledWith({ where: { code: 'pro', active: true } });
             expect(txClient.school.create).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    data: expect.objectContaining({ packId: 'pack1', partnerOffer: true, offerPeriod: 'SEMIANNUAL', offerPrice: 1299 }),
+                    // 6 × 500 = 3000, minus 18 %
+                    data: expect.objectContaining({ packId: 'pack1', partnerOffer: true, offerPeriod: 'SEMIANNUAL', offerPrice: 2460 }),
                 })
             );
         });
 
-        it.each([['MONTHLY', 120], ['YEARLY', 2000]])('snapshots the %s price', async (period, price) => {
+        it.each([['MONTHLY', 425], ['YEARLY', 4000]])('discounts the %s price', async (period, price) => {
             const { txClient } = arrangeSignup();
             (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(partner);
             (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(storedOffer);
+            (prisma.pack.findFirst as jest.Mock).mockResolvedValue(pricedPack);
 
-            await signupSchool({ ...baseInput, offerPeriod: period as any });
+            await signupSchool({ ...baseInput, packCode: 'pro', offerPeriod: period as any });
 
             expect(txClient.school.create).toHaveBeenCalledWith(
                 expect.objectContaining({ data: expect.objectContaining({ offerPeriod: period, offerPrice: price }) })
             );
+        });
+
+        it('falls back to the default pack and rejects an offer when no pack is available', async () => {
+            const { txClient } = arrangeSignup();
+            (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(partner);
+            (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(storedOffer);
+            (prisma.pack.findFirst as jest.Mock).mockResolvedValue(null);
+            await expect(signupSchool({ ...baseInput, offerPeriod: 'MONTHLY' })).rejects.toThrow('Unknown or unavailable pack');
+            expect(txClient.school.create).not.toHaveBeenCalled();
         });
 
         it('leaves the offer fields out when no offerPeriod is sent', async () => {

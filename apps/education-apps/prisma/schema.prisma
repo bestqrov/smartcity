@@ -761,14 +761,19 @@ model AgentPayout {
 }
 
 // The offer shown to visitors coming through a partner's referral link. A single document (key "default"),
-// editable by the SUPER_ADMIN. Prices are in MAD.
+// editable by the SUPER_ADMIN. Discounts are whole percents applied to the chosen pack's price
+// (monthly = monthlyPrice, 6 months = 6 × monthlyPrice, yearly = yearlyPrice). Missing discounts fall
+// back to the defaults in code. The *Price fields are legacy (flat-price offer) and no longer read.
 model PartnerOffer {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  key             String   @unique @default("default")
-  active          Boolean  @default(true)
-  monthlyPrice    Float
-  semiannualPrice Float
-  yearlyPrice     Float
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  key                String   @unique @default("default")
+  active             Boolean  @default(true)
+  monthlyDiscount    Int?
+  semiannualDiscount Int?
+  yearlyDiscount     Int?
+  monthlyPrice       Float?
+  semiannualPrice    Float?
+  yearlyPrice        Float?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

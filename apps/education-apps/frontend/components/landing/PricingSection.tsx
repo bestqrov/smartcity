@@ -10,11 +10,11 @@ import {
     OFFER_PERIODS,
     fetchPartnerOffer,
     formatOfferMoney,
-    offerPerMonth,
-    offerPrice,
-    offerSavingPercent,
+    offerDiscount,
+    packBasePrice,
+    packOfferPrice,
     type OfferPeriod,
-    type PartnerOfferPrices,
+    type PartnerOfferDiscounts,
 } from '@/lib/services/partnerOffer';
 
 const OFFER_LABEL_KEYS: Record<OfferPeriod, keyof Messages> = { MONTHLY: 'po_monthly', SEMIANNUAL: 'po_semi', YEARLY: 'po_yearly' };
@@ -28,6 +28,7 @@ const TYPE_TITLE_KEYS: Record<InstitutionType, keyof Messages> = {
 };
 
 type Billing = 'm' | 'y';
+const OFFER_SUFFIX: Record<OfferPeriod, 'per_m' | 'per_6m' | 'per_y'> = { MONTHLY: 'per_m', SEMIANNUAL: 'per_6m', YEARLY: 'per_y' };
 type PacksState = { status: 'loading' } | { status: 'error' } | { status: 'ok'; packs: PublicPack[] };
 
 interface Props {
@@ -41,9 +42,9 @@ export default function PricingSection({ m, type, onTypeChange, refCode }: Props
     const refParam = refCode ? `&ref=${encodeURIComponent(refCode)}` : '';
     const [billing, setBilling] = useState<Billing>('m');
     const [state, setState] = useState<PacksState>({ status: 'loading' });
-    const [offer, setOffer] = useState<PartnerOfferPrices | null>(null);
+    const [offer, setOffer] = useState<PartnerOfferDiscounts | null>(null);
     const [eligible, setEligible] = useState(false);
-    const [showStandard, setShowStandard] = useState(false);
+    const [period, setPeriod] = useState<OfferPeriod>('MONTHLY');
 
     // Prices are public (teaser); only an eligible partner link unlocks the direct offer. Failure leaves the normal packs.
     useEffect(() => {
@@ -101,76 +102,54 @@ export default function PricingSection({ m, type, onTypeChange, refCode }: Props
             </div>
 
             {offer && (
-                <div className={`mx-auto mb-8 max-w-4xl rounded-3xl border-2 p-5 ${eligible ? 'border-amber-400/70 bg-gradient-to-b from-amber-400/10 to-transparent' : 'border-dashed border-amber-400/60 bg-amber-400/5'}`}>
-                    <div className="mb-4 text-center">
-                        <span className="rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold text-slate-900">
-                            {eligible ? m.po_badge : m.pp_title}
-                        </span>
-                        <p className="mt-2 text-sm text-slate-300">{eligible ? m.po_sub : m.pp_sub}</p>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-3">
-                        {OFFER_PERIODS.map((period) => {
-                            const saving = offerSavingPercent(offer, period);
-                            return (
-                                <div key={period} className="rounded-2xl border border-[#22294a] bg-[#131a30] p-6 text-center">
-                                    <h3 className="text-lg font-bold">{m[OFFER_LABEL_KEYS[period]]}</h3>
-                                    <p className="mt-2 text-4xl font-extrabold">
-                                        {formatOfferMoney(offerPrice(offer, period))}{' '}
-                                        <small className="text-sm font-semibold text-slate-400">
-                                            MAD{period === 'MONTHLY' ? m.per_m : ''}
-                                        </small>
-                                    </p>
-                                    {period !== 'MONTHLY' && (
-                                        <p className="mt-1 text-sm text-slate-400">
-                                            {m.po_approx.replace('{n}', formatOfferMoney(offerPerMonth(offer, period)))}
-                                        </p>
-                                    )}
-                                    {saving !== null && (
-                                        <p className="mt-1 text-xs font-semibold text-emerald-400">{m.po_save.replace('{n}', String(saving))}</p>
-                                    )}
-                                    <Link
-                                        href={`/signup?type=${type}${eligible ? refParam : ''}&offer=${period}`}
-                                        className="mt-4 block rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 px-5 py-3 text-center font-bold text-slate-900"
-                                    >
-                                        {eligible ? m.po_cta : m.pp_cta}
-                                    </Link>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    {eligible && (
-                    <div className="mt-4 text-center">
-                        <button
-                            type="button"
-                            aria-expanded={showStandard}
-                            onClick={() => setShowStandard((value) => !value)}
-                            className="text-sm font-semibold text-slate-400 underline hover:text-slate-200"
-                        >
-                            {showStandard ? m.po_std_hide : m.po_std_show}
-                        </button>
-                    </div>
+                <div className={`mx-auto mb-6 max-w-3xl rounded-2xl border-2 p-4 text-center ${eligible ? 'border-amber-400/70 bg-amber-400/10' : 'border-dashed border-amber-400/60 bg-amber-400/5'}`}>
+                    <span className="rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold text-slate-900">
+                        {eligible ? m.po_badge : m.pp_title}
+                    </span>
+                    <p className="mt-2 text-sm text-slate-300">{eligible ? m.po_sub : m.pp_sub}</p>
+                    <p className="mt-2 text-sm font-bold text-amber-300">
+                        {OFFER_PERIODS.map((p) => `${m[OFFER_LABEL_KEYS[p]]} −${offerDiscount(offer, p)} %`).join(' · ')}
+                    </p>
+                    {!eligible && (
+                        <Link href={`/signup?type=${type}&offer=MONTHLY`} className="mt-3 inline-block text-sm font-semibold text-amber-300 underline">
+                            {m.pp_cta}
+                        </Link>
                     )}
                 </div>
             )}
 
-            {(!eligible || showStandard) && (
-            <>
             <div className="mb-8 flex justify-center gap-2">
-                {(['m', 'y'] as Billing[]).map((option) => (
-                    <button
-                        key={option}
-                        type="button"
-                        aria-pressed={billing === option}
-                        onClick={() => setBilling(option)}
-                        className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${
-                            billing === option
-                                ? 'border-indigo-400 bg-indigo-500 text-white'
-                                : 'border-[#22294a] bg-[#131a30] text-slate-200 hover:bg-[#1a2342]'
-                        }`}
-                    >
-                        {option === 'm' ? m.monthly : m.yearly}
-                    </button>
-                ))}
+                {eligible
+                    ? OFFER_PERIODS.map((option) => (
+                          <button
+                              key={option}
+                              type="button"
+                              aria-pressed={period === option}
+                              onClick={() => setPeriod(option)}
+                              className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${
+                                  period === option
+                                      ? 'border-amber-400 bg-amber-400 text-slate-900'
+                                      : 'border-[#22294a] bg-[#131a30] text-slate-200 hover:bg-[#1a2342]'
+                              }`}
+                          >
+                              {m[OFFER_LABEL_KEYS[option]]}
+                          </button>
+                      ))
+                    : (['m', 'y'] as Billing[]).map((option) => (
+                          <button
+                              key={option}
+                              type="button"
+                              aria-pressed={billing === option}
+                              onClick={() => setBilling(option)}
+                              className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${
+                                  billing === option
+                                      ? 'border-indigo-400 bg-indigo-500 text-white'
+                                      : 'border-[#22294a] bg-[#131a30] text-slate-200 hover:bg-[#1a2342]'
+                              }`}
+                          >
+                              {option === 'm' ? m.monthly : m.yearly}
+                          </button>
+                      ))}
             </div>
 
             {state.status === 'loading' && (
@@ -207,14 +186,31 @@ export default function PricingSection({ m, type, onTypeChange, refCode }: Props
                                     </span>
                                 )}
                                 <h3 className="text-lg font-bold">{pack.name}</h3>
-                                <p className="mt-2 text-4xl font-extrabold">
-                                    {price(pack).toLocaleString('fr-FR')}{' '}
-                                    <small className="text-sm font-semibold text-slate-400">
-                                        MAD{billing === 'm' ? m.per_m : m.per_y}
-                                    </small>
-                                </p>
-                                {billing === 'y' && twoMonthsFree(pack) && (
-                                    <p className="mt-1 text-xs font-semibold text-emerald-400">{m.yearly_note}</p>
+                                {eligible && offer ? (
+                                    <>
+                                        <p className="mt-2 text-sm text-slate-500 line-through">
+                                            {formatOfferMoney(packBasePrice(pack, period))} MAD
+                                        </p>
+                                        <p className="text-4xl font-extrabold">
+                                            {formatOfferMoney(packOfferPrice(pack, offer, period))}{' '}
+                                            <small className="text-sm font-semibold text-slate-400">MAD{m[OFFER_SUFFIX[period]]}</small>
+                                        </p>
+                                        <p className="mt-1 text-xs font-semibold text-emerald-400">
+                                            {m.po_save.replace('{n}', String(offerDiscount(offer, period)))}
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="mt-2 text-4xl font-extrabold">
+                                            {price(pack).toLocaleString('fr-FR')}{' '}
+                                            <small className="text-sm font-semibold text-slate-400">
+                                                MAD{billing === 'm' ? m.per_m : m.per_y}
+                                            </small>
+                                        </p>
+                                        {billing === 'y' && twoMonthsFree(pack) && (
+                                            <p className="mt-1 text-xs font-semibold text-emerald-400">{m.yearly_note}</p>
+                                        )}
+                                    </>
                                 )}
                                 <p className="mb-3 mt-2 text-sm text-slate-400">{limitsLine(pack, type, m)}</p>
                                 <ul className="mb-5 space-y-1.5 text-sm">
@@ -239,7 +235,7 @@ export default function PricingSection({ m, type, onTypeChange, refCode }: Props
                                     ))}
                                 </ul>
                                 <Link
-                                    href={`/signup?type=${type}&pack=${pack.code}${refParam}`}
+                                    href={`/signup?type=${type}&pack=${pack.code}${refParam}${eligible ? `&offer=${period}` : ''}`}
                                     className={`block rounded-xl px-5 py-3 text-center font-bold ${
                                         pack.recommended
                                             ? 'bg-gradient-to-br from-indigo-500 to-violet-500 text-white'
@@ -252,8 +248,6 @@ export default function PricingSection({ m, type, onTypeChange, refCode }: Props
                         );
                     })}
                 </div>
-            )}
-            </>
             )}
         </section>
     );

@@ -78,7 +78,7 @@ const inputCls =
 const labelCls = 'block text-xs font-medium text-gray-500 mb-1';
 
 function PartnerOfferCard() {
-    const [form, setForm] = useState({ active: true, monthlyPrice: '', semiannualPrice: '', yearlyPrice: '' });
+    const [form, setForm] = useState({ active: true, monthlyDiscount: '', semiannualDiscount: '', yearlyDiscount: '' });
     const [loaded, setLoaded] = useState(false);
     const [busy, setBusy] = useState(false);
     const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -88,9 +88,9 @@ function PartnerOfferCard() {
             .then((offer) => {
                 setForm({
                     active: offer.active,
-                    monthlyPrice: String(offer.monthlyPrice),
-                    semiannualPrice: String(offer.semiannualPrice),
-                    yearlyPrice: String(offer.yearlyPrice),
+                    monthlyDiscount: String(offer.monthlyDiscount),
+                    semiannualDiscount: String(offer.semiannualDiscount),
+                    yearlyDiscount: String(offer.yearlyDiscount),
                 });
                 setLoaded(true);
             })
@@ -104,9 +104,9 @@ function PartnerOfferCard() {
         try {
             await updatePartnerOffer({
                 active: form.active,
-                monthlyPrice: Number(form.monthlyPrice),
-                semiannualPrice: Number(form.semiannualPrice),
-                yearlyPrice: Number(form.yearlyPrice),
+                monthlyDiscount: Number(form.monthlyDiscount),
+                semiannualDiscount: Number(form.semiannualDiscount),
+                yearlyDiscount: Number(form.yearlyDiscount),
             });
             setMessage({ ok: true, text: 'Offre partenaire enregistrée.' });
         } catch (err) {
@@ -116,13 +116,14 @@ function PartnerOfferCard() {
         }
     };
 
-    const field = (key: 'monthlyPrice' | 'semiannualPrice' | 'yearlyPrice', label: string) => (
+    const field = (key: 'monthlyDiscount' | 'semiannualDiscount' | 'yearlyDiscount', label: string) => (
         <label className="block text-sm font-semibold text-gray-700">
             {label}
             <input
                 type="number"
-                min={0.01}
-                step="0.01"
+                min={0}
+                max={90}
+                step="1"
                 required
                 disabled={!loaded}
                 value={form[key]}
@@ -137,7 +138,7 @@ function PartnerOfferCard() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-bold text-gray-800">Offre partenaire</h2>
-                    <p className="text-sm text-gray-600">Prix (MAD) proposés aux visiteurs arrivés via le lien d&apos;un commercial partenaire (hors code maison).</p>
+                    <p className="text-sm text-gray-600">Réduction (%) appliquée à chaque pack pour les visiteurs arrivés via le lien d&apos;un commercial partenaire (hors code maison). 6 mois = 6 × prix mensuel ; annuel = prix annuel du pack.</p>
                 </div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <input type="checkbox" disabled={!loaded} checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
@@ -145,9 +146,9 @@ function PartnerOfferCard() {
                 </label>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
-                {field('monthlyPrice', 'Mensuel (MAD / mois)')}
-                {field('semiannualPrice', '6 mois (MAD)')}
-                {field('yearlyPrice', 'Annuel (MAD)')}
+                {field('monthlyDiscount', 'Mensuel (−%)')}
+                {field('semiannualDiscount', '6 mois (−%)')}
+                {field('yearlyDiscount', 'Annuel (−%)')}
             </div>
             {message && <p className={`text-sm font-semibold ${message.ok ? 'text-green-700' : 'text-red-600'}`}>{message.text}</p>}
             <button disabled={busy || !loaded} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-sm disabled:opacity-50">
