@@ -175,7 +175,7 @@ export default function SuperAdminSchoolsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                    <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">Écoles</h1>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white sm:text-3xl">Écoles</h1>
                     <p className="text-gray-600 mt-1">Gérer l'activation des écoles sur la plateforme</p>
                 </div>
                 <div className="shrink-0 rounded-lg bg-blue-100 p-2.5 sm:p-3">

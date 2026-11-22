@@ -282,7 +282,7 @@ export default function PaiementsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Gestion des Salaires")}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">{tr("Gestion des Salaires")}</h1>
                     <p className="text-gray-600 mt-1">{tr("Gérer les salaires du personnel")}</p>
                 </div>
                 <div className="flex flex-wrap gap-3">

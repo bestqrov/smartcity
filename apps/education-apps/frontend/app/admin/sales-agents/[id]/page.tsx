@@ -161,7 +161,7 @@ export default function SalesAgentDetailPage() {
                 <>
                     <div className="flex items-center gap-4">
                         <AgentAvatar src={report.agent.avatar} name={report.agent.name} size={64} className="bg-indigo-100 text-indigo-700" />
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
                             {report.agent.name}
                             {report.agent.isHouse && <span className="ms-3 align-middle px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">Société</span>}
                             {report.agent.isSchoolAccount && <span className="ms-3 align-middle px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Compte école</span>}

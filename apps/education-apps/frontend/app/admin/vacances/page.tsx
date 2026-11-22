@@ -57,7 +57,7 @@ export default function VacancesPage() {
         <div className="p-0 lg:p-6 space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Vacances & congés")}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">{tr("Vacances & congés")}</h1>
                     <p className="text-gray-600 mt-1">{tr("Périodes de fermeture affichées aux élèves")}</p>
                 </div>
                 <div className="hidden sm:block p-3 rounded-xl bg-orange-100">

@@ -47,7 +47,7 @@ export default function SecretaryPaiementsPage() {
     return (
         <div className="p-0 lg:p-6 space-y-6">
             <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Suivi des Salaires")}</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">{tr("Suivi des Salaires")}</h1>
                 <p className="text-gray-500">{tr("Consultation des paiements du personnel pour le mois en cours")}</p>
             </div>
 

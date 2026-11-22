@@ -138,7 +138,7 @@ export default function DocumentsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Documents")}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">{tr("Documents")}</h1>
                     <p className="text-gray-600 mt-1">{isCrecheMode ? tr("Générer des fiches de renseignements pour les enfants") : tr("Générer des fiches de renseignements pour les élèves")}</p>
                 </div>
                 <div className="hidden sm:block bg-blue-100 p-3 rounded-lg">
@@ -206,10 +206,12 @@ export default function DocumentsPage() {
                     <div className="bg-white text-gray-900 rounded-2xl shadow-lg border border-gray-200 print:shadow-none print:border-0">
                         {/* Print Button - Hidden on print */}
                         <div className="p-6 border-b border-gray-200 flex justify-between items-center print:hidden">
-                            <Button
+                            {/* Plain light button: it sits on the white sheet, so no dark-theme colours. */}
+                            <button
+                                type="button"
                                 onClick={() => setSelectedStudent(null)}
-                                variant="secondary"
-                            >{tr("← Retour")}</Button>
+                                className="rounded-xl bg-gray-100 px-4 py-2 font-semibold text-gray-900 transition-colors hover:bg-gray-200"
+                            >{tr("← Retour")}</button>
                         </div>
 
                         {/* Registration Form */}

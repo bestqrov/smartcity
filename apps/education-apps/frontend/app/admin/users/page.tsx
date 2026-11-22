@@ -117,7 +117,7 @@ export default function UsersCRUD() {
         <div className="p-0 lg:p-6 space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
                         <UserCog className="text-blue-600" size={32} />{tr("Gestion des Utilisateurs")}</h1>
                     <p className="text-gray-600 mt-1">{tr("Gérer les administrateurs et les secrétaires du système")}</p>
                 </div>

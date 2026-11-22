@@ -219,7 +219,7 @@ export default function TransactionsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Transactions")}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">{tr("Transactions")}</h1>
                     <p className="text-gray-600 mt-1">{tr("Gérer les revenus et les dépenses")}</p>
                 </div>
                 <button

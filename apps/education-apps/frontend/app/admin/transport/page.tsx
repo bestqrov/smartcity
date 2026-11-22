@@ -26,7 +26,7 @@ export default function TransportPage() {
         <div className="p-0 lg:p-6 space-y-6">
             <div className="flex justify-between items-center gap-3">
                 <div className="min-w-0">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Transport scolaire")}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">{tr("Transport scolaire")}</h1>
                     <p className="text-gray-600 mt-1">{tr("Lignes, véhicules, abonnements et paiements mensuels")}</p>
                 </div>
                 <div className="p-3 rounded-xl bg-blue-100">

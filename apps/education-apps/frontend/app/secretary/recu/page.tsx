@@ -225,7 +225,7 @@ export default function SecretaryRecuPage() {
             {view === 'list' ? (
                 <>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Gestion des Reçus")}</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">{tr("Gestion des Reçus")}</h1>
                         <Button onClick={() => setView('form')} className="flex items-center gap-2">
                             <PlusCircle size={20} />{tr("Nouveau Reçu")}</Button>
                     </div>
