@@ -340,4 +340,5 @@ export const settings: Record<string, string> = {
     'Élèves:': 'التلاميذ:',
     "Présents aujourd'hui:": 'الحاضرون اليوم:',
     'Solde dû:': 'الرصيد المستحق:',
+    '{start} à {end}': 'من {start} إلى {end}',
 };

@@ -64,7 +64,7 @@ export default function SecretaryPaiementsPage() {
                 <div className="sm:text-end">
                     <div className="text-xs font-bold text-slate-400 uppercase">{tr("Masse Salariale du Mois")}</div>
                     <div className="text-2xl font-bold text-gray-900">
-                        {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)}{tr("MAD")}</div>
+                        {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)}{" "}{tr("MAD")}</div>
                 </div>
             </div>
 

@@ -478,4 +478,6 @@ export const school: Record<string, string> = {
     'Paiement:': 'الأداء:',
     'Chèque No:': 'شيك رقم:',
     'vous remercie pour votre paiement!': 'تشكركم على أدائكم!',
+    '{present}/{total} présents · {missing} à saisir': '{present}/{total} حاضرون · {missing} للتسجيل',
+    '{present}/{total} présents': '{present}/{total} حاضرون',
 };

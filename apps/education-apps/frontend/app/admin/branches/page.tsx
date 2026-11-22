@@ -110,7 +110,7 @@ export default function BranchesSummaryPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{tr("Vue d'ensemble — tous les établissements")}</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        {summary.totalStudents}{' '}{tr("élèves au total — solde dû combiné:")}{' '}{summary.totalBalanceDue}{tr("MAD")}</p>
+                        {summary.totalStudents}{' '}{tr("élèves au total — solde dû combiné:")}{' '}{summary.totalBalanceDue}{" "}{tr("MAD")}</p>
                     {used && (
                         <p className="mt-2 inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
                             {used.current} / {used.limit === null ? '∞' : used.limit}{tr("établissements utilisés")}</p>

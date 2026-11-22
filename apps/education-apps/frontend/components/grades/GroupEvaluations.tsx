@@ -63,7 +63,7 @@ export default function GroupEvaluations({ client, groupId, groupSubject, studen
                     <div className="min-w-0 flex-1">
                         <h2 className="truncate text-lg font-semibold text-slate-900 dark:text-white">{tr(open.title)}</h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {open.subject} · {open.period} · {formatDate(open.date)}{' '}{tr("· coef")}{' '}{formatNum(open.coefficient)}
+                            {tr(open.subject)} · {tr(open.period)} · {formatDate(open.date)}{' '}{tr("· coef")}{' '}{formatNum(open.coefficient)}
                         </p>
                     </div>
                     <PublishButton client={client} evaluation={open} studentIds={students.map((s) => s.id)} onChange={merge} />

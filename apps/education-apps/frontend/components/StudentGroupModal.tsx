@@ -82,7 +82,7 @@ export default function StudentGroupModal({ isOpen, onClose, student }: StudentG
                                 <option value="">{tr("-- Sélectionner --")}</option>
                                 {groups.map(group => (
                                     <option key={group.id} value={group.id}>
-                                        {group.name} ({group.subject})
+                                        {group.name} ({tr(group.subject)})
                                     </option>
                                 ))}
                             </select>

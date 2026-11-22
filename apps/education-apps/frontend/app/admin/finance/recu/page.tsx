@@ -975,7 +975,7 @@ export default function RecuPage() {
                                 <div className="flex justify-between items-baseline">
                                     <span className="font-bold text-gray-800">{tr("Reste")}</span>
                                     <span className="font-bold text-2xl text-green-600">
-                                        {(totalAmount - (parseFloat(formData.amountPaid) || 0)).toFixed(2)}{tr("DH")}</span>
+                                        {(totalAmount - (parseFloat(formData.amountPaid) || 0)).toFixed(2)}{" "}{tr("DH")}</span>
                                 </div>
                             </div>
                         </div>

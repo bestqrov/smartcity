@@ -91,7 +91,7 @@ export default function RoutesTab() {
                             <option value="">—</option>
                             {vehicles.map((v) => (
                                 <option key={v.id} value={v.id}>
-                                    {v.plate} ({v.capacity})
+                                    <bdi dir="ltr">{v.plate}</bdi> ({v.capacity})
                                 </option>
                             ))}
                         </select>
@@ -127,7 +127,7 @@ export default function RoutesTab() {
                             <div>
                                 <h3 className="font-bold text-gray-800">{route.name}</h3>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    {route.vehicle?.plate} · {route.driver?.name} ({route.driver?.phone})
+                                    <bdi dir="ltr">{route.vehicle?.plate}</bdi> · {route.driver?.name} (<bdi dir="ltr">{route.driver?.phone}</bdi>)
                                     {route.monthlyPrice != null && tr(" · {monthlyPrice} MAD/mois", { monthlyPrice: route.monthlyPrice })}
                                 </p>
                             </div>

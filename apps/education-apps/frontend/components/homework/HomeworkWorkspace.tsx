@@ -64,7 +64,7 @@ export default function HomeworkWorkspace() {
                     {groups.map((g) => (
                         <option key={g.id} value={g.id}>
                             {g.name}
-                            {g.subject ? ` — ${g.subject}` : ''}
+                            {g.subject ? ` — ${tr(g.subject)}` : ''}
                         </option>
                     ))}
                 </select>

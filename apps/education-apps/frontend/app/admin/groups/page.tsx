@@ -291,11 +291,11 @@ const GroupsContent = () => {
                                             {group.name}
                                         </h3>
                                         <p className="text-sm text-gray-500">
-                                            {group.type === 'FORMATION' ? group.formation?.name : group.subject}
+                                            {group.type === 'FORMATION' ? group.formation?.name : tr(group.subject)}
                                         </p>
                                     </div>
                                     <span className={`px-2.5 py-1 text-xs font-medium rounded-full bg-${themeColor}-50 text-${themeColor}-700`}>
-                                        {group.type === 'FORMATION' ? tr("Formation") : group.level}
+                                        {group.type === 'FORMATION' ? tr("Formation") : tr(group.level)}
                                     </span>
                                 </div>
 
@@ -322,7 +322,7 @@ const GroupsContent = () => {
                                             <span className="flex flex-wrap gap-x-1.5">
                                                 {group.timeSlots.map((slot, i) => (
                                                     <span key={i} className="whitespace-nowrap">
-                                                        {slot.day} {slot.startTime}-{slot.endTime}{i < group.timeSlots!.length - 1 ? ',' : ''}
+                                                        {tr(slot.day)} <bdi dir="ltr">{slot.startTime}-{slot.endTime}</bdi>{i < group.timeSlots!.length - 1 ? tr(',') : ''}
                                                     </span>
                                                 ))}
                                             </span>
@@ -551,7 +551,7 @@ const GroupsContent = () => {
                                     {formData.timeSlots.map((slot, i) => (
                                         <div key={i} className="flex items-center justify-between px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-100">
                                             <span className="text-sm font-medium text-gray-700">
-                                                {slot.day} — {slot.startTime} à {slot.endTime}
+                                                {tr(slot.day)} — {tr('{start} à {end}', { start: slot.startTime, end: slot.endTime })}
                                             </span>
                                             <button
                                                 type="button"
@@ -573,7 +573,7 @@ const GroupsContent = () => {
                                         value={newSlot.day}
                                         onChange={(e) => setNewSlot((prev) => ({ ...prev, day: e.target.value }))}
                                     >
-                                        {DAYS.map((d) => <option key={d} value={d}>{d}</option>)}
+                                        {DAYS.map((d) => <option key={d} value={d}>{tr(d)}</option>)}
                                     </select>
                                 </div>
                                 <div>

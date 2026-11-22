@@ -497,16 +497,16 @@ function Timetable({
                                 let status: string;
                                 if (day.holiday) {
                                     tone = 'bg-slate-200 text-slate-500 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 cursor-not-allowed';
-                                    status = 'Vacances';
+                                    status = tr('Vacances');
                                 } else if (upcoming) {
                                     tone = 'bg-white text-blue-800 border-blue-300 dark:bg-slate-900 dark:text-blue-300 dark:border-blue-500/50 hover:bg-blue-50 dark:hover:bg-blue-500/10';
-                                    status = 'À venir';
+                                    status = tr('À venir');
                                 } else if (missing > 0) {
                                     tone = 'bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-500/15 dark:text-amber-200 dark:border-amber-500/40 hover:bg-amber-100';
-                                    status = `${present}/${total} présents · ${missing} à saisir`;
+                                    status = tr('{present}/{total} présents · {missing} à saisir', { present, total, missing });
                                 } else {
                                     tone = 'bg-emerald-50 text-emerald-900 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-200 dark:border-emerald-500/40 hover:bg-emerald-100';
-                                    status = `${present}/${total} présents`;
+                                    status = tr('{present}/{total} présents', { present, total });
                                 }
 
                                 return (
@@ -520,7 +520,7 @@ function Timetable({
                                         style={{ top: top + 1, height: blockHeight }}
                                     >
                                         <span className="block font-bold">
-                                            {slot.startTime} – {slot.endTime}
+                                            <bdi dir="ltr">{slot.startTime} – {slot.endTime}</bdi>
                                         </span>
                                         {blockHeight > 34 && <span className="block truncate">{status}</span>}
                                     </button>
@@ -805,7 +805,7 @@ function RollCallDialog({
                         <h2 id="roll-title" className="text-lg font-bold text-slate-900 dark:text-white">{tr("Appel ·")}{week.group.name}
                         </h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400 first-letter:uppercase">
-                            {longDay(session.date)} · {session.startTime} – {session.endTime}
+                            {longDay(session.date)} · <bdi dir="ltr">{session.startTime} – {session.endTime}</bdi>
                         </p>
                     </div>
                     <button type="button" onClick={onClose} disabled={saving} aria-label={tr("Fermer")} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">

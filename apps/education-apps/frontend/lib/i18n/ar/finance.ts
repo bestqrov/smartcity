@@ -47,6 +47,13 @@ export const finance: Record<string, string> = {
     Signé: 'موقَّع',
     'Signed by': 'وقّعه',
     Maths: 'الرياضيات',
+    SVT: 'علوم الحياة والأرض',
+    COLLEGE: 'الإعدادي',
+    college: 'الإعدادي',
+    lycee: 'الثانوي',
+    primaire: 'الابتدائي',
+    LYCEE: 'الثانوي',
+    PRIMAIRE: 'الابتدائي',
     'Physique et Chimique': 'الفيزياء والكيمياء',
     'S.V.T': 'علوم الحياة والأرض',
 

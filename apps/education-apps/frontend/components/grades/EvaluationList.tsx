@@ -44,7 +44,7 @@ export default function EvaluationList({ evaluations, studentCount, onOpen, onEd
                                     </span>
                                 </div>
                                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                    {ev.subject} · {ev.period} · {formatDate(ev.date)} · /{formatNum(ev.maxScore)}{' '}{tr("· coef")}{' '}{formatNum(ev.coefficient)}
+                                    {tr(ev.subject)} · {tr(ev.period)} · {formatDate(ev.date)} · /{formatNum(ev.maxScore)}{' '}{tr("· coef")}{' '}{formatNum(ev.coefficient)}
                                 </p>
                                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                                     {entered}/{total}{' '}{tr("saisies · Moyenne :")}{' '}{average === null ? '—' : formatNum(average)}

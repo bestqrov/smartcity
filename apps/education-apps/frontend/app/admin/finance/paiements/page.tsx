@@ -328,7 +328,7 @@ export default function PaiementsPage() {
                         </div>
                     </div>
                     <h3 className="text-3xl font-bold">
-                        {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)}{tr("MAD")}</h3>
+                        {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)}{" "}{tr("MAD")}</h3>
                     <p className="text-green-100 text-sm mt-1">{tr("Total ce mois")}</p>
                 </div>
             </div>
@@ -381,7 +381,7 @@ export default function PaiementsPage() {
                                             {tr(getSalaryTypeLabel(payment.salaryType))}
                                         </td>
                                         <td className="py-3 px-4 text-end font-bold text-gray-800">
-                                            {payment.calculatedAmount.toFixed(2)}{tr("MAD")}</td>
+                                            {payment.calculatedAmount.toFixed(2)}{" "}{tr("MAD")}</td>
                                         <td className="py-3 px-4 text-center">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${payment.status === 'PAID'
                                                 ? 'bg-green-100 text-green-700'

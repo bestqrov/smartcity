@@ -67,7 +67,7 @@ export default function StudentProfilePage() {
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                         {student.name} {student.surname}
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">{student.schoolLevel || '—'}</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">{tr(student.schoolLevel) || '—'}</p>
                 </div>
                 <div className="flex gap-2">
                     <button
@@ -107,7 +107,7 @@ export default function StudentProfilePage() {
                             }`}
                             onClick={() => setTab(key)}
                         >
-                            {label}
+                            {tr(label)}
                         </button>
                     ))}
                 </div>
@@ -139,7 +139,7 @@ export default function StudentProfilePage() {
 
                     {tab === 'finance' && (
                         <div className="space-y-4">
-                            <p className="font-medium text-slate-900 dark:text-white">{tr("Solde dû (inscriptions vs. paiements) :")}{balanceDue}{tr("MAD")}<span className="block text-xs font-normal text-slate-500 dark:text-slate-400">{tr("N'inclut pas les frais mensuels récurrents — voir les analyses du tableau de bord pour le revenu total.")}</span>
+                            <p className="font-medium text-slate-900 dark:text-white">{tr("Solde dû (inscriptions vs. paiements) :")}{" "}{balanceDue}{" "}{tr("MAD")}<span className="block text-xs font-normal text-slate-500 dark:text-slate-400">{tr("N'inclut pas les frais mensuels récurrents — voir les analyses du tableau de bord pour le revenu total.")}</span>
                             </p>
                             <ul className="space-y-2">
                                 {(student.payments || []).length === 0 && (

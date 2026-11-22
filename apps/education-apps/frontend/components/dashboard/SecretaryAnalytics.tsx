@@ -111,7 +111,7 @@ export default function SecretaryAnalytics() {
                     <SplineChart palette="vibrant" points={amountPoints} rtl={false} format={mad} formatShort={madShort} />
                 </ChartCard>
                 <ChartCard palette="vibrant" title={tr("Inscriptions du mois par type")}>
-                    <DonutChart palette="vibrant" data={typeSlices} totalLabel="inscriptions" formatValue={num} formatPct={pct} empty={tr("Aucune inscription ce mois")} />
+                    <DonutChart palette="vibrant" data={typeSlices} totalLabel={tr("inscriptions")} formatValue={num} formatPct={pct} empty={tr("Aucune inscription ce mois")} />
                 </ChartCard>
             </div>
 
