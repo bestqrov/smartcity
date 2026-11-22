@@ -15,7 +15,9 @@ import type { Parent } from '@/types';
 import PortalLinkCard from '@/components/PortalLinkCard';
 import { parentPortalMessage, publicUrl } from '@/lib/publicUrl';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function ParentsPage() {
+    const { tr } = useI18n();
     const [parents, setParents] = useState<Parent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -72,7 +74,7 @@ export default function ParentsPage() {
             setCreated(result);
         } catch (error) {
             console.error('Failed to create parent:', error);
-            alert('Erreur lors de la création du parent');
+            alert(tr("Erreur lors de la création du parent"));
         } finally {
             setIsSaving(false);
         }
@@ -92,28 +94,20 @@ export default function ParentsPage() {
             {/* Context Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        Gestion des Parents
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        Gérez les parents et leurs accès QR
-                    </p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{tr("Gestion des Parents")}</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">{tr("Gérez les parents et leurs accès QR")}</p>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
                     <Link
                         href="/admin/parents/access"
                         className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium"
-                    >
-                        Accès parents
-                    </Link>
+                    >{tr("Accès parents")}</Link>
                     <button
                         onClick={handleOpenModal}
                         className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 transition-colors font-medium"
                     >
-                        <Plus size={18} />
-                        Nouveau Parent
-                    </button>
+                        <Plus size={18} />{tr("Nouveau Parent")}</button>
                 </div>
             </div>
 
@@ -124,7 +118,7 @@ export default function ParentsPage() {
                         <Users size={24} />
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500">Total Parents</p>
+                        <p className="text-sm font-medium text-slate-500">{tr("Total Parents")}</p>
                         <p className="text-2xl font-black text-slate-900 dark:text-white">{parents.length}</p>
                     </div>
                 </div>
@@ -133,7 +127,7 @@ export default function ParentsPage() {
                         <Baby size={24} />
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500">Total Enfants</p>
+                        <p className="text-sm font-medium text-slate-500">{tr("Total Enfants")}</p>
                         <p className="text-2xl font-black text-slate-900 dark:text-white">
                             {parents.reduce((sum, p) => sum + (p.students?.length || 0), 0)}
                         </p>
@@ -149,7 +143,7 @@ export default function ParentsPage() {
                         <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                         <input
                             type="text"
-                            placeholder="Rechercher par nom, téléphone, email..."
+                            placeholder={tr("Rechercher par nom, téléphone, email...")}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full ps-10 pe-4 py-2 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
@@ -164,20 +158,17 @@ export default function ParentsPage() {
                             <tr>
                                 <th className="px-6 py-4">
                                     <div className="flex items-center gap-2">
-                                        <UserIcon size={14} /> Nom
-                                    </div>
+                                        <UserIcon size={14} />{tr("Nom")}</div>
                                 </th>
                                 <th className="px-6 py-4">
                                     <div className="flex items-center gap-2">
-                                        <Phone size={14} /> Téléphone
-                                    </div>
+                                        <Phone size={14} />{tr("Téléphone")}</div>
                                 </th>
                                 <th className="px-6 py-4">
                                     <div className="flex items-center gap-2">
-                                        <Baby size={14} /> Enfants
-                                    </div>
+                                        <Baby size={14} />{tr("Enfants")}</div>
                                 </th>
-                                <th className="px-6 py-4 text-end">Actions</th>
+                                <th className="px-6 py-4 text-end">{tr("Actions")}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -185,9 +176,7 @@ export default function ParentsPage() {
                                 <tr>
                                     <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
                                         <div className="flex justify-center items-center gap-3">
-                                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                            Chargement des données...
-                                        </div>
+                                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>{tr("Chargement des données...")}</div>
                                     </td>
                                 </tr>
                             ) : filteredParents.length === 0 ? (
@@ -196,8 +185,8 @@ export default function ParentsPage() {
                                         <div className="mx-auto w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
                                             <Search size={32} className="opacity-50" />
                                         </div>
-                                        <p className="font-medium">Aucun parent trouvé</p>
-                                        <p className="text-sm mt-1">Essayez de modifier votre recherche</p>
+                                        <p className="font-medium">{tr("Aucun parent trouvé")}</p>
+                                        <p className="text-sm mt-1">{tr("Essayez de modifier votre recherche")}</p>
                                     </td>
                                 </tr>
                             ) : (
@@ -235,9 +224,7 @@ export default function ParentsPage() {
                                             <a
                                                 href={`/admin/parents/${parent.id}`}
                                                 className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all"
-                                            >
-                                                Voir
-                                            </a>
+                                            >{tr("Voir")}</a>
                                         </td>
                                     </tr>
                                 ))
@@ -253,28 +240,26 @@ export default function ParentsPage() {
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in duration-200">
                         <div className="px-6 py-5 bg-gradient-to-r from-blue-600 to-indigo-600">
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <UserIcon className="text-white/80" />
-                                Nouveau Parent
-                            </h2>
-                            <p className="text-white/80 text-sm mt-1">Informations de contact du parent</p>
+                                <UserIcon className="text-white/80" />{tr("Nouveau Parent")}</h2>
+                            <p className="text-white/80 text-sm mt-1">{tr("Informations de contact du parent")}</p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom Complet *</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr("Nom Complet *")}</label>
                                     <input
                                         required
                                         type="text"
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="Ex: Fatima Alaoui"
+                                        placeholder={tr("Ex: Fatima Alaoui")}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone *</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr("Téléphone *")}</label>
                                     <input
                                         required
                                         type="tel"
@@ -286,7 +271,7 @@ export default function ParentsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr("WhatsApp")}</label>
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
@@ -296,7 +281,7 @@ export default function ParentsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr("Email")}</label>
                                     <input
                                         type="email"
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
@@ -306,7 +291,7 @@ export default function ParentsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">CIN</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr("CIN")}</label>
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
@@ -316,7 +301,7 @@ export default function ParentsPage() {
                                 </div>
 
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr("Adresse")}</label>
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
@@ -331,15 +316,13 @@ export default function ParentsPage() {
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
                                     className="px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-                                >
-                                    Annuler
-                                </button>
+                                >{tr("Annuler")}</button>
                                 <button
                                     type="submit"
                                     disabled={isSaving}
                                     className="px-4 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-medium transition-colors disabled:opacity-50"
                                 >
-                                    {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+                                    {isSaving ? tr("Enregistrement...") : tr("Enregistrer")}
                                 </button>
                             </div>
                         </form>
@@ -352,25 +335,23 @@ export default function ParentsPage() {
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
                     role="dialog"
                     aria-modal="true"
-                    aria-label="Lien d'accès du parent"
+                    aria-label={tr("Lien d'accès du parent")}
                 >
                     <div className="w-full max-w-2xl space-y-4 rounded-2xl bg-white dark:bg-slate-800 p-5 shadow-xl">
-                        <p className="text-lg font-bold text-slate-900 dark:text-white">Parent « {created.parent.name} » créé</p>
+                        <p className="text-lg font-bold text-slate-900 dark:text-white">{tr("Parent «")}{' '}{created.parent.name}{' '}{tr("» créé")}</p>
                         <PortalLinkCard
-                            title="Lien d'accès du parent"
+                            title={tr("Lien d'accès du parent")}
                             url={publicUrl(`/p/${created.rawToken}`)}
                             phone={created.parent.whatsapp || created.parent.phone}
                             message={parentPortalMessage(created.parent.name)}
-                            warning="Envoyez-le ou imprimez-le maintenant : il ne sera plus affiché. Vous pourrez en créer un nouveau depuis la fiche du parent."
+                            warning={tr("Envoyez-le ou imprimez-le maintenant : il ne sera plus affiché. Vous pourrez en créer un nouveau depuis la fiche du parent.")}
                         />
                         <div className="flex justify-end">
                             <button
                                 type="button"
                                 onClick={() => setCreated(null)}
                                 className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-                            >
-                                Terminé
-                            </button>
+                            >{tr("Terminé")}</button>
                         </div>
                     </div>
                 </div>

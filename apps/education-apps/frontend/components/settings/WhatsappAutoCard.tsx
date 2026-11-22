@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 import { AlertTriangle, Bell, Loader2, LogOut, MessageCircle, RefreshCw, Send, Smartphone } from 'lucide-react';
 import api from '@/lib/api';
 
-import { appLocale } from '@/lib/i18n/I18nProvider';
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 type WaStatus = 'DISCONNECTED' | 'CONNECTING' | 'CONNECTED';
 interface StatusDto {
     configured: boolean;
@@ -54,6 +54,7 @@ const POLL_MS = 3000;
 const POLL_MAX_MS = 2 * 60 * 1000;
 
 export default function WhatsappAutoCard() {
+    const { tr } = useI18n();
     const [st, setSt] = useState<StatusDto | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [qr, setQr] = useState<string | null>(null);
@@ -160,7 +161,7 @@ export default function WhatsappAutoCard() {
         setError(null);
         try {
             const r = await api.post('/whatsapp/test', { phone: testPhone.trim() });
-            setTestMsg(`Message test envoyé à ${r.data.data?.to || testPhone}`);
+            setTestMsg(tr("Message test envoyé à {v0}", { v0: r.data.data?.to || testPhone }));
         } catch (e) {
             setError(errMsg(e));
         } finally {
@@ -169,7 +170,7 @@ export default function WhatsappAutoCard() {
     };
 
     const disconnect = async () => {
-        if (!window.confirm('Déconnecter WhatsApp ? Les envois automatiques par WhatsApp seront arrêtés.')) return;
+        if (!window.confirm(tr("Déconnecter WhatsApp ? Les envois automatiques par WhatsApp seront arrêtés."))) return;
         setBusy(true);
         setError(null);
         try {
@@ -190,7 +191,7 @@ export default function WhatsappAutoCard() {
         return (
             <div className={`${shell} border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900`}>
                 {loadError ? (
-                    <p className="text-sm text-rose-600">{loadError}</p>
+                    <p className="text-sm text-rose-600">{tr(loadError)}</p>
                 ) : (
                     <Loader2 className="h-5 w-5 animate-spin text-gray-400" aria-hidden />
                 )}
@@ -202,10 +203,8 @@ export default function WhatsappAutoCard() {
         return (
             <div className={`${shell} border-gray-200 bg-gray-50 text-gray-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400`}>
                 <div className="flex items-center gap-2 font-semibold">
-                    <MessageCircle className="h-5 w-5" aria-hidden />
-                    WhatsApp automatique non disponible
-                </div>
-                <p className="mt-1 text-sm">Ce service n'est pas activé sur ce serveur. Les parents restent notifiés par l'application.</p>
+                    <MessageCircle className="h-5 w-5" aria-hidden />{tr("WhatsApp automatique non disponible")}</div>
+                <p className="mt-1 text-sm">{tr("Ce service n'est pas activé sur ce serveur. Les parents restent notifiés par l'application.")}</p>
             </div>
         );
     }
@@ -214,9 +213,7 @@ export default function WhatsappAutoCard() {
         <div className={`${shell} border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-white">
-                    <MessageCircle className="h-5 w-5 text-emerald-500" aria-hidden />
-                    WhatsApp automatique
-                </h3>
+                    <MessageCircle className="h-5 w-5 text-emerald-500" aria-hidden />{tr("WhatsApp automatique")}</h3>
                 <span
                     className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                         st.status === 'CONNECTED'
@@ -226,33 +223,27 @@ export default function WhatsappAutoCard() {
                               : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
                     }`}
                 >
-                    {st.status === 'CONNECTED' ? 'Connecté' : st.status === 'CONNECTING' ? 'Connexion…' : 'Déconnecté'}
+                    {st.status === 'CONNECTED' ? tr("Connecté") : st.status === 'CONNECTING' ? tr("Connexion…") : tr("Déconnecté")}
                 </span>
             </div>
 
-            {error && <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{error}</p>}
+            {error && <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{tr(error)}</p>}
 
             {st.status !== 'CONNECTED' ? (
                 <div className="mt-3 space-y-3">
-                    <p className="text-sm text-gray-600 dark:text-slate-300">
-                        Envoyez automatiquement les absences, les notes et les annonces aux parents sur WhatsApp, depuis le numéro de votre établissement.
-                    </p>
+                    <p className="text-sm text-gray-600 dark:text-slate-300">{tr("Envoyez automatiquement les absences, les notes et les annonces aux parents sur WhatsApp, depuis le numéro de votre établissement.")}</p>
                     <p dir="rtl" className="text-sm text-gray-500 dark:text-slate-400">
                         صيفطو الغياب والنقط والإعلانات للوالدين فالواتساب أوتوماتيكيا من رقم المؤسسة.
                     </p>
                     <p className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
-                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                        Le numéro de l'établissement est utilisé ; les envois sont espacés de quelques secondes.
-                    </p>
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />{tr("Le numéro de l'établissement est utilisé ; les envois sont espacés de quelques secondes.")}</p>
 
                     {qr && !qrExpired && (
                         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-gray-300 p-4 dark:border-slate-600">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={qr} alt="QR code WhatsApp" className="h-56 w-56 max-w-full rounded-lg bg-white p-2" />
+                            <img src={qr} alt={tr("QR code WhatsApp")} className="h-56 w-56 max-w-full rounded-lg bg-white p-2" />
                             <p className="flex items-center gap-1.5 text-center text-xs text-gray-500 dark:text-slate-400">
-                                <Smartphone className="h-4 w-4 shrink-0" aria-hidden />
-                                WhatsApp → Appareils connectés → Connecter un appareil, puis scannez ce code.
-                            </p>
+                                <Smartphone className="h-4 w-4 shrink-0" aria-hidden />{tr("WhatsApp → Appareils connectés → Connecter un appareil, puis scannez ce code.")}</p>
                             <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden />
                         </div>
                     )}
@@ -264,9 +255,7 @@ export default function WhatsappAutoCard() {
                             disabled={busy}
                             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
                         >
-                            <RefreshCw className="h-4 w-4" aria-hidden />
-                            Réessayer
-                        </button>
+                            <RefreshCw className="h-4 w-4" aria-hidden />{tr("Réessayer")}</button>
                     ) : (
                         !qr && (
                             <button
@@ -275,21 +264,18 @@ export default function WhatsappAutoCard() {
                                 disabled={busy}
                                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
                             >
-                                {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <MessageCircle className="h-4 w-4" aria-hidden />}
-                                Connecter WhatsApp
-                            </button>
+                                {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <MessageCircle className="h-4 w-4" aria-hidden />}{tr("Connecter WhatsApp")}</button>
                         )
                     )}
                 </div>
             ) : (
                 <div className="mt-3 space-y-4">
-                    <p className="text-sm text-gray-600 dark:text-slate-300">
-                        Numéro connecté : <bdi dir="ltr" className="font-semibold text-gray-900 dark:text-white">{st.phone || '—'}</bdi>
+                    <p className="text-sm text-gray-600 dark:text-slate-300">{tr("Numéro connecté :")}<bdi dir="ltr" className="font-semibold text-gray-900 dark:text-white">{st.phone || '—'}</bdi>
                     </p>
                     <div className="divide-y divide-gray-100 rounded-xl border border-gray-100 dark:divide-slate-800 dark:border-slate-800">
                         {TOGGLES.map((tg) => (
                             <label key={tg.key} className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-slate-200">
-                                {tg.label}
+                                {tr(tg.label)}
                                 <input
                                     type="checkbox"
                                     className="h-5 w-5 accent-emerald-600"
@@ -300,7 +286,7 @@ export default function WhatsappAutoCard() {
                         ))}
                     </div>
                     <div>
-                        <p className="mb-1.5 text-sm font-medium text-gray-700 dark:text-slate-200">Envoyer un message test</p>
+                        <p className="mb-1.5 text-sm font-medium text-gray-700 dark:text-slate-200">{tr("Envoyer un message test")}</p>
                         <div className="flex flex-col gap-2 sm:flex-row">
                             <input
                                 type="tel"
@@ -316,11 +302,9 @@ export default function WhatsappAutoCard() {
                                 disabled={busy || !testPhone.trim()}
                                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
                             >
-                                <Send className="h-4 w-4" aria-hidden />
-                                Envoyer
-                            </button>
+                                <Send className="h-4 w-4" aria-hidden />{tr("Envoyer")}</button>
                         </div>
-                        {testMsg && <p className="mt-1.5 text-xs text-emerald-600 dark:text-emerald-400">{testMsg}</p>}
+                        {testMsg && <p className="mt-1.5 text-xs text-emerald-600 dark:text-emerald-400">{tr(testMsg)}</p>}
                     </div>
                     <button
                         type="button"
@@ -328,27 +312,23 @@ export default function WhatsappAutoCard() {
                         disabled={busy}
                         className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-60 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/10"
                     >
-                        <LogOut className="h-4 w-4" aria-hidden />
-                        Déconnecter
-                    </button>
+                        <LogOut className="h-4 w-4" aria-hidden />{tr("Déconnecter")}</button>
                 </div>
             )}
 
             <div className="mt-6">
                 <div className="mb-2 flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-gray-800 dark:text-white">Derniers envois</h4>
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-white">{tr("Derniers envois")}</h4>
                     <button
                         type="button"
                         onClick={loadMessages}
                         className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400"
-                        aria-label="Actualiser"
+                        aria-label={tr("Actualiser")}
                     >
-                        <RefreshCw className={`h-3.5 w-3.5 ${msgLoading ? 'animate-spin' : ''}`} aria-hidden />
-                        Actualiser
-                    </button>
+                        <RefreshCw className={`h-3.5 w-3.5 ${msgLoading ? 'animate-spin' : ''}`} aria-hidden />{tr("Actualiser")}</button>
                 </div>
                 {messages.length === 0 ? (
-                    <p className="text-sm text-gray-400">Aucun envoi pour le moment.</p>
+                    <p className="text-sm text-gray-400">{tr("Aucun envoi pour le moment.")}</p>
                 ) : (
                     <ul className="max-h-96 space-y-2 overflow-y-auto">
                         {messages.map((m) => (
@@ -358,13 +338,13 @@ export default function WhatsappAutoCard() {
                                 title={m.error || undefined}
                             >
                                 {m.channel === 'WHATSAPP' ? (
-                                    <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-label="WhatsApp" />
+                                    <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-label={tr("WhatsApp")} />
                                 ) : (
-                                    <Bell className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" aria-label="Push" />
+                                    <Bell className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" aria-label={tr("Push")} />
                                 )}
                                 <div className="min-w-0 flex-1">
                                     <p className="truncate text-sm font-medium text-gray-800 dark:text-slate-100">
-                                        {KIND_LABEL[m.kind]} · {m.title}
+                                        {tr(KIND_LABEL[m.kind])} · {tr(m.title)}
                                     </p>
                                     <p className="truncate text-xs text-gray-500 dark:text-slate-400">
                                         {m.to && <bdi dir="ltr">{m.to}</bdi>}
@@ -374,7 +354,7 @@ export default function WhatsappAutoCard() {
                                     {m.status === 'FAILED' && m.error && <p className="truncate text-xs text-rose-500">{m.error}</p>}
                                 </div>
                                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_META[m.status].cls}`}>
-                                    {STATUS_META[m.status].label}
+                                    {tr(STATUS_META[m.status].label)}
                                 </span>
                             </li>
                         ))}

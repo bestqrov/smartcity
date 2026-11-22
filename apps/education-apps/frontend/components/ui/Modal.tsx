@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from './Button';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -19,6 +20,7 @@ export function Modal({
     footer,
     size = 'md',
 }: ModalProps) {
+    const { tr } = useI18n();
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -68,7 +70,7 @@ export function Modal({
                     <button
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-                        aria-label="Close modal"
+                        aria-label={tr("Close modal")}
                     >
                         <X className="h-6 w-6" />
                     </button>

@@ -10,6 +10,7 @@ import GradeEntry from './GradeEntry';
 import PublishButton from './PublishButton';
 import { formatDate, formatNum } from './utils';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface Props {
     client: GradesClient;
     groupId: string;
@@ -23,6 +24,7 @@ interface Props {
 
 /** A group's evaluations list → grade entry for one evaluation. */
 export default function GroupEvaluations({ client, groupId, groupSubject, students, periods, evaluations, setEvaluations }: Props) {
+    const { tr } = useI18n();
     const [openId, setOpenId] = useState<string | null>(null);
     const invalidRef = useRef(false);
     const [form, setForm] = useState<{ evaluation: Evaluation | null } | null>(null);
@@ -35,7 +37,7 @@ export default function GroupEvaluations({ client, groupId, groupSubject, studen
         });
 
     const remove = async (ev: Evaluation) => {
-        if (!window.confirm(`Supprimer « ${ev.title} » et toutes ses notes ?`)) return;
+        if (!window.confirm(tr("Supprimer « {title} » et toutes ses notes ?", { title: ev.title }))) return;
         try {
             await client.deleteEvaluation(ev.id);
             setEvaluations((prev) => prev.filter((e) => e.id !== ev.id));
@@ -52,16 +54,16 @@ export default function GroupEvaluations({ client, groupId, groupSubject, studen
             <div className="space-y-4">
                 <div className="flex items-start gap-2">
                     <button type="button" onClick={() => {
-                            if (invalidRef.current && !window.confirm('Des notes invalides ne seront pas enregistrées. Quitter ?')) return;
+                            if (invalidRef.current && !window.confirm(tr("Des notes invalides ne seront pas enregistrées. Quitter ?"))) return;
                             setOpenId(null);
                         }}
-                        aria-label="Retour" className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">
+                        aria-label={tr("Retour")} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">
                         <ArrowLeft size={20} />
                     </button>
                     <div className="min-w-0 flex-1">
-                        <h2 className="truncate text-lg font-semibold text-slate-900 dark:text-white">{open.title}</h2>
+                        <h2 className="truncate text-lg font-semibold text-slate-900 dark:text-white">{tr(open.title)}</h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {open.subject} · {open.period} · {formatDate(open.date)} · coef {formatNum(open.coefficient)}
+                            {open.subject} · {open.period} · {formatDate(open.date)}{' '}{tr("· coef")}{' '}{formatNum(open.coefficient)}
                         </p>
                     </div>
                     <PublishButton client={client} evaluation={open} studentIds={students.map((s) => s.id)} onChange={merge} />
@@ -92,9 +94,7 @@ export default function GroupEvaluations({ client, groupId, groupSubject, studen
     return (
         <div className="space-y-4">
             {periods.length === 0 && (
-                <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
-                    Aucune période de notation n’est configurée.
-                </p>
+                <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">{tr("Aucune période de notation n’est configurée.")}</p>
             )}
             <button
                 type="button"
@@ -102,8 +102,7 @@ export default function GroupEvaluations({ client, groupId, groupSubject, studen
                 disabled={periods.length === 0}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50 sm:w-auto sm:px-4"
             >
-                <Plus size={18} /> Nouvelle évaluation
-            </button>
+                <Plus size={18} />{tr("Nouvelle évaluation")}</button>
             <EvaluationList
                 evaluations={evaluations}
                 studentCount={students.length}

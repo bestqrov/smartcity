@@ -26,6 +26,7 @@ import api from '@/lib/api';
 import useAuthStore from '@/store/useAuthStore';
 import { getMySchool, updateMySchool } from '@/lib/services/schools';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface User {
     id: string;
     name: string;
@@ -40,6 +41,7 @@ interface User {
 }
 
 export default function SettingsPage() {
+    const { tr } = useI18n();
     const [activeTab, setActiveTab] = useState<'profile' | 'theme' | 'backup' | 'users'>('profile');
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState('');
@@ -103,7 +105,7 @@ export default function SettingsPage() {
             console.log('Fetching users with token:', token ? 'Token exists' : 'No token');
 
             if (!token) {
-                setError('Vous devez être connecté pour accéder à cette page.');
+                setError(tr("Vous devez être connecté pour accéder à cette page."));
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 2000);
@@ -145,13 +147,13 @@ export default function SettingsPage() {
 
             // Check if it's an authentication error
             if (err.response?.status === 401 || err.response?.data?.message?.includes('Authentication')) {
-                setError('Session expirée. Redirection...');
+                setError(tr("Session expirée. Redirection..."));
                 localStorage.removeItem('accessToken');
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 2000);
             } else {
-                setError(`Erreur lors du chargement des utilisateurs: ${err.response?.data?.message || err.message}`);
+                setError(tr("Erreur lors du chargement des utilisateurs: {v0}", { v0: err.response?.data?.message || err.message }));
             }
         }
     };
@@ -176,7 +178,7 @@ export default function SettingsPage() {
                 email: schoolProfile.email,
                 logo: schoolProfile.logo,
             });
-            setSuccess('Profil de l\'école enregistré avec succès');
+            setSuccess(tr("Profil de l'école enregistré avec succès"));
 
             // Trigger a custom event to notify sidebar of logo change
             window.dispatchEvent(new Event('school-profile-updated'));
@@ -197,9 +199,9 @@ export default function SettingsPage() {
             localStorage.setItem('app-theme', theme);
             localStorage.setItem('accent-color', accentColor);
             await new Promise(resolve => setTimeout(resolve, 500));
-            setSuccess('Thème enregistré avec succès');
+            setSuccess(tr("Thème enregistré avec succès"));
         } catch (err: any) {
-            setError('Échec de l\'enregistrement du thème');
+            setError(tr("Échec de l'enregistrement du thème"));
         } finally {
             setSaving(false);
         }
@@ -213,9 +215,9 @@ export default function SettingsPage() {
         try {
             // TODO: Implement backup API call
             await new Promise(resolve => setTimeout(resolve, 1500));
-            setSuccess('Sauvegarde créée avec succès');
+            setSuccess(tr("Sauvegarde créée avec succès"));
         } catch (err: any) {
-            setError('Échec de la création de la sauvegarde');
+            setError(tr("Échec de la création de la sauvegarde"));
         } finally {
             setSaving(false);
         }
@@ -229,9 +231,9 @@ export default function SettingsPage() {
         try {
             // TODO: Implement restore API call
             await new Promise(resolve => setTimeout(resolve, 1500));
-            setSuccess('Restauration effectuée avec succès');
+            setSuccess(tr("Restauration effectuée avec succès"));
         } catch (err: any) {
-            setError('Échec de la restauration');
+            setError(tr("Échec de la restauration"));
         } finally {
             setSaving(false);
         }
@@ -270,7 +272,7 @@ export default function SettingsPage() {
                 await useAuthStore.getState().getMe();
             }
 
-            setSuccess(`Compte ${user.role === 'ADMIN' ? 'Administrateur' : 'Secrétaire'} mis à jour avec succès`);
+            setSuccess(tr("Compte {v0} mis à jour avec succès", { v0: user.role === 'ADMIN' ? 'Administrateur' : 'Secrétaire' }));
             if (user.role === 'ADMIN') setAdminPassword('');
             if (user.role === 'SECRETARY') setSecretaryPassword('');
             fetchUsers();
@@ -293,8 +295,8 @@ export default function SettingsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Paramètres</h1>
-                    <p className="text-gray-600 mt-1">Gérer les paramètres de l'application</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Paramètres")}</h1>
+                    <p className="text-gray-600 mt-1">{tr("Gérer les paramètres de l'application")}</p>
                 </div>
                 <div className="hidden sm:block bg-blue-100 p-3 rounded-lg">
                     <SettingsIcon className="text-blue-600" size={32} />
@@ -312,7 +314,7 @@ export default function SettingsPage() {
             {error && (
                 <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 flex items-center gap-3">
                     <AlertCircle size={20} />
-                    {error}
+                    {tr(error)}
                 </div>
             )}
 
@@ -331,8 +333,8 @@ export default function SettingsPage() {
                     >
                         <AlertCircle size={20} />
                         {expired
-                            ? "Votre période d'essai de 15 jours est terminée. Contactez-nous pour activer votre école."
-                            : `Essai gratuit : il vous reste ${daysLeft} jour(s).`}
+                            ? tr("Votre période d'essai de 15 jours est terminée. Contactez-nous pour activer votre école.")
+                            : tr("Essai gratuit : il vous reste {daysLeft} jour(s).", { daysLeft })}
                     </div>
                 );
             })()}
@@ -356,7 +358,7 @@ export default function SettingsPage() {
                                     }`}
                             >
                                 <Icon size={20} />
-                                {tab.label}
+                                {tr(tab.label)}
                             </button>
                         );
                     })}
@@ -367,16 +369,14 @@ export default function SettingsPage() {
                     {activeTab === 'profile' && (
                         <div className="space-y-6">
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-800 mb-2">Profil de l'École</h2>
-                                <p className="text-gray-600">Gérer les informations de l'établissement</p>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-2">{tr("Profil de l'École")}</h2>
+                                <p className="text-gray-600">{tr("Gérer les informations de l'établissement")}</p>
                             </div>
 
                             {/* Logo Upload Section */}
                             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 sm:p-6 border border-blue-200">
                                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                    <School size={20} />
-                                    Logo de l'école
-                                </h3>
+                                    <School size={20} />{tr("Logo de l'école")}</h3>
                                 <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                                     {/* Logo Preview */}
                                     <div className="flex-shrink-0">
@@ -384,13 +384,13 @@ export default function SettingsPage() {
                                             {schoolProfile.logo ? (
                                                 <img
                                                     src={schoolProfile.logo}
-                                                    alt="School Logo"
+                                                    alt={tr("School Logo")}
                                                     className="w-full h-full object-contain"
                                                 />
                                             ) : (
                                                 <div className="text-center text-gray-400">
                                                     <School size={40} className="mx-auto mb-2" />
-                                                    <p className="text-xs">Aucun logo</p>
+                                                    <p className="text-xs">{tr("Aucun logo")}</p>
                                                 </div>
                                             )}
                                         </div>
@@ -398,9 +398,7 @@ export default function SettingsPage() {
 
                                     {/* Upload Controls */}
                                     <div className="flex-1">
-                                        <p className="text-sm text-gray-600 mb-3">
-                                            Téléchargez le logo de votre établissement. Il sera affiché dans la barre latérale et sur tous les documents.
-                                        </p>
+                                        <p className="text-sm text-gray-600 mb-3">{tr("Téléchargez le logo de votre établissement. Il sera affiché dans la barre latérale et sur tous les documents.")}</p>
                                         <div className="flex items-center gap-3">
                                             <label className="cursor-pointer">
                                                 <input
@@ -422,79 +420,73 @@ export default function SettingsPage() {
                                                     }}
                                                 />
                                                 <div className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
-                                                    <Upload size={18} />
-                                                    Télécharger un logo
-                                                </div>
+                                                    <Upload size={18} />{tr("Télécharger un logo")}</div>
                                             </label>
                                             {schoolProfile.logo && (
                                                 <button
                                                     onClick={() => setSchoolProfile(prev => ({ ...prev, logo: '' }))}
                                                     className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-semibold transition-colors"
-                                                >
-                                                    Supprimer
-                                                </button>
+                                                >{tr("Supprimer")}</button>
                                             )}
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-2">
-                                            Formats acceptés: JPG, PNG, SVG. Taille recommandée: 200x200px
-                                        </p>
+                                        <p className="text-xs text-gray-500 mt-2">{tr("Formats acceptés: JPG, PNG, SVG. Taille recommandée: 200x200px")}</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Input
-                                    label="Nom de l'école"
+                                    label={tr("Nom de l'école")}
                                     name="schoolName"
                                     value={schoolProfile.schoolName}
                                     onChange={handleSchoolProfileChange}
-                                    placeholder="Nom de votre établissement"
+                                    placeholder={tr("Nom de votre établissement")}
                                     className="bg-gray-50 border-gray-200 focus:bg-white"
                                 />
 
                                 <Input
-                                    label="Directeur"
+                                    label={tr("Directeur")}
                                     name="director"
                                     value={schoolProfile.director}
                                     onChange={handleSchoolProfileChange}
-                                    placeholder="Nom du directeur"
+                                    placeholder={tr("Nom du directeur")}
                                     className="bg-gray-50 border-gray-200 focus:bg-white"
                                 />
 
                                 <Input
-                                    label="Ville"
+                                    label={tr("Ville")}
                                     name="city"
                                     value={schoolProfile.city}
                                     onChange={handleSchoolProfileChange}
-                                    placeholder="ex: Ouarzazate"
+                                    placeholder={tr("ex: Ouarzazate")}
                                     className="bg-gray-50 border-gray-200 focus:bg-white"
                                 />
 
                                 <Input
-                                    label="Adresse"
+                                    label={tr("Adresse")}
                                     name="address"
                                     value={schoolProfile.address}
                                     onChange={handleSchoolProfileChange}
-                                    placeholder="Adresse complète"
+                                    placeholder={tr("Adresse complète")}
                                     className="bg-gray-50 border-gray-200 focus:bg-white"
                                 />
 
                                 <Input
-                                    label="Téléphone"
+                                    label={tr("Téléphone")}
                                     name="phone"
                                     value={schoolProfile.phone}
                                     onChange={handleSchoolProfileChange}
-                                    placeholder="+212 XXX-XXXXXX"
+                                    placeholder={tr("+212 XXX-XXXXXX")}
                                     className="bg-gray-50 border-gray-200 focus:bg-white"
                                 />
 
                                 <Input
-                                    label="Email"
+                                    label={tr("Email")}
                                     name="email"
                                     type="email"
                                     value={schoolProfile.email}
                                     onChange={handleSchoolProfileChange}
-                                    placeholder="contact@votreecole.com"
+                                    placeholder={tr("contact@votreecole.com")}
                                     className="bg-gray-50 border-gray-200 focus:bg-white"
                                 />
                             </div>
@@ -505,9 +497,7 @@ export default function SettingsPage() {
                                     isLoading={saving}
                                     className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-bold"
                                 >
-                                    <Save size={20} />
-                                    Enregistrer le profil
-                                </Button>
+                                    <Save size={20} />{tr("Enregistrer le profil")}</Button>
                             </div>
 
                             <GradingPeriodsEditor />
@@ -520,8 +510,8 @@ export default function SettingsPage() {
                     {activeTab === 'users' && (
                         <div className="space-y-8">
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-800 mb-2">Gestion des Utilisateurs</h2>
-                                <p className="text-gray-600">Modifier les identifiants de l'administrateur et de la secrétaire</p>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-2">{tr("Gestion des Utilisateurs")}</h2>
+                                <p className="text-gray-600">{tr("Modifier les identifiants de l'administrateur et de la secrétaire")}</p>
                             </div>
 
                             {/* Admin Section */}
@@ -529,21 +519,19 @@ export default function SettingsPage() {
                                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                     <div className="bg-blue-100 p-2 rounded-lg">
                                         <Users className="text-blue-600" size={20} />
-                                    </div>
-                                    Compte Administrateur
-                                </h3>
+                                    </div>{tr("Compte Administrateur")}</h3>
                                 {adminUser ? (
                                     <div className="space-y-4">
                                         {/* Avatar Upload Section */}
                                         <div className="bg-white rounded-lg p-4 border border-blue-200">
-                                            <h4 className="text-sm font-bold text-gray-700 mb-3">Photo de profil</h4>
+                                            <h4 className="text-sm font-bold text-gray-700 mb-3">{tr("Photo de profil")}</h4>
                                             <div className="flex items-center gap-4">
                                                 {/* Avatar Preview */}
                                                 <div className="w-24 h-24 rounded-full border-2 border-blue-300 overflow-hidden bg-gray-100 flex items-center justify-center">
                                                     {adminUser.avatar ? (
                                                         <img
                                                             src={adminUser.avatar}
-                                                            alt="Admin Avatar"
+                                                            alt={tr("Admin Avatar")}
                                                             className="w-full h-full object-cover"
                                                         />
                                                     ) : (
@@ -568,17 +556,13 @@ export default function SettingsPage() {
                                                                 }
                                                             }}
                                                         />
-                                                        <div className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors inline-block">
-                                                            Changer la photo
-                                                        </div>
+                                                        <div className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors inline-block">{tr("Changer la photo")}</div>
                                                     </label>
                                                     {adminUser.avatar && (
                                                         <button
                                                             onClick={() => setAdminUser({ ...adminUser, avatar: '' })}
                                                             className="ms-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-semibold transition-colors"
-                                                        >
-                                                            Supprimer
-                                                        </button>
+                                                        >{tr("Supprimer")}</button>
                                                     )}
                                                 </div>
                                             </div>
@@ -586,63 +570,63 @@ export default function SettingsPage() {
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <Input
-                                                label="Nom complet"
+                                                label={tr("Nom complet")}
                                                 value={adminUser.name}
                                                 onChange={(e) => setAdminUser({ ...adminUser, name: e.target.value })}
                                                 className="bg-white"
                                             />
                                             <Input
-                                                label="Email (Login)"
+                                                label={tr("Email (Login)")}
                                                 type="email"
                                                 value={adminUser.email}
                                                 onChange={(e) => setAdminUser({ ...adminUser, email: e.target.value })}
                                                 className="bg-white"
                                             />
                                             <Input
-                                                label="GSM (Téléphone)"
+                                                label={tr("GSM (Téléphone)")}
                                                 value={adminUser.gsm || ''}
                                                 onChange={(e) => setAdminUser({ ...adminUser, gsm: e.target.value })}
-                                                placeholder="+212 XXX-XXXXXX"
+                                                placeholder={tr("+212 XXX-XXXXXX")}
                                                 className="bg-white"
                                             />
                                             <Input
-                                                label="WhatsApp"
+                                                label={tr("WhatsApp")}
                                                 value={adminUser.whatsapp || ''}
                                                 onChange={(e) => setAdminUser({ ...adminUser, whatsapp: e.target.value })}
-                                                placeholder="+212 XXX-XXXXXX"
+                                                placeholder={tr("+212 XXX-XXXXXX")}
                                                 className="bg-white"
                                             />
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <Input
-                                                label="Adresse"
+                                                label={tr("Adresse")}
                                                 value={adminUser.address || ''}
                                                 onChange={(e) => setAdminUser({ ...adminUser, address: e.target.value })}
-                                                placeholder="Adresse complète"
+                                                placeholder={tr("Adresse complète")}
                                                 className="bg-white"
                                             />
                                             <Input
-                                                label="Niveau scolaire"
+                                                label={tr("Niveau scolaire")}
                                                 value={adminUser.schoolLevel || ''}
                                                 onChange={(e) => setAdminUser({ ...adminUser, schoolLevel: e.target.value })}
-                                                placeholder="Bac+5, Master, etc."
+                                                placeholder={tr("Bac+5, Master, etc.")}
                                                 className="bg-white"
                                             />
                                         </div>
                                         <Input
-                                            label="Certification / Diplôme"
+                                            label={tr("Certification / Diplôme")}
                                             value={adminUser.certification || ''}
                                             onChange={(e) => setAdminUser({ ...adminUser, certification: e.target.value })}
-                                            placeholder="Diplômes et certifications"
+                                            placeholder={tr("Diplômes et certifications")}
                                             className="bg-white"
                                         />
                                         <div className="relative">
                                             <Input
-                                                label="Nouveau mot de passe (laisser vide pour ne pas changer)"
+                                                label={tr("Nouveau mot de passe (laisser vide pour ne pas changer)")}
                                                 type={showAdminPassword ? "text" : "password"}
                                                 value={adminPassword}
                                                 onChange={(e) => setAdminPassword(e.target.value)}
-                                                placeholder="Entrez un nouveau mot de passe"
+                                                placeholder={tr("Entrez un nouveau mot de passe")}
                                                 className="bg-white"
                                             />
                                             <button
@@ -658,13 +642,11 @@ export default function SettingsPage() {
                                                 onClick={() => handleUpdateUser(adminUser, adminPassword)}
                                                 isLoading={saving}
                                                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 font-semibold"
-                                            >
-                                                💾 Mettre à jour Admin
-                                            </Button>
+                                            >{tr("💾 Mettre à jour Admin")}</Button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className="text-gray-500 italic">Aucun compte administrateur trouvé.</p>
+                                    <p className="text-gray-500 italic">{tr("Aucun compte administrateur trouvé.")}</p>
                                 )}
                             </div>
 
@@ -673,21 +655,19 @@ export default function SettingsPage() {
                                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                     <div className="bg-purple-100 p-2 rounded-lg">
                                         <Users className="text-purple-600" size={20} />
-                                    </div>
-                                    Compte Secrétaire
-                                </h3>
+                                    </div>{tr("Compte Secrétaire")}</h3>
                                 {secretaryUser ? (
                                     <div className="space-y-4">
                                         {/* Avatar Upload Section */}
                                         <div className="bg-white rounded-lg p-4 border border-purple-200">
-                                            <h4 className="text-sm font-bold text-gray-700 mb-3">Photo de profil</h4>
+                                            <h4 className="text-sm font-bold text-gray-700 mb-3">{tr("Photo de profil")}</h4>
                                             <div className="flex items-center gap-4">
                                                 {/* Avatar Preview */}
                                                 <div className="w-24 h-24 rounded-full border-2 border-purple-300 overflow-hidden bg-gray-100 flex items-center justify-center">
                                                     {secretaryUser.avatar ? (
                                                         <img
                                                             src={secretaryUser.avatar}
-                                                            alt="Secretary Avatar"
+                                                            alt={tr("Secretary Avatar")}
                                                             className="w-full h-full object-cover"
                                                         />
                                                     ) : (
@@ -712,17 +692,13 @@ export default function SettingsPage() {
                                                                 }
                                                             }}
                                                         />
-                                                        <div className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors inline-block">
-                                                            Changer la photo
-                                                        </div>
+                                                        <div className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors inline-block">{tr("Changer la photo")}</div>
                                                     </label>
                                                     {secretaryUser.avatar && (
                                                         <button
                                                             onClick={() => setSecretaryUser({ ...secretaryUser, avatar: '' })}
                                                             className="ms-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-semibold transition-colors"
-                                                        >
-                                                            Supprimer
-                                                        </button>
+                                                        >{tr("Supprimer")}</button>
                                                     )}
                                                 </div>
                                             </div>
@@ -730,63 +706,63 @@ export default function SettingsPage() {
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <Input
-                                                label="Nom complet"
+                                                label={tr("Nom complet")}
                                                 value={secretaryUser.name}
                                                 onChange={(e) => setSecretaryUser({ ...secretaryUser, name: e.target.value })}
                                                 className="bg-white"
                                             />
                                             <Input
-                                                label="Email (Login)"
+                                                label={tr("Email (Login)")}
                                                 type="email"
                                                 value={secretaryUser.email}
                                                 onChange={(e) => setSecretaryUser({ ...secretaryUser, email: e.target.value })}
                                                 className="bg-white"
                                             />
                                             <Input
-                                                label="GSM (Téléphone)"
+                                                label={tr("GSM (Téléphone)")}
                                                 value={secretaryUser.gsm || ''}
                                                 onChange={(e) => setSecretaryUser({ ...secretaryUser, gsm: e.target.value })}
-                                                placeholder="+212 XXX-XXXXXX"
+                                                placeholder={tr("+212 XXX-XXXXXX")}
                                                 className="bg-white"
                                             />
                                             <Input
-                                                label="WhatsApp"
+                                                label={tr("WhatsApp")}
                                                 value={secretaryUser.whatsapp || ''}
                                                 onChange={(e) => setSecretaryUser({ ...secretaryUser, whatsapp: e.target.value })}
-                                                placeholder="+212 XXX-XXXXXX"
+                                                placeholder={tr("+212 XXX-XXXXXX")}
                                                 className="bg-white"
                                             />
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <Input
-                                                label="Adresse"
+                                                label={tr("Adresse")}
                                                 value={secretaryUser.address || ''}
                                                 onChange={(e) => setSecretaryUser({ ...secretaryUser, address: e.target.value })}
-                                                placeholder="Adresse complète"
+                                                placeholder={tr("Adresse complète")}
                                                 className="bg-white"
                                             />
                                             <Input
-                                                label="Niveau scolaire"
+                                                label={tr("Niveau scolaire")}
                                                 value={secretaryUser.schoolLevel || ''}
                                                 onChange={(e) => setSecretaryUser({ ...secretaryUser, schoolLevel: e.target.value })}
-                                                placeholder="Bac+5, Master, etc."
+                                                placeholder={tr("Bac+5, Master, etc.")}
                                                 className="bg-white"
                                             />
                                         </div>
                                         <Input
-                                            label="Certification / Diplôme"
+                                            label={tr("Certification / Diplôme")}
                                             value={secretaryUser.certification || ''}
                                             onChange={(e) => setSecretaryUser({ ...secretaryUser, certification: e.target.value })}
-                                            placeholder="Diplômes et certifications"
+                                            placeholder={tr("Diplômes et certifications")}
                                             className="bg-white"
                                         />
                                         <div className="relative">
                                             <Input
-                                                label="Nouveau mot de passe (laisser vide pour ne pas changer)"
+                                                label={tr("Nouveau mot de passe (laisser vide pour ne pas changer)")}
                                                 type={showSecretaryPassword ? "text" : "password"}
                                                 value={secretaryPassword}
                                                 onChange={(e) => setSecretaryPassword(e.target.value)}
-                                                placeholder="Entrez un nouveau mot de passe"
+                                                placeholder={tr("Entrez un nouveau mot de passe")}
                                                 className="bg-white"
                                             />
                                             <button
@@ -802,13 +778,11 @@ export default function SettingsPage() {
                                                 onClick={() => handleUpdateUser(secretaryUser, secretaryPassword)}
                                                 isLoading={saving}
                                                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 font-semibold"
-                                            >
-                                                💾 Mettre à jour Secrétaire
-                                            </Button>
+                                            >{tr("💾 Mettre à jour Secrétaire")}</Button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className="text-gray-500 italic">Aucun compte secrétaire trouvé.</p>
+                                    <p className="text-gray-500 italic">{tr("Aucun compte secrétaire trouvé.")}</p>
                                 )}
                             </div>
                         </div>
@@ -818,15 +792,13 @@ export default function SettingsPage() {
                     {activeTab === 'theme' && (
                         <div className="space-y-6">
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-800 mb-2">Apparence de l'Application</h2>
-                                <p className="text-gray-600">Personnaliser le thème et les couleurs</p>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-2">{tr("Apparence de l'Application")}</h2>
+                                <p className="text-gray-600">{tr("Personnaliser le thème et les couleurs")}</p>
                             </div>
 
                             {/* Theme Mode */}
                             <div>
-                                <label className="text-sm font-semibold text-gray-700 mb-3 block">
-                                    Mode d'affichage
-                                </label>
+                                <label className="text-sm font-semibold text-gray-700 mb-3 block">{tr("Mode d'affichage")}</label>
                                 <div className="grid grid-cols-3 gap-4">
                                     {[
                                         { value: 'light', label: 'Clair', icon: Sun },
@@ -845,7 +817,7 @@ export default function SettingsPage() {
                                             >
                                                 <Icon className={`mx-auto mb-2 ${theme === option.value ? 'text-blue-600' : 'text-gray-400'}`} size={32} />
                                                 <p className={`font-semibold ${theme === option.value ? 'text-blue-600' : 'text-gray-700'}`}>
-                                                    {option.label}
+                                                    {tr(option.label)}
                                                 </p>
                                             </button>
                                         );
@@ -855,9 +827,7 @@ export default function SettingsPage() {
 
                             {/* Accent Color */}
                             <div>
-                                <label className="text-sm font-semibold text-gray-700 mb-3 block">
-                                    Couleur d'accent
-                                </label>
+                                <label className="text-sm font-semibold text-gray-700 mb-3 block">{tr("Couleur d'accent")}</label>
                                 <div className="flex items-center gap-4">
                                     <input
                                         type="color"
@@ -866,7 +836,7 @@ export default function SettingsPage() {
                                         className="w-20 h-20 rounded-xl border-2 border-gray-200 cursor-pointer"
                                     />
                                     <div>
-                                        <p className="text-sm text-gray-600">Couleur sélectionnée</p>
+                                        <p className="text-sm text-gray-600">{tr("Couleur sélectionnée")}</p>
                                         <p className="font-mono font-bold text-gray-800">{accentColor}</p>
                                     </div>
                                 </div>
@@ -878,9 +848,7 @@ export default function SettingsPage() {
                                     isLoading={saving}
                                     className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-xl font-bold"
                                 >
-                                    <Save size={20} />
-                                    Enregistrer le thème
-                                </Button>
+                                    <Save size={20} />{tr("Enregistrer le thème")}</Button>
                             </div>
                         </div>
                     )}
@@ -889,8 +857,8 @@ export default function SettingsPage() {
                     {activeTab === 'backup' && (
                         <div className="space-y-6">
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-800 mb-2">Sauvegarde et Restauration</h2>
-                                <p className="text-gray-600">Gérer les sauvegardes de la base de données</p>
+                                <h2 className="text-2xl font-bold text-gray-800 mb-2">{tr("Sauvegarde et Restauration")}</h2>
+                                <p className="text-gray-600">{tr("Gérer les sauvegardes de la base de données")}</p>
                             </div>
 
                             {/* Backup Section */}
@@ -900,18 +868,14 @@ export default function SettingsPage() {
                                         <Download className="text-blue-600" size={24} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-gray-800 mb-2">Créer une sauvegarde</h3>
-                                        <p className="text-sm text-gray-600 mb-4">
-                                            Télécharger une copie complète de la base de données. Cette sauvegarde inclut tous les étudiants, inscriptions, paiements et utilisateurs.
-                                        </p>
+                                        <h3 className="text-lg font-bold text-gray-800 mb-2">{tr("Créer une sauvegarde")}</h3>
+                                        <p className="text-sm text-gray-600 mb-4">{tr("Télécharger une copie complète de la base de données. Cette sauvegarde inclut tous les étudiants, inscriptions, paiements et utilisateurs.")}</p>
                                         <Button
                                             onClick={handleBackup}
                                             isLoading={saving}
                                             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
                                         >
-                                            <Download size={18} />
-                                            Télécharger la sauvegarde
-                                        </Button>
+                                            <Download size={18} />{tr("Télécharger la sauvegarde")}</Button>
                                     </div>
                                 </div>
                             </div>
@@ -923,10 +887,8 @@ export default function SettingsPage() {
                                         <Upload className="text-orange-600" size={24} />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-gray-800 mb-2">Restaurer une sauvegarde</h3>
-                                        <p className="text-sm text-gray-600 mb-4">
-                                            Restaurer la base de données à partir d'un fichier de sauvegarde. <strong className="text-orange-700">Attention:</strong> Cette action remplacera toutes les données actuelles.
-                                        </p>
+                                        <h3 className="text-lg font-bold text-gray-800 mb-2">{tr("Restaurer une sauvegarde")}</h3>
+                                        <p className="text-sm text-gray-600 mb-4">{tr("Restaurer la base de données à partir d'un fichier de sauvegarde.")}<strong className="text-orange-700">{tr("Attention:")}</strong>{tr("Cette action remplacera toutes les données actuelles.")}</p>
                                         <div className="flex items-center gap-3">
                                             <input
                                                 type="file"
@@ -938,9 +900,7 @@ export default function SettingsPage() {
                                                 isLoading={saving}
                                                 className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold whitespace-nowrap"
                                             >
-                                                <Upload size={18} />
-                                                Restaurer
-                                            </Button>
+                                                <Upload size={18} />{tr("Restaurer")}</Button>
                                         </div>
                                     </div>
                                 </div>
@@ -950,8 +910,8 @@ export default function SettingsPage() {
                             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
                                 <AlertCircle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
                                 <div className="text-sm text-yellow-800">
-                                    <p className="font-semibold mb-1">Important</p>
-                                    <p>Assurez-vous de créer des sauvegardes régulières de vos données. Il est recommandé de faire une sauvegarde avant toute modification importante du système.</p>
+                                    <p className="font-semibold mb-1">{tr("Important")}</p>
+                                    <p>{tr("Assurez-vous de créer des sauvegardes régulières de vos données. Il est recommandé de faire une sauvegarde avant toute modification importante du système.")}</p>
                                 </div>
                             </div>
                         </div>

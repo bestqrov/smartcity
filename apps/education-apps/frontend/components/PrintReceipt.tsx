@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 
-import { appLocale } from '@/lib/i18n/I18nProvider';
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 interface PrintReceiptProps {
     studentName: string;
     studentSurname: string;
@@ -23,6 +23,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
     paymentMethod = 'Cash',
     receiptNumber,
 }) => {
+    const { tr } = useI18n();
     const { profile } = useSchoolProfile();
     const currentDate = new Date().toLocaleDateString(appLocale());
     const receiptNo = receiptNumber || `RCPT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
@@ -39,16 +40,14 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '15px' }}>
                 <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '5px' }}>
-                    {profile?.schoolName || 'ArwaEduc'}
+                    {profile?.schoolName || tr("ArwaEduc")}
                 </div>
                 {profile?.address && (
                     <div style={{ fontSize: '10px', marginBottom: '2px' }}>
                         {profile.address}
                     </div>
                 )}
-                <div style={{ fontSize: '10px' }}>
-                    Tél: +212 608 18 38 86
-                </div>
+                <div style={{ fontSize: '10px' }}>{tr("Tél: +212 608 18 38 86")}</div>
             </div>
 
             {/* Title */}
@@ -58,9 +57,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
                 fontWeight: 'bold',
                 marginBottom: '15px',
                 marginTop: '15px'
-            }}>
-                Reçu Soutien
-            </div>
+            }}>{tr("Reçu Soutien")}</div>
 
             {/* Dotted line */}
             <div style={{
@@ -75,8 +72,8 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
                 marginBottom: '10px',
                 fontSize: '11px'
             }}>
-                <span>Date: {currentDate}</span>
-                <span>Reçu No: {receiptNo}</span>
+                <span>{tr("Date:")}{' '}{currentDate}</span>
+                <span>{tr("Reçu No:")}{' '}{receiptNo}</span>
             </div>
 
             {/* Another dotted line */}
@@ -87,9 +84,9 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
 
             {/* Client Info */}
             <div style={{ marginBottom: '10px', fontSize: '11px' }}>
-                <div>Client: {studentName} {studentSurname}</div>
-                <div>Tél: {phone}</div>
-                <div>Paiement: {paymentMethod}</div>
+                <div>{tr("Client:")}{' '}{studentName} {studentSurname}</div>
+                <div>{tr("Tél:")}{' '}{phone}</div>
+                <div>{tr("Paiement:")}{' '}{paymentMethod}</div>
             </div>
 
             {/* Dotted line */}
@@ -106,8 +103,8 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
                 marginBottom: '8px',
                 fontSize: '11px'
             }}>
-                <span>Description</span>
-                <span>Montant</span>
+                <span>{tr("Description")}</span>
+                <span>{tr("Montant")}</span>
             </div>
 
             {/* Items */}
@@ -117,8 +114,8 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
                     justifyContent: 'space-between',
                     marginBottom: '5px'
                 }}>
-                    <span>May Tuition Fee</span>
-                    <span>{subjectsTotal.toFixed(2)} MAD</span>
+                    <span>{tr("May Tuition Fee")}</span>
+                    <span>{subjectsTotal.toFixed(2)}{' '}{tr("MAD")}</span>
                 </div>
             </div>
 
@@ -135,23 +132,23 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
                     justifyContent: 'flex-end',
                     marginBottom: '3px'
                 }}>
-                    <span style={{ marginRight: '10px' }}>Total:</span>
-                    <span style={{ fontWeight: 'bold' }}>{total.toFixed(2)} MAD</span>
+                    <span style={{ marginRight: '10px' }}>{tr("Total:")}</span>
+                    <span style={{ fontWeight: 'bold' }}>{total.toFixed(2)}{' '}{tr("MAD")}</span>
                 </div>
                 <div style={{
                     display: 'flex',
                     justifyContent: 'flex-end',
                     marginBottom: '3px'
                 }}>
-                    <span style={{ marginRight: '10px' }}>Payé:</span>
-                    <span style={{ fontWeight: 'bold' }}>{total.toFixed(2)} MAD</span>
+                    <span style={{ marginRight: '10px' }}>{tr("Payé:")}</span>
+                    <span style={{ fontWeight: 'bold' }}>{total.toFixed(2)}{' '}{tr("MAD")}</span>
                 </div>
                 <div style={{
                     display: 'flex',
                     justifyContent: 'flex-end'
                 }}>
-                    <span style={{ marginRight: '10px' }}>Reste:</span>
-                    <span style={{ fontWeight: 'bold' }}>0,00 MAD</span>
+                    <span style={{ marginRight: '10px' }}>{tr("Reste:")}</span>
+                    <span style={{ fontWeight: 'bold' }}>{tr("0,00 MAD")}</span>
                 </div>
             </div>
 
@@ -160,9 +157,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
                 textAlign: 'center',
                 marginTop: '20px',
                 fontSize: '11px'
-            }}>
-                Merci pour votre visite!
-            </div>
+            }}>{tr("Merci pour votre visite!")}</div>
 
             <style jsx>{`
                 @media print {

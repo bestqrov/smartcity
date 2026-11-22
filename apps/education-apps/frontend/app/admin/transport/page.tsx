@@ -8,6 +8,7 @@ import SubscriptionsTab from '@/components/transport/SubscriptionsTab';
 import DuesTab from '@/components/transport/DuesTab';
 import PricingModePanel from '@/components/transport/PricingModePanel';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const TABS = [
     { id: 'routes', label: 'Lignes & arrêts' },
     { id: 'fleet', label: 'Véhicules & chauffeurs' },
@@ -18,14 +19,15 @@ const TABS = [
 type TabId = (typeof TABS)[number]['id'];
 
 export default function TransportPage() {
+    const { tr } = useI18n();
     const [tab, setTab] = useState<TabId>('routes');
 
     return (
         <div className="p-0 lg:p-6 space-y-6">
             <div className="flex justify-between items-center gap-3">
                 <div className="min-w-0">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Transport scolaire</h1>
-                    <p className="text-gray-600 mt-1">Lignes, véhicules, abonnements et paiements mensuels</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Transport scolaire")}</h1>
+                    <p className="text-gray-600 mt-1">{tr("Lignes, véhicules, abonnements et paiements mensuels")}</p>
                 </div>
                 <div className="p-3 rounded-xl bg-blue-100">
                     <Bus className="text-blue-600" size={24} />
@@ -41,7 +43,7 @@ export default function TransportPage() {
                             tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                     >
-                        {t.label}
+                        {tr(t.label)}
                     </button>
                 ))}
             </div>

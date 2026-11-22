@@ -15,6 +15,7 @@ import {
 import api from '@/lib/api';
 import { formationsService, Formation } from '@/lib/services/formations';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface PricingItem {
     id: string;
     category: string; // 'SOUTIEN' | 'FORMATION'
@@ -28,6 +29,7 @@ interface PricingItem {
 const SOUTIEN_LEVELS = ['Primaire', 'Collège', 'Lycée'];
 
 export default function PrixPage() {
+    const { tr } = useI18n();
     const [pricing, setPricing] = useState<PricingItem[]>([]);
     const [formations, setFormations] = useState<Formation[]>([]);
     const [loading, setLoading] = useState(true);
@@ -48,7 +50,7 @@ export default function PrixPage() {
             const res = await api.get('/pricing');
             if (res.data.success) setPricing(res.data.data);
         } catch (e) {
-            setError('Impossible de charger les prix');
+            setError(tr("Impossible de charger les prix"));
         }
     };
 
@@ -59,7 +61,7 @@ export default function PrixPage() {
             const data = await formationsService.getAll();
             setFormations(Array.isArray(data) ? data : []);
         } catch (e) {
-            setError('Impossible de charger les formations');
+            setError(tr("Impossible de charger les formations"));
         }
     };
 
@@ -90,7 +92,7 @@ export default function PrixPage() {
             setNewSoutien({ level: newSoutien.level, subject: '', price: '' });
             fetchPricing();
         } catch (e) {
-            setError("Impossible d'ajouter la matière");
+            setError(tr("Impossible d'ajouter la matière"));
         }
     };
 
@@ -107,7 +109,7 @@ export default function PrixPage() {
             setNewFormation({ name: '', duration: '', price: '' });
             fetchFormations();
         } catch (e) {
-            setError("Impossible d'ajouter la formation");
+            setError(tr("Impossible d'ajouter la formation"));
         }
     };
 
@@ -132,20 +134,20 @@ export default function PrixPage() {
             setEditingFormationId(null);
             fetchFormations();
         } catch (e) {
-            setError('Impossible de mettre à jour la formation');
+            setError(tr("Impossible de mettre à jour la formation"));
         } finally {
             setBusyId(null);
         }
     };
 
     const handleDeleteFormation = async (id: string) => {
-        if (!confirm('Supprimer cette formation ?')) return;
+        if (!confirm(tr("Supprimer cette formation ?"))) return;
         setBusyId(id);
         try {
             await formationsService.delete(id);
             fetchFormations();
         } catch (e) {
-            setError('Impossible de supprimer la formation');
+            setError(tr("Impossible de supprimer la formation"));
         } finally {
             setBusyId(null);
         }
@@ -168,20 +170,20 @@ export default function PrixPage() {
             setEditingId(null);
             fetchPricing();
         } catch (e) {
-            setError('Impossible de mettre à jour le prix');
+            setError(tr("Impossible de mettre à jour le prix"));
         } finally {
             setBusyId(null);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Supprimer cette matière ?')) return;
+        if (!confirm(tr("Supprimer cette matière ?"))) return;
         setBusyId(id);
         try {
             await api.delete(`/pricing/${id}`);
             fetchPricing();
         } catch (e) {
-            setError('Impossible de supprimer');
+            setError(tr("Impossible de supprimer"));
         } finally {
             setBusyId(null);
         }
@@ -191,8 +193,8 @@ export default function PrixPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gestion des Prix</h1>
-                    <p className="text-gray-600 mt-1">Configurez les tarifs pour les cours et formations</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Gestion des Prix")}</h1>
+                    <p className="text-gray-600 mt-1">{tr("Configurez les tarifs pour les cours et formations")}</p>
                 </div>
                 <div className="hidden sm:block bg-green-100 p-3 rounded-lg">
                     <DollarSign className="text-green-600" size={32} />
@@ -201,7 +203,7 @@ export default function PrixPage() {
 
             {error && (
                 <div className="bg-red-50 border-2 border-red-200 text-red-700 rounded-lg p-4 text-sm font-medium">
-                    {error}
+                    {tr(error)}
                 </div>
             )}
 
@@ -218,8 +220,8 @@ export default function PrixPage() {
                                 <BookOpen className="text-purple-600" size={24} />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-800">Soutien Scolaire</h2>
-                                <p className="text-sm text-gray-500">Prix par niveau et matière — utilisé par le formulaire d'inscription</p>
+                                <h2 className="text-2xl font-bold text-gray-800">{tr("Soutien Scolaire")}</h2>
+                                <p className="text-sm text-gray-500">{tr("Prix par niveau et matière — utilisé par le formulaire d'inscription")}</p>
                             </div>
                         </div>
 
@@ -227,18 +229,16 @@ export default function PrixPage() {
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="bg-gradient-to-r from-purple-100 to-purple-50 border-b-2 border-purple-200">
-                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200">NIVEAU</th>
-                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200">MATIÈRE</th>
-                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">PRIX (DH)</th>
-                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-28">ACTIONS</th>
+                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200">{tr("NIVEAU")}</th>
+                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200">{tr("MATIÈRE")}</th>
+                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">{tr("PRIX (DH)")}</th>
+                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-28">{tr("ACTIONS")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {Object.keys(groupedSoutien).length === 0 && (
                                         <tr>
-                                            <td colSpan={4} className="py-6 px-4 text-center text-gray-400 border border-gray-200">
-                                                Aucune matière configurée pour l'instant.
-                                            </td>
+                                            <td colSpan={4} className="py-6 px-4 text-center text-gray-400 border border-gray-200">{tr("Aucune matière configurée pour l'instant.")}</td>
                                         </tr>
                                     )}
                                     {Object.entries(groupedSoutien).map(([niveau, items]) => (
@@ -249,7 +249,7 @@ export default function PrixPage() {
                                                         rowSpan={items.length}
                                                         className="py-4 px-4 font-bold text-purple-700 bg-purple-50 border border-gray-200 align-top"
                                                     >
-                                                        {niveau}
+                                                        {tr(niveau)}
                                                     </td>
                                                 )}
                                                 <td className="py-4 px-4 font-medium text-gray-800 border border-gray-200">{item.subject}</td>
@@ -263,7 +263,7 @@ export default function PrixPage() {
                                                             autoFocus
                                                         />
                                                     ) : (
-                                                        <span className="font-semibold">{item.price} DH</span>
+                                                        <span className="font-semibold">{item.price}{' '}{tr("DH")}</span>
                                                     )}
                                                 </td>
                                                 <td className="py-4 px-4 text-end border border-gray-200">
@@ -312,29 +312,29 @@ export default function PrixPage() {
 
                         <form onSubmit={handleAddSoutien} className="mt-6 flex flex-wrap items-end gap-3 pt-6 border-t border-gray-100">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Niveau</label>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">{tr("Niveau")}</label>
                                 <select
                                     value={newSoutien.level}
                                     onChange={(e) => setNewSoutien((prev) => ({ ...prev, level: e.target.value }))}
                                     className="px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                                 >
                                     {SOUTIEN_LEVELS.map((lvl) => (
-                                        <option key={lvl} value={lvl}>{lvl}</option>
+                                        <option key={lvl} value={lvl}>{tr(lvl)}</option>
                                     ))}
                                 </select>
                             </div>
                             <div className="flex-1 min-w-[180px]">
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Matière</label>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">{tr("Matière")}</label>
                                 <input
                                     type="text"
                                     value={newSoutien.subject}
                                     onChange={(e) => setNewSoutien((prev) => ({ ...prev, subject: e.target.value }))}
-                                    placeholder="ex: Maths"
+                                    placeholder={tr("ex: Maths")}
                                     className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Prix (DH)</label>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">{tr("Prix (DH)")}</label>
                                 <input
                                     type="number"
                                     value={newSoutien.price}
@@ -347,8 +347,7 @@ export default function PrixPage() {
                                 type="submit"
                                 className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
                             >
-                                <Plus size={16} /> Ajouter
-                            </button>
+                                <Plus size={16} />{tr("Ajouter")}</button>
                         </form>
                     </div>
 
@@ -359,8 +358,8 @@ export default function PrixPage() {
                                 <GraduationCap className="text-orange-600" size={24} />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-800">Formations Professionnelles</h2>
-                                <p className="text-sm text-gray-500">Formations réelles — utilisées par le formulaire d'inscription formation</p>
+                                <h2 className="text-2xl font-bold text-gray-800">{tr("Formations Professionnelles")}</h2>
+                                <p className="text-sm text-gray-500">{tr("Formations réelles — utilisées par le formulaire d'inscription formation")}</p>
                             </div>
                         </div>
 
@@ -368,18 +367,16 @@ export default function PrixPage() {
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="bg-gradient-to-r from-orange-100 to-orange-50 border-b-2 border-orange-200">
-                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200">FORMATION</th>
-                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">DURÉE</th>
-                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">PRIX (DH)</th>
-                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-28">ACTIONS</th>
+                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200">{tr("FORMATION")}</th>
+                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">{tr("DURÉE")}</th>
+                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">{tr("PRIX (DH)")}</th>
+                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-28">{tr("ACTIONS")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {formations.length === 0 && (
                                         <tr>
-                                            <td colSpan={4} className="py-6 px-4 text-center text-gray-400 border border-gray-200">
-                                                Aucune formation configurée pour l'instant.
-                                            </td>
+                                            <td colSpan={4} className="py-6 px-4 text-center text-gray-400 border border-gray-200">{tr("Aucune formation configurée pour l'instant.")}</td>
                                         </tr>
                                     )}
                                     {formations.map((formation) => (
@@ -403,7 +400,7 @@ export default function PrixPage() {
                                                         type="text"
                                                         value={editFormation.duration}
                                                         onChange={(e) => setEditFormation((prev) => ({ ...prev, duration: e.target.value }))}
-                                                        placeholder="ex: 3 mois"
+                                                        placeholder={tr("ex: 3 mois")}
                                                         className="w-full px-2 py-1 border-2 border-orange-300 rounded-lg focus:border-orange-500 focus:outline-none"
                                                     />
                                                 ) : (
@@ -419,7 +416,7 @@ export default function PrixPage() {
                                                         className="w-24 px-2 py-1 border-2 border-orange-300 rounded-lg text-end focus:border-orange-500 focus:outline-none"
                                                     />
                                                 ) : (
-                                                    <span className="font-semibold">{formation.price} DH</span>
+                                                    <span className="font-semibold">{formation.price}{' '}{tr("DH")}</span>
                                                 )}
                                             </td>
                                             <td className="py-4 px-4 text-end border border-gray-200">
@@ -467,27 +464,27 @@ export default function PrixPage() {
 
                         <form onSubmit={handleAddFormation} className="mt-6 flex flex-wrap items-end gap-3 pt-6 border-t border-gray-100">
                             <div className="flex-1 min-w-[180px]">
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Formation</label>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">{tr("Formation")}</label>
                                 <input
                                     type="text"
                                     value={newFormation.name}
                                     onChange={(e) => setNewFormation((prev) => ({ ...prev, name: e.target.value }))}
-                                    placeholder="ex: Coiffure"
+                                    placeholder={tr("ex: Coiffure")}
                                     className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Durée</label>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">{tr("Durée")}</label>
                                 <input
                                     type="text"
                                     value={newFormation.duration}
                                     onChange={(e) => setNewFormation((prev) => ({ ...prev, duration: e.target.value }))}
-                                    placeholder="ex: 3 mois"
+                                    placeholder={tr("ex: 3 mois")}
                                     className="w-32 px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 mb-1">Prix (DH)</label>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">{tr("Prix (DH)")}</label>
                                 <input
                                     type="number"
                                     value={newFormation.price}
@@ -500,8 +497,7 @@ export default function PrixPage() {
                                 type="submit"
                                 className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
                             >
-                                <Plus size={16} /> Ajouter
-                            </button>
+                                <Plus size={16} />{tr("Ajouter")}</button>
                         </form>
                     </div>
                 </>

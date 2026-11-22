@@ -7,6 +7,7 @@ import { staffHomeworkClient, type Homework } from '@/lib/services/homework';
 import { apiErrorMessage } from '@/lib/services/grades';
 import HomeworkList from './HomeworkList';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface GroupOption {
     id: string;
     name: string;
@@ -15,6 +16,7 @@ interface GroupOption {
 
 /** Staff homework page (admin + secretary): group picker + list. */
 export default function HomeworkWorkspace() {
+    const { tr } = useI18n();
     const [groups, setGroups] = useState<GroupOption[] | null>(null);
     const [groupId, setGroupId] = useState('');
     const [homework, setHomework] = useState<Homework[] | null>(null);
@@ -48,9 +50,8 @@ export default function HomeworkWorkspace() {
     return (
         <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-6">
             <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">
-                <BookOpen className="text-teal-500" /> Devoirs
-            </h1>
-            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+                <BookOpen className="text-teal-500" />{tr("Devoirs")}</h1>
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{tr(error)}</p>}
             {!groups ? (
                 <Loader2 className="animate-spin text-slate-400" />
             ) : (
@@ -59,7 +60,7 @@ export default function HomeworkWorkspace() {
                     onChange={(e) => setGroupId(e.target.value)}
                     className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white sm:w-80"
                 >
-                    <option value="">Choisir un groupe…</option>
+                    <option value="">{tr("Choisir un groupe…")}</option>
                     {groups.map((g) => (
                         <option key={g.id} value={g.id}>
                             {g.name}

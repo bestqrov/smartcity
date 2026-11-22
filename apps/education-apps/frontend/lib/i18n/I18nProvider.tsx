@@ -16,8 +16,9 @@ const LANDING_KEY = 'landing-lang';
 const interpolate = (text: string, params?: TrParams) =>
     params ? text.replace(/\{(\w+)\}/g, (match, key) => (key in params ? String(params[key] ?? '') : match)) : text;
 
-export const translate = (lang: AppLang, text: string, params?: TrParams): string =>
-    interpolate(lang === 'ar' ? AR[text] ?? text : text, params);
+// Empty for a missing value, so `tr(error)` can wrap an optional message directly.
+export const translate = (lang: AppLang, text: string | null | undefined, params?: TrParams): string =>
+    text == null ? '' : interpolate(lang === 'ar' ? AR[text] ?? text : text, params);
 
 // Current language for plain helpers (date / money formatting) that are not React components.
 // Set by the provider while it renders, so it is up to date before any child formats a value.
@@ -37,7 +38,7 @@ interface I18nValue {
     lang: AppLang;
     dir: 'ltr' | 'rtl';
     setLang: (lang: AppLang) => void;
-    tr: (text: string, params?: TrParams) => string;
+    tr: (text: string | null | undefined, params?: TrParams) => string;
     // Locale for dates and numbers (Moroccan Arabic keeps Latin digits, as on official school documents).
     locale: string;
 }
@@ -91,7 +92,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 }
 
 // Outside a provider (a component reused by a space that is not translated yet) everything stays French.
-const FALLBACK: I18nValue = { lang: 'fr', dir: 'ltr', setLang: () => {}, tr: (text, params) => interpolate(text, params), locale: 'fr-FR' };
+const FALLBACK: I18nValue = { lang: 'fr', dir: 'ltr', setLang: () => {}, tr: (text, params) => (text == null ? '' : interpolate(text, params)), locale: 'fr-FR' };
 
 export function useI18n(): I18nValue {
     return useContext(I18nContext) ?? FALLBACK;

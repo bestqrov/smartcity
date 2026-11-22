@@ -6,7 +6,9 @@ import { transportService, transportErrorMessage } from '@/lib/services/transpor
 import type { Driver, Vehicle } from '@/types';
 import { cardCls, errorCls, inputCls, labelCls, primaryBtnCls } from './styles';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function FleetTab() {
+    const { tr } = useI18n();
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [plate, setPlate] = useState('');
@@ -46,10 +48,10 @@ export default function FleetTab() {
 
     return (
         <div className="space-y-6">
-            {error && <p className={errorCls}>{error}</p>}
+            {error && <p className={errorCls}>{tr(error)}</p>}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className={cardCls}>
-                    <h2 className="font-bold text-gray-800 mb-4">Véhicules</h2>
+                    <h2 className="font-bold text-gray-800 mb-4">{tr("Véhicules")}</h2>
                     <form
                         className="grid grid-cols-3 gap-2 items-end mb-4"
                         onSubmit={(e) => {
@@ -62,11 +64,11 @@ export default function FleetTab() {
                         }}
                     >
                         <div className="col-span-2">
-                            <label className={labelCls}>Immatriculation</label>
+                            <label className={labelCls}>{tr("Immatriculation")}</label>
                             <input className={inputCls} value={plate} onChange={(e) => setPlate(e.target.value)} required />
                         </div>
                         <div>
-                            <label className={labelCls}>Places</label>
+                            <label className={labelCls}>{tr("Places")}</label>
                             <input
                                 type="number"
                                 min="1"
@@ -77,12 +79,11 @@ export default function FleetTab() {
                             />
                         </div>
                         <button type="submit" className={`${primaryBtnCls} col-span-3`}>
-                            <Plus size={16} /> Ajouter un véhicule
-                        </button>
+                            <Plus size={16} />{tr("Ajouter un véhicule")}</button>
                     </form>
                     <div className="space-y-2">
-                        {loading && <p className="text-sm text-gray-400">Chargement…</p>}
-                        {!loading && vehicles.length === 0 && <p className="text-sm text-gray-400">Aucun véhicule.</p>}
+                        {loading && <p className="text-sm text-gray-400">{tr("Chargement…")}</p>}
+                        {!loading && vehicles.length === 0 && <p className="text-sm text-gray-400">{tr("Aucun véhicule.")}</p>}
                         {vehicles.map((v) => (
                             <div key={v.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                                 <div>
@@ -91,7 +92,7 @@ export default function FleetTab() {
                                 </div>
                                 <button
                                     onClick={() => run(() => transportService.vehicles.remove(v.id))}
-                                    aria-label="Supprimer le véhicule"
+                                    aria-label={tr("Supprimer le véhicule")}
                                     className="p-2 rounded-lg text-red-500 hover:bg-red-50"
                                 >
                                     <Trash2 size={16} />
@@ -102,7 +103,7 @@ export default function FleetTab() {
                 </div>
 
                 <div className={cardCls}>
-                    <h2 className="font-bold text-gray-800 mb-4">Chauffeurs</h2>
+                    <h2 className="font-bold text-gray-800 mb-4">{tr("Chauffeurs")}</h2>
                     <form
                         className="grid grid-cols-2 gap-2 items-end mb-4"
                         onSubmit={(e) => {
@@ -115,20 +116,19 @@ export default function FleetTab() {
                         }}
                     >
                         <div>
-                            <label className={labelCls}>Nom</label>
+                            <label className={labelCls}>{tr("Nom")}</label>
                             <input className={inputCls} value={driverName} onChange={(e) => setDriverName(e.target.value)} required />
                         </div>
                         <div>
-                            <label className={labelCls}>Téléphone</label>
+                            <label className={labelCls}>{tr("Téléphone")}</label>
                             <input className={inputCls} value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} required />
                         </div>
                         <button type="submit" className={`${primaryBtnCls} col-span-2`}>
-                            <Plus size={16} /> Ajouter un chauffeur
-                        </button>
+                            <Plus size={16} />{tr("Ajouter un chauffeur")}</button>
                     </form>
                     <div className="space-y-2">
-                        {loading && <p className="text-sm text-gray-400">Chargement…</p>}
-                        {!loading && drivers.length === 0 && <p className="text-sm text-gray-400">Aucun chauffeur.</p>}
+                        {loading && <p className="text-sm text-gray-400">{tr("Chargement…")}</p>}
+                        {!loading && drivers.length === 0 && <p className="text-sm text-gray-400">{tr("Aucun chauffeur.")}</p>}
                         {drivers.map((d) => (
                             <div key={d.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                                 <div>
@@ -137,7 +137,7 @@ export default function FleetTab() {
                                 </div>
                                 <button
                                     onClick={() => run(() => transportService.drivers.remove(d.id))}
-                                    aria-label="Supprimer le chauffeur"
+                                    aria-label={tr("Supprimer le chauffeur")}
                                     className="p-2 rounded-lg text-red-500 hover:bg-red-50"
                                 >
                                     <Trash2 size={16} />

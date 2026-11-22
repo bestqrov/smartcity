@@ -5,11 +5,12 @@ import { useEffect, useState } from 'react';
 import useAuthStore from '@/store/useAuthStore';
 import { getPendingUpgrades, type PendingUpgrade } from '@/lib/services/subscription';
 
-import { appLocale } from '@/lib/i18n/I18nProvider';
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(appLocale(), { day: 'numeric', month: 'long', year: 'numeric' });
 
 // Reminds ADMIN/OWNER of a pack upgrade not paid yet; red once the deadline has passed.
 export default function PackUpgradeBanner() {
+    const { tr } = useI18n();
     const role = useAuthStore((state) => state.user?.role);
     const [upgrades, setUpgrades] = useState<PendingUpgrade[]>([]);
 
@@ -35,9 +36,8 @@ export default function PackUpgradeBanner() {
                                 ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200'
                                 : 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200'
                         }`}
-                    >
-                        Nouveau pack <strong>« {upgrade.toPackName} »</strong> ({upgrade.toMonthlyPrice} MAD / mois) :{' '}
-                        {overdue ? 'le paiement était attendu avant le ' : 'paiement attendu avant le '}
+                    >{tr("Nouveau pack")}<strong>« {upgrade.toPackName} »</strong> ({upgrade.toMonthlyPrice}{' '}{tr("MAD / mois) :")}{' '}
+                        {overdue ? tr("le paiement était attendu avant le ") : tr("paiement attendu avant le ")}
                         <strong>{fmtDate(upgrade.dueAt)}</strong>.
                     </div>
                 );

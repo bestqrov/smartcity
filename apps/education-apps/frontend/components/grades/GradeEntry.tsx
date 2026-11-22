@@ -6,6 +6,7 @@ import type { EvaluationWithGrades, Grade, GradeInput, GradesClient, GradeStuden
 import { apiErrorMessage } from '@/lib/services/grades';
 import { formatNum, parseScore, sortStudents } from './utils';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface Row {
     score: string;
     absent: boolean;
@@ -31,6 +32,7 @@ const rowFromGrade = (g?: Grade): Row => ({
 });
 
 export default function GradeEntry({ client, evaluation, students, onGradesSaved, onInvalidChange }: Props) {
+    const { tr } = useI18n();
     const sorted = useMemo(() => sortStudents(students), [students]);
     const [rows, setRows] = useState<Record<string, Row>>(() => {
         const byStudent = new Map(evaluation.grades.map((g) => [g.studentId, g]));
@@ -156,39 +158,34 @@ export default function GradeEntry({ client, evaluation, students, onGradesSaved
         <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm text-slate-600 dark:text-slate-300">
-                    {scoredCount}/{sorted.length} saisies · barème /{formatNum(maxScore)}
+                    {scoredCount}/{sorted.length}{' '}{tr("saisies · barème /")}{formatNum(maxScore)}
                 </p>
                 <div className="flex items-center gap-2 text-sm">
                     {status === 'saving' && (
-                        <span className="inline-flex items-center gap-1 text-slate-500"><Loader2 size={14} className="animate-spin" /> Enregistrement…</span>
+                        <span className="inline-flex items-center gap-1 text-slate-500"><Loader2 size={14} className="animate-spin" />{' '}{tr("Enregistrement…")}</span>
                     )}
                     {status === 'saved' && (
-                        <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><Check size={14} /> Enregistré</span>
+                        <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><Check size={14} />{' '}{tr("Enregistré")}</span>
                     )}
                     {status === 'error' && (
                         <button type="button" onClick={() => void flush()} className="inline-flex items-center gap-1 text-red-600 dark:text-red-400">
-                            <AlertCircle size={14} /> {error} — Réessayer
-                        </button>
+                            <AlertCircle size={14} /> {tr(error)}{tr("— Réessayer")}</button>
                     )}
                 </div>
             </div>
             <div className="flex gap-2">
                 <button
                     type="button"
-                    onClick={() => window.confirm('Marquer tous les élèves sans note comme absents ?') &&
+                    onClick={() => window.confirm(tr("Marquer tous les élèves sans note comme absents ?")) &&
                         update(allIds.filter((id) => !rows[id]?.absent && !rows[id]?.score.trim()), (r) => ({ ...r, absent: true, score: '' }))}
                     className="rounded-xl border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
-                >
-                    Tous absents
-                </button>
+                >{tr("Tous absents")}</button>
                 <button
                     type="button"
-                    onClick={() => window.confirm('Effacer toutes les notes de cette évaluation ?') &&
+                    onClick={() => window.confirm(tr("Effacer toutes les notes de cette évaluation ?")) &&
                         update(allIds, (r) => ({ ...r, absent: false, score: '' }))}
                     className="rounded-xl border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
-                >
-                    Effacer
-                </button>
+                >{tr("Effacer")}</button>
             </div>
             <ul className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
                 {sorted.map((s) => {
@@ -206,10 +203,10 @@ export default function GradeEntry({ client, evaluation, students, onGradesSaved
                                 <input
                                     inputMode="decimal"
                                     autoComplete="off"
-                                    aria-label={`Note de ${s.name} ${s.surname}`}
+                                    aria-label={tr("Note de {name} {surname}", { name: s.name, surname: s.surname })}
                                     value={r.absent ? '' : r.score}
                                     disabled={r.absent}
-                                    placeholder={r.absent ? 'Abs' : '—'}
+                                    placeholder={r.absent ? tr("Abs") : '—'}
                                     onChange={(e) => update([s.id], (row) => ({ ...row, score: e.target.value.replace(/[^\d.,]/g, '') }))}
                                     onBlur={() => void flush()}
                                     className={`w-20 rounded-xl border px-2 py-2 text-center text-lg font-semibold focus:outline-none focus:ring-2 disabled:bg-slate-100 dark:bg-slate-900 dark:text-white dark:disabled:bg-slate-700 ${
@@ -224,12 +221,10 @@ export default function GradeEntry({ client, evaluation, students, onGradesSaved
                                             ? 'bg-amber-500 text-white'
                                             : 'border border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-300'
                                     }`}
-                                >
-                                    Abs
-                                </button>
+                                >{tr("Abs")}</button>
                                 <button
                                     type="button"
-                                    aria-label="Commentaire"
+                                    aria-label={tr("Commentaire")}
                                     onClick={() => setOpenComments((prev) => {
                                         const n = new Set(prev);
                                         if (n.has(s.id)) n.delete(s.id);
@@ -245,7 +240,7 @@ export default function GradeEntry({ client, evaluation, students, onGradesSaved
                                 <input
                                     value={r.comment}
                                     maxLength={500}
-                                    placeholder="Commentaire (optionnel)"
+                                    placeholder={tr("Commentaire (optionnel)")}
                                     onChange={(e) => update([s.id], (row) => ({ ...row, comment: e.target.value }))}
                                     onBlur={() => void flush()}
                                     className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white"

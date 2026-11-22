@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import type { Bulletin, BulletinRow } from '@/lib/services/grades';
 import { fixed2 } from './utils';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface Props {
     bulletin: Bulletin;
     rows: BulletinRow[];
@@ -37,6 +38,7 @@ const PRINT_CSS = `
 
 /** Printable report cards, one A4 page per student; the user saves them as PDF from the print dialog. */
 export default function BulletinPrint({ bulletin, rows, groupName, schoolName, logo, academicYear, coefficients, onDone }: Props) {
+    const { tr } = useI18n();
     useEffect(() => {
         const after = () => onDone();
         window.addEventListener('afterprint', after);
@@ -53,12 +55,8 @@ export default function BulletinPrint({ bulletin, rows, groupName, schoolName, l
         <div id="bulletin-print-root">
             <style>{PRINT_CSS}</style>
             <div className="mb-3 flex justify-center gap-2 print:hidden">
-                <button type="button" onClick={() => window.print()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">
-                    Imprimer / PDF
-                </button>
-                <button type="button" onClick={onDone} className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700">
-                    Fermer
-                </button>
+                <button type="button" onClick={() => window.print()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">{tr("Imprimer / PDF")}</button>
+                <button type="button" onClick={onDone} className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700">{tr("Fermer")}</button>
             </div>
             {rows.map((row) => (
                 <section key={row.studentId} className="bulletin-page">
@@ -69,26 +67,24 @@ export default function BulletinPrint({ bulletin, rows, groupName, schoolName, l
                         )}
                         <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 18, fontWeight: 700 }}>{schoolName}</div>
-                            {academicYear && <div style={{ fontSize: 12 }}>Année scolaire {academicYear}</div>}
+                            {academicYear && <div style={{ fontSize: 12 }}>{tr("Année scolaire")}{' '}{academicYear}</div>}
                         </div>
                     </div>
-                    <h1 style={{ textAlign: 'center', fontSize: 22, fontWeight: 700, margin: '18px 0 4px' }}>Bulletin de notes</h1>
+                    <h1 style={{ textAlign: 'center', fontSize: 22, fontWeight: 700, margin: '18px 0 4px' }}>{tr("Bulletin de notes")}</h1>
                     <p style={{ textAlign: 'center', fontSize: 14, marginBottom: 16 }}>{bulletin.period}</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 12 }}>
-                        <div>
-                            Élève : <strong>{row.surname} {row.name}</strong>
+                        <div>{tr("Élève :")}<strong>{row.surname} {row.name}</strong>
                         </div>
-                        <div>
-                            Groupe : <strong>{groupName}</strong>
+                        <div>{tr("Groupe :")}<strong>{groupName}</strong>
                         </div>
                     </div>
                     <table>
                         <thead>
                             <tr>
-                                <th>Matière</th>
-                                {coefficients && <th style={{ width: 50 }}>Coef</th>}
-                                <th style={{ width: 90 }}>Moyenne /20</th>
-                                <th style={{ width: '40%' }}>Appréciation</th>
+                                <th>{tr("Matière")}</th>
+                                {coefficients && <th style={{ width: 50 }}>{tr("Coef")}</th>}
+                                <th style={{ width: 90 }}>{tr("Moyenne /20")}</th>
+                                <th style={{ width: '40%' }}>{tr("Appréciation")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,16 +99,14 @@ export default function BulletinPrint({ bulletin, rows, groupName, schoolName, l
                         </tbody>
                     </table>
                     <div style={{ display: 'flex', gap: 24, fontSize: 14, margin: '14px 0' }}>
-                        <div>
-                            Moyenne générale : <strong>{fixed2(row.general)}</strong> / 20
+                        <div>{tr("Moyenne générale :")}<strong>{fixed2(row.general)}</strong> / 20
                         </div>
-                        <div>
-                            Rang : <strong>{row.rank ?? '—'} / {n}</strong>
+                        <div>{tr("Rang :")}<strong>{row.rank ?? '—'} / {n}</strong>
                         </div>
                     </div>
-                    <div style={{ border: '1px solid #94a3b8', minHeight: 90, padding: 8, fontSize: 12 }}>Observation générale</div>
+                    <div style={{ border: '1px solid #94a3b8', minHeight: 90, padding: 8, fontSize: 12 }}>{tr("Observation générale")}</div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
-                        <div style={{ width: 220, minHeight: 90, border: '1px dashed #94a3b8', padding: 8, fontSize: 12 }}>Signature et cachet</div>
+                        <div style={{ width: 220, minHeight: 90, border: '1px dashed #94a3b8', padding: 8, fontSize: 12 }}>{tr("Signature et cachet")}</div>
                     </div>
                 </section>
             ))}

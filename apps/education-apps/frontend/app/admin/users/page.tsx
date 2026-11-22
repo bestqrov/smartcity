@@ -19,7 +19,9 @@ import { User, UserRole } from '@/types';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function UsersCRUD() {
+    const { tr } = useI18n();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -79,14 +81,14 @@ export default function UsersCRUD() {
                 const updateData: any = { ...formData };
                 if (!updateData.password) delete updateData.password;
                 await updateUser(editingUser.id, updateData);
-                setSuccess('Utilisateur mis à jour avec succès');
+                setSuccess(tr("Utilisateur mis à jour avec succès"));
             } else {
                 if (!formData.password) {
-                    setError('Le mot de passe est requis pour un nouvel utilisateur');
+                    setError(tr("Le mot de passe est requis pour un nouvel utilisateur"));
                     return;
                 }
                 await createUser(formData);
-                setSuccess('Utilisateur créé avec succès');
+                setSuccess(tr("Utilisateur créé avec succès"));
             }
             fetchUsers();
             setTimeout(() => setIsModalOpen(false), 1500);
@@ -96,7 +98,7 @@ export default function UsersCRUD() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+        if (confirm(tr("Êtes-vous sûr de vouloir supprimer cet utilisateur ?"))) {
             try {
                 await deleteUser(id);
                 fetchUsers();
@@ -116,18 +118,14 @@ export default function UsersCRUD() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center gap-3">
-                        <UserCog className="text-blue-600" size={32} />
-                        Gestion des Utilisateurs
-                    </h1>
-                    <p className="text-gray-600 mt-1">Gérer les administrateurs et les secrétaires du système</p>
+                        <UserCog className="text-blue-600" size={32} />{tr("Gestion des Utilisateurs")}</h1>
+                    <p className="text-gray-600 mt-1">{tr("Gérer les administrateurs et les secrétaires du système")}</p>
                 </div>
                 <Button
                     onClick={() => handleOpenModal(null)}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2"
                 >
-                    <UserPlus size={20} />
-                    Nouvel Utilisateur
-                </Button>
+                    <UserPlus size={20} />{tr("Nouvel Utilisateur")}</Button>
             </div>
 
             {/* Search Bar */}
@@ -135,7 +133,7 @@ export default function UsersCRUD() {
                 <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                     type="text"
-                    placeholder="Rechercher par nom ou email..."
+                    placeholder={tr("Rechercher par nom ou email...")}
                     className="w-full ps-10 pe-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -147,9 +145,9 @@ export default function UsersCRUD() {
                 <table className="w-full text-start">
                     <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
-                            <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider">Utilisateur</th>
-                            <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider">Rôle</th>
-                            <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider text-end">Actions</th>
+                            <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider">{tr("Utilisateur")}</th>
+                            <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider">{tr("Rôle")}</th>
+                            <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider text-end">{tr("Actions")}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -157,16 +155,12 @@ export default function UsersCRUD() {
                             <tr>
                                 <td colSpan={3} className="px-6 py-12 text-center text-gray-400">
                                     <div className="flex flex-col items-center gap-2">
-                                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                        Chargement des utilisateurs...
-                                    </div>
+                                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>{tr("Chargement des utilisateurs...")}</div>
                                 </td>
                             </tr>
                         ) : filteredUsers.length === 0 ? (
                             <tr>
-                                <td colSpan={3} className="px-6 py-12 text-center text-gray-400">
-                                    Aucun utilisateur trouvé
-                                </td>
+                                <td colSpan={3} className="px-6 py-12 text-center text-gray-400">{tr("Aucun utilisateur trouvé")}</td>
                             </tr>
                         ) : (
                             filteredUsers.map(user => (
@@ -199,14 +193,14 @@ export default function UsersCRUD() {
                                             <button
                                                 onClick={() => handleOpenModal(user)}
                                                 className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                                                title="Modifier"
+                                                title={tr("Modifier")}
                                             >
                                                 <Edit size={18} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(user.id)}
                                                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                title="Supprimer"
+                                                title={tr("Supprimer")}
                                             >
                                                 <Trash2 size={18} />
                                             </button>
@@ -226,7 +220,7 @@ export default function UsersCRUD() {
                         <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                                 {editingUser ? <Edit className="text-blue-600" size={20} /> : <UserPlus className="text-blue-600" size={20} />}
-                                {editingUser ? 'Modifier l\'utilisateur' : 'Nouvel Utilisateur'}
+                                {editingUser ? tr("Modifier l'utilisateur") : tr("Nouvel Utilisateur")}
                             </h2>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors p-2">
                                 <X size={20} />
@@ -236,7 +230,7 @@ export default function UsersCRUD() {
                         <form onSubmit={handleSubmit} className="p-6 space-y-5">
                             {error && (
                                 <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-100">
-                                    {error}
+                                    {tr(error)}
                                 </div>
                             )}
                             {success && (
@@ -247,24 +241,24 @@ export default function UsersCRUD() {
                             )}
 
                             <Input
-                                label="Nom complet"
-                                placeholder="Ex: Jean Dupont"
+                                label={tr("Nom complet")}
+                                placeholder={tr("Ex: Jean Dupont")}
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 required
                             />
 
                             <Input
-                                label="Email (Identifiant)"
+                                label={tr("Email (Identifiant)")}
                                 type="email"
-                                placeholder="email@exemple.com"
+                                placeholder={tr("email@exemple.com")}
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 required
                             />
 
                             <div className="space-y-1">
-                                <label className="text-sm font-bold text-gray-700">Rôle</label>
+                                <label className="text-sm font-bold text-gray-700">{tr("Rôle")}</label>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <button
                                         type="button"
@@ -273,9 +267,7 @@ export default function UsersCRUD() {
                                                 ? 'border-purple-600 bg-purple-50 text-purple-700'
                                                 : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
                                             }`}
-                                    >
-                                        Secrétaire
-                                    </button>
+                                    >{tr("Secrétaire")}</button>
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, role: 'ADMIN' })}
@@ -283,16 +275,12 @@ export default function UsersCRUD() {
                                                 ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
                                                 : 'border-gray-100 bg-gray-50 text-gray-500 hover:border-gray-200'
                                             }`}
-                                    >
-                                        Administrateur
-                                    </button>
+                                    >{tr("Administrateur")}</button>
                                 </div>
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-sm font-bold text-gray-700 flex items-center justify-between">
-                                    Mot de passe
-                                    {editingUser && <span className="text-[10px] text-gray-400 font-normal italic">(Laissez vide pour conserver)</span>}
+                                <label className="text-sm font-bold text-gray-700 flex items-center justify-between">{tr("Mot de passe")}{editingUser && <span className="text-[10px] text-gray-400 font-normal italic">{tr("(Laissez vide pour conserver)")}</span>}
                                 </label>
                                 <div className="relative">
                                     <Lock className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -309,11 +297,9 @@ export default function UsersCRUD() {
 
                             <div className="pt-4 flex gap-3">
                                 <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20">
-                                    {editingUser ? 'Mettre à jour' : 'Créer l\'utilisateur'}
+                                    {editingUser ? tr("Mettre à jour") : tr("Créer l'utilisateur")}
                                 </Button>
-                                <button type="button" onClick={() => setIsModalOpen(false)} className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 rounded-xl font-bold">
-                                    Annuler
-                                </button>
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 rounded-xl font-bold">{tr("Annuler")}</button>
                             </div>
                         </form>
                     </div>

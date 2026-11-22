@@ -5,8 +5,9 @@ import { Megaphone, Trash2, Plus } from 'lucide-react';
 import { announcementsService } from '@/lib/services/announcements';
 import type { Announcement } from '@/types';
 
-import { appLocale } from '@/lib/i18n/I18nProvider';
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 export default function AnnoncesPage() {
+    const { tr } = useI18n();
     const [items, setItems] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
     const [title, setTitle] = useState('');
@@ -40,7 +41,7 @@ export default function AnnoncesPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Supprimer cette annonce ?')) return;
+        if (!window.confirm(tr("Supprimer cette annonce ?"))) return;
         setBusyId(id);
         try {
             await announcementsService.delete(id);
@@ -54,8 +55,8 @@ export default function AnnoncesPage() {
         <div className="p-0 lg:p-6 space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Annonces</h1>
-                    <p className="text-gray-600 mt-1">Informations diffusées aux élèves sur leur espace personnel</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Annonces")}</h1>
+                    <p className="text-gray-600 mt-1">{tr("Informations diffusées aux élèves sur leur espace personnel")}</p>
                 </div>
                 <div className="hidden sm:block p-3 rounded-xl bg-amber-100">
                     <Megaphone className="text-amber-600" size={24} />
@@ -63,20 +64,20 @@ export default function AnnoncesPage() {
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-                <h2 className="font-bold text-gray-800 mb-4">Nouvelle annonce</h2>
+                <h2 className="font-bold text-gray-800 mb-4">{tr("Nouvelle annonce")}</h2>
                 <form onSubmit={handleCreate} className="space-y-3">
                     <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Titre"
+                        placeholder={tr("Titre")}
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400"
                         required
                     />
                     <textarea
                         value={body}
                         onChange={(e) => setBody(e.target.value)}
-                        placeholder="Contenu de l'annonce"
+                        placeholder={tr("Contenu de l'annonce")}
                         rows={3}
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400"
                         required
@@ -86,23 +87,23 @@ export default function AnnoncesPage() {
                         disabled={saving}
                         className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white rounded-xl text-sm font-semibold"
                     >
-                        <Plus size={16} /> {saving ? 'Ajout…' : 'Publier'}
+                        <Plus size={16} /> {saving ? tr("Ajout…") : tr("Publier")}
                     </button>
                 </form>
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-                <h2 className="font-bold text-gray-800 mb-4">Annonces publiées</h2>
+                <h2 className="font-bold text-gray-800 mb-4">{tr("Annonces publiées")}</h2>
                 {loading ? (
-                    <p className="text-sm text-gray-400">Chargement…</p>
+                    <p className="text-sm text-gray-400">{tr("Chargement…")}</p>
                 ) : items.length === 0 ? (
-                    <p className="text-sm text-gray-400">Aucune annonce pour l'instant.</p>
+                    <p className="text-sm text-gray-400">{tr("Aucune annonce pour l'instant.")}</p>
                 ) : (
                     <div className="space-y-3">
                         {items.map((a) => (
                             <div key={a.id} className="flex items-start justify-between gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
                                 <div>
-                                    <p className="font-semibold text-gray-800">{a.title}</p>
+                                    <p className="font-semibold text-gray-800">{tr(a.title)}</p>
                                     <p className="text-sm text-gray-500 mt-1 whitespace-pre-wrap">{a.body}</p>
                                     <p className="text-xs text-gray-400 mt-2">{new Date(a.createdAt).toLocaleDateString(appLocale())}</p>
                                 </div>

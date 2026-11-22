@@ -9,12 +9,14 @@ import { apiErrorMessage } from '@/lib/services/packs';
 import { askForUpgrade } from '@/lib/packs/upgradeBus';
 import useAuthStore, { setActiveBranchId } from '@/store/useAuthStore';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const EMPTY: NewBranch = { name: '', city: '', address: '', phone: '' };
 
 const inputClass =
     'w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-600 dark:bg-slate-900 dark:text-white';
 
 export default function BranchesSummaryPage() {
+    const { tr } = useI18n();
     const router = useRouter();
     const isOwner = useAuthStore((state) => state.user?.role) === 'OWNER';
     const [summary, setSummary] = useState<BranchSummary | null>(null);
@@ -59,7 +61,7 @@ export default function BranchesSummaryPage() {
         event.preventDefault();
         const name = form.name.trim();
         if (name.length < 2 || name.length > 80) {
-            setFormError('Le nom doit contenir entre 2 et 80 caractères.');
+            setFormError(tr("Le nom doit contenir entre 2 et 80 caractères."));
             return;
         }
         const payload: NewBranch = { name };
@@ -84,7 +86,7 @@ export default function BranchesSummaryPage() {
                     if (!details) throw err;
                     const upgraded = await askForUpgrade(details);
                     if (!upgraded) {
-                        setFormError('Limite d’établissements de votre pack atteinte.');
+                        setFormError(tr("Limite d’établissements de votre pack atteinte."));
                         return;
                     }
                 }
@@ -96,9 +98,9 @@ export default function BranchesSummaryPage() {
         }
     };
 
-    if (loading) return <div className="p-6">Chargement…</div>;
-    if (error) return <div className="p-6 text-red-600">Impossible de charger le résumé des établissements.</div>;
-    if (!summary) return <div className="p-6">Aucune donnée</div>;
+    if (loading) return <div className="p-6">{tr("Chargement…")}</div>;
+    if (error) return <div className="p-6 text-red-600">{tr("Impossible de charger le résumé des établissements.")}</div>;
+    if (!summary) return <div className="p-6">{tr("Aucune donnée")}</div>;
 
     const used = capacity?.branches;
 
@@ -106,16 +108,12 @@ export default function BranchesSummaryPage() {
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        Vue d'ensemble — tous les établissements
-                    </h1>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{tr("Vue d'ensemble — tous les établissements")}</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        {summary.totalStudents} élèves au total — solde dû combiné: {summary.totalBalanceDue} MAD
-                    </p>
+                        {summary.totalStudents}{' '}{tr("élèves au total — solde dû combiné:")}{' '}{summary.totalBalanceDue}{tr("MAD")}</p>
                     {used && (
                         <p className="mt-2 inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
-                            {used.current} / {used.limit === null ? '∞' : used.limit} établissements utilisés
-                        </p>
+                            {used.current} / {used.limit === null ? '∞' : used.limit}{tr("établissements utilisés")}</p>
                     )}
                 </div>
                 {isOwner && (
@@ -124,25 +122,20 @@ export default function BranchesSummaryPage() {
                         onClick={() => setFormOpen(true)}
                         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-4 py-2.5 font-semibold text-white shadow-md transition hover:brightness-110 sm:w-auto"
                     >
-                        <Plus className="h-4 w-4" /> Ajouter un établissement
-                    </button>
+                        <Plus className="h-4 w-4" />{tr("Ajouter un établissement")}</button>
                 )}
             </div>
 
             {created && (
                 <div className="flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-emerald-800 dark:bg-emerald-900/30">
-                    <p className="text-sm text-emerald-800 dark:text-emerald-200">
-                        L'établissement <strong>« {created.name} »</strong> a été créé.
-                    </p>
+                    <p className="text-sm text-emerald-800 dark:text-emerald-200">{tr("L'établissement")}<strong>« {created.name} »</strong>{tr("a été créé.")}</p>
                     <div className="flex gap-2">
                         <button
                             type="button"
                             onClick={() => handleOpenBranch(created.id)}
                             className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-                        >
-                            Basculer vers cet établissement
-                        </button>
-                        <button type="button" onClick={() => setCreated(null)} aria-label="Fermer" className="text-emerald-700 dark:text-emerald-300">
+                        >{tr("Basculer vers cet établissement")}</button>
+                        <button type="button" onClick={() => setCreated(null)} aria-label={tr("Fermer")} className="text-emerald-700 dark:text-emerald-300">
                             <X className="h-4 w-4" />
                         </button>
                     </div>
@@ -150,7 +143,7 @@ export default function BranchesSummaryPage() {
             )}
 
             {summary.branches.length === 0 && (
-                <p className="text-slate-500 dark:text-slate-400">Aucun établissement pour le moment.</p>
+                <p className="text-slate-500 dark:text-slate-400">{tr("Aucun établissement pour le moment.")}</p>
             )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -163,9 +156,9 @@ export default function BranchesSummaryPage() {
                         <p className="font-semibold text-slate-900 dark:text-white">{branch.name}</p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">{branch.city}</p>
                         <div className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-300">
-                            <p>Élèves: {studentCount}</p>
-                            <p>Présents aujourd'hui: {presentToday}</p>
-                            <p>Solde dû: {balanceDue} MAD</p>
+                            <p>{tr("Élèves:")}{' '}{studentCount}</p>
+                            <p>{tr("Présents aujourd'hui:")}{' '}{presentToday}</p>
+                            <p>{tr("Solde dû:")}{' '}{balanceDue}{' '}{tr("MAD")}</p>
                         </div>
                     </button>
                 ))}
@@ -181,8 +174,8 @@ export default function BranchesSummaryPage() {
                 >
                     <form onSubmit={submit} className="w-full max-w-md rounded-2xl bg-white shadow-xl dark:bg-slate-800">
                         <div className="flex items-center justify-between rounded-t-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-5 py-4">
-                            <h2 id="add-branch-title" className="text-lg font-bold text-white">Ajouter un établissement</h2>
-                            <button type="button" onClick={closeForm} disabled={saving} aria-label="Fermer" className="text-white/80 hover:text-white">
+                            <h2 id="add-branch-title" className="text-lg font-bold text-white">{tr("Ajouter un établissement")}</h2>
+                            <button type="button" onClick={closeForm} disabled={saving} aria-label={tr("Fermer")} className="text-white/80 hover:text-white">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
@@ -206,14 +199,12 @@ export default function BranchesSummaryPage() {
                                     />
                                 </label>
                             ))}
-                            {formError && <p role="alert" className="text-sm text-red-600 dark:text-red-300">{formError}</p>}
+                            {formError && <p role="alert" className="text-sm text-red-600 dark:text-red-300">{tr(formError)}</p>}
                         </div>
                         <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 p-5 dark:border-slate-700">
-                            <button type="button" onClick={closeForm} disabled={saving} className="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700 dark:border-slate-600 dark:text-slate-200">
-                                Annuler
-                            </button>
+                            <button type="button" onClick={closeForm} disabled={saving} className="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700 dark:border-slate-600 dark:text-slate-200">{tr("Annuler")}</button>
                             <button type="submit" disabled={saving} className="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">
-                                {saving ? 'Création…' : 'Créer'}
+                                {saving ? tr("Création…") : tr("Créer")}
                             </button>
                         </div>
                     </form>

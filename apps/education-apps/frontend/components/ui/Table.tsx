@@ -2,6 +2,7 @@ import React from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
 import { Button } from './Button';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface Column<T> {
     key: keyof T | string;
     label: string;
@@ -35,6 +36,7 @@ export function Table<T extends { id: string }>({
     emptyMessage = 'No data available',
     extraActions,
 }: TableProps<T>) {
+    const { tr } = useI18n();
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
@@ -46,7 +48,7 @@ export function Table<T extends { id: string }>({
     if (data.length === 0) {
         return (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                <p>{emptyMessage}</p>
+                <p>{tr(emptyMessage)}</p>
             </div>
         );
     }
@@ -61,13 +63,11 @@ export function Table<T extends { id: string }>({
                                 key={String(column.key)}
                                 className="px-6 py-3 text-start text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                             >
-                                {column.label}
+                                {tr(column.label)}
                             </th>
                         ))}
                         {(onEdit || onDelete) && (
-                            <th className="px-6 py-3 text-end text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Actions
-                            </th>
+                            <th className="px-6 py-3 text-end text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{tr("Actions")}</th>
                         )}
                     </tr>
                 </thead>
@@ -102,7 +102,7 @@ export function Table<T extends { id: string }>({
                                             <button
                                                 onClick={() => onEdit(item)}
                                                 className="text-primary-600 hover:text-primary-900"
-                                                aria-label="Edit"
+                                                aria-label={tr("Edit")}
                                             >
                                                 <Edit2 className="h-4 w-4" />
                                             </button>
@@ -111,7 +111,7 @@ export function Table<T extends { id: string }>({
                                             <button
                                                 onClick={() => onDelete(item)}
                                                 className="text-red-600 hover:text-red-900"
-                                                aria-label="Delete"
+                                                aria-label={tr("Delete")}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>

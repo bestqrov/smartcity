@@ -6,6 +6,7 @@ import { PERIODS, PERIOD_LABELS } from '@/lib/salesAgentLabels';
 import type { AdminPack } from '@/lib/services/packs';
 import type { PackRateInput, SubscriptionPeriod } from '@/lib/services/salesAgents';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 // Form row: the rate stays a string while typing.
 export interface PackRateRow {
     packId: string;
@@ -31,6 +32,7 @@ const packOptionLabel = (pack: AdminPack): string =>
     `${pack.name} — ${pack.institutionTypes.map((type) => INSTITUTION_TYPE_LABELS[type]).join(', ')}${pack.active ? '' : ' (inactif)'}`;
 
 export default function PackRatesEditor({ packs, rows, onChange, disabled }: Props) {
+    const { tr } = useI18n();
     const update = (index: number, patch: Partial<PackRateRow>) =>
         onChange(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
     const remove = (index: number) => onChange(rows.filter((_, i) => i !== index));
@@ -44,23 +46,22 @@ export default function PackRatesEditor({ packs, rows, onChange, disabled }: Pro
 
     return (
         <div className="space-y-2">
-            <div className="text-sm text-gray-600">
-                Exceptions par pack{' '}
-                <span className="text-xs text-gray-400">(remplacent le taux de base pour ce pack et cette période)</span>
+            <div className="text-sm text-gray-600">{tr("Exceptions par pack")}{' '}
+                <span className="text-xs text-gray-400">{tr("(remplacent le taux de base pour ce pack et cette période)")}</span>
             </div>
-            {rows.length === 0 && <p className="text-xs text-gray-400">Aucune exception.</p>}
+            {rows.length === 0 && <p className="text-xs text-gray-400">{tr("Aucune exception.")}</p>}
             {rows.map((row, index) => (
                 <div key={index} className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                         <select
                             className={`${inputClass} flex-1 min-w-[12rem]`}
-                            aria-label="Pack"
+                            aria-label={tr("Pack")}
                             value={row.packId}
                             onChange={(e) => update(index, { packId: e.target.value })}
                             disabled={disabled}
                             required
                         >
-                            <option value="">Choisir un pack…</option>
+                            <option value="">{tr("Choisir un pack…")}</option>
                             {packs.map((pack) => (
                                 <option key={pack.id} value={pack.id}>
                                     {packOptionLabel(pack)}
@@ -69,14 +70,14 @@ export default function PackRatesEditor({ packs, rows, onChange, disabled }: Pro
                         </select>
                         <select
                             className={`${inputClass} w-32`}
-                            aria-label="Période"
+                            aria-label={tr("Période")}
                             value={row.period}
                             onChange={(e) => update(index, { period: e.target.value as SubscriptionPeriod })}
                             disabled={disabled}
                         >
                             {PERIODS.map((period) => (
                                 <option key={period} value={period}>
-                                    {PERIOD_LABELS[period]}
+                                    {tr(PERIOD_LABELS[period])}
                                 </option>
                             ))}
                         </select>
@@ -86,7 +87,7 @@ export default function PackRatesEditor({ packs, rows, onChange, disabled }: Pro
                             min={0}
                             max={100}
                             step="0.5"
-                            aria-label="Taux (%)"
+                            aria-label={tr("Taux (%)")}
                             placeholder="%"
                             value={row.rate}
                             onChange={(e) => update(index, { rate: e.target.value })}
@@ -98,19 +99,18 @@ export default function PackRatesEditor({ packs, rows, onChange, disabled }: Pro
                                 type="button"
                                 onClick={() => remove(index)}
                                 className="p-2 text-red-600 hover:text-red-800"
-                                aria-label="Supprimer l'exception"
+                                aria-label={tr("Supprimer l'exception")}
                             >
                                 <Trash2 size={16} />
                             </button>
                         )}
                     </div>
-                    {isDuplicate(index) && <p className="text-xs text-red-600">Ce pack a déjà un taux pour cette période.</p>}
+                    {isDuplicate(index) && <p className="text-xs text-red-600">{tr("Ce pack a déjà un taux pour cette période.")}</p>}
                 </div>
             ))}
             {!disabled && (
                 <button type="button" onClick={add} className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-700 hover:underline">
-                    <Plus size={14} /> Ajouter une exception
-                </button>
+                    <Plus size={14} />{tr("Ajouter une exception")}</button>
             )}
         </div>
     );

@@ -21,6 +21,7 @@ import {
     type ImportValidation,
 } from '@/lib/services/studentsImport';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 type Step = 'file' | 'mapping' | 'preview' | 'done';
 type Filter = 'all' | 'valid' | 'duplicate' | 'error';
 
@@ -43,6 +44,7 @@ interface Props {
 }
 
 export default function StudentImportWizard({ studentsPath, parentsPath }: Props) {
+    const { tr } = useI18n();
     const { profile } = useSchoolProfile();
     const vocational = profile.institutionType === 'VOCATIONAL_TRAINING';
     const fields = useMemo(() => fieldsFor(profile.institutionType === 'CRECHE'), [profile.institutionType]);
@@ -188,10 +190,8 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
     return (
         <div className="mx-auto max-w-6xl space-y-4">
             <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Importer des élèves depuis Excel</h1>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                    Ajoutez toute votre liste d’élèves en une fois, sans les saisir un par un.
-                </p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{tr("Importer des élèves depuis Excel")}</h1>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{tr("Ajoutez toute votre liste d’élèves en une fois, sans les saisir un par un.")}</p>
             </div>
 
             <ol className="flex flex-wrap gap-2 text-xs font-semibold">
@@ -202,14 +202,14 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                             step === item ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
                         }`}
                     >
-                        {index + 1}. {['Fichier', 'Colonnes', 'Vérification', 'Résultat'][index]}
+                        {index + 1}. {tr(['Fichier', 'Colonnes', 'Vérification', 'Résultat'][index])}
                     </li>
                 ))}
             </ol>
 
             {error && (
                 <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200">
-                    {error}
+                    {tr(error)}
                 </div>
             )}
 
@@ -217,19 +217,16 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                 <div className={`${card} space-y-5`}>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h2 className="font-semibold text-gray-900 dark:text-white">1. Préparez votre fichier</h2>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
-                                Utilisez votre fichier actuel ou notre modèle. Une ligne par élève, les en-têtes sur la première ligne.
-                            </p>
+                            <h2 className="font-semibold text-gray-900 dark:text-white">{tr("1. Préparez votre fichier")}</h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">{tr("Utilisez votre fichier actuel ou notre modèle. Une ligne par élève, les en-têtes sur la première ligne.")}</p>
                         </div>
                         <button type="button" className={secondaryBtn} onClick={() => downloadTemplate(fields)}>
-                            <Download className="h-4 w-4" /> Télécharger le modèle
-                        </button>
+                            <Download className="h-4 w-4" />{tr("Télécharger le modèle")}</button>
                     </div>
                     <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 p-8 text-center hover:border-indigo-400 dark:border-gray-600">
                         <Upload className="h-8 w-8 text-indigo-500" />
-                        <span className="font-semibold text-gray-800 dark:text-gray-100">{busy ? 'Lecture…' : 'Choisir un fichier Excel ou CSV'}</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">.xlsx, .xls ou .csv · {MAX_ROWS} élèves maximum par import</span>
+                        <span className="font-semibold text-gray-800 dark:text-gray-100">{busy ? tr("Lecture…") : tr("Choisir un fichier Excel ou CSV")}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{tr(".xlsx, .xls ou .csv ·")}{' '}{MAX_ROWS}{' '}{tr("élèves maximum par import")}</span>
                         <input
                             type="file"
                             accept=".xlsx,.xls,.csv"
@@ -247,31 +244,29 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
             {step === 'mapping' && sheet && (
                 <div className={`${card} space-y-4`}>
                     <div>
-                        <h2 className="font-semibold text-gray-900 dark:text-white">2. Associez les colonnes</h2>
+                        <h2 className="font-semibold text-gray-900 dark:text-white">{tr("2. Associez les colonnes")}</h2>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
                             <FileSpreadsheet className="me-1 inline h-4 w-4" />
-                            {fileName} · {sheet.rows.length} ligne{sheet.rows.length > 1 ? 's' : ''}. Vérifiez à quel champ correspond chaque colonne.
-                        </p>
+                            {fileName} · {sheet.rows.length} ligne{sheet.rows.length > 1 ? 's' : ''}{tr(". Vérifiez à quel champ correspond chaque colonne.")}</p>
                     </div>
                     <div className="grid gap-3 md:grid-cols-2">
                         {sheet.headers.map((header, column) => (
                             <div key={column} className="rounded-xl border border-gray-200 p-3 dark:border-gray-700">
                                 <p className="truncate text-sm font-semibold text-gray-900 dark:text-white" title={header}>
-                                    {header || `Colonne ${column + 1}`}
+                                    {header || tr("Colonne {v0}", { v0: column + 1 })}
                                 </p>
-                                <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                                    ex. : {sheet.rows.slice(0, 3).map((row) => row.cells[column]).filter(Boolean).join(' · ') || '—'}
+                                <p className="truncate text-xs text-gray-500 dark:text-gray-400">{tr("ex. :")}{sheet.rows.slice(0, 3).map((row) => row.cells[column]).filter(Boolean).join(' · ') || '—'}
                                 </p>
                                 <select
                                     value={mapping[column] ?? ''}
                                     onChange={(event) => setColumn(column, (event.target.value || null) as ImportFieldKey | null)}
                                     className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                    aria-label={`Champ pour la colonne ${header || column + 1}`}
+                                    aria-label={tr("Champ pour la colonne {v0}", { v0: header || column + 1 })}
                                 >
-                                    <option value="">Ignorer cette colonne</option>
+                                    <option value="">{tr("Ignorer cette colonne")}</option>
                                     {fields.map((field) => (
                                         <option key={field.key} value={field.key}>
-                                            {field.label} — {field.hint}
+                                            {tr(field.label)} — {tr(field.hint)}
                                         </option>
                                     ))}
                                 </select>
@@ -279,16 +274,12 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                         ))}
                     </div>
                     {!namesMapped && (
-                        <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
-                            Associez « Nom » et « Prénom », ou « Nom complet », pour continuer.
-                        </p>
+                        <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">{tr("Associez « Nom » et « Prénom », ou « Nom complet », pour continuer.")}</p>
                     )}
                     <div className="flex flex-wrap justify-between gap-2">
-                        <button type="button" className={secondaryBtn} onClick={restart}>
-                            Changer de fichier
-                        </button>
+                        <button type="button" className={secondaryBtn} onClick={restart}>{tr("Changer de fichier")}</button>
                         <button type="button" className={primaryBtn} disabled={!namesMapped || busy} onClick={runValidation}>
-                            {busy ? 'Vérification…' : 'Vérifier les lignes'}
+                            {busy ? tr("Vérification…") : tr("Vérifier les lignes")}
                         </button>
                     </div>
                 </div>
@@ -306,15 +297,14 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                                 className={`rounded-xl p-3 text-start ${STATUS_STYLE[status]} ${filter === status ? 'ring-2 ring-indigo-500' : ''}`}
                             >
                                 <span className="block text-2xl font-extrabold">{validation.counts[status]}</span>
-                                <span className="text-xs font-semibold">{STATUS_LABEL[status]}{status !== 'valid' ? ' · ignoré' : ''}</span>
+                                <span className="text-xs font-semibold">{tr(STATUS_LABEL[status])}{status !== 'valid' ? tr(" · ignoré") : ''}</span>
                             </button>
                         ))}
                     </div>
 
                     {validation.parents.toCreate + validation.parents.toLink > 0 && (
                         <p className="text-sm text-gray-700 dark:text-gray-200">
-                            {validation.parents.toCreate} profil(s) parent seront créés, {validation.parents.toLink} élève(s) rattaché(s) à un parent existant.
-                        </p>
+                            {validation.parents.toCreate}{' '}{tr("profil(s) parent seront créés,")}{' '}{validation.parents.toLink}{tr("élève(s) rattaché(s) à un parent existant.")}</p>
                     )}
 
                     {overCapacity && (
@@ -325,30 +315,23 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                                     current: validation.capacity.current,
                                     adding: validation.counts.valid,
                                     packName: validation.capacity.packName,
-                                })}{' '}
-                                Retirez des lignes du fichier ou passez à un pack supérieur.
-                            </span>
-                            <button type="button" className={primaryBtn} onClick={openUpgrade}>
-                                Voir les packs
-                            </button>
+                                })}{' '}{tr("Retirez des lignes du fichier ou passez à un pack supérieur.")}</span>
+                            <button type="button" className={primaryBtn} onClick={openUpgrade}>{tr("Voir les packs")}</button>
                         </div>
                     )}
 
                     {validation.missingGroups.length > 0 && (
                         <div className={`${card} space-y-2`}>
-                            <p className="text-sm text-gray-800 dark:text-gray-100">
-                                Ces groupes n’existent pas encore : <strong>{validation.missingGroups.join(', ')}</strong>
+                            <p className="text-sm text-gray-800 dark:text-gray-100">{tr("Ces groupes n’existent pas encore :")}<strong>{validation.missingGroups.join(', ')}</strong>
                             </p>
                             {vocational ? (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">Créez les groupes de formation depuis la page Groupes.</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{tr("Créez les groupes de formation depuis la page Groupes.")}</p>
                             ) : (
                                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
-                                    <input type="checkbox" checked={createGroups} onChange={(event) => setCreateGroups(event.target.checked)} className="h-4 w-4" />
-                                    Créer ces groupes automatiquement
-                                </label>
+                                    <input type="checkbox" checked={createGroups} onChange={(event) => setCreateGroups(event.target.checked)} className="h-4 w-4" />{tr("Créer ces groupes automatiquement")}</label>
                             )}
                             {!createGroups && !vocational && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">Sinon, ces élèves seront créés sans groupe.</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{tr("Sinon, ces élèves seront créés sans groupe.")}</p>
                             )}
                         </div>
                     )}
@@ -359,9 +342,9 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                                 .filter((row) => filter === 'all' || row.status === filter)
                                 .map((row) => (
                                     <li key={row.rowNumber} className="flex flex-col gap-1 p-3 sm:flex-row sm:items-start sm:gap-4">
-                                        <span className="w-16 shrink-0 text-xs text-gray-500 dark:text-gray-400">Ligne {row.rowNumber}</span>
+                                        <span className="w-16 shrink-0 text-xs text-gray-500 dark:text-gray-400">{tr("Ligne")}{' '}{row.rowNumber}</span>
                                         <span className={`w-fit shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLE[row.status]}`}>
-                                            {STATUS_LABEL[row.status]}
+                                            {tr(STATUS_LABEL[row.status])}
                                         </span>
                                         <div className="min-w-0 flex-1">
                                             <p className="font-medium text-gray-900 dark:text-white">
@@ -369,10 +352,10 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                                                 {row.group && <span className="ms-2 text-xs text-gray-500 dark:text-gray-400">· {row.group}</span>}
                                             </p>
                                             {row.errors.map((message) => (
-                                                <p key={message} className="text-xs text-red-600 dark:text-red-300">{message}</p>
+                                                <p key={message} className="text-xs text-red-600 dark:text-red-300">{tr(message)}</p>
                                             ))}
                                             {row.warnings.map((message) => (
-                                                <p key={message} className="text-xs text-amber-700 dark:text-amber-300">{message}</p>
+                                                <p key={message} className="text-xs text-amber-700 dark:text-amber-300">{tr(message)}</p>
                                             ))}
                                         </div>
                                     </li>
@@ -381,16 +364,14 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                     </div>
 
                     <div className="flex flex-wrap justify-between gap-2">
-                        <button type="button" className={secondaryBtn} onClick={() => setStep('mapping')}>
-                            Modifier les colonnes
-                        </button>
+                        <button type="button" className={secondaryBtn} onClick={() => setStep('mapping')}>{tr("Modifier les colonnes")}</button>
                         <button
                             type="button"
                             className={primaryBtn}
                             disabled={busy || validation.counts.valid === 0 || !!overCapacity}
                             onClick={runCommit}
                         >
-                            {busy ? 'Import en cours…' : `Importer ${validation.counts.valid} élève${validation.counts.valid > 1 ? 's' : ''}`}
+                            {busy ? tr("Import en cours…") : tr("Importer {valid} élève{v1}", { valid: validation.counts.valid, v1: validation.counts.valid > 1 ? 's' : '' })}
                         </button>
                     </div>
                 </div>
@@ -399,21 +380,17 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
             {step === 'done' && result && sheet && (
                 <div className={`${card} space-y-4`}>
                     <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-                        <CheckCircle2 className="h-6 w-6 text-emerald-500" /> Import terminé
-                    </div>
+                        <CheckCircle2 className="h-6 w-6 text-emerald-500" />{tr("Import terminé")}</div>
                     <ul className="space-y-1 text-sm text-gray-800 dark:text-gray-100">
-                        <li><CheckCircle2 className="me-1 inline h-4 w-4 text-emerald-500" />{result.counts.created} élève(s) créé(s)</li>
-                        <li><AlertTriangle className="me-1 inline h-4 w-4 text-amber-500" />{result.counts.duplicate} doublon(s) ignoré(s)</li>
-                        <li><XCircle className="me-1 inline h-4 w-4 text-red-500" />{result.counts.error} ligne(s) en erreur</li>
-                        <li>{result.parents.created} profil(s) parent créé(s)</li>
-                        {result.createdGroups.length > 0 && <li>Groupes créés : {result.createdGroups.join(', ')}</li>}
+                        <li><CheckCircle2 className="me-1 inline h-4 w-4 text-emerald-500" />{result.counts.created}{' '}{tr("élève(s) créé(s)")}</li>
+                        <li><AlertTriangle className="me-1 inline h-4 w-4 text-amber-500" />{result.counts.duplicate}{' '}{tr("doublon(s) ignoré(s)")}</li>
+                        <li><XCircle className="me-1 inline h-4 w-4 text-red-500" />{result.counts.error}{' '}{tr("ligne(s) en erreur")}</li>
+                        <li>{result.parents.created}{' '}{tr("profil(s) parent créé(s)")}</li>
+                        {result.createdGroups.length > 0 && <li>{tr("Groupes créés :")}{' '}{result.createdGroups.join(', ')}</li>}
                     </ul>
                     {parentsPath && (
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Créez les liens d’accès des parents depuis la page Parents.{' '}
-                            <Link href={parentsPath} className="font-semibold text-indigo-600 hover:underline dark:text-indigo-300">
-                                Ouvrir la page Parents
-                            </Link>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{tr("Créez les liens d’accès des parents depuis la page Parents.")}{' '}
+                            <Link href={parentsPath} className="font-semibold text-indigo-600 hover:underline dark:text-indigo-300">{tr("Ouvrir la page Parents")}</Link>
                         </p>
                     )}
                     <div className="flex flex-wrap gap-2">
@@ -428,15 +405,10 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                                     )
                                 }
                             >
-                                <Download className="h-4 w-4" /> Télécharger les lignes en erreur
-                            </button>
+                                <Download className="h-4 w-4" />{tr("Télécharger les lignes en erreur")}</button>
                         )}
-                        <button type="button" className={secondaryBtn} onClick={restart}>
-                            Importer un autre fichier
-                        </button>
-                        <Link href={studentsPath} className={primaryBtn}>
-                            Voir les élèves
-                        </Link>
+                        <button type="button" className={secondaryBtn} onClick={restart}>{tr("Importer un autre fichier")}</button>
+                        <Link href={studentsPath} className={primaryBtn}>{tr("Voir les élèves")}</Link>
                     </div>
                 </div>
             )}

@@ -18,7 +18,9 @@ import { formationsService } from '@/lib/services/formations';
 import Button from '@/components/Button';
 import FormationInscriptionForm from '@/components/forms/FormationInscriptionForm';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function FormationDashboard() {
+    const { tr } = useI18n();
     const router = useRouter();
     const [stats, setStats] = useState({
         totalFormations: 0,
@@ -53,7 +55,7 @@ export default function FormationDashboard() {
                 description: formData.description || undefined,
             });
 
-            alert('Formation créée avec succès !');
+            alert(tr("Formation créée avec succès !"));
             setIsModalOpen(false);
             setFormData({ name: '', duration: '', price: '', description: '' });
             // Refresh stats
@@ -62,7 +64,7 @@ export default function FormationDashboard() {
         } catch (error: any) {
             console.error('Formation creation failed:', error);
             const errorMessage = error.response?.data?.error || error.message || 'Erreur lors de la création';
-            alert(`Erreur: ${errorMessage}`);
+            alert(tr("Erreur : {msg}", { msg: tr(errorMessage) }));
         } finally {
             setCreateLoading(false);
         }
@@ -100,7 +102,7 @@ export default function FormationDashboard() {
         </div>
     );
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Chargement des données...</div>;
+    if (loading) return <div className="p-8 text-center text-gray-500">{tr("Chargement des données...")}</div>;
 
     return (
         <div className="p-0 lg:p-6 space-y-8">
@@ -110,37 +112,33 @@ export default function FormationDashboard() {
                 <>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-800">Tableau de Bord Formations</h1>
-                            <p className="text-gray-500 mt-1">Vue d'ensemble de l'activité</p>
+                            <h1 className="text-2xl font-bold text-gray-800">{tr("Tableau de Bord Formations")}</h1>
+                            <p className="text-gray-500 mt-1">{tr("Vue d'ensemble de l'activité")}</p>
                         </div>
                         <div className="flex gap-2">
-                            <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
-                                Exporter
-                            </button>
-                            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-                                Nouveau Rapport
-                            </button>
+                            <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">{tr("Exporter")}</button>
+                            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">{tr("Nouveau Rapport")}</button>
                         </div>
                     </div>
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <StatCard
-                            title="Total Formations"
+                            title={tr("Total Formations")}
                             value={stats.totalFormations}
                             icon={BookOpen}
                             color="bg-blue-500"
                             trend={12}
                         />
                         <StatCard
-                            title="Inscriptions Totales"
+                            title={tr("Inscriptions Totales")}
                             value={stats.totalInscriptions}
                             icon={Users}
                             color="bg-purple-500"
                             trend={8}
                         />
                         <StatCard
-                            title="Revenu Total"
+                            title={tr("Revenu Total")}
                             value={`${stats.totalRevenue} DH`}
                             icon={DollarSign}
                             color="bg-green-500"
@@ -153,12 +151,12 @@ export default function FormationDashboard() {
                         {/* Recent Inscriptions */}
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-bold text-gray-800">Inscriptions Récentes</h3>
-                                <button className="text-blue-600 text-sm font-medium hover:underline">Voir tout</button>
+                                <h3 className="text-lg font-bold text-gray-800">{tr("Inscriptions Récentes")}</h3>
+                                <button className="text-blue-600 text-sm font-medium hover:underline">{tr("Voir tout")}</button>
                             </div>
                             <div className="space-y-4">
                                 {stats.recentInscriptions.length === 0 ? (
-                                    <p className="text-gray-500 text-center py-4">Aucune inscription récente</p>
+                                    <p className="text-gray-500 text-center py-4">{tr("Aucune inscription récente")}</p>
                                 ) : (
                                     stats.recentInscriptions.map((inscription: any) => (
                                         <div key={inscription.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
@@ -172,8 +170,8 @@ export default function FormationDashboard() {
                                                 </div>
                                             </div>
                                             <div className="text-end">
-                                                <p className="font-bold text-gray-800">{inscription.amount} DH</p>
-                                                <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Payé</span>
+                                                <p className="font-bold text-gray-800">{inscription.amount}{' '}{tr("DH")}</p>
+                                                <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">{tr("Payé")}</span>
                                             </div>
                                         </div>
                                     ))
@@ -183,47 +181,47 @@ export default function FormationDashboard() {
 
                         {/* Quick Actions */}
                         <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-lg p-6 text-white">
-                            <h3 className="text-lg font-bold mb-4">Actions Rapides</h3>
+                            <h3 className="text-lg font-bold mb-4">{tr("Actions Rapides")}</h3>
                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                                 <button
                                     onClick={() => setIsModalOpen(true)}
                                     className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <BookOpen className="mb-3 text-blue-400 group-hover:scale-110 transition-transform" size={24} />
-                                    <p className="font-medium">Nouvelle Formation</p>
-                                    <p className="text-sm text-gray-400 mt-1">Créer un nouveau cours</p>
+                                    <p className="font-medium">{tr("Nouvelle Formation")}</p>
+                                    <p className="text-sm text-gray-400 mt-1">{tr("Créer un nouveau cours")}</p>
                                 </button>
                                 <button
                                     onClick={() => setIsInscriptionModalOpen(true)}
                                     className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <Users className="mb-3 text-purple-400 group-hover:scale-110 transition-transform" size={24} />
-                                    <p className="font-medium">Inscrire un élève</p>
-                                    <p className="text-sm text-gray-400 mt-1">Ajouter une inscription</p>
+                                    <p className="font-medium">{tr("Inscrire un élève")}</p>
+                                    <p className="text-sm text-gray-400 mt-1">{tr("Ajouter une inscription")}</p>
                                 </button>
                                 <button
                                     onClick={() => router.push('/admin/teachers?type=FORMATION')}
                                     className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <TrendingUp className="mb-3 text-pink-400 group-hover:scale-110 transition-transform" size={24} />
-                                    <p className="font-medium">Nouveau Professeur</p>
-                                    <p className="text-sm text-gray-400 mt-1">Ajouter un formateur</p>
+                                    <p className="font-medium">{tr("Nouveau Professeur")}</p>
+                                    <p className="text-sm text-gray-400 mt-1">{tr("Ajouter un formateur")}</p>
                                 </button>
                                 <button
                                     onClick={() => router.push('/admin/groups?type=FORMATION')}
                                     className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <Calendar className="mb-3 text-orange-400 group-hover:scale-110 transition-transform" size={24} />
-                                    <p className="font-medium">Planning</p>
-                                    <p className="text-sm text-gray-400 mt-1">Gérer les horaires</p>
+                                    <p className="font-medium">{tr("Planning")}</p>
+                                    <p className="text-sm text-gray-400 mt-1">{tr("Gérer les horaires")}</p>
                                 </button>
                                 <button
                                     onClick={() => router.push('/admin/finance')}
                                     className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <TrendingUp className="mb-3 text-green-400 group-hover:scale-110 transition-transform" size={24} />
-                                    <p className="font-medium">Rapports</p>
-                                    <p className="text-sm text-gray-400 mt-1">Voir les statistiques</p>
+                                    <p className="font-medium">{tr("Rapports")}</p>
+                                    <p className="text-sm text-gray-400 mt-1">{tr("Voir les statistiques")}</p>
                                 </button>
                             </div>
                         </div>
@@ -240,8 +238,8 @@ export default function FormationDashboard() {
 
                         <div className="relative z-10 flex justify-between items-center">
                             <div>
-                                <h2 className="text-3xl font-bold tracking-tight">Nouvelle Formation</h2>
-                                <p className="text-purple-100 font-medium mt-1">Créer une nouvelle formation professionnelle</p>
+                                <h2 className="text-3xl font-bold tracking-tight">{tr("Nouvelle Formation")}</h2>
+                                <p className="text-purple-100 font-medium mt-1">{tr("Créer une nouvelle formation professionnelle")}</p>
                             </div>
                         </div>
                     </div>
@@ -250,7 +248,7 @@ export default function FormationDashboard() {
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Nom de la formation <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">{tr("Nom de la formation")}{' '}<span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
                                         name="name"
@@ -258,13 +256,13 @@ export default function FormationDashboard() {
                                         onChange={handleFormChange}
                                         required
                                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
-                                        placeholder="Ex: Coiffure Professionnelle"
+                                        placeholder={tr("Ex: Coiffure Professionnelle")}
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1">Durée <span className="text-red-500">*</span></label>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1">{tr("Durée")}{' '}<span className="text-red-500">*</span></label>
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -273,13 +271,13 @@ export default function FormationDashboard() {
                                                 onChange={handleFormChange}
                                                 required
                                                 className="w-full ps-10 pe-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
-                                                placeholder="Ex: 3 mois"
+                                                placeholder={tr("Ex: 3 mois")}
                                             />
                                             <Clock className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1">Prix (DH) <span className="text-red-500">*</span></label>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1">{tr("Prix (DH)")}{' '}<span className="text-red-500">*</span></label>
                                         <div className="relative">
                                             <input
                                                 type="number"
@@ -289,7 +287,7 @@ export default function FormationDashboard() {
                                                 required
                                                 min="0"
                                                 className="w-full ps-10 pe-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
-                                                placeholder="Ex: 2500"
+                                                placeholder={tr("Ex: 2500")}
                                             />
                                             <DollarSign className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         </div>
@@ -297,23 +295,23 @@ export default function FormationDashboard() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1">{tr("Description")}</label>
                                     <textarea
                                         name="description"
                                         value={formData.description}
                                         onChange={handleFormChange}
                                         rows={4}
                                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none resize-none"
-                                        placeholder="Description du programme..."
+                                        placeholder={tr("Description du programme...")}
                                     />
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-4">
-                            <Button type="button" onClick={() => setIsModalOpen(false)} className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-xl">Annuler</Button>
+                            <Button type="button" onClick={() => setIsModalOpen(false)} className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-xl">{tr("Annuler")}</Button>
                             <Button type="submit" disabled={createLoading} className="bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-500/20 px-8 py-3 rounded-xl">
-                                {createLoading ? 'Création...' : 'Créer la Formation'}
+                                {createLoading ? tr("Création...") : tr("Créer la Formation")}
                             </Button>
                         </div>
                     </form>
@@ -325,7 +323,7 @@ export default function FormationDashboard() {
                 <FormationInscriptionForm
                     onCancel={() => setIsInscriptionModalOpen(false)}
                     onSuccess={() => {
-                        alert('Inscription réussie !');
+                        alert(tr("Inscription réussie !"));
                         setIsInscriptionModalOpen(false);
                         // Refresh stats
                         formationsService.getAnalytics().then(setStats);

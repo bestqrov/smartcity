@@ -20,6 +20,7 @@ import { formationsService, Formation } from '@/lib/services/formations';
 import { createStudent } from '@/lib/services/students';
 import { createInscription } from '@/lib/services/inscriptions';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 // Helper component for modern inputs with icons
 const ModernInput = ({ icon: Icon, label, required, ...props }: any) => (
     <div className="space-y-1.5">
@@ -46,6 +47,7 @@ interface FormationInscriptionFormProps {
 }
 
 export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess, onCancel }: FormationInscriptionFormProps) {
+    const { tr } = useI18n();
     const router = useRouter();
     const [formations, setFormations] = useState<Formation[]>([]);
     const [loading, setLoading] = useState(true);
@@ -141,7 +143,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
         } catch (error: any) {
             console.error('Submission failed:', error);
             const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Une erreur est survenue';
-            alert(`Erreur: ${errorMessage}`);
+            alert(tr("Erreur : {msg}", { msg: tr(errorMessage) }));
         } finally {
             setLoading(false);
         }
@@ -166,8 +168,8 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                     <GraduationCap size={32} className="text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-3xl font-bold">Inscription</h1>
-                                    <p className="text-blue-100 mt-1">Remplissez le formulaire pour vous inscrire</p>
+                                    <h1 className="text-3xl font-bold">{tr("Inscription")}</h1>
+                                    <p className="text-blue-100 mt-1">{tr("Remplissez le formulaire pour vous inscrire")}</p>
                                 </div>
                             </div>
                         </div>
@@ -176,19 +178,17 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                             {/* Personal Info Group */}
                             <div className="space-y-6">
                                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 border-b pb-2">
-                                    <User className="text-blue-500" size={20} />
-                                    Informations Personnelles
-                                </h3>
+                                    <User className="text-blue-500" size={20} />{tr("Informations Personnelles")}</h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <ModernInput
                                         icon={User}
-                                        label="Nom Complet"
+                                        label={tr("Nom Complet")}
                                         name="name"
                                         value={formData.name}
                                         onChange={handleChange}
                                         required
-                                        placeholder="Ex: Mohammed Alami"
+                                        placeholder={tr("Ex: Mohammed Alami")}
                                     />
                                     <ModernInput
                                         icon={CreditCard}
@@ -197,36 +197,36 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                         value={formData.cin}
                                         onChange={handleChange}
                                         required
-                                        placeholder="Ex: AB123456"
+                                        placeholder={tr("Ex: AB123456")}
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <ModernInput
                                         icon={Mail}
-                                        label="Email"
+                                        label={tr("Email")}
                                         name="email"
                                         type="email"
                                         value={formData.email}
                                         onChange={handleChange}
                                         required
-                                        placeholder="exemple@email.com"
+                                        placeholder={tr("exemple@email.com")}
                                     />
                                     <ModernInput
                                         icon={MapPin}
-                                        label="Adresse"
+                                        label={tr("Adresse")}
                                         name="address"
                                         value={formData.address}
                                         onChange={handleChange}
                                         required
-                                        placeholder="Adresse complète"
+                                        placeholder={tr("Adresse complète")}
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <ModernInput
                                         icon={Smartphone}
-                                        label="WhatsApp"
+                                        label={tr("WhatsApp")}
                                         name="whatsapp"
                                         value={formData.whatsapp}
                                         onChange={handleChange}
@@ -248,12 +248,10 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                             {/* Formations Selection */}
                             <div className="space-y-6">
                                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2 border-b pb-2">
-                                    <BookOpen className="text-blue-500" size={20} />
-                                    Choix des Formations
-                                </h3>
+                                    <BookOpen className="text-blue-500" size={20} />{tr("Choix des Formations")}</h3>
 
                                 {loading ? (
-                                    <div className="text-center py-8 text-gray-500">Chargement des formations...</div>
+                                    <div className="text-center py-8 text-gray-500">{tr("Chargement des formations...")}</div>
                                 ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {formations.map((opt, index) => {
@@ -304,17 +302,13 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                         type="button"
                                         onClick={onCancel}
                                         className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-4 rounded-xl text-lg font-bold transition-all"
-                                    >
-                                        Annuler
-                                    </Button>
+                                    >{tr("Annuler")}</Button>
                                 )}
                                 <Button
                                     type="submit"
                                     className={`bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] ${onCancel ? 'flex-[2]' : 'w-full'}`}
                                 >
-                                    <Save className="me-2" size={20} />
-                                    Confirmer l'Inscription
-                                </Button>
+                                    <Save className="me-2" size={20} />{tr("Confirmer l'Inscription")}</Button>
                             </div>
                         </form>
                     </div>
@@ -334,8 +328,8 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                         <ShoppingCart className="text-blue-400" size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold">Votre facture</h3>
-                                        <p className="text-gray-400 text-sm">{formData.formation.length} formation(s)</p>
+                                        <h3 className="text-xl font-bold">{tr("Votre facture")}</h3>
+                                        <p className="text-gray-400 text-sm">{formData.formation.length}{' '}{tr("formation(s)")}</p>
                                     </div>
                                 </div>
 
@@ -343,7 +337,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                     {formData.formation.length === 0 ? (
                                         <div className="text-center py-8 text-gray-500">
                                             <ShoppingCart size={48} className="mx-auto mb-3 opacity-20" />
-                                            <p>Aucune formation sélectionnée</p>
+                                            <p>{tr("Aucune formation sélectionnée")}</p>
                                         </div>
                                     ) : (
                                         formData.formation.map(id => {
@@ -351,7 +345,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                             return (
                                                 <div key={id} className="flex justify-between items-center bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
                                                     <span className="font-medium text-gray-200">{opt?.name}</span>
-                                                    <span className="font-bold text-blue-400">{opt?.price} DH</span>
+                                                    <span className="font-bold text-blue-400">{opt?.price}{' '}{tr("DH")}</span>
                                                 </div>
                                             );
                                         })
@@ -360,10 +354,10 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
 
                                 <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
                                     <div className="flex justify-between items-end">
-                                        <span className="text-gray-400 font-medium">Total à payer</span>
+                                        <span className="text-gray-400 font-medium">{tr("Total à payer")}</span>
                                         <div className="text-end">
                                             <span className="text-3xl font-bold text-white block">{total}</span>
-                                            <span className="text-sm text-gray-400 font-medium">Dirhams (DH)</span>
+                                            <span className="text-sm text-gray-400 font-medium">{tr("Dirhams (DH)")}</span>
                                         </div>
                                     </div>
                                 </div>

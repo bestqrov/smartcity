@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { getBranches, Branch } from '@/lib/services/branches';
 import useAuthStore, { setActiveBranchId } from '@/store/useAuthStore';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function SelectBranchPage() {
+    const { tr } = useI18n();
     const router = useRouter();
     const user = useAuthStore((state) => state.user);
     const [branches, setBranches] = useState<Branch[]>([]);
@@ -33,15 +35,15 @@ export default function SelectBranchPage() {
         router.push('/admin');
     };
 
-    if (loading) return <div className="p-6">Chargement…</div>;
-    if (error) return <div className="p-6 text-red-600">Impossible de charger les établissements.</div>;
+    if (loading) return <div className="p-6">{tr("Chargement…")}</div>;
+    if (error) return <div className="p-6 text-red-600">{tr("Impossible de charger les établissements.")}</div>;
 
     return (
         <div className="min-h-screen bg-slate-50 p-6">
             <div className="mx-auto max-w-md space-y-4">
-                <h1 className="text-xl font-semibold text-slate-900">Choisissez un établissement</h1>
+                <h1 className="text-xl font-semibold text-slate-900">{tr("Choisissez un établissement")}</h1>
                 {branches.length === 0 && (
-                    <p className="text-slate-500">Aucun établissement trouvé pour votre école.</p>
+                    <p className="text-slate-500">{tr("Aucun établissement trouvé pour votre école.")}</p>
                 )}
                 <div className="space-y-2">
                     {branches.map((branch) => (

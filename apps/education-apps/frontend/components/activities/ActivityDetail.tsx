@@ -6,6 +6,7 @@ import { activitiesService, type ActivityResponseRow, type ActivityWithCounts } 
 import { apiErrorMessage } from '@/lib/services/grades';
 import { fmtDateTime } from './utils';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const ANSWER: Record<'YES' | 'NO' | 'NONE', { label: string; cls: string }> = {
     YES: { label: 'Oui', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' },
     NO: { label: 'Non', cls: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300' },
@@ -27,6 +28,7 @@ const reasonOf = (e: unknown) => {
 };
 
 export default function ActivityDetail({ activity, onBack, onCountsChange, onReminded }: Props) {
+    const { tr } = useI18n();
     const [lastRemindedAt, setLastRemindedAt] = useState<string | null>(activity.lastRemindedAt ?? null);
     const remindLocked = !!lastRemindedAt && Date.now() - new Date(lastRemindedAt).getTime() < REMIND_COOLDOWN_MS;
     const [rows, setRows] = useState<ActivityResponseRow[] | null>(null);
@@ -91,11 +93,11 @@ export default function ActivityDetail({ activity, onBack, onCountsChange, onRem
     return (
         <div className="space-y-4">
             <div className="flex items-start gap-2">
-                <button type="button" onClick={onBack} aria-label="Retour" className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">
+                <button type="button" onClick={onBack} aria-label={tr("Retour")} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700">
                     <ArrowLeft size={20} className="rtl:rotate-180" />
                 </button>
                 <div className="min-w-0 flex-1">
-                    <h2 className="truncate text-lg font-semibold text-slate-900 dark:text-white">{activity.title}</h2>
+                    <h2 className="truncate text-lg font-semibold text-slate-900 dark:text-white">{tr(activity.title)}</h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                         {fmtDateTime(activity.startAt)}
                         {activity.location ? ` · ${activity.location}` : ''}
@@ -108,16 +110,14 @@ export default function ActivityDetail({ activity, onBack, onCountsChange, onRem
                         type="button"
                         onClick={remind}
                         disabled={busy === 'remind' || remindLocked}
-                        title={remindLocked ? 'Une seule relance par 24 h' : undefined}
+                        title={remindLocked ? tr("Une seule relance par 24 h") : undefined}
                         className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
                     >
-                        {busy === 'remind' ? <Loader2 size={16} className="animate-spin" /> : <BellRing size={16} />} Relancer les sans réponse
-                    </button>
+                        {busy === 'remind' ? <Loader2 size={16} className="animate-spin" /> : <BellRing size={16} />}{tr("Relancer les sans réponse")}</button>
                 )}
                 {activity.published && activity.needsConsent && lastRemindedAt && (
-                    <span className="self-center text-xs text-slate-500 dark:text-slate-400">
-                        Dernière relance : {fmtDateTime(lastRemindedAt)}
-                        {remindLocked ? ' (prochaine possible 24 h après)' : ''}
+                    <span className="self-center text-xs text-slate-500 dark:text-slate-400">{tr("Dernière relance :")}{fmtDateTime(lastRemindedAt)}
+                        {remindLocked ? tr(" (prochaine possible 24 h après)") : ''}
                     </span>
                 )}
                 <button
@@ -126,12 +126,11 @@ export default function ActivityDetail({ activity, onBack, onCountsChange, onRem
                     disabled={!rows?.length}
                     className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
                 >
-                    <Download size={16} /> Exporter Excel
-                </button>
+                    <Download size={16} />{tr("Exporter Excel")}</button>
             </div>
-            {error && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{error}</p>}
+            {error && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{tr(error)}</p>}
             {!rows && !error && <Loader2 className="mx-auto animate-spin text-slate-400" />}
-            {rows && rows.length === 0 && <p className="text-center text-sm text-slate-500">Aucun élève concerné.</p>}
+            {rows && rows.length === 0 && <p className="text-center text-sm text-slate-500">{tr("Aucun élève concerné.")}</p>}
             {rows && rows.length > 0 && (
                 <>
                     {/* Phones: cards */}
@@ -144,7 +143,7 @@ export default function ActivityDetail({ activity, onBack, onCountsChange, onRem
                                         <p className="min-w-0 truncate font-medium text-slate-900 dark:text-white">
                                             {r.name} {r.surname}
                                         </p>
-                                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${a.cls}`}>{a.label}</span>
+                                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${a.cls}`}>{tr(a.label)}</span>
                                     </div>
                                     <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
                                         {r.parentName ?? '—'} · <bdi dir="ltr">{r.parentPhone ?? ''}</bdi>
@@ -152,9 +151,7 @@ export default function ActivityDetail({ activity, onBack, onCountsChange, onRem
                                     {r.note && <p className="mt-1 text-xs italic text-slate-500">{r.note}</p>}
                                     {showPaid && (
                                         <label className="mt-2 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                                            <input type="checkbox" className="h-4 w-4" checked={r.paid} disabled={busy === r.studentId} onChange={() => togglePaid(r)} />
-                                            Payé
-                                        </label>
+                                            <input type="checkbox" className="h-4 w-4" checked={r.paid} disabled={busy === r.studentId} onChange={() => togglePaid(r)} />{tr("Payé")}</label>
                                     )}
                                 </li>
                             );
@@ -165,11 +162,11 @@ export default function ActivityDetail({ activity, onBack, onCountsChange, onRem
                         <table className="w-full text-sm">
                             <thead className="bg-slate-50 text-start text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                                 <tr>
-                                    <th className="px-3 py-2 text-start">Élève</th>
-                                    <th className="px-3 py-2 text-start">Parent</th>
-                                    <th className="px-3 py-2 text-start">Réponse</th>
-                                    <th className="px-3 py-2 text-start">Note</th>
-                                    {showPaid && <th className="px-3 py-2 text-start">Payé</th>}
+                                    <th className="px-3 py-2 text-start">{tr("Élève")}</th>
+                                    <th className="px-3 py-2 text-start">{tr("Parent")}</th>
+                                    <th className="px-3 py-2 text-start">{tr("Réponse")}</th>
+                                    <th className="px-3 py-2 text-start">{tr("Note")}</th>
+                                    {showPaid && <th className="px-3 py-2 text-start">{tr("Payé")}</th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -184,7 +181,7 @@ export default function ActivityDetail({ activity, onBack, onCountsChange, onRem
                                                 {r.parentName ?? '—'} <bdi dir="ltr" className="text-xs text-slate-400">{r.parentPhone ?? ''}</bdi>
                                             </td>
                                             <td className="px-3 py-2">
-                                                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${a.cls}`}>{a.label}</span>
+                                                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${a.cls}`}>{tr(a.label)}</span>
                                             </td>
                                             <td className="px-3 py-2 text-xs text-slate-500">{r.note ?? ''}</td>
                                             {showPaid && (

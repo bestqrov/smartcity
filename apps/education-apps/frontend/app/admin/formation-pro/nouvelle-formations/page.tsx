@@ -9,7 +9,9 @@ import Input from '@/components/Input';
 import { formationsService } from '@/lib/services/formations';
 import { useRouter } from 'next/navigation';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function NouvelleFormationsPage() {
+    const { tr } = useI18n();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -36,11 +38,11 @@ export default function NouvelleFormationsPage() {
             });
             // Reset form and redirect or show success
             setFormData({ name: '', duration: '', price: '' });
-            alert('Formation ajoutée avec succès !');
+            alert(tr("Formation ajoutée avec succès !"));
             router.push('/admin/formation-pro/inscription');
         } catch (err) {
             console.error(err);
-            setError('Erreur lors de la création de la formation');
+            setError(tr("Erreur lors de la création de la formation"));
         } finally {
             setLoading(false);
         }
@@ -52,40 +54,38 @@ export default function NouvelleFormationsPage() {
                 <div className="bg-orange-100 p-2 rounded-lg">
                     <DollarSign className="text-orange-600" size={24} />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">Nouvelle Formation</h2>
+                <h2 className="text-2xl font-bold text-gray-800">{tr("Nouvelle Formation")}</h2>
             </div>
-            {error && <div className="p-3 mb-4 text-red-700 bg-red-100 rounded-lg">{error}</div>}
+            {error && <div className="p-3 mb-4 text-red-700 bg-red-100 rounded-lg">{tr(error)}</div>}
             <form onSubmit={handleSubmit} className="space-y-4">
                 <Input
-                    label={<span>Nom de la formation <span className="text-red-500">*</span></span>}
+                    label={<span>{tr("Nom de la formation")}{' '}<span className="text-red-500">*</span></span>}
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    placeholder="Ex: Marketing Digital"
+                    placeholder={tr("Ex: Marketing Digital")}
                 />
                 <Input
-                    label={<span>Durée (ex: 3 mois) <span className="text-red-500">*</span></span>}
+                    label={<span>{tr("Durée (ex: 3 mois)")}{' '}<span className="text-red-500">*</span></span>}
                     name="duration"
                     value={formData.duration}
                     onChange={handleChange}
                     required
-                    placeholder="Durée de la formation"
+                    placeholder={tr("Durée de la formation")}
                 />
                 <Input
-                    label={<span>Prix (DH) <span className="text-red-500">*</span></span>}
+                    label={<span>{tr("Prix (DH)")}{' '}<span className="text-red-500">*</span></span>}
                     name="price"
                     type="number"
                     value={formData.price}
                     onChange={handleChange}
                     required
-                    placeholder="Ex: 500"
+                    placeholder={tr("Ex: 500")}
                 />
                 <div className="flex justify-end mt-4">
                     <Button type="submit" className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2">
-                        <Save size={18} />
-                        Ajouter
-                    </Button>
+                        <Save size={18} />{tr("Ajouter")}</Button>
                 </div>
             </form>
         </div>

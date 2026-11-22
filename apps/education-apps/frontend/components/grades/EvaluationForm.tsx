@@ -6,6 +6,7 @@ import type { Evaluation, GradesClient } from '@/lib/services/grades';
 import { apiErrorMessage } from '@/lib/services/grades';
 import { parseScore, todayIso } from './utils';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const LAST_PERIOD_KEY = 'grades:lastPeriod';
 
 interface Props {
@@ -23,6 +24,7 @@ const inputCls =
     'w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-base text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
 
 export default function EvaluationForm({ client, groupId, periods, defaultSubject, evaluation, onClose, onSaved }: Props) {
+    const { tr } = useI18n();
     const lastPeriod = (() => {
         try {
             const v = localStorage.getItem(LAST_PERIOD_KEY);
@@ -44,10 +46,10 @@ export default function EvaluationForm({ client, groupId, periods, defaultSubjec
         e.preventDefault();
         const max = parseScore(maxScore);
         const coef = parseScore(coefficient);
-        if (!title.trim()) return setError('Le titre est obligatoire');
-        if (!period) return setError('Choisissez une période');
-        if (max === null || Number.isNaN(max) || max <= 0) return setError('Barème invalide');
-        if (coef === null || Number.isNaN(coef) || coef <= 0) return setError('Coefficient invalide');
+        if (!title.trim()) return setError(tr("Le titre est obligatoire"));
+        if (!period) return setError(tr("Choisissez une période"));
+        if (max === null || Number.isNaN(max) || max <= 0) return setError(tr("Barème invalide"));
+        if (coef === null || Number.isNaN(coef) || coef <= 0) return setError(tr("Coefficient invalide"));
         setSaving(true);
         setError(null);
         try {
@@ -77,23 +79,17 @@ export default function EvaluationForm({ client, groupId, periods, defaultSubjec
             >
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                        {evaluation ? "Modifier l'évaluation" : 'Nouvelle évaluation'}
+                        {evaluation ? tr("Modifier l'évaluation") : tr("Nouvelle évaluation")}
                     </h2>
-                    <button type="button" onClick={onClose} aria-label="Fermer" className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <button type="button" onClick={onClose} aria-label={tr("Fermer")} className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
                         <X size={20} />
                     </button>
                 </div>
-                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">
-                    Titre
-                    <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Contrôle 1" autoFocus />
+                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">{tr("Titre")}<input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tr("Contrôle 1")} autoFocus />
                 </label>
-                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">
-                    Matière
-                    <input className={inputCls} value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Matière du groupe" />
+                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">{tr("Matière")}<input className={inputCls} value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={tr("Matière du groupe")} />
                 </label>
-                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">
-                    Période
-                    <select className={inputCls} value={period} onChange={(e) => setPeriod(e.target.value)}>
+                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">{tr("Période")}<select className={inputCls} value={period} onChange={(e) => setPeriod(e.target.value)}>
                         {evaluation && !periods.includes(evaluation.period) && <option value={evaluation.period}>{evaluation.period}</option>}
                         {periods.map((p) => (
                             <option key={p} value={p}>
@@ -102,27 +98,21 @@ export default function EvaluationForm({ client, groupId, periods, defaultSubjec
                         ))}
                     </select>
                 </label>
-                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">
-                    Date
-                    <input type="date" className={inputCls} value={date} onChange={(e) => setDate(e.target.value)} />
+                <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">{tr("Date")}<input type="date" className={inputCls} value={date} onChange={(e) => setDate(e.target.value)} />
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                    <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Barème
-                        <input inputMode="decimal" className={inputCls} value={maxScore} onChange={(e) => setMaxScore(e.target.value)} />
+                    <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">{tr("Barème")}<input inputMode="decimal" className={inputCls} value={maxScore} onChange={(e) => setMaxScore(e.target.value)} />
                     </label>
-                    <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">
-                        Coefficient
-                        <input inputMode="decimal" className={inputCls} value={coefficient} onChange={(e) => setCoefficient(e.target.value)} />
+                    <label className="block space-y-1 text-sm font-medium text-slate-700 dark:text-slate-200">{tr("Coefficient")}<input inputMode="decimal" className={inputCls} value={coefficient} onChange={(e) => setCoefficient(e.target.value)} />
                     </label>
                 </div>
-                {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+                {error && <p className="text-sm text-red-600 dark:text-red-400">{tr(error)}</p>}
                 <button
                     type="submit"
                     disabled={saving}
                     className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
                 >
-                    {saving ? 'Enregistrement…' : 'Enregistrer'}
+                    {saving ? tr("Enregistrement…") : tr("Enregistrer")}
                 </button>
             </form>
         </div>

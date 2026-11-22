@@ -5,8 +5,9 @@ import { CalendarOff, Trash2, Plus } from 'lucide-react';
 import { holidaysService } from '@/lib/services/holidays';
 import type { Holiday } from '@/types';
 
-import { appLocale } from '@/lib/i18n/I18nProvider';
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 export default function VacancesPage() {
+    const { tr } = useI18n();
     const [items, setItems] = useState<Holiday[]>([]);
     const [loading, setLoading] = useState(true);
     const [title, setTitle] = useState('');
@@ -42,7 +43,7 @@ export default function VacancesPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Supprimer cette période de congé ?')) return;
+        if (!window.confirm(tr("Supprimer cette période de congé ?"))) return;
         setBusyId(id);
         try {
             await holidaysService.delete(id);
@@ -56,8 +57,8 @@ export default function VacancesPage() {
         <div className="p-0 lg:p-6 space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Vacances & congés</h1>
-                    <p className="text-gray-600 mt-1">Périodes de fermeture affichées aux élèves</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Vacances & congés")}</h1>
+                    <p className="text-gray-600 mt-1">{tr("Périodes de fermeture affichées aux élèves")}</p>
                 </div>
                 <div className="hidden sm:block p-3 rounded-xl bg-orange-100">
                     <CalendarOff className="text-orange-600" size={24} />
@@ -65,21 +66,21 @@ export default function VacancesPage() {
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-                <h2 className="font-bold text-gray-800 mb-4">Nouvelle période</h2>
+                <h2 className="font-bold text-gray-800 mb-4">{tr("Nouvelle période")}</h2>
                 <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div className="sm:col-span-2">
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Titre</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">{tr("Titre")}</label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Ex: Vacances de printemps"
+                            placeholder={tr("Ex: Vacances de printemps")}
                             className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400"
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Début</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">{tr("Début")}</label>
                         <input
                             type="date"
                             value={startDate}
@@ -89,7 +90,7 @@ export default function VacancesPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Fin</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">{tr("Fin")}</label>
                         <input
                             type="date"
                             value={endDate}
@@ -103,23 +104,23 @@ export default function VacancesPage() {
                         disabled={saving}
                         className="sm:col-span-4 flex items-center justify-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl text-sm font-semibold"
                     >
-                        <Plus size={16} /> {saving ? 'Ajout…' : 'Ajouter'}
+                        <Plus size={16} /> {saving ? tr("Ajout…") : tr("Ajouter")}
                     </button>
                 </form>
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-                <h2 className="font-bold text-gray-800 mb-4">Périodes à venir</h2>
+                <h2 className="font-bold text-gray-800 mb-4">{tr("Périodes à venir")}</h2>
                 {loading ? (
-                    <p className="text-sm text-gray-400">Chargement…</p>
+                    <p className="text-sm text-gray-400">{tr("Chargement…")}</p>
                 ) : items.length === 0 ? (
-                    <p className="text-sm text-gray-400">Aucune période enregistrée.</p>
+                    <p className="text-sm text-gray-400">{tr("Aucune période enregistrée.")}</p>
                 ) : (
                     <div className="space-y-3">
                         {items.map((h) => (
                             <div key={h.id} className="flex items-center justify-between gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
                                 <div>
-                                    <p className="font-semibold text-gray-800">{h.title}</p>
+                                    <p className="font-semibold text-gray-800">{tr(h.title)}</p>
                                     <p className="text-sm text-gray-500 mt-1">
                                         {new Date(h.startDate).toLocaleDateString(appLocale())} – {new Date(h.endDate).toLocaleDateString(appLocale())}
                                     </p>

@@ -8,6 +8,7 @@ import ActivityForm from './ActivityForm';
 import ActivityDetail from './ActivityDetail';
 import { fmtDateTime, isPast } from './utils';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 // Covers are not in the list payload (hasCover only): each card lazily loads its activity once.
 const coverCache = new Map<string, Promise<string | null>>();
 const loadCover = (id: string) => {
@@ -44,6 +45,7 @@ function CoverThumb({ id, updatedAt }: { id: string; updatedAt: string }) {
 }
 
 export default function ActivitiesManager() {
+    const { tr } = useI18n();
     const [items, setItems] = useState<ActivityWithCounts[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<'upcoming' | 'past'>('upcoming');
@@ -65,7 +67,7 @@ export default function ActivitiesManager() {
     }, [load]);
 
     const togglePublish = async (a: ActivityWithCounts) => {
-        if (!a.published && !window.confirm('Publier cette activité ? Les parents concernés seront notifiés.')) return;
+        if (!a.published && !window.confirm(tr("Publier cette activité ? Les parents concernés seront notifiés."))) return;
         setBusyId(a.id);
         try {
             const upd = await activitiesService.setPublished(a.id, !a.published);
@@ -78,7 +80,7 @@ export default function ActivitiesManager() {
     };
 
     const remove = async (a: ActivityWithCounts) => {
-        if (!window.confirm(`Supprimer « ${a.title} » et toutes les réponses ?`)) return;
+        if (!window.confirm(tr("Supprimer « {title} » et toutes les réponses ?", { title: a.title }))) return;
         setBusyId(a.id);
         try {
             await activitiesService.remove(a.id);
@@ -123,21 +125,19 @@ export default function ActivitiesManager() {
         <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 dark:text-white">
-                    <PartyPopper className="text-pink-500" /> Activités
-                </h1>
+                    <PartyPopper className="text-pink-500" />{tr("Activités")}</h1>
                 <button
                     type="button"
                     onClick={() => setForm({ activity: null })}
                     className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 font-semibold text-white hover:bg-blue-700 sm:w-auto"
                 >
-                    <Plus size={18} /> Nouvelle activité
-                </button>
+                    <Plus size={18} />{tr("Nouvelle activité")}</button>
             </div>
             <div className="flex gap-2">
                 {(
                     [
-                        ['upcoming', `À venir (${upcoming.length})`],
-                        ['past', `Passées (${past.length})`],
+                        ['upcoming', tr('À venir ({n})', { n: upcoming.length })],
+                        ['past', tr('Passées ({n})', { n: past.length })],
                     ] as const
                 ).map(([id, lbl]) => (
                     <button
@@ -153,11 +153,11 @@ export default function ActivitiesManager() {
                     </button>
                 ))}
             </div>
-            {error && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{error}</p>}
+            {error && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">{tr(error)}</p>}
             {!items && !error && <Loader2 className="mx-auto animate-spin text-slate-400" />}
             {items && list.length === 0 && (
                 <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                    {view === 'upcoming' ? 'Aucune activité à venir.' : 'Aucune activité passée.'}
+                    {view === 'upcoming' ? tr("Aucune activité à venir.") : tr("Aucune activité passée.")}
                 </p>
             )}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -173,7 +173,7 @@ export default function ActivitiesManager() {
                             )}
                             <div className="space-y-1 p-3">
                                 <div className="flex items-start justify-between gap-2">
-                                    <h3 className="min-w-0 truncate font-semibold text-slate-900 dark:text-white">{a.title}</h3>
+                                    <h3 className="min-w-0 truncate font-semibold text-slate-900 dark:text-white">{tr(a.title)}</h3>
                                     <span
                                         className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
                                             a.published
@@ -181,7 +181,7 @@ export default function ActivitiesManager() {
                                                 : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                                         }`}
                                     >
-                                        {a.published ? 'Publiée' : 'Brouillon'}
+                                        {a.published ? tr("Publiée") : tr("Brouillon")}
                                     </span>
                                 </div>
                                 <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
@@ -193,16 +193,15 @@ export default function ActivitiesManager() {
                                     </p>
                                 )}
                                 <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-                                    <Users size={13} /> {a.audience === 'ALL' ? 'Tous les élèves' : `${a.groupIds.length} groupe(s)`} · {a.counts.targeted} élève(s)
-                                    {a.price ? ` · ${a.price} MAD` : ''}
+                                    <Users size={13} /> {a.audience === 'ALL' ? tr("Tous les élèves") : tr("{length} groupe(s)", { length: a.groupIds.length })} · {a.counts.targeted}{tr("élève(s)")}{a.price ? tr(" · {price} MAD", { price: a.price }) : ''}
                                 </p>
                                 {a.needsConsent && (
                                     <div className="flex flex-wrap gap-1 pt-1 text-xs">
-                                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">Oui {a.counts.yes}</span>
-                                        <span className="rounded-full bg-rose-100 px-2 py-0.5 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">Non {a.counts.no}</span>
+                                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">{tr("Oui")}{' '}{a.counts.yes}</span>
+                                        <span className="rounded-full bg-rose-100 px-2 py-0.5 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">{tr("Non")}{' '}{a.counts.no}</span>
                                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600 dark:bg-slate-700 dark:text-slate-300">? {a.counts.noAnswer}</span>
                                         {(a.price ?? 0) > 0 && (
-                                            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">Payé {a.counts.paid}</span>
+                                            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">{tr("Payé")}{' '}{a.counts.paid}</span>
                                         )}
                                     </div>
                                 )}
@@ -215,13 +214,13 @@ export default function ActivitiesManager() {
                                 disabled={busyId === a.id}
                                 className="flex flex-1 items-center justify-center gap-1 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700"
                             >
-                                {a.published ? <EyeOff size={14} /> : <Eye size={14} />} {a.published ? 'Dépublier' : 'Publier'}
+                                {a.published ? <EyeOff size={14} /> : <Eye size={14} />} {a.published ? tr("Dépublier") : tr("Publier")}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => edit(a)}
                                 disabled={busyId === a.id}
-                                aria-label="Modifier"
+                                aria-label={tr("Modifier")}
                                 className="px-4 py-2 text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700"
                             >
                                 <Pencil size={14} />
@@ -230,7 +229,7 @@ export default function ActivitiesManager() {
                                 type="button"
                                 onClick={() => remove(a)}
                                 disabled={busyId === a.id}
-                                aria-label="Supprimer"
+                                aria-label={tr("Supprimer")}
                                 className="px-4 py-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10"
                             >
                                 <Trash2 size={14} />

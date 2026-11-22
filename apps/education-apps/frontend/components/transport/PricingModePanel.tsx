@@ -6,6 +6,7 @@ import { transportErrorMessage } from '@/lib/services/transport';
 import type { TransportPricingMode } from '@/types';
 import { cardCls, errorCls, inputCls, labelCls, primaryBtnCls } from './styles';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const MODES: { value: TransportPricingMode; label: string; hint: string }[] = [
     { value: 'ROUTE', label: 'Prix par ligne', hint: 'Chaque ligne a son tarif mensuel.' },
     { value: 'STOP', label: 'Prix par arrêt', hint: 'Chaque arrêt a son tarif (selon la distance).' },
@@ -13,6 +14,7 @@ const MODES: { value: TransportPricingMode; label: string; hint: string }[] = [
 ];
 
 export default function PricingModePanel() {
+    const { tr } = useI18n();
     const [mode, setMode] = useState<TransportPricingMode>('ROUTE');
     const [uniformPrice, setUniformPrice] = useState('');
     const [saving, setSaving] = useState(false);
@@ -47,10 +49,8 @@ export default function PricingModePanel() {
 
     return (
         <div className={cardCls}>
-            <h2 className="font-bold text-gray-800 mb-1">Tarification du transport</h2>
-            <p className="text-xs text-gray-500 mb-4">
-                Le tarif est figé à l&apos;inscription de l&apos;élève : modifier le mode n&apos;affecte pas les abonnements existants.
-            </p>
+            <h2 className="font-bold text-gray-800 mb-1">{tr("Tarification du transport")}</h2>
+            <p className="text-xs text-gray-500 mb-4">{tr("Le tarif est figé à l'inscription de l'élève : modifier le mode n'affecte pas les abonnements existants.")}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                 {MODES.map((m) => (
                     <label
@@ -66,14 +66,14 @@ export default function PricingModePanel() {
                             checked={mode === m.value}
                             onChange={() => setMode(m.value)}
                         />
-                        <span className="font-semibold">{m.label}</span>
-                        <span className="block text-xs text-gray-500 mt-1">{m.hint}</span>
+                        <span className="font-semibold">{tr(m.label)}</span>
+                        <span className="block text-xs text-gray-500 mt-1">{tr(m.hint)}</span>
                     </label>
                 ))}
             </div>
             {mode === 'UNIFORM' && (
                 <div className="max-w-xs mb-4">
-                    <label className={labelCls}>Prix mensuel unique (MAD)</label>
+                    <label className={labelCls}>{tr("Prix mensuel unique (MAD)")}</label>
                     <input
                         type="number"
                         min="0"
@@ -83,9 +83,9 @@ export default function PricingModePanel() {
                     />
                 </div>
             )}
-            {error && <p className={`${errorCls} mb-3`}>{error}</p>}
+            {error && <p className={`${errorCls} mb-3`}>{tr(error)}</p>}
             <button onClick={save} disabled={saving} className={primaryBtnCls}>
-                {saving ? 'Enregistrement…' : saved ? 'Enregistré ✓' : 'Enregistrer'}
+                {saving ? tr("Enregistrement…") : saved ? tr("Enregistré ✓") : tr("Enregistrer")}
             </button>
         </div>
     );

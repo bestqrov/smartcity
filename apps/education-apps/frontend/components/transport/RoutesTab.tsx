@@ -6,9 +6,11 @@ import { transportService, transportErrorMessage } from '@/lib/services/transpor
 import type { Driver, TransportRoute, Vehicle } from '@/types';
 import { cardCls, errorCls, inputCls, labelCls, primaryBtnCls } from './styles';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const emptyStop = { name: '', order: '', morningTime: '', afternoonTime: '', monthlyPrice: '' };
 
 export default function RoutesTab() {
+    const { tr } = useI18n();
     const [routes, setRoutes] = useState<TransportRoute[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -59,10 +61,10 @@ export default function RoutesTab() {
 
     return (
         <div className="space-y-6">
-            {error && <p className={errorCls}>{error}</p>}
+            {error && <p className={errorCls}>{tr(error)}</p>}
 
             <div className={cardCls}>
-                <h2 className="font-bold text-gray-800 mb-4">Nouvelle ligne</h2>
+                <h2 className="font-bold text-gray-800 mb-4">{tr("Nouvelle ligne")}</h2>
                 <form
                     className="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end"
                     onSubmit={(e) => {
@@ -80,11 +82,11 @@ export default function RoutesTab() {
                     }}
                 >
                     <div>
-                        <label className={labelCls}>Nom</label>
+                        <label className={labelCls}>{tr("Nom")}</label>
                         <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} required />
                     </div>
                     <div>
-                        <label className={labelCls}>Véhicule</label>
+                        <label className={labelCls}>{tr("Véhicule")}</label>
                         <select className={inputCls} value={vehicleId} onChange={(e) => setVehicleId(e.target.value)} required>
                             <option value="">—</option>
                             {vehicles.map((v) => (
@@ -95,7 +97,7 @@ export default function RoutesTab() {
                         </select>
                     </div>
                     <div>
-                        <label className={labelCls}>Chauffeur</label>
+                        <label className={labelCls}>{tr("Chauffeur")}</label>
                         <select className={inputCls} value={driverId} onChange={(e) => setDriverId(e.target.value)} required>
                             <option value="">—</option>
                             {drivers.map((d) => (
@@ -106,17 +108,16 @@ export default function RoutesTab() {
                         </select>
                     </div>
                     <div>
-                        <label className={labelCls}>Prix mensuel (MAD)</label>
+                        <label className={labelCls}>{tr("Prix mensuel (MAD)")}</label>
                         <input type="number" min="0" className={inputCls} value={price} onChange={(e) => setPrice(e.target.value)} />
                     </div>
                     <button type="submit" className={primaryBtnCls}>
-                        <Plus size={16} /> Créer
-                    </button>
+                        <Plus size={16} />{tr("Créer")}</button>
                 </form>
             </div>
 
-            {loading && <p className="text-sm text-gray-400">Chargement…</p>}
-            {!loading && routes.length === 0 && <p className="text-sm text-gray-400">Aucune ligne.</p>}
+            {loading && <p className="text-sm text-gray-400">{tr("Chargement…")}</p>}
+            {!loading && routes.length === 0 && <p className="text-sm text-gray-400">{tr("Aucune ligne.")}</p>}
 
             {routes.map((route) => {
                 const form = stopForm(route.id);
@@ -127,16 +128,16 @@ export default function RoutesTab() {
                                 <h3 className="font-bold text-gray-800">{route.name}</h3>
                                 <p className="text-xs text-gray-500 mt-1">
                                     {route.vehicle?.plate} · {route.driver?.name} ({route.driver?.phone})
-                                    {route.monthlyPrice != null && ` · ${route.monthlyPrice} MAD/mois`}
+                                    {route.monthlyPrice != null && tr(" · {monthlyPrice} MAD/mois", { monthlyPrice: route.monthlyPrice })}
                                 </p>
                             </div>
                             <button
                                 onClick={() => {
-                                    if (window.confirm(`Supprimer la ligne « ${route.name} » ?`)) {
+                                    if (window.confirm(tr("Supprimer la ligne « {name} » ?", { name: route.name }))) {
                                         run(() => transportService.routes.remove(route.id));
                                     }
                                 }}
-                                aria-label="Supprimer la ligne"
+                                aria-label={tr("Supprimer la ligne")}
                                 className="p-2 rounded-lg text-red-500 hover:bg-red-50 shrink-0"
                             >
                                 <Trash2 size={16} />
@@ -144,7 +145,7 @@ export default function RoutesTab() {
                         </div>
 
                         <div className="space-y-2 mb-4">
-                            {(route.stops ?? []).length === 0 && <p className="text-sm text-gray-400">Aucun arrêt.</p>}
+                            {(route.stops ?? []).length === 0 && <p className="text-sm text-gray-400">{tr("Aucun arrêt.")}</p>}
                             {(route.stops ?? []).map((stop) => (
                                 <div
                                     key={stop.id}
@@ -154,18 +155,17 @@ export default function RoutesTab() {
                                         <span className="font-semibold">
                                             {stop.order}. {stop.name}
                                         </span>{' '}
-                                        <span className="text-gray-500">
-                                            · matin {stop.morningTime} · soir {stop.afternoonTime}
-                                            {stop.monthlyPrice != null && ` · ${stop.monthlyPrice} MAD`}
+                                        <span className="text-gray-500">{tr("· matin")}{stop.morningTime}{' '}{tr("· soir")}{' '}{stop.afternoonTime}
+                                            {stop.monthlyPrice != null && tr(" · {monthlyPrice} MAD", { monthlyPrice: stop.monthlyPrice })}
                                         </span>
                                     </span>
                                     <button
                                         onClick={() => {
-                                            if (window.confirm('Supprimer cet arrêt ?')) {
+                                            if (window.confirm(tr("Supprimer cet arrêt ?"))) {
                                                 run(() => transportService.routes.removeStop(route.id, stop.id));
                                             }
                                         }}
-                                        aria-label="Supprimer l'arrêt"
+                                        aria-label={tr("Supprimer l'arrêt")}
                                         className="p-1.5 rounded-lg text-red-500 hover:bg-red-50"
                                     >
                                         <Trash2 size={14} />
@@ -191,28 +191,27 @@ export default function RoutesTab() {
                             }}
                         >
                             <div className="col-span-2">
-                                <label className={labelCls}>Arrêt</label>
+                                <label className={labelCls}>{tr("Arrêt")}</label>
                                 <input className={inputCls} value={form.name} onChange={(e) => setStopField(route.id, 'name', e.target.value)} required />
                             </div>
                             <div>
-                                <label className={labelCls}>Ordre</label>
+                                <label className={labelCls}>{tr("Ordre")}</label>
                                 <input type="number" min="1" className={inputCls} value={form.order} onChange={(e) => setStopField(route.id, 'order', e.target.value)} required />
                             </div>
                             <div>
-                                <label className={labelCls}>Matin</label>
+                                <label className={labelCls}>{tr("Matin")}</label>
                                 <input type="time" className={inputCls} value={form.morningTime} onChange={(e) => setStopField(route.id, 'morningTime', e.target.value)} required />
                             </div>
                             <div>
-                                <label className={labelCls}>Soir</label>
+                                <label className={labelCls}>{tr("Soir")}</label>
                                 <input type="time" className={inputCls} value={form.afternoonTime} onChange={(e) => setStopField(route.id, 'afternoonTime', e.target.value)} required />
                             </div>
                             <div>
-                                <label className={labelCls}>Prix (MAD)</label>
+                                <label className={labelCls}>{tr("Prix (MAD)")}</label>
                                 <input type="number" min="0" className={inputCls} value={form.monthlyPrice} onChange={(e) => setStopField(route.id, 'monthlyPrice', e.target.value)} />
                             </div>
                             <button type="submit" className={`${primaryBtnCls} col-span-2 sm:col-span-6`}>
-                                <Plus size={16} /> Ajouter l&apos;arrêt
-                            </button>
+                                <Plus size={16} />{tr("Ajouter l'arrêt")}</button>
                         </form>
                     </div>
                 );

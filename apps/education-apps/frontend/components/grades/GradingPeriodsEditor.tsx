@@ -5,6 +5,7 @@ import { Plus, Save, X } from 'lucide-react';
 import { getSettings, updateSettings } from '@/lib/services/settings';
 import { apiErrorMessage } from '@/lib/services/grades';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const PRESETS: Record<string, string[]> = {
     Semestres: ['Semestre 1', 'Semestre 2'],
     Trimestres: ['Trimestre 1', 'Trimestre 2', 'Trimestre 3'],
@@ -14,6 +15,7 @@ const MAX_LEN = 30;
 
 /** "Périodes de notation" editor (settings page), saved through PUT /settings. */
 export default function GradingPeriodsEditor() {
+    const { tr } = useI18n();
     const [periods, setPeriods] = useState<string[]>([]);
     const [draft, setDraft] = useState('');
     const [saving, setSaving] = useState(false);
@@ -59,10 +61,8 @@ export default function GradingPeriodsEditor() {
     return (
         <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
             <div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Périodes de notation</h3>
-                <p className="text-sm text-gray-500 dark:text-slate-400">
-                    Les évaluations et les bulletins sont regroupés par période. Les évaluations existantes gardent leur ancienne période : renommer ou supprimer une période n’affecte pas les évaluations déjà créées.
-                </p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{tr("Périodes de notation")}</h3>
+                <p className="text-sm text-gray-500 dark:text-slate-400">{tr("Les évaluations et les bulletins sont regroupés par période. Les évaluations existantes gardent leur ancienne période : renommer ou supprimer une période n’affecte pas les évaluations déjà créées.")}</p>
             </div>
             <div className="flex flex-wrap gap-2">
                 {Object.entries(PRESETS).map(([label, list]) => (
@@ -72,7 +72,7 @@ export default function GradingPeriodsEditor() {
                         onClick={() => setPeriods(list)}
                         className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
-                        {label}
+                        {tr(label)}
                     </button>
                 ))}
             </div>
@@ -82,14 +82,14 @@ export default function GradingPeriodsEditor() {
                         <input
                             value={p}
                             maxLength={MAX_LEN}
-                            aria-label={`Période ${i + 1}`}
+                            aria-label={tr("Période {v0}", { v0: i + 1 })}
                             onChange={(e) => setPeriods((prev) => prev.map((x, j) => (j === i ? e.target.value : x)))}
                             size={Math.max(p.length, 4)}
                             className="bg-transparent text-sm font-medium text-blue-800 focus:outline-none dark:text-blue-200"
                         />
                         <button
                             type="button"
-                            aria-label="Retirer"
+                            aria-label={tr("Retirer")}
                             onClick={() => setPeriods((prev) => prev.filter((_, j) => j !== i))}
                             className="rounded-full p-1 text-blue-700 hover:bg-blue-100 dark:text-blue-200 dark:hover:bg-blue-500/20"
                         >
@@ -110,15 +110,14 @@ export default function GradingPeriodsEditor() {
                                 add();
                             }
                         }}
-                        placeholder="Nouvelle période"
+                        placeholder={tr("Nouvelle période")}
                         className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                     />
                     <button type="button" onClick={add} className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-slate-600 dark:text-slate-200">
-                        <Plus size={16} /> Ajouter
-                    </button>
+                        <Plus size={16} />{tr("Ajouter")}</button>
                 </div>
             )}
-            {message && <p className={`text-sm ${message.ok ? 'text-emerald-600' : 'text-red-600'}`}>{message.text}</p>}
+            {message && <p className={`text-sm ${message.ok ? 'text-emerald-600' : 'text-red-600'}`}>{tr(message.text)}</p>}
             <div className="flex justify-end">
                 <button
                     type="button"
@@ -126,7 +125,7 @@ export default function GradingPeriodsEditor() {
                     disabled={saving}
                     className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
                 >
-                    <Save size={18} /> {saving ? 'Enregistrement…' : 'Enregistrer les périodes'}
+                    <Save size={18} /> {saving ? tr("Enregistrement…") : tr("Enregistrer les périodes")}
                 </button>
             </div>
         </div>

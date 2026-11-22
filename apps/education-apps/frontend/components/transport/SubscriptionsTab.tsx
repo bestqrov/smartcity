@@ -6,6 +6,7 @@ import { getStudents } from '@/lib/services/students';
 import type { Student, TransportRoute, TransportSubscription, TransportSubscriptionStatus } from '@/types';
 import { cardCls, errorCls, inputCls, labelCls, primaryBtnCls, smallBtnCls } from './styles';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const STATUS_LABELS: Record<TransportSubscriptionStatus, string> = {
     ACTIVE: 'Actif',
     PAUSED: 'En pause',
@@ -18,6 +19,7 @@ const currentMonth = () => {
 };
 
 export default function SubscriptionsTab() {
+    const { tr } = useI18n();
     const [subs, setSubs] = useState<TransportSubscription[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [routes, setRoutes] = useState<TransportRoute[]>([]);
@@ -76,10 +78,10 @@ export default function SubscriptionsTab() {
 
     return (
         <div className="space-y-6">
-            {error && <p className={errorCls}>{error}</p>}
+            {error && <p className={errorCls}>{tr(error)}</p>}
 
             <div className={cardCls}>
-                <h2 className="font-bold text-gray-800 mb-4">Nouvel abonnement</h2>
+                <h2 className="font-bold text-gray-800 mb-4">{tr("Nouvel abonnement")}</h2>
                 <form
                     className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end"
                     onSubmit={(e) => {
@@ -92,7 +94,7 @@ export default function SubscriptionsTab() {
                     }}
                 >
                     <div>
-                        <label className={labelCls}>Élève</label>
+                        <label className={labelCls}>{tr("Élève")}</label>
                         <select className={inputCls} value={studentId} onChange={(e) => setStudentId(e.target.value)} required>
                             <option value="">—</option>
                             {students.map((s) => (
@@ -103,7 +105,7 @@ export default function SubscriptionsTab() {
                         </select>
                     </div>
                     <div>
-                        <label className={labelCls}>Ligne</label>
+                        <label className={labelCls}>{tr("Ligne")}</label>
                         <select
                             className={inputCls}
                             value={routeId}
@@ -122,7 +124,7 @@ export default function SubscriptionsTab() {
                         </select>
                     </div>
                     <div>
-                        <label className={labelCls}>Arrêt</label>
+                        <label className={labelCls}>{tr("Arrêt")}</label>
                         <select className={inputCls} value={stopId} onChange={(e) => setStopId(e.target.value)} required>
                             <option value="">—</option>
                             {(selectedRoute?.stops ?? []).map((stop) => (
@@ -132,21 +134,19 @@ export default function SubscriptionsTab() {
                             ))}
                         </select>
                     </div>
-                    <button type="submit" className={primaryBtnCls}>
-                        Abonner
-                    </button>
+                    <button type="submit" className={primaryBtnCls}>{tr("Abonner")}</button>
                 </form>
             </div>
 
             <div className={cardCls}>
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-bold text-gray-800">Abonnements</h2>
+                    <h2 className="font-bold text-gray-800">{tr("Abonnements")}</h2>
                     <select
                         className={`${inputCls} w-40`}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value as TransportSubscriptionStatus | '')}
                     >
-                        <option value="">Tous</option>
+                        <option value="">{tr("Tous")}</option>
                         {Object.entries(STATUS_LABELS).map(([value, label]) => (
                             <option key={value} value={value}>
                                 {label}
@@ -155,8 +155,8 @@ export default function SubscriptionsTab() {
                     </select>
                 </div>
 
-                {loading && <p className="text-sm text-gray-400">Chargement…</p>}
-                {!loading && subs.length === 0 && <p className="text-sm text-gray-400">Aucun abonnement.</p>}
+                {loading && <p className="text-sm text-gray-400">{tr("Chargement…")}</p>}
+                {!loading && subs.length === 0 && <p className="text-sm text-gray-400">{tr("Aucun abonnement.")}</p>}
                 <div className="space-y-3">
                     {subs.map((sub) => (
                         <div key={sub.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
@@ -166,8 +166,8 @@ export default function SubscriptionsTab() {
                                         {sub.student?.name} {sub.student?.surname}
                                     </p>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        {sub.route?.name} · {sub.stop?.name} · {sub.monthlyPrice} MAD/mois ·{' '}
-                                        {STATUS_LABELS[sub.status]}
+                                        {sub.route?.name} · {sub.stop?.name} · {sub.monthlyPrice}{' '}{tr("MAD/mois ·")}{' '}
+                                        {tr(STATUS_LABELS[sub.status])}
                                     </p>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
@@ -183,30 +183,22 @@ export default function SubscriptionsTab() {
                                                     setPayNote('');
                                                     setPayingId(sub.id);
                                                 }}
-                                            >
-                                                Encaisser
-                                            </button>
-                                            <button className={smallBtnCls} onClick={() => run(() => transportService.subscriptions.pause(sub.id))}>
-                                                Pause
-                                            </button>
+                                            >{tr("Encaisser")}</button>
+                                            <button className={smallBtnCls} onClick={() => run(() => transportService.subscriptions.pause(sub.id))}>{tr("Pause")}</button>
                                         </>
                                     )}
                                     {sub.status === 'PAUSED' && (
-                                        <button className={smallBtnCls} onClick={() => run(() => transportService.subscriptions.resume(sub.id))}>
-                                            Reprendre
-                                        </button>
+                                        <button className={smallBtnCls} onClick={() => run(() => transportService.subscriptions.resume(sub.id))}>{tr("Reprendre")}</button>
                                     )}
                                     {sub.status !== 'ENDED' && (
                                         <button
                                             className={`${smallBtnCls} text-red-600`}
                                             onClick={() => {
-                                                if (window.confirm('Terminer cet abonnement ?')) {
+                                                if (window.confirm(tr("Terminer cet abonnement ?"))) {
                                                     run(() => transportService.subscriptions.end(sub.id));
                                                 }
                                             }}
-                                        >
-                                            Terminer
-                                        </button>
+                                        >{tr("Terminer")}</button>
                                     )}
                                 </div>
                             </div>
@@ -232,19 +224,19 @@ export default function SubscriptionsTab() {
                                     }}
                                 >
                                     <div>
-                                        <label className={labelCls}>Mois</label>
+                                        <label className={labelCls}>{tr("Mois")}</label>
                                         <input type="month" className={inputCls} value={payMonth} onChange={(e) => setPayMonth(e.target.value)} required />
                                     </div>
                                     <div>
-                                        <label className={labelCls}>Mode</label>
+                                        <label className={labelCls}>{tr("Mode")}</label>
                                         <select className={inputCls} value={payMethod} onChange={(e) => setPayMethod(e.target.value)}>
-                                            <option>Espèces</option>
-                                            <option>Virement</option>
-                                            <option>Chèque</option>
+                                            <option>{tr("Espèces")}</option>
+                                            <option>{tr("Virement")}</option>
+                                            <option>{tr("Chèque")}</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className={labelCls}>Montant (MAD)</label>
+                                        <label className={labelCls}>{tr("Montant (MAD)")}</label>
                                         <input
                                             type="number"
                                             min="0"
@@ -256,11 +248,11 @@ export default function SubscriptionsTab() {
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <label className={labelCls}>Note</label>
+                                        <label className={labelCls}>{tr("Note")}</label>
                                         <input className={inputCls} value={payNote} onChange={(e) => setPayNote(e.target.value)} />
                                     </div>
                                     <button type="submit" disabled={paying} className={primaryBtnCls}>
-                                        {paying ? 'Enregistrement…' : 'Valider'}
+                                        {paying ? tr("Enregistrement…") : tr("Valider")}
                                     </button>
                                 </form>
                             )}

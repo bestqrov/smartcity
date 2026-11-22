@@ -26,6 +26,7 @@ import { teachersService } from '@/lib/services/teachers';
 import { formationsService } from '@/lib/services/formations';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 // Types
 interface TimeSlot {
     day: string;
@@ -75,6 +76,7 @@ const SUBJECTS = [
 ];
 
 const GroupsContent = () => {
+    const { tr } = useI18n();
     const searchParams = useSearchParams();
     // Deterministic type from URL or null (view all/soutien default?)
     // If type=FORMATION, we lock the UI to Formation mode
@@ -172,22 +174,22 @@ const GroupsContent = () => {
     const handleAddTimeSlot = () => {
         const { day, startTime, endTime } = newSlot;
         if (!startTime || !endTime) {
-            setSlotError('Indiquez l\'heure de début et de fin.');
+            setSlotError(tr("Indiquez l'heure de début et de fin."));
             return;
         }
         if (startTime < SESSION_DAY_START || endTime > SESSION_DAY_END) {
-            setSlotError(`Les séances doivent être entre ${SESSION_DAY_START} et ${SESSION_DAY_END}.`);
+            setSlotError(tr("Les séances doivent être entre {SESSION_DAY_START} et {SESSION_DAY_END}.", { SESSION_DAY_START, SESSION_DAY_END }));
             return;
         }
         if (endTime <= startTime) {
-            setSlotError('La fin doit être après le début.');
+            setSlotError(tr("La fin doit être après le début."));
             return;
         }
         const clash = formData.timeSlots.find(
             (s) => s.day === day && s.startTime < endTime && startTime < s.endTime
         );
         if (clash) {
-            setSlotError(`Chevauche la séance ${clash.day} ${clash.startTime}-${clash.endTime}.`);
+            setSlotError(tr("Chevauche la séance {day} {startTime}-{endTime}.", { day: clash.day, startTime: clash.startTime, endTime: clash.endTime }));
             return;
         }
         setSlotError(null);
@@ -223,7 +225,7 @@ const GroupsContent = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Supprimer ce groupe ?')) {
+        if (confirm(tr("Supprimer ce groupe ?"))) {
             try {
                 await groupsService.delete(id);
                 fetchData();
@@ -256,24 +258,24 @@ const GroupsContent = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
                         {isFormationMode
-                            ? 'Gestion des Groupes (Formation Pro)'
+                            ? tr("Gestion des Groupes (Formation Pro)")
                             : isCrecheMode
-                                ? 'Gestion des Sections'
-                                : 'Gestion des Groupes'}
+                                ? tr("Gestion des Sections")
+                                : tr("Gestion des Groupes")}
                     </h1>
                     <p className="text-gray-500 mt-1">
                         {isFormationMode
-                            ? 'Gérez vos cohortes de formation professionnelle'
+                            ? tr("Gérez vos cohortes de formation professionnelle")
                             : isCrecheMode
-                                ? 'Organisez les enfants en sections par âge'
-                                : 'Organisez vos étudiants en groupes par matière et niveau'}
+                                ? tr("Organisez les enfants en sections par âge")
+                                : tr("Organisez vos étudiants en groupes par matière et niveau")}
                     </p>
                 </div>
                 <Button
                     onClick={() => handleOpenModal(null)}
                     className={`bg-gradient-to-r ${headerGradient} text-white shadow-lg`}
                 >
-                    <PlusCircle size={18} className="me-2" /> {isCrecheMode ? 'Nouvelle Section' : 'Nouveau Groupe'}
+                    <PlusCircle size={18} className="me-2" /> {isCrecheMode ? tr("Nouvelle Section") : tr("Nouveau Groupe")}
                 </Button>
             </div>
 
@@ -293,7 +295,7 @@ const GroupsContent = () => {
                                         </p>
                                     </div>
                                     <span className={`px-2.5 py-1 text-xs font-medium rounded-full bg-${themeColor}-50 text-${themeColor}-700`}>
-                                        {group.type === 'FORMATION' ? 'Formation' : group.level}
+                                        {group.type === 'FORMATION' ? tr("Formation") : group.level}
                                     </span>
                                 </div>
 
@@ -301,17 +303,17 @@ const GroupsContent = () => {
                                     {group.teacher && (
                                         <div className="flex items-center gap-2">
                                             <UserIcon size={14} className="text-gray-400" />
-                                            <span>Prof: <span className="font-medium">{group.teacher.name}</span></span>
+                                            <span>{tr("Prof:")}{' '}<span className="font-medium">{group.teacher.name}</span></span>
                                         </div>
                                     )}
                                     <div className="flex items-center gap-2">
                                         <Users size={14} className="text-gray-400" />
-                                        <span>{group.students?.length || 0} Étudiants</span>
+                                        <span>{group.students?.length || 0}{' '}{tr("Étudiants")}</span>
                                     </div>
                                     {group.room && (
                                         <div className="flex items-center gap-2">
                                             <Briefcase size={14} className="text-gray-400" />
-                                            <span>Salle: {group.room}</span>
+                                            <span>{tr("Salle:")}{' '}{group.room}</span>
                                         </div>
                                     )}
                                     {group.timeSlots && group.timeSlots.length > 0 && (
@@ -359,13 +361,13 @@ const GroupsContent = () => {
                                     <ThemeIcon size={24} className="text-white" />
                                 </div>
                                 <h2 className="text-3xl font-bold tracking-tight">
-                                    {editingGroup ? 'Modifier le Groupe' : (isCrecheMode ? 'Créer une Nouvelle Section' : 'Créer un Nouveau Groupe')}
+                                    {editingGroup ? tr("Modifier le Groupe") : (isCrecheMode ? tr("Créer une Nouvelle Section") : tr("Créer un Nouveau Groupe"))}
                                 </h2>
                             </div>
                             <p className="text-white/90 font-medium ms-1 text-lg">
                                 {isFormationMode
-                                    ? 'Configurez une nouvelle cohorte de formation professionnelle'
-                                    : (isCrecheMode ? 'Organisez une nouvelle section de la crèche' : 'Organisez une nouvelle classe de soutien scolaire')}
+                                    ? tr("Configurez une nouvelle cohorte de formation professionnelle")
+                                    : (isCrecheMode ? tr("Organisez une nouvelle section de la crèche") : tr("Organisez une nouvelle classe de soutien scolaire"))}
                             </p>
                         </div>
                     </div>
@@ -376,12 +378,12 @@ const GroupsContent = () => {
                             <div className={`absolute top-0 start-0 w-1 h-full bg-gradient-to-b ${headerGradient}`}></div>
                             <div className="flex items-center gap-2 mb-6 text-gray-800">
                                 <BookCopy size={20} className={`text-${themeColor}-600`} />
-                                <h3 className="font-bold text-lg">Informations Principales</h3>
+                                <h3 className="font-bold text-lg">{tr("Informations Principales")}</h3>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">{isCrecheMode ? 'Nom de la Section' : 'Nom du Groupe'} <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">{isCrecheMode ? tr("Nom de la Section") : tr("Nom du Groupe")} <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <input
                                             required
@@ -389,16 +391,16 @@ const GroupsContent = () => {
                                             className="w-full ps-10 pe-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-medium"
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            placeholder={isCrecheMode ? 'Ex : Section Moyenne A' : 'Ex : Groupe Excellence 2024'}
+                                            placeholder={isCrecheMode ? tr("Ex : Section Moyenne A") : tr("Ex : Groupe Excellence 2024")}
                                         />
                                         <Users className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-2 ms-1">Le nom qui apparaîtra sur les emplois du temps et les listes.</p>
+                                    <p className="text-xs text-gray-500 mt-2 ms-1">{tr("Le nom qui apparaîtra sur les emplois du temps et les listes.")}</p>
                                 </div>
 
                                 {isFormationMode && (
                                     <div className="col-span-2">
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Formation Associée <span className="text-red-500">*</span></label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">{tr("Formation Associée")}{' '}<span className="text-red-500">*</span></label>
                                         <div className="relative">
                                             <select
                                                 required
@@ -406,7 +408,7 @@ const GroupsContent = () => {
                                                 value={formData.formationId}
                                                 onChange={e => setFormData({ ...formData, formationId: e.target.value })}
                                             >
-                                                <option value="">Sélectionner la formation...</option>
+                                                <option value="">{tr("Sélectionner la formation...")}</option>
                                                 {formations.map(f => (
                                                     <option key={f.id} value={f.id}>{f.name}</option>
                                                 ))}
@@ -427,20 +429,20 @@ const GroupsContent = () => {
                                 <div className="absolute top-0 start-0 w-1 h-full bg-gradient-to-b from-blue-500 to-cyan-500"></div>
                                 <div className="flex items-center gap-2 mb-6 text-gray-800">
                                     <GraduationCap size={20} className="text-blue-600" />
-                                    <h3 className="font-bold text-lg">Détails Académiques</h3>
+                                    <h3 className="font-bold text-lg">{tr("Détails Académiques")}</h3>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Niveau Scolaire</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">{tr("Niveau Scolaire")}</label>
                                         <div className="relative">
                                             <select
                                                 className="w-full ps-10 pe-10 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none bg-white font-medium"
                                                 value={formData.level}
                                                 onChange={e => setFormData({ ...formData, level: e.target.value })}
                                             >
-                                                <option value="">Choisir le niveau...</option>
-                                                {NIVEAUX_SCOLAIRE.map(n => <option key={n.key} value={n.key}>{n.nameKey}</option>)}
+                                                <option value="">{tr("Choisir le niveau...")}</option>
+                                                {NIVEAUX_SCOLAIRE.map(n => <option key={n.key} value={n.key}>{tr(n.nameKey)}</option>)}
                                             </select>
                                             <TrendingUp className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             <div className="absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -450,15 +452,15 @@ const GroupsContent = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Matière Enseignée</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">{tr("Matière Enseignée")}</label>
                                         <div className="relative">
                                             <select
                                                 className="w-full ps-10 pe-10 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none bg-white font-medium"
                                                 value={formData.subject}
                                                 onChange={e => setFormData({ ...formData, subject: e.target.value })}
                                             >
-                                                <option value="">Choisir la matière...</option>
-                                                {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                                                <option value="">{tr("Choisir la matière...")}</option>
+                                                {SUBJECTS.map(s => <option key={s} value={s}>{tr(s)}</option>)}
                                             </select>
                                             <BookCopy className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             <div className="absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -475,19 +477,19 @@ const GroupsContent = () => {
                             <div className="absolute top-0 start-0 w-1 h-full bg-gradient-to-b from-emerald-500 to-teal-500"></div>
                             <div className="flex items-center gap-2 mb-6 text-gray-800">
                                 <Users size={20} className="text-emerald-600" />
-                                <h3 className="font-bold text-lg">Logistique & Contact</h3>
+                                <h3 className="font-bold text-lg">{tr("Logistique & Contact")}</h3>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">{isCrecheMode ? 'Éducatrice / Encadrant(e)' : 'Professeur Attitré'}</label>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">{isCrecheMode ? tr("Éducatrice / Encadrant(e)") : tr("Professeur Attitré")}</label>
                                     <div className="relative">
                                         <select
                                             className="w-full ps-10 pe-10 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none bg-white font-medium"
                                             value={formData.teacherId}
                                             onChange={e => setFormData({ ...formData, teacherId: e.target.value })}
                                         >
-                                            <option value="">Sans professeur...</option>
+                                            <option value="">{tr("Sans professeur...")}</option>
                                             {teachers.map(t => (
                                                 <option key={t.id} value={t.id}>{t.name}</option>
                                             ))}
@@ -500,16 +502,16 @@ const GroupsContent = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Salle de Cours</label>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">{tr("Salle de Cours")}</label>
                                     <div className="relative">
                                         <select
                                             className="w-full ps-10 pe-10 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all appearance-none bg-white font-medium"
                                             value={formData.room}
                                             onChange={e => setFormData({ ...formData, room: e.target.value })}
                                         >
-                                            <option value="">Sélectionner une salle...</option>
+                                            <option value="">{tr("Sélectionner une salle...")}</option>
                                             {rooms.map(r => (
-                                                <option key={r.id} value={r.name}>{r.name} ({r.capacity || '?'} places) {r.type ? `- ${r.type}` : ''}</option>
+                                                <option key={r.id} value={r.name}>{r.name} ({r.capacity || '?'}{' '}{tr("places)")}{' '}{r.type ? `- ${r.type}` : ''}</option>
                                             ))}
                                         </select>
                                         <Building className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -520,7 +522,7 @@ const GroupsContent = () => {
                                 </div>
 
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Lien WhatsApp du Groupe</label>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">{tr("Lien WhatsApp du Groupe")}</label>
                                     <div className="relative">
                                         <input
                                             type="url"
@@ -531,7 +533,7 @@ const GroupsContent = () => {
                                         />
                                         <MessageSquare className="absolute start-3 top-1/2 -translate-y-1/2 text-green-500" size={18} />
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-2 ms-1">Ce lien sera accessible directement depuis la liste des groupes.</p>
+                                    <p className="text-xs text-gray-500 mt-2 ms-1">{tr("Ce lien sera accessible directement depuis la liste des groupes.")}</p>
                                 </div>
                             </div>
                         </div>
@@ -541,7 +543,7 @@ const GroupsContent = () => {
                             <div className="absolute top-0 start-0 w-1 h-full bg-gradient-to-b from-amber-500 to-orange-500"></div>
                             <div className="flex items-center gap-2 mb-6 text-gray-800">
                                 <Clock size={20} className="text-amber-600" />
-                                <h3 className="font-bold text-lg">Emploi du Temps</h3>
+                                <h3 className="font-bold text-lg">{tr("Emploi du Temps")}</h3>
                             </div>
 
                             {formData.timeSlots.length > 0 && (
@@ -565,7 +567,7 @@ const GroupsContent = () => {
 
                             <div className="flex flex-wrap items-end gap-3">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1">Jour</label>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">{tr("Jour")}</label>
                                     <select
                                         className="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
                                         value={newSlot.day}
@@ -575,7 +577,7 @@ const GroupsContent = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1">Début</label>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">{tr("Début")}</label>
                                     <input
                                         type="time"
                                         className="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
@@ -586,7 +588,7 @@ const GroupsContent = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1">Fin</label>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1">{tr("Fin")}</label>
                                     <input
                                         type="time"
                                         className="px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
@@ -601,13 +603,10 @@ const GroupsContent = () => {
                                     onClick={handleAddTimeSlot}
                                     className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl font-semibold transition-colors"
                                 >
-                                    <Plus size={16} /> Ajouter
-                                </button>
+                                    <Plus size={16} />{tr("Ajouter")}</button>
                             </div>
-                            {slotError && <p className="text-sm font-medium text-red-600 mt-3 ms-1">{slotError}</p>}
-                            <p className="text-xs text-gray-500 mt-3 ms-1">
-                                Séances entre {SESSION_DAY_START} et {SESSION_DAY_END}, plusieurs par jour possibles. La présence se fait sur ces séances. Visible par les étudiants du groupe sur leur profil.
-                            </p>
+                            {slotError && <p className="text-sm font-medium text-red-600 mt-3 ms-1">{tr(slotError)}</p>}
+                            <p className="text-xs text-gray-500 mt-3 ms-1">{tr("Séances entre")}{SESSION_DAY_START} et {SESSION_DAY_END}{tr(", plusieurs par jour possibles. La présence se fait sur ces séances. Visible par les étudiants du groupe sur leur profil.")}</p>
                         </div>
 
                         {/* Footer Actions */}
@@ -616,14 +615,12 @@ const GroupsContent = () => {
                                 type="button"
                                 onClick={() => setIsModalOpen(false)}
                                 className="px-6 py-3 rounded-xl font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-all"
-                            >
-                                Annuler
-                            </button>
+                            >{tr("Annuler")}</button>
                             <button
                                 type="submit"
                                 className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg bg-gradient-to-r ${headerGradient} transform hover:-translate-y-1 transition-all duration-200`}
                             >
-                                {editingGroup ? 'Enregistrer les Modifications' : (isCrecheMode ? 'Créer la Section' : 'Créer le Groupe')}
+                                {editingGroup ? tr("Enregistrer les Modifications") : (isCrecheMode ? tr("Créer la Section") : tr("Créer le Groupe"))}
                             </button>
                         </div>
                     </form>
@@ -634,8 +631,9 @@ const GroupsContent = () => {
 };
 
 export default function GroupsPage() {
+    const { tr } = useI18n();
     return (
-        <Suspense fallback={<div>Chargement...</div>}>
+        <Suspense fallback={<div>{tr("Chargement...")}</div>}>
             <GroupsContent />
         </Suspense>
     );

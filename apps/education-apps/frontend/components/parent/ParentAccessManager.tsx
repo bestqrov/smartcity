@@ -8,6 +8,7 @@ import { publicUrl, whatsappNumber, parentPortalMessage } from '@/lib/publicUrl'
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import QrCardsPrint, { type QrCardData } from './QrCardsPrint';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 type Filter = 'all' | 'nolink' | 'unopened';
 
 const neverOpened = (p: ParentAccessRow) =>
@@ -18,14 +19,16 @@ const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('fr-
 const childrenLabel = (p: ParentAccessRow) => p.children.map((c) => `${c.name} ${c.surname}`.trim()).join(', ');
 
 function Status({ p }: { p: ParentAccessRow }) {
+    const { tr } = useI18n();
     if (!p.linkIssuedAt)
-        return <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">Sans lien</span>;
+        return <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">{tr("Sans lien")}</span>;
     if (neverOpened(p))
-        return <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">Jamais ouvert</span>;
-    return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">Ouvert</span>;
+        return <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">{tr("Jamais ouvert")}</span>;
+    return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">{tr("Ouvert")}</span>;
 }
 
 export default function ParentAccessManager() {
+    const { tr } = useI18n();
     const { profile } = useSchoolProfile();
     const [rows, setRows] = useState<ParentAccessRow[]>([]);
     const [loading, setLoading] = useState(true);
@@ -101,7 +104,7 @@ export default function ParentAccessManager() {
             setNotice({ kind: 'warn', text: `Aucun numéro valide pour ${p.name}.` });
             return;
         }
-        if (p.linkIssuedAt && !window.confirm("Un nouveau lien va être créé : l'ancien lien de ce parent ne fonctionnera plus.")) return;
+        if (p.linkIssuedAt && !window.confirm(tr("Un nouveau lien va être créé : l'ancien lien de ce parent ne fonctionnera plus."))) return;
         const tab = window.open('', '_blank');
         if (tab) tab.opener = null;
         setBusyId(p.id);
@@ -176,7 +179,7 @@ export default function ParentAccessManager() {
                     : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-700'
             }`}
         >
-            {label} ({n})
+            {tr(label)} ({n})
         </button>
     );
 
@@ -186,7 +189,7 @@ export default function ParentAccessManager() {
             disabled={busyId === p.id}
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
         >
-            <MessageCircle size={14} /> {busyId === p.id ? 'Envoi…' : 'Envoyer par WhatsApp'}
+            <MessageCircle size={14} /> {busyId === p.id ? tr("Envoi…") : tr("Envoyer par WhatsApp")}
         </button>
     );
 
@@ -195,8 +198,8 @@ export default function ParentAccessManager() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Accès parents</h1>
-                <p className="mt-1 text-slate-500 dark:text-slate-400">Envoyez les liens par WhatsApp ou imprimez des cartes QR.</p>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{tr("Accès parents")}</h1>
+                <p className="mt-1 text-slate-500 dark:text-slate-400">{tr("Envoyez les liens par WhatsApp ou imprimez des cartes QR.")}</p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -210,7 +213,7 @@ export default function ParentAccessManager() {
                             <Icon size={22} />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{tr(label)}</p>
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">{value}</p>
                         </div>
                     </div>
@@ -227,7 +230,7 @@ export default function ParentAccessManager() {
                 >
                     {notice.kind === 'ok' ? <CheckCircle2 size={18} className="shrink-0" /> : <AlertTriangle size={18} className="shrink-0" />}
                     <span className="flex-1">{notice.text}</span>
-                    <button onClick={() => setNotice(null)} aria-label="Fermer"><X size={16} /></button>
+                    <button onClick={() => setNotice(null)} aria-label={tr("Fermer")}><X size={16} /></button>
                 </div>
             )}
 
@@ -242,7 +245,7 @@ export default function ParentAccessManager() {
                     <input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Nom ou téléphone…"
+                        placeholder={tr("Nom ou téléphone…")}
                         className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     />
                 </div>
@@ -252,29 +255,25 @@ export default function ParentAccessManager() {
                 <button
                     onClick={selectWithoutLink}
                     className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                >
-                    Sélectionner les parents sans lien
-                </button>
+                >{tr("Sélectionner les parents sans lien")}</button>
                 {selected.size > 0 && (
-                    <button onClick={() => setSelected(new Set())} className="px-2 py-2 text-sm text-slate-500 hover:underline dark:text-slate-400">
-                        Désélectionner
-                    </button>
+                    <button onClick={() => setSelected(new Set())} className="px-2 py-2 text-sm text-slate-500 hover:underline dark:text-slate-400">{tr("Désélectionner")}</button>
                 )}
                 <button
                     onClick={printSelected}
                     disabled={selected.size === 0 || printing}
                     className="ml-auto inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                 >
-                    <QrCode size={16} /> {printing ? 'Création…' : `Imprimer les cartes QR (${selected.size})`}
+                    <QrCode size={16} /> {printing ? tr("Création…") : tr("Imprimer les cartes QR ({size})", { size: selected.size })}
                 </button>
             </div>
 
-            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{tr(error)}</p>}
 
             {loading ? (
-                <p className="py-10 text-center text-slate-500 dark:text-slate-400">Chargement…</p>
+                <p className="py-10 text-center text-slate-500 dark:text-slate-400">{tr("Chargement…")}</p>
             ) : visible.length === 0 ? (
-                <p className="py-10 text-center text-slate-500 dark:text-slate-400">Aucun parent.</p>
+                <p className="py-10 text-center text-slate-500 dark:text-slate-400">{tr("Aucun parent.")}</p>
             ) : (
                 <>
                     {/* Table md+ */}
@@ -283,13 +282,13 @@ export default function ParentAccessManager() {
                             <thead className="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-900/40 dark:text-slate-400">
                                 <tr>
                                     <th className="px-4 py-3">
-                                        <input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible} aria-label="Tout sélectionner" />
+                                        <input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible} aria-label={tr("Tout sélectionner")} />
                                     </th>
-                                    <th className="px-4 py-3">Parent</th>
-                                    <th className="px-4 py-3">Enfants</th>
-                                    <th className="px-4 py-3">Statut</th>
-                                    <th className="px-4 py-3">Lien créé</th>
-                                    <th className="px-4 py-3">Dernière visite</th>
+                                    <th className="px-4 py-3">{tr("Parent")}</th>
+                                    <th className="px-4 py-3">{tr("Enfants")}</th>
+                                    <th className="px-4 py-3">{tr("Statut")}</th>
+                                    <th className="px-4 py-3">{tr("Lien créé")}</th>
+                                    <th className="px-4 py-3">{tr("Dernière visite")}</th>
                                     <th className="px-4 py-3" />
                                 </tr>
                             </thead>
@@ -297,7 +296,7 @@ export default function ParentAccessManager() {
                                 {visible.map((p) => (
                                     <tr key={p.id} className="text-slate-700 dark:text-slate-200">
                                         <td className="px-4 py-3">
-                                            <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggle(p.id)} aria-label={`Sélectionner ${p.name}`} />
+                                            <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggle(p.id)} aria-label={tr("Sélectionner {name}", { name: p.name })} />
                                         </td>
                                         <td className="px-4 py-3">
                                             <p className="font-medium text-slate-900 dark:text-white">{p.name}</p>
@@ -324,7 +323,7 @@ export default function ParentAccessManager() {
                                         className="mt-1"
                                         checked={selected.has(p.id)}
                                         onChange={() => toggle(p.id)}
-                                        aria-label={`Sélectionner ${p.name}`}
+                                        aria-label={tr("Sélectionner {name}", { name: p.name })}
                                     />
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-start justify-between gap-2">
@@ -335,8 +334,7 @@ export default function ParentAccessManager() {
                                         {p.children.length > 0 && (
                                             <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{childrenLabel(p)}</p>
                                         )}
-                                        <p className="mt-1 text-xs text-slate-400">
-                                            Lien : {fmt(p.linkIssuedAt)} · Visite : {fmt(p.lastVisitAt)}
+                                        <p className="mt-1 text-xs text-slate-400">{tr("Lien :")}{fmt(p.linkIssuedAt)}{' '}{tr("· Visite :")}{' '}{fmt(p.lastVisitAt)}
                                         </p>
                                         <div className="mt-3">{waButton(p)}</div>
                                     </div>

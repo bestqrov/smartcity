@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { Check, Copy, ExternalLink, MessageCircle } from 'lucide-react';
 import { whatsappNumber } from '@/lib/publicUrl';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface PortalLinkCardProps {
     title: string;
     url: string;
@@ -17,6 +18,7 @@ interface PortalLinkCardProps {
 
 /** QR code + the link itself, with copy / open / send-by-WhatsApp actions. */
 export default function PortalLinkCard({ title, url, phone, message, warning }: PortalLinkCardProps) {
+    const { tr } = useI18n();
     const [dataUrl, setDataUrl] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
@@ -53,16 +55,16 @@ export default function PortalLinkCard({ title, url, phone, message, warning }: 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 space-y-4">
             <div>
                 <p className="font-semibold text-slate-900 dark:text-white">{title}</p>
-                {warning && <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">{warning}</p>}
+                {warning && <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">{tr(warning)}</p>}
             </div>
 
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
                 <div className="flex h-[220px] w-[220px] shrink-0 items-center justify-center rounded-xl bg-white p-2">
                     {dataUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={dataUrl} alt={`QR code — ${title}`} width={204} height={204} />
+                        <img src={dataUrl} alt={tr("QR code — {title}", { title })} width={204} height={204} />
                     ) : (
-                        <span className="text-sm text-slate-400">QR…</span>
+                        <span className="text-sm text-slate-400">{tr("QR…")}</span>
                     )}
                 </div>
 
@@ -77,7 +79,7 @@ export default function PortalLinkCard({ title, url, phone, message, warning }: 
                             className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                         >
                             {copied ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
-                            {copied ? 'Copié' : 'Copier le lien'}
+                            {copied ? tr("Copié") : tr("Copier le lien")}
                         </button>
                         <a
                             href={waHref}
@@ -85,21 +87,17 @@ export default function PortalLinkCard({ title, url, phone, message, warning }: 
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                         >
-                            <MessageCircle size={16} /> Envoyer par WhatsApp
-                        </a>
+                            <MessageCircle size={16} />{tr("Envoyer par WhatsApp")}</a>
                         <a
                             href={url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10"
                         >
-                            <ExternalLink size={16} /> Ouvrir
-                        </a>
+                            <ExternalLink size={16} />{tr("Ouvrir")}</a>
                     </div>
                     {!number && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                            Aucun numéro enregistré : WhatsApp vous demandera le destinataire.
-                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{tr("Aucun numéro enregistré : WhatsApp vous demandera le destinataire.")}</p>
                     )}
                 </div>
             </div>

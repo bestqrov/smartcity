@@ -5,12 +5,14 @@ import { transportService, transportErrorMessage } from '@/lib/services/transpor
 import type { TransportSubscription } from '@/types';
 import { cardCls, errorCls, inputCls, labelCls } from './styles';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const currentMonth = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 };
 
 export default function DuesTab() {
+    const { tr } = useI18n();
     const [month, setMonth] = useState('');
     const [dues, setDues] = useState<TransportSubscription[]>([]);
     const [error, setError] = useState('');
@@ -40,20 +42,19 @@ export default function DuesTab() {
         <div className={cardCls}>
             <div className="flex items-end justify-between mb-4">
                 <div>
-                    <h2 className="font-bold text-gray-800">Impayés du mois</h2>
+                    <h2 className="font-bold text-gray-800">{tr("Impayés du mois")}</h2>
                     <p className="text-sm text-gray-500 mt-1">
-                        {dues.length} élève{dues.length > 1 ? 's' : ''} · {total} MAD à encaisser
-                    </p>
+                        {dues.length}{' '}{tr("élève")}{dues.length > 1 ? 's' : ''} · {total}{tr("MAD à encaisser")}</p>
                 </div>
                 <div>
-                    <label className={labelCls}>Mois</label>
+                    <label className={labelCls}>{tr("Mois")}</label>
                     <input type="month" className={inputCls} value={month} onChange={(e) => setMonth(e.target.value)} />
                 </div>
             </div>
-            {error && <p className={`${errorCls} mb-3`}>{error}</p>}
-            {loading && <p className="text-sm text-gray-400">Chargement…</p>}
+            {error && <p className={`${errorCls} mb-3`}>{tr(error)}</p>}
+            {loading && <p className="text-sm text-gray-400">{tr("Chargement…")}</p>}
             {!loading && dues.length === 0 && !error && (
-                <p className="text-sm text-gray-400">Tout est réglé pour ce mois. 🎉</p>
+                <p className="text-sm text-gray-400">{tr("Tout est réglé pour ce mois. 🎉")}</p>
             )}
             <div className="space-y-2">
                 {dues.map((sub) => (
@@ -66,7 +67,7 @@ export default function DuesTab() {
                                 · {sub.route?.name} · {sub.stop?.name}
                             </span>
                         </span>
-                        <span className="font-semibold text-red-600">{sub.monthlyPrice} MAD</span>
+                        <span className="font-semibold text-red-600">{sub.monthlyPrice}{' '}{tr("MAD")}</span>
                     </div>
                 ))}
             </div>

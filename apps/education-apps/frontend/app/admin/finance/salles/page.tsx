@@ -26,6 +26,7 @@ import {
     MoreVertical
 } from 'lucide-react';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 // --- Types ---
 interface Room {
     id: string;
@@ -79,6 +80,7 @@ const RoomTypeIcon: React.FC<{ type: Room['type'], className?: string }> = ({ ty
 };
 
 export default function ManageRoomsPage() {
+    const { tr } = useI18n();
     const [rooms, setRooms] = useState<Room[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRoom, setEditingRoom] = useState<Room | null>(null);
@@ -160,7 +162,7 @@ export default function ManageRoomsPage() {
     };
 
     const handleDelete = (room: Room) => {
-        if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${room.name}?`)) {
+        if (window.confirm(tr("Êtes-vous sûr de vouloir supprimer {name}?", { name: room.name }))) {
             saveRooms(rooms.filter(r => r.id !== room.id));
         }
     };
@@ -194,42 +196,41 @@ export default function ManageRoomsPage() {
         <div className="min-h-screen bg-gray-50/50 p-0 lg:p-6 space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Gestion des Salles</h1>
-                    <p className="text-gray-500 mt-1">Gérez vos espaces d'apprentissage et équipements</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{tr("Gestion des Salles")}</h1>
+                    <p className="text-gray-500 mt-1">{tr("Gérez vos espaces d'apprentissage et équipements")}</p>
                 </div>
                 <div className="flex gap-3">
                     <Button
                         onClick={openModalForNew}
                         className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20"
                     >
-                        <PlusCircle size={18} className="me-2" /> Nouvelle Salle
-                    </Button>
+                        <PlusCircle size={18} className="me-2" />{tr("Nouvelle Salle")}</Button>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
-                    title="Total Salles"
+                    title={tr("Total Salles")}
                     value={stats.total}
                     icon={<Building size={24} />}
                     color="bg-blue-500"
                     trend="+2 ce mois"
                 />
                 <StatCard
-                    title="Capacité Totale"
+                    title={tr("Capacité Totale")}
                     value={stats.capacity}
                     icon={<Users size={24} />}
                     color="bg-indigo-500"
                 />
                 <StatCard
-                    title="Salles Actives"
+                    title={tr("Salles Actives")}
                     value={stats.active}
                     icon={<Activity size={24} />}
                     color="bg-emerald-500"
                     trend="95% opérationnel"
                 />
                 <StatCard
-                    title="Maintenance"
+                    title={tr("Maintenance")}
                     value={stats.maintenance}
                     icon={<Wrench size={24} />}
                     color="bg-amber-500"
@@ -250,7 +251,7 @@ export default function ManageRoomsPage() {
                                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'}
                                 `}
                             >
-                                {tab === 'All' ? 'Toutes' : tab}
+                                {tab === 'All' ? tr("Toutes") : tr(tab)}
                             </button>
                         ))}
                     </div>
@@ -260,7 +261,7 @@ export default function ManageRoomsPage() {
                             <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="text"
-                                placeholder="Rechercher..."
+                                placeholder={tr("Rechercher...")}
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                                 className="w-full ps-10 pe-4 py-2 bg-gray-50 border-transparent focus:bg-white border focus:border-blue-200 rounded-xl focus:ring-4 focus:ring-blue-50 transition-all outline-none"
@@ -303,7 +304,7 @@ export default function ManageRoomsPage() {
                                                 ? 'bg-green-50 text-green-700 border-green-100'
                                                 : 'bg-amber-50 text-amber-700 border-amber-100'
                                             }`}>
-                                            {room.status === 'active' ? 'Active' : 'Maintenance'}
+                                            {room.status === 'active' ? tr("Active") : tr("Maintenance")}
                                         </div>
                                     )}
                                 </div>
@@ -317,7 +318,7 @@ export default function ManageRoomsPage() {
                                             <Users size={14} /> {room.capacity} places
                                         </span>
                                         <span className="flex items-center gap-1.5">
-                                            <Building size={14} /> {room.type}
+                                            <Building size={14} /> {tr(room.type)}
                                         </span>
                                     </div>
                                 </div>
@@ -326,7 +327,7 @@ export default function ManageRoomsPage() {
                                     <div className="mt-4 pt-4 border-t border-gray-50 flex flex-wrap gap-2">
                                         {room.equipments.slice(0, 3).map(eq => (
                                             <span key={eq} className="px-2 py-1 text-xs bg-gray-50 text-gray-600 rounded-md border border-gray-100">
-                                                {eq.replace('_', ' ')}
+                                                {tr(eq.replace('_', ' '))}
                                             </span>
                                         ))}
                                         {room.equipments.length > 3 && (
@@ -349,7 +350,7 @@ export default function ManageRoomsPage() {
                                             ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
                                             : 'text-amber-600 bg-amber-50 hover:bg-amber-100'
                                         }`}
-                                    title={room.status === 'active' ? "Mettre en maintenance" : "Activer"}
+                                    title={room.status === 'active' ? tr("Mettre en maintenance") : tr("Activer")}
                                 >
                                     <Wrench size={18} />
                                 </button>
@@ -375,8 +376,8 @@ export default function ManageRoomsPage() {
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Search size={24} className="text-gray-400" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900">Aucune salle trouvée</h3>
-                        <p className="text-gray-500 mt-1">Essayez de modifier vos filtres ou ajoutez une nouvelle salle.</p>
+                        <h3 className="text-lg font-medium text-gray-900">{tr("Aucune salle trouvée")}</h3>
+                        <p className="text-gray-500 mt-1">{tr("Essayez de modifier vos filtres ou ajoutez une nouvelle salle.")}</p>
                     </div>
                 )}
             </div>
@@ -384,7 +385,7 @@ export default function ManageRoomsPage() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                title={editingRoom ? 'Modifier la salle' : 'Nouvelle salle'}
+                title={editingRoom ? tr("Modifier la salle") : tr("Nouvelle salle")}
                 size="lg"
             >
                 <form onSubmit={handleFormSubmit} className="flex flex-col h-full">
@@ -392,8 +393,8 @@ export default function ManageRoomsPage() {
                         {editingRoom && (
                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
                                 <div>
-                                    <h4 className="font-medium text-gray-900">Statut de la salle</h4>
-                                    <p className="text-sm text-gray-500">Définir si la salle est opérationnelle</p>
+                                    <h4 className="font-medium text-gray-900">{tr("Statut de la salle")}</h4>
+                                    <p className="text-sm text-gray-500">{tr("Définir si la salle est opérationnelle")}</p>
                                 </div>
                                 <div className="flex bg-white rounded-lg p-1 border border-gray-200">
                                     <button
@@ -403,9 +404,7 @@ export default function ManageRoomsPage() {
                                                 ? 'bg-green-100 text-green-700 shadow-sm'
                                                 : 'text-gray-500 hover:text-gray-700'
                                             }`}
-                                    >
-                                        Active
-                                    </button>
+                                    >{tr("Active")}</button>
                                     <button
                                         type="button"
                                         onClick={() => setFormData(prev => ({ ...prev, status: 'maintenance' }))}
@@ -413,16 +412,14 @@ export default function ManageRoomsPage() {
                                                 ? 'bg-amber-100 text-amber-700 shadow-sm'
                                                 : 'text-gray-500 hover:text-gray-700'
                                             }`}
-                                    >
-                                        Maintenance
-                                    </button>
+                                    >{tr("Maintenance")}</button>
                                 </div>
                             </div>
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nom de la salle</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">{tr("Nom de la salle")}</label>
                                 <input
                                     type="text"
                                     name="name"
@@ -430,11 +427,11 @@ export default function ManageRoomsPage() {
                                     onChange={handleFormChange}
                                     required
                                     className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-                                    placeholder="Ex: Salle 101"
+                                    placeholder={tr("Ex: Salle 101")}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Capacité</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">{tr("Capacité")}</label>
                                 <input
                                     type="number"
                                     name="capacity"
@@ -442,11 +439,11 @@ export default function ManageRoomsPage() {
                                     onChange={handleFormChange}
                                     required
                                     className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-                                    placeholder="Ex: 30"
+                                    placeholder={tr("Ex: 30")}
                                 />
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Type</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">{tr("Type")}</label>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     {['Classroom', 'Lab', 'Library', 'Auditorium'].map(type => (
                                         <label
@@ -475,11 +472,11 @@ export default function ManageRoomsPage() {
                         </div>
 
                         <div>
-                            <h4 className="text-sm font-medium text-gray-700 mb-3">Équipements</h4>
+                            <h4 className="text-sm font-medium text-gray-700 mb-3">{tr("Équipements")}</h4>
                             <div className="space-y-4">
                                 {Object.entries(TRAINING_ROOM_EQUIPMENT).map(([category, items]) => (
                                     <div key={category} className="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-                                        <h5 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{category}</h5>
+                                        <h5 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{tr(category)}</h5>
                                         <div className="flex flex-wrap gap-2">
                                             {items.map(item => (
                                                 <label
@@ -498,7 +495,7 @@ export default function ManageRoomsPage() {
                                                         className="hidden"
                                                     />
                                                     {(formData.equipments || []).includes(item) && <Check size={14} />}
-                                                    <span>{item.replace('_', ' ')}</span>
+                                                    <span>{tr(item.replace('_', ' '))}</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -513,15 +510,11 @@ export default function ManageRoomsPage() {
                             type="button"
                             onClick={closeModal}
                             className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
-                        >
-                            Annuler
-                        </Button>
+                        >{tr("Annuler")}</Button>
                         <Button
                             type="submit"
                             className="bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20"
-                        >
-                            Enregistrer
-                        </Button>
+                        >{tr("Enregistrer")}</Button>
                     </div>
                 </form>
             </Modal>

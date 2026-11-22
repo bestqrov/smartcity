@@ -16,7 +16,7 @@ import {
 import { triggerDashboardRefresh } from '@/lib/utils/dashboardRefresh';
 import { transactionsApi } from '@/lib/services/transactions';
 
-import { appLocale } from '@/lib/i18n/I18nProvider';
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 interface Transaction {
     id: string;
     type: 'INCOME' | 'EXPENSE';
@@ -40,6 +40,7 @@ interface Personnel {
 }
 
 export default function TransactionsPage() {
+    const { tr } = useI18n();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [stats, setStats] = useState<TransactionStats>({ totalIncome: 0, totalExpense: 0, balance: 0 });
     const [loading, setLoading] = useState(false);
@@ -172,16 +173,16 @@ export default function TransactionsPage() {
                 setShowModal(false);
             } else {
                 console.error('Transaction creation failed:', result);
-                alert(`Erreur: ${result.error || result.message || 'Erreur inconnue'}`);
+                alert(tr("Erreur: {v0}", { v0: result.error || result.message || 'Erreur inconnue' }));
             }
         } catch (error: any) {
             console.error('Error creating transaction:', error);
-            alert(`Erreur: ${error.message || 'Impossible de créer la transaction'}`);
+            alert(tr("Erreur: {v0}", { v0: error.message || 'Impossible de créer la transaction' }));
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer cette transaction ?')) return;
+        if (!confirm(tr("Êtes-vous sûr de vouloir supprimer cette transaction ?"))) return;
 
         try {
             const result = await transactionsApi.delete(id);
@@ -194,11 +195,11 @@ export default function TransactionsPage() {
                 // Trigger dashboard refresh
                 triggerDashboardRefresh();
             } else {
-                alert(`Erreur: ${result.error || result.message || 'Erreur lors de la suppression'}`);
+                alert(tr("Erreur: {v0}", { v0: result.error || result.message || 'Erreur lors de la suppression' }));
             }
         } catch (error: any) {
             console.error('Error deleting transaction:', error);
-            alert(`Erreur: ${error.message || 'Impossible de supprimer la transaction'}`);
+            alert(tr("Erreur: {v0}", { v0: error.message || 'Impossible de supprimer la transaction' }));
         }
     };
 
@@ -218,16 +219,14 @@ export default function TransactionsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Transactions</h1>
-                    <p className="text-gray-600 mt-1">Gérer les revenus et les dépenses</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Transactions")}</h1>
+                    <p className="text-gray-600 mt-1">{tr("Gérer les revenus et les dépenses")}</p>
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
                     className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105"
                 >
-                    <Plus size={20} />
-                    Nouvelle Transaction
-                </button>
+                    <Plus size={20} />{tr("Nouvelle Transaction")}</button>
             </div>
 
             {/* Stats Cards */}
@@ -237,12 +236,10 @@ export default function TransactionsPage() {
                         <div className="bg-green-100 p-3 rounded-xl">
                             <TrendingUp className="text-green-600" size={24} />
                         </div>
-                        <span className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full">
-                            Revenus
-                        </span>
+                        <span className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full">{tr("Revenus")}</span>
                     </div>
                     <h3 className="text-3xl font-bold text-gray-800">{formatCurrency(stats.totalIncome)}</h3>
-                    <p className="text-gray-500 text-sm mt-1">Total des entrées</p>
+                    <p className="text-gray-500 text-sm mt-1">{tr("Total des entrées")}</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -250,12 +247,10 @@ export default function TransactionsPage() {
                         <div className="bg-red-100 p-3 rounded-xl">
                             <TrendingDown className="text-red-600" size={24} />
                         </div>
-                        <span className="text-sm font-medium text-red-600 bg-red-50 px-3 py-1 rounded-full">
-                            Dépenses
-                        </span>
+                        <span className="text-sm font-medium text-red-600 bg-red-50 px-3 py-1 rounded-full">{tr("Dépenses")}</span>
                     </div>
                     <h3 className="text-3xl font-bold text-gray-800">{formatCurrency(stats.totalExpense)}</h3>
-                    <p className="text-gray-500 text-sm mt-1">Total des sorties</p>
+                    <p className="text-gray-500 text-sm mt-1">{tr("Total des sorties")}</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-6 rounded-2xl shadow-lg text-white">
@@ -263,12 +258,10 @@ export default function TransactionsPage() {
                         <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
                             <Wallet className="text-white" size={24} />
                         </div>
-                        <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
-                            Solde
-                        </span>
+                        <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">{tr("Solde")}</span>
                     </div>
                     <h3 className="text-3xl font-bold">{formatCurrency(stats.balance)}</h3>
-                    <p className="text-blue-100 text-sm mt-1">Balance actuelle</p>
+                    <p className="text-blue-100 text-sm mt-1">{tr("Balance actuelle")}</p>
                 </div>
             </div>
 
@@ -278,7 +271,7 @@ export default function TransactionsPage() {
                     <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Rechercher une transaction..."
+                        placeholder={tr("Rechercher une transaction...")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full ps-10 pe-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
@@ -294,7 +287,7 @@ export default function TransactionsPage() {
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
-                            {type === 'ALL' ? 'Tout' : type === 'INCOME' ? 'Revenus' : 'Dépenses'}
+                            {type === 'ALL' ? tr("Tout") : type === 'INCOME' ? tr("Revenus") : tr("Dépenses")}
                         </button>
                     ))}
                 </div>
@@ -306,20 +299,18 @@ export default function TransactionsPage() {
                     <table className="w-full">
                         <thead className="bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">Type</th>
-                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">Description</th>
-                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">Catégorie</th>
-                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">Date</th>
-                                <th className="text-end py-4 px-6 text-sm font-semibold text-gray-600">Montant</th>
-                                <th className="text-end py-4 px-6 text-sm font-semibold text-gray-600">Actions</th>
+                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">{tr("Type")}</th>
+                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">{tr("Description")}</th>
+                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">{tr("Catégorie")}</th>
+                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">{tr("Date")}</th>
+                                <th className="text-end py-4 px-6 text-sm font-semibold text-gray-600">{tr("Montant")}</th>
+                                <th className="text-end py-4 px-6 text-sm font-semibold text-gray-600">{tr("Actions")}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {filteredTransactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="py-8 text-center text-gray-500">
-                                        Aucune transaction trouvée
-                                    </td>
+                                    <td colSpan={6} className="py-8 text-center text-gray-500">{tr("Aucune transaction trouvée")}</td>
                                 </tr>
                             ) : (
                                 filteredTransactions.map((transaction) => (
@@ -334,7 +325,7 @@ export default function TransactionsPage() {
                                                 ) : (
                                                     <ArrowUpRight size={14} />
                                                 )}
-                                                {transaction.type === 'INCOME' ? 'Revenu' : 'Dépense'}
+                                                {transaction.type === 'INCOME' ? tr("Revenu") : tr("Dépense")}
                                             </div>
                                         </td>
                                         <td className="py-4 px-6 font-medium text-gray-800">
@@ -371,7 +362,7 @@ export default function TransactionsPage() {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-gray-800">Nouvelle Transaction</h2>
+                            <h2 className="text-xl font-bold text-gray-800">{tr("Nouvelle Transaction")}</h2>
                             <button
                                 type="button"
                                 onClick={() => setShowModal(false)}
@@ -382,7 +373,7 @@ export default function TransactionsPage() {
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Type")}</label>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <button
                                         type="button"
@@ -391,9 +382,7 @@ export default function TransactionsPage() {
                                             ? 'border-green-500 bg-green-50 text-green-600'
                                             : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                             }`}
-                                    >
-                                        Revenu
-                                    </button>
+                                    >{tr("Revenu")}</button>
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -405,9 +394,7 @@ export default function TransactionsPage() {
                                             ? 'border-red-500 bg-red-50 text-red-600'
                                             : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                             }`}
-                                    >
-                                        Dépense
-                                    </button>
+                                    >{tr("Dépense")}</button>
                                 </div>
                             </div>
 
@@ -430,14 +417,12 @@ export default function TransactionsPage() {
                                             }}
                                             className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                                         />
-                                        <span className="font-semibold text-gray-700">Est-ce un salaire ?</span>
+                                        <span className="font-semibold text-gray-700">{tr("Est-ce un salaire ?")}</span>
                                     </label>
 
                                     {isSalary && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-600 mb-2">
-                                                Bénéficiaire (Employé)
-                                            </label>
+                                            <label className="block text-sm font-medium text-gray-600 mb-2">{tr("Bénéficiaire (Employé)")}</label>
                                             <select
                                                 value={selectedPersonnel}
                                                 onChange={(e) => {
@@ -450,7 +435,7 @@ export default function TransactionsPage() {
                                                 }}
                                                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none bg-white"
                                             >
-                                                <option value="">Sélectionner un employé...</option>
+                                                <option value="">{tr("Sélectionner un employé...")}</option>
                                                 {personnel.map(p => (
                                                     <option key={p.id} value={p.id}>
                                                         {p.name} - {p.description}
@@ -463,7 +448,7 @@ export default function TransactionsPage() {
                             )}
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Montant (MAD)</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Montant (MAD)")}</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -476,31 +461,31 @@ export default function TransactionsPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Catégorie</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Catégorie")}</label>
                                 <input
                                     type="text"
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
                                     required
-                                    placeholder="Ex: Loyer, Facture, etc."
+                                    placeholder={tr("Ex: Loyer, Facture, etc.")}
                                     readOnly={isSalary} // Lock category if salary
                                     className={`w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none ${isSalary ? 'bg-gray-100 text-gray-500' : ''}`}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Description")}</label>
                                 <input
                                     type="text"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Détails supplémentaires..."
+                                    placeholder={tr("Détails supplémentaires...")}
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Date")}</label>
                                 <input
                                     type="date"
                                     value={date}
@@ -517,9 +502,7 @@ export default function TransactionsPage() {
                                         ? 'bg-green-600 hover:bg-green-700 shadow-green-500/30'
                                         : 'bg-red-600 hover:bg-red-700 shadow-red-500/30'
                                         }`}
-                                >
-                                    Enregistrer
-                                </button>
+                                >{tr("Enregistrer")}</button>
                             </div>
                         </form>
                     </div>

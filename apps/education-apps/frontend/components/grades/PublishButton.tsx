@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import type { Evaluation, EvaluationWithGrades, GradesClient } from '@/lib/services/grades';
 import { apiErrorMessage } from '@/lib/services/grades';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface Props {
     client: GradesClient;
     evaluation: EvaluationWithGrades;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function PublishButton({ client, evaluation, studentIds, onChange }: Props) {
+    const { tr } = useI18n();
     const [busy, setBusy] = useState(false);
 
     const toggle = async () => {
@@ -20,7 +22,7 @@ export default function PublishButton({ client, evaluation, studentIds, onChange
         if (next) {
             const done = new Set(evaluation.grades.filter((g) => g.absent || g.score !== null).map((g) => g.studentId));
             const missing = studentIds.filter((id) => !done.has(id)).length;
-            if (missing > 0 && !window.confirm(`${missing} élève(s) sans note. Publier quand même ?`)) return;
+            if (missing > 0 && !window.confirm(tr("{missing} élève(s) sans note. Publier quand même ?", { missing }))) return;
         }
         setBusy(true);
         try {
@@ -44,7 +46,7 @@ export default function PublishButton({ client, evaluation, studentIds, onChange
             }`}
         >
             {evaluation.published ? <EyeOff size={16} /> : <Eye size={16} />}
-            {evaluation.published ? 'Dépublier' : 'Publier'}
+            {evaluation.published ? tr("Dépublier") : tr("Publier")}
         </button>
     );
 }

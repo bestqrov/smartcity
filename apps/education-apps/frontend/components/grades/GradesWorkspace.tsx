@@ -8,6 +8,7 @@ import GroupEvaluations from './GroupEvaluations';
 import BulletinTab from './BulletinTab';
 import { sortStudents } from './utils';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface GroupOption {
     id: string;
     name: string;
@@ -17,6 +18,7 @@ interface GroupOption {
 
 /** Staff grades page (admin + secretary): group picker, evaluations, bulletin. */
 export default function GradesWorkspace() {
+    const { tr } = useI18n();
     const [groups, setGroups] = useState<GroupOption[]>([]);
     const [periods, setPeriods] = useState<string[]>([]);
     const [groupId, setGroupId] = useState('');
@@ -58,18 +60,18 @@ export default function GradesWorkspace() {
 
     return (
         <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Notes</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{tr("Notes")}</h1>
             {loading ? (
                 <Loader2 className="animate-spin text-slate-400" />
             ) : (
                 <>
-                    {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+                    {error && <p className="text-sm text-red-600 dark:text-red-400">{tr(error)}</p>}
                     <select
                         value={groupId}
                         onChange={(e) => setGroupId(e.target.value)}
                         className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white sm:w-80"
                     >
-                        <option value="">Choisir un groupe…</option>
+                        <option value="">{tr("Choisir un groupe…")}</option>
                         {groups.map((g) => (
                             <option key={g.id} value={g.id}>
                                 {g.name}
@@ -91,7 +93,7 @@ export default function GradesWorkspace() {
                                                 : 'text-slate-600 dark:text-slate-300'
                                         }`}
                                     >
-                                        {t === 'evaluations' ? 'Évaluations' : 'Bulletin'}
+                                        {t === 'evaluations' ? tr("Évaluations") : tr("Bulletin")}
                                     </button>
                                 ))}
                             </div>

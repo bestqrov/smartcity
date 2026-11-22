@@ -32,7 +32,7 @@ import { formationsService } from '@/lib/services/formations';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import { Teacher } from '@/types';
 
-import { appLocale } from '@/lib/i18n/I18nProvider';
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 // Use global Teacher interface from @/types
 
 
@@ -56,6 +56,7 @@ const PAYMENT_TYPES = [
 ];
 
 const TeachersContent = () => {
+    const { tr } = useI18n();
     const searchParams = useSearchParams();
     const type = searchParams.get('type') as 'FORMATION' | 'SOUTIEN' | null;
     const isFormationMode = type === 'FORMATION';
@@ -160,7 +161,7 @@ const TeachersContent = () => {
             fetchTeachers();
             setIsModalOpen(false);
         } catch (error) {
-            alert('Erreur lors de l\'enregistrement');
+            alert(tr("Erreur lors de l'enregistrement"));
         }
     };
 
@@ -168,7 +169,7 @@ const TeachersContent = () => {
     const [linkLoadingId, setLinkLoadingId] = useState<string | null>(null);
 
     const handleTeacherLink = async (teacher: Teacher) => {
-        if (teacher.linkIssuedAt && !confirm('Un nouveau lien remplacera l\'ancien, qui ne fonctionnera plus. Continuer ?')) return;
+        if (teacher.linkIssuedAt && !confirm(tr("Un nouveau lien remplacera l'ancien, qui ne fonctionnera plus. Continuer ?"))) return;
         setLinkLoadingId(teacher.id);
         try {
             const { rawToken, linkIssuedAt } = await issueTeacherPortalLink(teacher.id);
@@ -176,14 +177,14 @@ const TeachersContent = () => {
             setPortalLink({ teacher: { ...teacher, linkIssuedAt }, url: publicUrl(`/t/${rawToken}`) });
         } catch (error) {
             console.error(error);
-            alert('Impossible de générer le lien enseignant');
+            alert(tr("Impossible de générer le lien enseignant"));
         } finally {
             setLinkLoadingId(null);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Supprimer ce professeur ?')) {
+        if (confirm(tr("Supprimer ce professeur ?"))) {
             try {
                 await teachersService.delete(id);
                 fetchTeachers();
@@ -232,10 +233,10 @@ const TeachersContent = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
-                        {isFormationMode ? 'Formateurs & Instructeurs' : isCrecheMode ? 'Gestion du Personnel' : 'Gestion des Professeurs'}
+                        {isFormationMode ? tr("Formateurs & Instructeurs") : isCrecheMode ? tr("Gestion du Personnel") : tr("Gestion des Professeurs")}
                     </h1>
                     <p className="text-gray-500 mt-1">
-                        {isFormationMode ? 'Gérez les experts de vos formations professionnelles' : isCrecheMode ? "Gérez l'équipe de la crèche" : 'Gérez votre équipe pédagogique'}
+                        {isFormationMode ? tr("Gérez les experts de vos formations professionnelles") : isCrecheMode ? tr("Gérez l'équipe de la crèche") : tr("Gérez votre équipe pédagogique")}
                     </p>
                 </div>
                 <Button
@@ -243,7 +244,7 @@ const TeachersContent = () => {
                     className={`${buttonClass} hover:opacity-90 transition-opacity`}
                 >
                     <PlusCircle size={18} className="me-2" />
-                    {isFormationMode ? 'Nouveau Formateur' : isCrecheMode ? 'Nouvelle Éducatrice' : 'Nouveau Professeur'}
+                    {isFormationMode ? tr("Nouveau Formateur") : isCrecheMode ? tr("Nouvelle Éducatrice") : tr("Nouveau Professeur")}
                 </Button>
             </div>
 
@@ -254,7 +255,7 @@ const TeachersContent = () => {
                         <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
-                            placeholder={isFormationMode ? "Rechercher un instructeur..." : isCrecheMode ? "Rechercher par nom..." : "Rechercher par nom ou matière..."}
+                            placeholder={isFormationMode ? tr("Rechercher un instructeur...") : isCrecheMode ? tr("Rechercher par nom...") : tr("Rechercher par nom ou matière...")}
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                             className="w-full ps-10 pe-4 py-2 border-none rounded-lg focus:ring-0 outline-none"
@@ -290,7 +291,7 @@ const TeachersContent = () => {
                         <div className="space-y-3 mb-4">
                             <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
                                 <Phone size={14} className="text-green-500" />
-                                <span>{teacher.phone || 'Non renseigné'}</span>
+                                <span>{teacher.phone || tr("Non renseigné")}</span>
                             </div>
                             <div className="flex items-center justify-between gap-2">
                                 <button
@@ -299,11 +300,9 @@ const TeachersContent = () => {
                                     disabled={linkLoadingId === teacher.id}
                                     className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-60"
                                 >
-                                    <Link2 size={14} /> Lien enseignant
-                                </button>
+                                    <Link2 size={14} />{tr("Lien enseignant")}</button>
                                 {teacher.linkIssuedAt && (
-                                    <span className="text-xs text-gray-500">
-                                        Lien envoyé le {new Date(teacher.linkIssuedAt).toLocaleDateString(appLocale())}
+                                    <span className="text-xs text-gray-500">{tr("Lien envoyé le")}{new Date(teacher.linkIssuedAt).toLocaleDateString(appLocale())}
                                     </span>
                                 )}
                             </div>
@@ -321,13 +320,12 @@ const TeachersContent = () => {
                         <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-sm">
                             <span className="flex items-center gap-1 text-gray-500">
                                 <User size={14} className="text-indigo-400" />
-                                {teacher._count?.groups || 0} Groupes
-                            </span>
+                                {teacher._count?.groups || 0}{tr("Groupes")}</span>
                             <div className="text-end">
                                 <p className={`font-bold ${isFormationMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600' : 'text-gray-900'}`}>
                                     {teacher.paymentType === 'PERCENTAGE'
-                                        ? `${teacher.commission}% / Ins.`
-                                        : `${teacher.hourlyRate} MAD${teacher.paymentType === 'HOURLY' ? '/h' : ''}`}
+                                        ? tr("{commission}% / Ins.", { commission: teacher.commission })
+                                        : tr("{hourlyRate} MAD{v1}", { hourlyRate: teacher.hourlyRate, v1: teacher.paymentType === 'HOURLY' ? '/h' : '' })}
                                 </p>
                                 <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{teacher.paymentType}</p>
                             </div>
@@ -344,17 +342,17 @@ const TeachersContent = () => {
                         <div className={`px-6 py-5 bg-gradient-to-r ${headerGradient}`}>
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                 {isFormationMode ? <Briefcase className="text-white/80" /> : <User className="text-white/80" />}
-                                {isFormationMode ? (editingTeacher ? 'Modifier le Formateur' : 'Nouveau Formateur') : isCrecheMode ? (editingTeacher ? "Modifier l'Éducatrice" : 'Nouvelle Éducatrice') : (editingTeacher ? 'Modifier le Formateur' : 'Nouveau Formateur')}
+                                {isFormationMode ? (editingTeacher ? tr("Modifier le Formateur") : tr("Nouveau Formateur")) : isCrecheMode ? (editingTeacher ? tr("Modifier l'Éducatrice") : tr("Nouvelle Éducatrice")) : (editingTeacher ? tr("Modifier le Formateur") : tr("Nouveau Formateur"))}
                             </h2>
                             <p className="text-white/80 text-sm mt-1">
-                                {isFormationMode ? 'Information professionnelle et spécialités' : isCrecheMode ? "Détails de l'éducatrice" : 'Détails du professeur'}
+                                {isFormationMode ? tr("Information professionnelle et spécialités") : isCrecheMode ? tr("Détails de l'éducatrice") : tr("Détails du professeur")}
                             </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Nom Complet *</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">{tr("Nom Complet *")}</label>
                                     <div className="relative">
                                         <User className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         <input
@@ -363,21 +361,21 @@ const TeachersContent = () => {
                                             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ps-10"
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            placeholder="Ex: Ahmed Bennani"
+                                            placeholder={tr("Ex: Ahmed Bennani")}
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-400 mt-1 ms-1">Nom complet tel qu'il apparaîtra sur les contrats</p>
+                                    <p className="text-xs text-gray-400 mt-1 ms-1">{tr("Nom complet tel qu'il apparaîtra sur les contrats")}</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Email</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">{tr("Email")}</label>
                                     <div className="relative">
                                         <Mail className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         <input type="email" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ps-10" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Téléphone</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">{tr("Téléphone")}</label>
                                     <div className="relative">
                                         <Phone className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         <input type="tel" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ps-10" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
@@ -385,55 +383,52 @@ const TeachersContent = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">CIN</label>
-                                    <input type="text" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.cin} onChange={e => setFormData({ ...formData, cin: e.target.value })} placeholder="Numéro CIN" />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">{tr("CIN")}</label>
+                                    <input type="text" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.cin} onChange={e => setFormData({ ...formData, cin: e.target.value })} placeholder={tr("Numéro CIN")} />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Genre</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">{tr("Genre")}</label>
                                     <select className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })}>
-                                        <option value="Male">Homme</option>
-                                        <option value="Female">Femme</option>
+                                        <option value="Male">{tr("Homme")}</option>
+                                        <option value="Female">{tr("Femme")}</option>
                                     </select>
                                 </div>
 
                                 <div className="col-span-2 bg-gray-50/50 p-4 rounded-xl border border-dashed border-gray-200">
-                                    <h3 className="text-sm font-bold text-blue-700 dark:text-yellow-400 mb-4 flex items-center gap-2">
-                                        🌐 Réseaux Sociaux & Contact
-                                    </h3>
+                                    <h3 className="text-sm font-bold text-blue-700 dark:text-yellow-400 mb-4 flex items-center gap-2">{tr("🌐 Réseaux Sociaux & Contact")}</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase ms-1">WhatsApp</label>
-                                            <input type="text" className="w-full px-4 py-1.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.socialMedia.whatsapp} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, whatsapp: e.target.value } })} placeholder="Numéro" />
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase ms-1">{tr("WhatsApp")}</label>
+                                            <input type="text" className="w-full px-4 py-1.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.socialMedia.whatsapp} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, whatsapp: e.target.value } })} placeholder={tr("Numéro")} />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase ms-1">Facebook</label>
-                                            <input type="text" className="w-full px-4 py-1.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.socialMedia.facebook} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, facebook: e.target.value } })} placeholder="Pseudo/Lien" />
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase ms-1">{tr("Facebook")}</label>
+                                            <input type="text" className="w-full px-4 py-1.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.socialMedia.facebook} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, facebook: e.target.value } })} placeholder={tr("Pseudo/Lien")} />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-100">
                                     <h3 className="text-sm font-bold text-blue-700 dark:text-yellow-400 mb-3 flex items-center gap-2">
-                                        <DollarSign size={16} /> Information Financière
-                                    </h3>
+                                        <DollarSign size={16} />{tr("Information Financière")}</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1 text-xs uppercase tracking-wide text-gray-500">Type de Paiement</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1 text-xs uppercase tracking-wide text-gray-500">{tr("Type de Paiement")}</label>
                                             <select
                                                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                                                 value={formData.paymentType}
                                                 onChange={e => setFormData({ ...formData, paymentType: e.target.value as any })}
                                             >
                                                 {PAYMENT_TYPES.map(t => (
-                                                    <option key={t.key} value={t.key}>{t.label}</option>
+                                                    <option key={t.key} value={t.key}>{tr(t.label)}</option>
                                                 ))}
                                             </select>
                                         </div>
 
                                         {formData.paymentType === 'PERCENTAGE' ? (
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1 text-xs uppercase tracking-wide text-gray-500">Commission (%)</label>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1 text-xs uppercase tracking-wide text-gray-500">{tr("Commission (%)")}</label>
                                                 <div className="relative">
                                                     <Percent className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                     <input
@@ -441,15 +436,15 @@ const TeachersContent = () => {
                                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ps-10"
                                                         value={formData.commission}
                                                         onChange={e => setFormData({ ...formData, commission: parseFloat(e.target.value) })}
-                                                        placeholder="Ex: 30"
+                                                        placeholder={tr("Ex: 30")}
                                                     />
                                                 </div>
-                                                <p className="text-xs text-gray-400 mt-1">Pourcentage par inscription</p>
+                                                <p className="text-xs text-gray-400 mt-1">{tr("Pourcentage par inscription")}</p>
                                             </div>
                                         ) : (
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1 text-xs uppercase tracking-wide text-gray-500">
-                                                    {formData.paymentType === 'HOURLY' ? 'Taux Horaire (MAD/h)' : 'Salaire Fixe (MAD)'}
+                                                    {formData.paymentType === 'HOURLY' ? tr("Taux Horaire (MAD/h)") : tr("Salaire Fixe (MAD)")}
                                                 </label>
                                                 <div className="relative">
                                                     <Clock className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -469,13 +464,11 @@ const TeachersContent = () => {
                                     <div className="col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400 mb-3 block flex items-center gap-2">
                                             <BookOpen size={16} className={isFormationMode ? "text-indigo-500" : "text-amber-500"} />
-                                            {isFormationMode ? 'Compétences (Formations)' : 'Matières enseignées'}
+                                            {isFormationMode ? tr("Compétences (Formations)") : tr("Matières enseignées")}
                                         </label>
 
                                         {isFormationMode && subjectsList.length === 0 ? (
-                                            <div className="p-4 bg-orange-50 text-orange-600 rounded-lg text-sm mb-2">
-                                                Aucune formation trouvée. Veuillez d'abord créer des formations.
-                                            </div>
+                                            <div className="p-4 bg-orange-50 text-orange-600 rounded-lg text-sm mb-2">{tr("Aucune formation trouvée. Veuillez d'abord créer des formations.")}</div>
                                         ) : (
                                             <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-xl border border-gray-100 max-h-40 overflow-y-auto">
                                                 {subjectsList.map(s => (
@@ -491,7 +484,7 @@ const TeachersContent = () => {
                                                             }`}
                                                     >
                                                         {isFormationMode && getSubjectIcon(s)}
-                                                        {s}
+                                                        {isFormationMode ? s : tr(s)}
                                                     </button>
                                                 ))}
                                             </div>
@@ -501,7 +494,7 @@ const TeachersContent = () => {
 
                                 {!isFormationMode && !isCrecheMode && (
                                     <div className="col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400 mb-2 block">Niveaux</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400 mb-2 block">{tr("Niveaux")}</label>
                                         <div className="flex flex-wrap gap-2">
                                             {NIVEAUX_SCOLAIRE.map(n => (
                                                 <button
@@ -513,7 +506,7 @@ const TeachersContent = () => {
                                                         : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
                                                         }`}
                                                 >
-                                                    {n.nameKey}
+                                                    {tr(n.nameKey)}
                                                 </button>
                                             ))}
                                         </div>
@@ -522,8 +515,8 @@ const TeachersContent = () => {
                             </div>
 
                             <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
-                                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Annuler</Button>
-                                <Button type="submit" className={`${buttonClass}`}>Enregistrer</Button>
+                                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>{tr("Annuler")}</Button>
+                                <Button type="submit" className={`${buttonClass}`}>{tr("Enregistrer")}</Button>
                             </div>
                         </form>
                     </div>
@@ -536,17 +529,17 @@ const TeachersContent = () => {
                         <button
                             type="button"
                             onClick={() => setPortalLink(null)}
-                            aria-label="Fermer"
+                            aria-label={tr("Fermer")}
                             className="absolute end-3 top-3 z-10 rounded-lg p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
                         >
                             <X size={18} />
                         </button>
                         <PortalLinkCard
-                            title="Lien enseignant"
+                            title={tr("Lien enseignant")}
                             url={portalLink.url}
                             phone={portalLink.teacher.phone}
                             message={teacherPortalMessage(portalLink.teacher.name)}
-                            warning="Ce lien remplace le précédent. Envoyez-le uniquement à l'enseignant."
+                            warning={tr("Ce lien remplace le précédent. Envoyez-le uniquement à l'enseignant.")}
                         />
                     </div>
                 </div>
@@ -556,8 +549,9 @@ const TeachersContent = () => {
 };
 
 export default function TeachersPage() {
+    const { tr } = useI18n();
     return (
-        <Suspense fallback={<div>Chargement...</div>}>
+        <Suspense fallback={<div>{tr("Chargement...")}</div>}>
             <TeachersContent />
         </Suspense>
     );

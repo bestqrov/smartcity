@@ -16,12 +16,14 @@ import {
 } from '@/lib/services/salesAgents';
 import { PERIODS, PERIOD_LABELS } from '@/lib/salesAgentLabels';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface Props {
     school: { id: string; name: string; offerPeriod?: SubscriptionPeriod | null; offerPrice?: number | null };
     onClose: () => void;
 }
 
 export default function SchoolPaymentsModal({ school, onClose }: Props) {
+    const { tr } = useI18n();
     const [payments, setPayments] = useState<SchoolPaymentItem[]>([]);
     const [form, setForm] = useState({ amount: school.offerPrice != null ? String(school.offerPrice) : '', period: (school.offerPeriod ?? 'MONTHLY') as SubscriptionPeriod, paidAt: todayLocal(), note: '' });
     const [error, setError] = useState('');
@@ -65,7 +67,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
     };
 
     const remove = async (paymentId: string) => {
-        if (!window.confirm('Supprimer ce paiement ? Sa commission sera annulée.')) return;
+        if (!window.confirm(tr("Supprimer ce paiement ? Sa commission sera annulée."))) return;
         setBusy(true);
         try {
             await deleteSchoolPayment(school.id, paymentId);
@@ -80,35 +82,33 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
     const inputClass = 'min-h-10 px-3 py-2 border border-gray-200 rounded-lg';
 
     return (
-        <Modal isOpen onClose={onClose} title={`Paiements — ${school.name}`} size="lg">
+        <Modal isOpen onClose={onClose} title={tr("Paiements — {name}", { name: school.name })} size="lg">
             <div className="space-y-4">
-                {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{error}</div>}
+                {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{tr(error)}</div>}
 
                 <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                    <input className={inputClass} type="number" min={0.01} step="0.01" aria-label="Montant (MAD)" placeholder="Montant (MAD)" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
-                    <select className={inputClass} aria-label="Période" value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value as SubscriptionPeriod })}>
+                    <input className={inputClass} type="number" min={0.01} step="0.01" aria-label={tr("Montant (MAD)")} placeholder={tr("Montant (MAD)")} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
+                    <select className={inputClass} aria-label={tr("Période")} value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value as SubscriptionPeriod })}>
                         {PERIODS.map((period) => (
                             <option key={period} value={period}>
-                                {PERIOD_LABELS[period]}
+                                {tr(PERIOD_LABELS[period])}
                             </option>
                         ))}
                     </select>
-                    <input className={inputClass} type="date" aria-label="Date du paiement" value={form.paidAt} onChange={(e) => setForm({ ...form, paidAt: e.target.value })} required />
-                    <input className={inputClass} aria-label="Note" placeholder="Note" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
-                    <button disabled={busy} className="sm:col-span-4 min-h-10 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold disabled:opacity-50">
-                        Enregistrer le paiement
-                    </button>
+                    <input className={inputClass} type="date" aria-label={tr("Date du paiement")} value={form.paidAt} onChange={(e) => setForm({ ...form, paidAt: e.target.value })} required />
+                    <input className={inputClass} aria-label={tr("Note")} placeholder={tr("Note")} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+                    <button disabled={busy} className="sm:col-span-4 min-h-10 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold disabled:opacity-50">{tr("Enregistrer le paiement")}</button>
                 </form>
 
                 <div className="overflow-x-auto">
                 <table className="w-full min-w-[560px] text-start text-sm">
                     <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
                         <tr>
-                            <th className="px-3 py-2">Date</th>
-                            <th className="px-3 py-2">Montant</th>
-                            <th className="px-3 py-2">Pack</th>
-                            <th className="px-3 py-2">Commercial</th>
-                            <th className="px-3 py-2">Commission</th>
+                            <th className="px-3 py-2">{tr("Date")}</th>
+                            <th className="px-3 py-2">{tr("Montant")}</th>
+                            <th className="px-3 py-2">{tr("Pack")}</th>
+                            <th className="px-3 py-2">{tr("Commercial")}</th>
+                            <th className="px-3 py-2">{tr("Commission")}</th>
                             <th className="px-3 py-2" />
                         </tr>
                     </thead>
@@ -123,14 +123,14 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                                 <td className="px-3 py-2">{p.salesAgent ? `${p.salesAgent.name} (${p.salesAgent.code})` : '—'}</td>
                                 <td className="px-3 py-2">{formatMAD(p.commissionAmount)} <span className="text-xs text-gray-500">({p.commissionRate} %)</span></td>
                                 <td className="px-3 py-2 text-end">
-                                    <button onClick={() => remove(p.id)} disabled={busy} className="text-red-600 hover:text-red-800" aria-label="Supprimer">
+                                    <button onClick={() => remove(p.id)} disabled={busy} className="text-red-600 hover:text-red-800" aria-label={tr("Supprimer")}>
                                         <Trash2 size={16} />
                                     </button>
                                 </td>
                             </tr>
                         ))}
                         {payments.length === 0 && (
-                            <tr><td colSpan={6} className="px-3 py-4 text-gray-500">{loading ? 'Chargement…' : 'Aucun paiement enregistré.'}</td></tr>
+                            <tr><td colSpan={6} className="px-3 py-4 text-gray-500">{loading ? tr("Chargement…") : tr("Aucun paiement enregistré.")}</td></tr>
                         )}
                     </tbody>
                 </table>

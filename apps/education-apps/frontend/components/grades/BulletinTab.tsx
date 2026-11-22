@@ -8,6 +8,7 @@ import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import BulletinPrint from './BulletinPrint';
 import { fixed2 } from './utils';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface Props {
     groupId: string;
     groupName: string;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function BulletinTab({ groupId, groupName, periods, evaluations }: Props) {
+    const { tr } = useI18n();
     const [period, setPeriod] = useState(periods[0] ?? '');
     const [bulletin, setBulletin] = useState<Bulletin | null>(null);
     const [loading, setLoading] = useState(false);
@@ -81,7 +83,7 @@ export default function BulletinTab({ groupId, groupName, periods, evaluations }
     };
 
     if (!periods.length) {
-        return <p className="text-sm text-slate-500">Aucune période de notation configurée.</p>;
+        return <p className="text-sm text-slate-500">{tr("Aucune période de notation configurée.")}</p>;
     }
 
     return (
@@ -105,34 +107,32 @@ export default function BulletinTab({ groupId, groupName, periods, evaluations }
                     disabled={!bulletin?.rows.length}
                     className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
                 >
-                    <FileSpreadsheet size={16} /> Exporter Excel
-                </button>
+                    <FileSpreadsheet size={16} />{tr("Exporter Excel")}</button>
                 <button
                     type="button"
                     onClick={() => bulletin && setPrintRows(bulletin.rows)}
                     disabled={!bulletin?.rows.length}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
                 >
-                    <Printer size={16} /> Imprimer les bulletins
-                </button>
+                    <Printer size={16} />{tr("Imprimer les bulletins")}</button>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Seules les évaluations publiées comptent. Moyennes ramenées sur 20.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{tr("Seules les évaluations publiées comptent. Moyennes ramenées sur 20.")}</p>
             {loading && <Loader2 className="animate-spin text-slate-400" />}
-            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{tr(error)}</p>}
             {bulletin && !loading && (
                 bulletin.rows.length === 0 ? (
-                    <p className="text-sm text-slate-500">Aucun élève.</p>
+                    <p className="text-sm text-slate-500">{tr("Aucun élève.")}</p>
                 ) : (
                     <div className="max-w-full overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
                         <table className="min-w-full text-sm">
                             <thead className="bg-slate-50 text-start text-xs uppercase text-slate-500 dark:bg-slate-900 dark:text-slate-400">
                                 <tr>
-                                    <th className="sticky start-0 z-10 bg-slate-50 px-3 py-2 dark:bg-slate-900">Élève</th>
+                                    <th className="sticky start-0 z-10 bg-slate-50 px-3 py-2 dark:bg-slate-900">{tr("Élève")}</th>
                                     {bulletin.subjects.map((s) => (
                                         <th key={s} className="whitespace-nowrap px-3 py-2">{s}</th>
                                     ))}
-                                    <th className="whitespace-nowrap px-3 py-2">Générale</th>
-                                    <th className="px-3 py-2">Rang</th>
+                                    <th className="whitespace-nowrap px-3 py-2">{tr("Générale")}</th>
+                                    <th className="px-3 py-2">{tr("Rang")}</th>
                                     <th className="px-3 py-2" />
                                 </tr>
                             </thead>
@@ -148,7 +148,7 @@ export default function BulletinTab({ groupId, groupName, periods, evaluations }
                                         <td className="px-3 py-2 font-semibold text-slate-900 dark:text-white">{fixed2(r.general)}</td>
                                         <td className="px-3 py-2 text-slate-700 dark:text-slate-200">{r.rank ?? '—'}</td>
                                         <td className="px-2 py-2">
-                                            <button type="button" aria-label="Imprimer le bulletin" onClick={() => setPrintRows([r])} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
+                                            <button type="button" aria-label={tr("Imprimer le bulletin")} onClick={() => setPrintRows([r])} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
                                                 <Printer size={16} />
                                             </button>
                                         </td>
