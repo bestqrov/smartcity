@@ -1,0 +1,86 @@
+/* ArwaEduc — user guide for schools. A4, printed with headless Chrome. Same file for the Arabic (rtl) and French (ltr) builds. */
+:root {
+  --indigo: #4f46e5;
+  --indigo-2: #6366f1;
+  --indigo-soft: #eef2ff;
+  --green: #059669;
+  --green-soft: #ecfdf5;
+  --amber: #b45309;
+  --amber-soft: #fffbeb;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+}
+@page {
+  size: A4;
+  margin: 15mm 14mm 17mm;
+  @bottom-center { content: counter(page); font: 600 9pt "Cairo", "Inter", sans-serif; color: #94a3b8; }
+}
+@page :first { margin: 0; @bottom-center { content: none; } }
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; color: var(--ink); background: #fff; font-size: 10.4pt; line-height: 1.75; }
+html[lang='ar'] body { font-family: "Cairo", "Geeza Pro", "Segoe UI", sans-serif; }
+html[lang='fr'] body { font-family: "Inter", "Segoe UI", sans-serif; line-height: 1.6; }
+.ltr { direction: ltr; unicode-bidi: isolate; }
+.ui { font-weight: 700; color: var(--indigo); background: var(--indigo-soft); padding: 0 .35em; border-radius: 4px; white-space: nowrap; }
+
+/* Cover */
+.cover { height: 297mm; page-break-after: always; background: linear-gradient(150deg, #312e81 0%, #4f46e5 55%, #7c3aed 100%); color: #fff;
+  display: flex; flex-direction: column; justify-content: center; padding: 0 22mm; position: relative; overflow: hidden; }
+.cover::before { content: ""; position: absolute; width: 170mm; height: 170mm; border-radius: 50%; background: rgba(255,255,255,.07); inset-inline-end: -60mm; top: -50mm; }
+.cover::after { content: ""; position: absolute; width: 110mm; height: 110mm; border-radius: 50%; background: rgba(255,255,255,.06); inset-inline-start: -35mm; bottom: -30mm; }
+.cover > * { position: relative; z-index: 1; }
+.cover .logo { width: 22mm; height: 22mm; border-radius: 6mm; background: rgba(255,255,255,.16); display: flex; align-items: center; justify-content: center; margin-bottom: 9mm; }
+.cover .logo svg { width: 13mm; height: 13mm; }
+.cover h1 { font-size: 44pt; line-height: 1.1; margin: 0 0 3mm; font-weight: 800; }
+.cover h2 { font-size: 21pt; font-weight: 600; margin: 0 0 9mm; color: #c7d2fe; }
+.cover p { font-size: 12.5pt; max-width: 140mm; color: #e0e7ff; margin: 0 0 12mm; }
+.cover .meta { font-size: 10pt; color: #c7d2fe; border-top: 1px solid rgba(255,255,255,.25); padding-top: 5mm; max-width: 140mm; }
+
+/* Table of contents */
+.toc { page-break-after: always; }
+.toc h1 { font-size: 24pt; margin: 0 0 6mm; color: var(--indigo); }
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: c; }
+.toc li { counter-increment: c; display: flex; align-items: baseline; gap: 4mm; padding: 1.6mm 0; border-bottom: 1px dashed var(--line); font-size: 11pt; font-weight: 600; }
+.toc li::before { content: counter(c); display: inline-flex; width: 7mm; height: 7mm; align-items: center; justify-content: center; border-radius: 50%;
+  background: var(--indigo); color: #fff; font-size: 9.5pt; flex: none; }
+.toc li small { font-weight: 400; color: var(--muted); font-size: 9.5pt; }
+.roles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3mm; margin-top: 8mm; }
+.role { border: 1px solid var(--line); border-radius: 4mm; padding: 3mm; font-size: 9pt; line-height: 1.5; }
+.role b { display: block; color: var(--indigo); font-size: 10pt; margin-bottom: 1mm; }
+
+/* Chapters */
+.chapter { page-break-before: always; }
+.chapter > h1 { display: flex; align-items: center; gap: 4mm; font-size: 19pt; color: var(--ink); margin: 0 0 4mm; padding-bottom: 3mm; border-bottom: 3px solid var(--indigo); }
+.chapter > h1 .n { background: var(--indigo); color: #fff; min-width: 11mm; height: 11mm; border-radius: 3mm; display: inline-flex; align-items: center; justify-content: center; font-size: 15pt; flex: none; }
+.chapter > .lead { font-size: 11pt; color: #334155; margin-bottom: 4mm; }
+h2 { font-size: 13.5pt; color: var(--indigo); margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 2.5mm; }
+ol.steps { list-style: none; padding: 0; margin: 0 0 3mm; counter-reset: s; }
+ol.steps > li { counter-increment: s; position: relative; padding-inline-start: 9mm; margin-bottom: 1.6mm; break-inside: avoid; }
+ol.steps > li::before { content: counter(s); position: absolute; inset-inline-start: 0; top: .2em; width: 6mm; height: 6mm; border-radius: 50%;
+  background: var(--indigo-soft); color: var(--indigo); font-weight: 800; font-size: 9pt; display: flex; align-items: center; justify-content: center; }
+ul { margin: 0 0 3mm; padding-inline-start: 6mm; }
+li { margin-bottom: 1mm; }
+.tip, .warn { border-radius: 3mm; padding: 2.5mm 4mm; margin: 3mm 0; font-size: 9.6pt; break-inside: avoid; }
+.tip { background: var(--green-soft); border-inline-start: 4px solid var(--green); }
+.warn { background: var(--amber-soft); border-inline-start: 4px solid var(--amber); }
+.tip b, .warn b { display: block; margin-bottom: .5mm; }
+
+/* Figures */
+figure { margin: 3mm 0 4mm; break-inside: avoid; }
+figure img { width: 100%; border: 1px solid var(--line); border-radius: 3mm; display: block; box-shadow: 0 1mm 3mm rgba(15,23,42,.06); }
+figure figcaption { font-size: 8.8pt; color: var(--muted); margin-top: 1.5mm; text-align: center; }
+.phones { display: flex; gap: 5mm; justify-content: center; break-inside: avoid; margin: 3mm 0 4mm; }
+.phones figure { margin: 0; width: 44mm; }
+.phones figure img { border-radius: 5mm; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; break-inside: avoid; }
+.pair figure { margin: 2mm 0; }
+.receipt { width: 62mm; margin: 3mm auto; }
+
+/* Back page */
+.back { page-break-before: always; text-align: center; padding-top: 70mm; }
+.back h1 { color: var(--indigo); font-size: 22pt; }
+.back p { color: #334155; font-size: 11.5pt; }
+.back .contact { display: inline-block; margin-top: 6mm; border: 1px solid var(--line); border-radius: 4mm; padding: 5mm 10mm; font-size: 11pt; }
