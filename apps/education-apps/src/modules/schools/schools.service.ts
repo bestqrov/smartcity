@@ -1,7 +1,7 @@
 import { resolveReferralCode } from '../sales-agents/salesAgents.service';
 import prisma from '../../config/database';
 import { hashPassword } from '../../utils/bcrypt';
-import { resolvePartnerOffer, offerPriceFor } from '../partner-offer/partnerOffer.service';
+import { resolvePartnerOffer, offerPriceFor, packBasePrice } from '../partner-offer/partnerOffer.service';
 import { assertId } from '../transport/ids';
 import { DEFAULT_INSTITUTION_TYPE, InstitutionTypeValue, isInstitutionType } from '../packs/packs.constants';
 
@@ -49,14 +49,13 @@ export const signupSchool = async (data: SignupSchoolData) => {
 
     const agent = await resolveReferralCode(data.referralCode);
 
-    // Partner offer: only through a partner's code while the offer is on. It is a discount on the chosen pack.
+    // The chosen billing period is kept for every school; a partner's code (offer on) adds the discount.
     let offerPeriod: OfferPeriod | null = null;
     let discounts: Awaited<ReturnType<typeof resolvePartnerOffer>> = null;
     if (data.offerPeriod !== undefined && data.offerPeriod !== null && data.offerPeriod !== '') {
         offerPeriod = OFFER_PERIODS.find((value) => value === data.offerPeriod) ?? null;
         if (!offerPeriod) throw new Error('offerPeriod must be MONTHLY, SEMIANNUAL or YEARLY');
         discounts = await resolvePartnerOffer(data.referralCode);
-        if (!discounts) throw new Error('This offer is only available through a partner');
     }
 
     const email = data.ownerEmail.toLowerCase();
@@ -68,11 +67,13 @@ export const signupSchool = async (data: SignupSchoolData) => {
 
     const pack = await resolveSignupPack(data.packCode, data.institutionType);
 
-    // The discounted price is frozen on the school; an offer needs a pack to price against.
-    let offerFields: { partnerOffer: true; offerPeriod: OfferPeriod; offerPrice: number } | null = null;
-    if (offerPeriod && discounts) {
+    // The period and its price (discounted for a partner) are frozen on the school; both need a pack to price against.
+    let offerFields: { partnerOffer: boolean; offerPeriod: OfferPeriod; offerPrice: number } | null = null;
+    if (offerPeriod) {
         if (!pack) throw new Error('Unknown or unavailable pack');
-        offerFields = { partnerOffer: true, offerPeriod, offerPrice: offerPriceFor(pack, discounts, offerPeriod) };
+        offerFields = discounts
+            ? { partnerOffer: true, offerPeriod, offerPrice: offerPriceFor(pack, discounts, offerPeriod) }
+            : { partnerOffer: false, offerPeriod, offerPrice: packBasePrice(pack, offerPeriod) };
     }
 
     const hashedPassword = await hashPassword(data.password);

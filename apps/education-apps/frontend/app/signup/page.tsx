@@ -50,6 +50,12 @@ function SignupForm() {
     const offer = eligible ? prices : null; // the unlocked offer
     const lockedOffer = !eligible && wantsOffer && prices ? prices : null;
     const [codeStatus, setCodeStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+    const selectedPack = packs.find((pack) => pack.code === packCode) ?? null;
+    const finalPrice = selectedPack
+        ? offer
+            ? packOfferPrice(selectedPack, offer, offerPeriod)
+            : packBasePrice(selectedPack, offerPeriod)
+        : 0;
 
     // The code a pending check is for; a response for an older code is dropped so it can't overwrite the status.
     const checkedCode = useRef('');
@@ -86,6 +92,15 @@ function SignupForm() {
         else fetchPartnerOffer().then((result) => setPrices(result.offer ?? null)).catch(() => {});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Check the code shortly after typing stops, so the final price updates without leaving the field.
+    useEffect(() => {
+        const code = referralCode.trim();
+        if (code.length < 3 || checkedCode.current === code) return;
+        const timer = setTimeout(() => verifyCode(code), 600);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [referralCode]);
 
     // Arriving for a locked offer: put the cursor on the code field.
     useEffect(() => {
@@ -141,7 +156,7 @@ function SignupForm() {
                 referralCode: code,
                 institutionType,
                 ...(packCode ? { packCode } : {}),
-                ...(eligible && prices ? { offerPeriod } : {}),
+                ...(packCode ? { offerPeriod } : {}),
             });
             setAccessTokenState(token);
             setUser(user);
@@ -261,27 +276,29 @@ function SignupForm() {
                                 </div>
                             )}
 
-                            {offer && (
-                                <div className="grid gap-2" role="radiogroup" aria-label="Durée (offre partenaire)">
-                                    <p className="text-xs font-extrabold uppercase tracking-wider text-amber-600">Offre partenaire · durée</p>
+                            {packs.length > 0 && (
+                                <div className="grid gap-2" role="radiogroup" aria-label="Durée">
+                                    <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Durée</p>
                                     <div className="grid grid-cols-3 gap-2">
                                         {OFFER_PERIODS.map((period) => (
                                             <label
                                                 key={period}
                                                 className={`cursor-pointer rounded-2xl border-2 px-3 py-2 text-center ${
-                                                    offerPeriod === period ? 'border-amber-500 bg-amber-50' : 'border-slate-100 bg-slate-50'
+                                                    offerPeriod === period ? 'border-indigo-500 bg-indigo-50' : 'border-slate-100 bg-slate-50'
                                                 }`}
                                             >
                                                 <input
                                                     type="radio"
-                                                    name="offer"
+                                                    name="period"
                                                     value={period}
                                                     checked={offerPeriod === period}
                                                     onChange={() => setOfferPeriod(period)}
                                                     className="sr-only"
                                                 />
                                                 <span className="block font-bold text-slate-800">{OFFER_LABELS[period]}</span>
-                                                <span className="block text-xs font-extrabold text-emerald-600">−{offerDiscount(offer, period)} %</span>
+                                                {offer && (
+                                                    <span className="block text-xs font-extrabold text-emerald-600">−{offerDiscount(offer, period)} %</span>
+                                                )}
                                             </label>
                                         ))}
                                     </div>
@@ -320,7 +337,9 @@ function SignupForm() {
                                                     </span>
                                                 </span>
                                             ) : (
-                                                <span className="text-sm font-semibold text-slate-500">{pack.monthlyPrice} MAD / mois</span>
+                                                <span className="text-sm font-semibold text-slate-500">
+                                                    {formatOfferMoney(packBasePrice(pack, offerPeriod))} MAD{PERIOD_SUFFIX[offerPeriod]}
+                                                </span>
                                             )}
                                         </label>
                                     ))}
@@ -344,7 +363,7 @@ function SignupForm() {
                                     setCodeStatus('idle');
                                     setEligible(false);
                                 }}
-                                onBlur={() => verifyCode(referralCode.trim())}
+                                onBlur={() => checkedCode.current !== referralCode.trim() && verifyCode(referralCode.trim())}
                                 required
                                 autoComplete="off"
                                 placeholder="Ex. YOUSSEF22"
@@ -362,6 +381,34 @@ function SignupForm() {
                             {codeStatus === 'valid' && <p className="text-xs font-semibold text-emerald-600">Code valide ✓</p>}
                             {codeStatus === 'invalid' && (
                                 <p className="text-xs font-semibold text-red-600">Ce code n&apos;existe pas ou n&apos;est plus actif.</p>
+                            )}
+                            {selectedPack && (
+                                <div
+                                    aria-live="polite"
+                                    className={`rounded-2xl border-2 px-5 py-4 ${offer ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}
+                                >
+                                    <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Prix final</p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-600">
+                                        {selectedPack.name} · {OFFER_LABELS[offerPeriod]}
+                                    </p>
+                                    {offer && (
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            <span className="line-through">{formatOfferMoney(packBasePrice(selectedPack, offerPeriod))} MAD</span>
+                                            <span className="ms-2 rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-bold text-white">
+                                                −{offerDiscount(offer, offerPeriod)} % partenaire
+                                            </span>
+                                        </p>
+                                    )}
+                                    <p className={`mt-1 text-3xl font-black ${offer ? 'text-emerald-700' : 'text-slate-900'}`}>
+                                        {formatOfferMoney(finalPrice)} MAD
+                                        <span className="text-base font-semibold text-slate-500">{PERIOD_SUFFIX[offerPeriod]}</span>
+                                    </p>
+                                    {!offer && prices && (
+                                        <p className="mt-1 text-xs text-slate-500">
+                                            Avec le code d&apos;un partenaire : −{offerDiscount(prices, offerPeriod)} % sur ce prix.
+                                        </p>
+                                    )}
+                                </div>
                             )}
                             <a
                                 href={whatsappUrl()}

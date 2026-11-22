@@ -104,9 +104,14 @@ export default function SuperAdminSchoolsPage() {
         </span>
     );
     const partnerBadge = (school: SchoolListItem) =>
-        school.partnerOffer && school.offerPeriod ? (
-            <span className="ms-2 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">
-                Partenaire · {OFFER_BADGE_LABELS[school.offerPeriod]}
+        school.offerPeriod ? (
+            <span
+                className={`ms-2 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    school.partnerOffer ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                }`}
+            >
+                {school.partnerOffer ? 'Partenaire · ' : ''}
+                {OFFER_BADGE_LABELS[school.offerPeriod]}
                 {school.offerPrice != null && ` · ${formatOfferMoney(school.offerPrice)} MAD`}
             </span>
         ) : null;

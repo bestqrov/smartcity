@@ -120,17 +120,27 @@ describe('signupSchool', () => {
             expect(prisma.partnerOffer.findUnique).not.toHaveBeenCalled();
         });
 
-        it('rejects an offerPeriod for the house code, an inactive offer or an invalid period', async () => {
+        it('keeps the period at full price for the house code or an inactive offer', async () => {
             const { txClient } = arrangeSignup();
+            (prisma.pack.findFirst as jest.Mock).mockResolvedValue(pricedPack);
             (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue({ ...agent, isHouse: true });
             (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(storedOffer);
-            await expect(signupSchool({ ...baseInput, offerPeriod: 'YEARLY' })).rejects.toThrow('This offer is only available through a partner');
+            await signupSchool({ ...baseInput, packCode: 'pro', offerPeriod: 'YEARLY' });
+            expect(txClient.school.create).toHaveBeenLastCalledWith(
+                expect.objectContaining({ data: expect.objectContaining({ partnerOffer: false, offerPeriod: 'YEARLY', offerPrice: 5000 }) })
+            );
 
             (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(partner);
             (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue({ ...storedOffer, active: false });
-            await expect(signupSchool({ ...baseInput, offerPeriod: 'YEARLY' })).rejects.toThrow('This offer is only available through a partner');
+            await signupSchool({ ...baseInput, packCode: 'pro', offerPeriod: 'SEMIANNUAL' });
+            expect(txClient.school.create).toHaveBeenLastCalledWith(
+                expect.objectContaining({ data: expect.objectContaining({ partnerOffer: false, offerPeriod: 'SEMIANNUAL', offerPrice: 3000 }) })
+            );
+        });
 
-            (prisma.partnerOffer.findUnique as jest.Mock).mockResolvedValue(storedOffer);
+        it('rejects an invalid period', async () => {
+            const { txClient } = arrangeSignup();
+            (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(partner);
             await expect(signupSchool({ ...baseInput, offerPeriod: 'WEEKLY' as any })).rejects.toThrow('offerPeriod must be MONTHLY, SEMIANNUAL or YEARLY');
             expect(txClient.school.create).not.toHaveBeenCalled();
         });
