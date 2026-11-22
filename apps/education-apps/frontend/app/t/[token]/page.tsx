@@ -7,9 +7,20 @@ import HomeworkList from '@/components/homework/HomeworkList';
 import { teacherHomeworkClient, type Homework } from '@/lib/services/homework';
 import { getTeacherPortal, teacherGradesClient, type EvaluationWithGrades, type TeacherPortal } from '@/lib/services/grades';
 import { sortStudents } from '@/components/grades/utils';
+import LangSwitcher from '@/components/LangSwitcher';
+import { I18nProvider, useI18n } from '@/lib/i18n/I18nProvider';
 
 export default function TeacherSpacePage({ params }: { params: { token: string } }) {
-    const token = params.token;
+    // The teacher's language choice (FR / ع) is kept on this device, like in the school spaces.
+    return (
+        <I18nProvider>
+            <TeacherSpace token={params.token} />
+        </I18nProvider>
+    );
+}
+
+function TeacherSpace({ token }: { token: string }) {
+    const { tr } = useI18n();
     const client = useMemo(() => teacherGradesClient(token), [token]);
     const [portal, setPortal] = useState<TeacherPortal | null>(null);
     const [state, setState] = useState<'loading' | 'invalid' | 'rate' | 'error' | 'ready'>('loading');
@@ -60,14 +71,14 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
             <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-center dark:bg-slate-950">
                 <div className="max-w-sm space-y-2">
                     <p className="text-lg font-semibold text-slate-900 dark:text-white">
-                        {state === 'invalid' ? 'Lien invalide' : state === 'rate' ? 'Trop de requêtes' : 'Connexion impossible'}
+                        {state === 'invalid' ? tr("Lien invalide") : state === 'rate' ? tr("Trop de requêtes") : tr("Connexion impossible")}
                     </p>
                     <p className="text-sm text-slate-600 dark:text-slate-400">
                         {state === 'invalid'
-                            ? 'Lien invalide, demandez un nouveau lien à l’établissement.'
+                            ? tr("Lien invalide, demandez un nouveau lien à l’établissement.")
                             : state === 'rate'
-                            ? 'Trop de requêtes, réessayez dans une minute.'
-                            : 'Vérifiez votre connexion internet puis rechargez la page.'}
+                            ? tr("Trop de requêtes, réessayez dans une minute.")
+                            : tr("Vérifiez votre connexion internet puis rechargez la page.")}
                     </p>
                 </div>
             </main>
@@ -79,7 +90,7 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
                 <div className="mx-auto flex max-w-2xl items-center gap-3">
                     {group ? (
-                        <button type="button" onClick={() => setGroupId(null)} aria-label="Retour" className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+                        <button type="button" onClick={() => setGroupId(null)} aria-label={tr("Retour")} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
                             <ArrowLeft size={20} />
                         </button>
                     ) : portal.school?.logo ? (
@@ -89,9 +100,10 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
                     <div className="min-w-0">
                         <p className="truncate font-semibold text-slate-900 dark:text-white">{group ? group.name : portal.teacher.name}</p>
                         <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                            {group ? `${group.subject} · ${group.students.length} élèves` : portal.school?.name ?? 'Espace enseignant'}
+                            {group ? `${tr(group.subject)} · ${tr('{n} élèves', { n: group.students.length })}` : portal.school?.name ?? tr('Espace enseignant')}
                         </p>
                     </div>
+                    <LangSwitcher className="ms-auto" />
                 </div>
             </header>
             <div className="mx-auto max-w-2xl p-4">
@@ -107,7 +119,7 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
                                     tab === t ? 'bg-white text-slate-900 shadow dark:bg-slate-700 dark:text-white' : 'text-slate-600 dark:text-slate-300'
                                 }`}
                             >
-                                {t === 'evaluations' ? 'Évaluations' : 'Devoirs'}
+                                {t === 'evaluations' ? tr("Évaluations") : tr("Devoirs")}
                             </button>
                         ))}
                     </div>
@@ -134,18 +146,16 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
                     )}
                     </div>
                 ) : portal.groups.length === 0 ? (
-                    <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                        Aucun groupe ne vous est attribué.
-                    </p>
+                    <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">{tr("Aucun groupe ne vous est attribué.")}</p>
                 ) : (
                     <ul className="space-y-3">
-                        <li className="text-sm font-medium text-slate-600 dark:text-slate-300">Vos groupes</li>
+                        <li className="text-sm font-medium text-slate-600 dark:text-slate-300">{tr("Vos groupes")}</li>
                         {portal.groups.map((g) => (
                             <li key={g.id}>
                                 <button
                                     type="button"
                                     onClick={() => setGroupId(g.id)}
-                                    className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left dark:border-slate-700 dark:bg-slate-800"
+                                    className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-start dark:border-slate-700 dark:bg-slate-800"
                                 >
                                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
                                         <Users size={20} />
@@ -153,7 +163,7 @@ export default function TeacherSpacePage({ params }: { params: { token: string }
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate font-semibold text-slate-900 dark:text-white">{g.name}</p>
                                         <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                                            {[g.subject, g.level].filter(Boolean).join(' · ')} · {g.students.length} élèves · {g.evaluations.length} évaluation(s)
+                                            {[tr(g.subject), tr(g.level)].filter(Boolean).join(' · ')} · {tr('{n} élèves', { n: g.students.length })} · {tr('{n} évaluation(s)', { n: g.evaluations.length })}
                                         </p>
                                     </div>
                                     <ChevronRight size={18} className="text-slate-400" />

@@ -361,4 +361,16 @@ export const pedagogy: Record<string, string> = {
     NIVEAU: 'المستوى',
     ACTIONS: 'الإجراءات',
     FORMATION: 'التكوين',
+    // ---- teacher portal (/t/...)
+    'Espace enseignant': 'فضاء الأستاذ',
+    '{n} élèves': '{n} تلميذ',
+    '{n} évaluation(s)': '{n} فرض',
+    'Lien invalide': 'رابط غير صالح',
+    'Trop de requêtes': 'طلبات كثيرة',
+    'Connexion impossible': 'تعذّر الاتصال',
+    'Lien invalide, demandez un nouveau lien à l’établissement.': 'رابط غير صالح، اطلب رابطاً جديداً من المؤسسة.',
+    'Trop de requêtes, réessayez dans une minute.': 'طلبات كثيرة، أعد المحاولة بعد دقيقة.',
+    'Vérifiez votre connexion internet puis rechargez la page.': 'تحقق من اتصالك بالإنترنت ثم أعد تحميل الصفحة.',
+    'Aucun groupe ne vous est attribué.': 'لم تُسند إليك أي مجموعة.',
+    'Vos groupes': 'مجموعاتك',
 };

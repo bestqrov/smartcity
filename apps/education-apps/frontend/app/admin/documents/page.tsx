@@ -202,7 +202,8 @@ export default function DocumentsPage() {
             ) : (
                 <>
                     {/* Document View */}
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 print:shadow-none print:border-0">
+                    {/* The sheet is paper: always dark text on white, whatever the app theme. */}
+                    <div className="bg-white text-gray-900 rounded-2xl shadow-lg border border-gray-200 print:shadow-none print:border-0">
                         {/* Print Button - Hidden on print */}
                         <div className="p-6 border-b border-gray-200 flex justify-between items-center print:hidden">
                             <Button
