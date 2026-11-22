@@ -43,8 +43,27 @@ interface Props {
     parentsPath?: string; // where the parents page lives; no link when absent
 }
 
+// Row messages come from the server in French, some with a value inside (group name, date...):
+// match them to a source text with placeholders so the value is kept and the sentence translated.
+const IMPORT_MESSAGES: [RegExp, string][] = [
+    [/^Groupe « (.+) » inexistant$/, 'Groupe « {a} » inexistant'],
+    [/^Date de naissance invalide : (.+)$/, 'Date de naissance invalide : {a}'],
+    [/^Email invalide : (.+)$/, 'Email invalide : {a}'],
+    [/^(.+) non marocain, gardé tel quel : (.+)$/, '{a} non marocain, gardé tel quel : {b}'],
+    [/^(.+) trop longu?e? \((\d+) caractères max\)$/, '{a} trop long ({b} caractères max)'],
+];
+
+function translateImportMessage(message: string, tr: (text: string, params?: Record<string, string>) => string): string {
+    for (const [pattern, source] of IMPORT_MESSAGES) {
+        const match = message.match(pattern);
+        if (match) return tr(source, { a: tr(match[1]), b: match[2] ?? '' });
+    }
+    return tr(message);
+}
+
 export default function StudentImportWizard({ studentsPath, parentsPath }: Props) {
     const { tr } = useI18n();
+    const trServer = (message: string) => translateImportMessage(message, tr);
     const { profile } = useSchoolProfile();
     const vocational = profile.institutionType === 'VOCATIONAL_TRAINING';
     const fields = useMemo(() => fieldsFor(profile.institutionType === 'CRECHE'), [profile.institutionType]);
@@ -352,10 +371,10 @@ export default function StudentImportWizard({ studentsPath, parentsPath }: Props
                                                 {row.group && <span className="ms-2 text-xs text-gray-500 dark:text-gray-400">· {row.group}</span>}
                                             </p>
                                             {row.errors.map((message) => (
-                                                <p key={message} className="text-xs text-red-600 dark:text-red-300">{tr(message)}</p>
+                                                <p key={message} className="text-xs text-red-600 dark:text-red-300">{trServer(message)}</p>
                                             ))}
                                             {row.warnings.map((message) => (
-                                                <p key={message} className="text-xs text-amber-700 dark:text-amber-300">{tr(message)}</p>
+                                                <p key={message} className="text-xs text-amber-700 dark:text-amber-300">{trServer(message)}</p>
                                             ))}
                                         </div>
                                     </li>

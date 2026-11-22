@@ -10,12 +10,25 @@ export interface SheetData {
 
 const cellText = (value: unknown): string => (value === null || value === undefined ? '' : String(value).trim());
 
+// CSV text: UTF-8 (Google Sheets, LibreOffice, "CSV UTF-8" from Excel) when the bytes are valid UTF-8,
+// otherwise Windows-1252 (plain "CSV" saved by a French Excel). The BOM is dropped.
+export function decodeCsv(bytes: ArrayBuffer): string {
+    try {
+        return new TextDecoder('utf-8', { fatal: true }).decode(bytes).replace(/^﻿/, '');
+    } catch {
+        return new TextDecoder('windows-1252').decode(bytes);
+    }
+}
+
 // First sheet, first non-empty line as headers; empty lines skipped. Dates stay Excel serials
 // (numbers) and CSV is read raw (no date guessing): the backend parses both.
 export async function readSheet(file: File): Promise<SheetData> {
     const XLSX = await import('xlsx');
     const csv = file.name.toLowerCase().endsWith('.csv');
-    const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', raw: csv });
+    const bytes = await file.arrayBuffer();
+    const workbook = csv
+        ? XLSX.read(decodeCsv(bytes), { type: 'string', raw: true })
+        : XLSX.read(bytes, { type: 'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     if (!sheet) throw new Error('Le fichier ne contient aucune feuille.');
     // sheet_to_json starts at the used range, which may not begin at row 1.
