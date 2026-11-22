@@ -78,7 +78,7 @@ export default function GradingPeriodsEditor() {
             </div>
             <div className="flex flex-wrap gap-2">
                 {periods.map((p, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 rounded-full bg-blue-50 py-1 pl-3 pr-1 dark:bg-blue-500/15">
+                    <span key={i} className="inline-flex items-center gap-1 rounded-full bg-blue-50 py-1 ps-3 pe-1 dark:bg-blue-500/15">
                         <input
                             value={p}
                             maxLength={MAX_LEN}

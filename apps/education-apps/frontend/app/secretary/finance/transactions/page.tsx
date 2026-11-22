@@ -81,8 +81,8 @@ export default function SecretaryTransactionsPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div className="p-4 border-b border-slate-50 flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500" />
+                        <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full ps-10 pe-4 py-2 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div className="flex gap-2">
                         {['ALL', 'INCOME', 'EXPENSE'].map(type => (
@@ -94,14 +94,14 @@ export default function SecretaryTransactionsPage() {
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-start">
                         <thead className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
                             <tr>
                                 <th className="px-6 py-4">Type</th>
                                 <th className="px-6 py-4">Description</th>
                                 <th className="px-6 py-4">Catégorie</th>
                                 <th className="px-6 py-4">Date</th>
-                                <th className="px-6 py-4 text-right">Montant</th>
+                                <th className="px-6 py-4 text-end">Montant</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -120,7 +120,7 @@ export default function SecretaryTransactionsPage() {
                                     <td className="px-6 py-4 font-bold text-gray-700 text-sm">{t.description}</td>
                                     <td className="px-6 py-4 text-xs text-gray-500">{t.category}</td>
                                     <td className="px-6 py-4 text-xs text-gray-400">{new Date(t.date).toLocaleDateString()}</td>
-                                    <td className={`px-6 py-4 text-right font-bold ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(t.amount)}</td>
+                                    <td className={`px-6 py-4 text-end font-bold ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(t.amount)}</td>
                                 </tr>
                             ))}
                         </tbody>

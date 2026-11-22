@@ -120,7 +120,7 @@ export default function SoutienDashboard() {
                                             <p className="text-sm text-gray-500">{new Date(inscription.createdAt).toLocaleDateString()}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-end">
                                         <p className="font-bold text-gray-800">{Number(inscription.amount).toFixed(2)} MAD</p>
                                         <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Payé</span>
                                     </div>
@@ -136,7 +136,7 @@ export default function SoutienDashboard() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button
                             onClick={() => router.push('/admin/inscriptions')}
-                            className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
+                            className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                         >
                             <GraduationCap className="mb-3 text-blue-400 group-hover:scale-110 transition-transform" size={24} />
                             <p className="font-medium">Nouvel Étudiant</p>
@@ -144,7 +144,7 @@ export default function SoutienDashboard() {
                         </button>
                         <button
                             onClick={() => router.push('/admin/students')}
-                            className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
+                            className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                         >
                             <Users className="mb-3 text-purple-400 group-hover:scale-110 transition-transform" size={24} />
                             <p className="font-medium">Liste Étudiants</p>
@@ -152,7 +152,7 @@ export default function SoutienDashboard() {
                         </button>
                         <button
                             onClick={() => router.push('/admin/groups')}
-                            className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
+                            className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                         >
                             <Calendar className="mb-3 text-orange-400 group-hover:scale-110 transition-transform" size={24} />
                             <p className="font-medium">Planning</p>
@@ -160,7 +160,7 @@ export default function SoutienDashboard() {
                         </button>
                         <button
                             onClick={() => router.push('/admin/finance')}
-                            className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
+                            className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                         >
                             <TrendingUp className="mb-3 text-green-400 group-hover:scale-110 transition-transform" size={24} />
                             <p className="font-medium">Rapports</p>

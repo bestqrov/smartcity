@@ -27,6 +27,8 @@ import { useState, useEffect } from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import useAuthStore from '@/store/useAuthStore';
 import { applyInstitutionType, getInstitutionTypeConfig } from '@/lib/institutionTypes';
+import { useI18n } from '@/lib/i18n/I18nProvider';
+import LangSwitcher from '@/components/LangSwitcher';
 
 interface SidebarProps {
   currentPath: string;
@@ -35,6 +37,7 @@ interface SidebarProps {
 
 export function Sidebar({ currentPath, role }: SidebarProps) {
   const router = useRouter();
+  const { tr } = useI18n();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const { profile } = useSchoolProfile();
   const [adminName, setAdminName] = useState('Utilisateur');
@@ -384,14 +387,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     return false;
   };
 
-  const roleLabel = effectiveRole === 'SUPER_ADMIN' ? 'Maintenance (Super Admin)' : (effectiveRole === 'SECRETARY' ? 'Secrétaire' : (effectiveRole === 'OWNER' ? 'Propriétaire' : (profile.director || 'Administrateur')));
+  const roleLabel = effectiveRole === 'SUPER_ADMIN' ? tr('Maintenance (Super Admin)') : (effectiveRole === 'SECRETARY' ? tr('Secrétaire') : (effectiveRole === 'OWNER' ? tr('Propriétaire') : (profile.director || tr('Administrateur'))));
 
   return (
     <>
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className={`lg:hidden fixed top-3 z-50 w-11 h-11 flex items-center justify-center rounded-2xl bg-white text-gray-900 shadow-lg border border-gray-200 dark:bg-vib-panel dark:text-white dark:border-white/10 transition-all duration-300 ${isMobileMenuOpen ? 'left-[calc(min(18rem,85vw)+0.5rem)]' : 'left-4'}`}
-        aria-label="Toggle menu"
+        className={`lg:hidden fixed top-3 z-50 w-11 h-11 flex items-center justify-center rounded-2xl bg-white text-gray-900 shadow-lg border border-gray-200 dark:bg-vib-panel dark:text-white dark:border-white/10 transition-all duration-300 ${isMobileMenuOpen ? 'start-[calc(min(18rem,85vw)+0.5rem)]' : 'start-4'}`}
+        aria-label={tr('Ouvrir ou fermer le menu')}
       >
         {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
@@ -404,13 +407,13 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       )}
 
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40
+        fixed lg:static inset-y-0 start-0 z-40
         w-72 max-w-[85vw] shrink-0
         flex flex-col bg-white text-gray-700 shadow-2xl
-        dark:bg-vib-panel dark:text-gray-300 dark:border-r dark:border-white/5
+        dark:bg-vib-panel dark:text-gray-300 dark:border-e dark:border-white/5
         lg:rounded-3xl lg:shadow-sm lg:dark:border lg:dark:shadow-none
         transition-transform duration-300 ease-spring
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full lg:translate-x-0 lg:rtl:translate-x-0'}
       `}
       >
         <div className="p-4">
@@ -433,7 +436,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-3 scrollbar-hide" aria-label="Menu principal">
+        <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-3 scrollbar-hide" aria-label={tr('Menu principal')}>
           {groupedMenu.map((group) => {
             const collapsed = collapsedGroups.includes(group.id);
             return (
@@ -444,8 +447,8 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                   aria-expanded={!collapsed}
                   className="w-full flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 >
-                  <span>{group.label}</span>
-                  <ChevronDown size={12} className={`transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
+                  <span>{tr(group.label)}</span>
+                  <ChevronDown size={12} className={`transition-transform duration-200 ${collapsed ? '-rotate-90 rtl:rotate-90' : ''}`} />
                 </button>
                 {!collapsed && (
                   <ul className="mt-0.5 space-y-0.5">
@@ -470,12 +473,12 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                             >
                               <span className="flex min-w-0 items-center gap-2.5">
                                 {chip}
-                                <span className="truncate text-[13px]">{item.label}</span>
+                                <span className="truncate text-[13px]">{tr(item.label)}</span>
                               </span>
                               <ChevronDown size={14} className={`shrink-0 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
                             </button>
                             {open && (
-                              <ul className="ml-[1.6rem] border-l border-gray-200 dark:border-white/10 pl-3 py-0.5">
+                              <ul className="ms-[1.6rem] border-s border-gray-200 dark:border-white/10 ps-3 py-0.5">
                                 {item.submenu.map((sub: any) => {
                                   const isSubActive = currentPath === sub.path;
                                   return (
@@ -485,9 +488,9 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                                         onClick={() => handleNavigation(sub.path)}
                                         aria-current={isSubActive ? 'page' : undefined}
                                         style={isSubActive ? { backgroundColor: `${group.color}1A`, color: group.color } : undefined}
-                                        className={`w-full text-left px-2.5 py-2.5 lg:py-1.5 rounded-lg text-[13px] transition-colors ${isSubActive ? 'font-bold' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}
+                                        className={`w-full text-start px-2.5 py-2.5 lg:py-1.5 rounded-lg text-[13px] transition-colors ${isSubActive ? 'font-bold' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'}`}
                                       >
-                                        {sub.label}
+                                        {tr(sub.label)}
                                       </button>
                                     </li>
                                   );
@@ -508,9 +511,9 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                             className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-xl transition-colors ${item.comingSoon ? 'opacity-60 cursor-not-allowed' : active ? 'font-bold text-gray-900 dark:text-white' : 'font-medium hover:bg-gray-50 dark:hover:bg-white/5'}`}
                           >
                             {chip}
-                            <span className="truncate text-[13px]">{item.label}</span>
+                            <span className="truncate text-[13px]">{tr(item.label)}</span>
                             {item.comingSoon && (
-                              <span className="ml-auto rounded-full bg-amber-100 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 px-2 py-0.5 text-[10px] font-bold">Bientôt</span>
+                              <span className="ms-auto rounded-full bg-amber-100 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 px-2 py-0.5 text-[10px] font-bold">{tr('Bientôt')}</span>
                             )}
                           </button>
                         </li>
@@ -524,21 +527,23 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
         </nav>
 
         <div className="p-3 border-t border-gray-100 dark:border-white/5 space-y-2">
+          {/* On phones the top bar has no room for it: the language switch lives here. */}
+          <LangSwitcher className="sm:hidden w-fit" />
           {user && user.role !== 'SALES_AGENT' && user.salesAgent && (
             <button
               onClick={() => handleNavigation('/agent')}
               className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20 transition-colors"
             >
               <Briefcase size={16} />
-              <span className="font-semibold text-[13px]">Espace commercial</span>
+              <span className="font-semibold text-[13px]">{tr('Espace commercial')}</span>
             </button>
           )}
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors group"
           >
-            <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="font-semibold text-[13px]">Déconnexion</span>
+            <LogOut size={16} className="group-hover:-translate-x-1 rtl:group-hover:translate-x-1 rtl:-scale-x-100 transition-transform" />
+            <span className="font-semibold text-[13px]">{tr('Déconnexion')}</span>
           </button>
         </div>
       </aside>

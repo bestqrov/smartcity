@@ -550,7 +550,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                         <table className="w-full border-collapse">
                                             <thead>
                                                 <tr className="bg-gradient-to-r from-green-100 to-emerald-100">
-                                                    <th className="border border-gray-200 p-3 text-left font-bold text-gray-700">Matières</th>
+                                                    <th className="border border-gray-200 p-3 text-start font-bold text-gray-700">Matières</th>
                                                     <th className="border border-gray-200 p-3 text-center font-bold text-gray-700">Sélection</th>
                                                     <th className="border border-gray-200 p-3 text-center font-bold text-gray-700 w-40">Prix (DH)</th>
                                                 </tr>
@@ -573,7 +573,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                                     </tr>
                                                                     {scientificSubjects.map((subject) => (
                                                                         <tr key={subject.key} className="hover:bg-gray-50 transition-colors">
-                                                                            <td className="border border-gray-200 p-3 pl-8">- {subject.label}</td>
+                                                                            <td className="border border-gray-200 p-3 ps-8">- {subject.label}</td>
                                                                             <td className="border border-gray-200 p-3 text-center">
                                                                                 <input
                                                                                     type="checkbox"
@@ -590,7 +590,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                                                     onChange={(e) => handlePriceChange(subject.key, e.target.value)}
                                                                                     disabled={subjects[subject.key] === undefined}
                                                                                     placeholder="0"
-                                                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-right focus:border-green-500 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                                                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-end focus:border-green-500 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
                                                                                 />
                                                                             </td>
                                                                         </tr>
@@ -607,7 +607,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                                     </tr>
                                                                     {languageSubjects.map((subject) => (
                                                                         <tr key={subject.key} className="hover:bg-gray-50 transition-colors">
-                                                                            <td className="border border-gray-200 p-3 pl-8">- {subject.label}</td>
+                                                                            <td className="border border-gray-200 p-3 ps-8">- {subject.label}</td>
                                                                             <td className="border border-gray-200 p-3 text-center">
                                                                                 <input
                                                                                     type="checkbox"
@@ -624,7 +624,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                                                     onChange={(e) => handlePriceChange(subject.key, e.target.value)}
                                                                                     disabled={subjects[subject.key] === undefined}
                                                                                     placeholder="0"
-                                                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-right focus:border-green-500 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                                                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-end focus:border-green-500 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
                                                                                 />
                                                                             </td>
                                                                         </tr>
@@ -641,7 +641,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                                     </tr>
                                                                     {otherSubjects.map((subject) => (
                                                                         <tr key={subject.key} className="hover:bg-gray-50 transition-colors">
-                                                                            <td className="border border-gray-200 p-3 pl-8">- {subject.label}</td>
+                                                                            <td className="border border-gray-200 p-3 ps-8">- {subject.label}</td>
                                                                             <td className="border border-gray-200 p-3 text-center">
                                                                                 <input
                                                                                     type="checkbox"
@@ -658,7 +658,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                                                     onChange={(e) => handlePriceChange(subject.key, e.target.value)}
                                                                                     disabled={subjects[subject.key] === undefined}
                                                                                     placeholder="0"
-                                                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-right focus:border-green-500 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                                                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-end focus:border-green-500 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400"
                                                                                 />
                                                                             </td>
                                                                         </tr>
@@ -707,7 +707,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                         type="number"
                                         value={inscriptionFee}
                                         onChange={(e) => setInscriptionFee(Number(e.target.value))}
-                                        className="w-32 px-3 py-2 border-2 border-green-200 rounded-lg text-right font-bold focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                                        className="w-32 px-3 py-2 border-2 border-green-200 rounded-lg text-end font-bold focus:border-green-500 focus:ring-2 focus:ring-green-200"
                                     />
                                     <span className="font-bold text-gray-700">DH</span>
                                 </div>
@@ -749,7 +749,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                             <div className="mt-6 pt-6 border-t-2 border-green-300">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-xl font-bold text-gray-800">Total à payer:</span>
-                                    <div className="text-right">
+                                    <div className="text-end">
                                         <div className="text-3xl font-bold text-green-600">{total}</div>
                                         <div className="text-sm text-gray-500 font-semibold">DH</div>
                                     </div>

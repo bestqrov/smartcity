@@ -125,9 +125,9 @@ export default function BulletinTab({ groupId, groupName, periods, evaluations }
                 ) : (
                     <div className="max-w-full overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
                         <table className="min-w-full text-sm">
-                            <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                            <thead className="bg-slate-50 text-start text-xs uppercase text-slate-500 dark:bg-slate-900 dark:text-slate-400">
                                 <tr>
-                                    <th className="sticky left-0 z-10 bg-slate-50 px-3 py-2 dark:bg-slate-900">Élève</th>
+                                    <th className="sticky start-0 z-10 bg-slate-50 px-3 py-2 dark:bg-slate-900">Élève</th>
                                     {bulletin.subjects.map((s) => (
                                         <th key={s} className="whitespace-nowrap px-3 py-2">{s}</th>
                                     ))}
@@ -139,7 +139,7 @@ export default function BulletinTab({ groupId, groupName, periods, evaluations }
                             <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-700 dark:bg-slate-800">
                                 {bulletin.rows.map((r) => (
                                     <tr key={r.studentId}>
-                                        <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-2 font-medium text-slate-900 dark:bg-slate-800 dark:text-white">
+                                        <td className="sticky start-0 z-10 whitespace-nowrap bg-white px-3 py-2 font-medium text-slate-900 dark:bg-slate-800 dark:text-white">
                                             {r.surname} {r.name}
                                         </td>
                                         {bulletin.subjects.map((s) => (

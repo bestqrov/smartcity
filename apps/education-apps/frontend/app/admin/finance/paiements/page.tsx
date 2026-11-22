@@ -362,12 +362,12 @@ export default function PaiementsPage() {
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Nom</th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Type</th>
-                                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Salaire</th>
-                                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Montant</th>
+                                    <th className="text-start py-3 px-4 text-sm font-semibold text-gray-600">Nom</th>
+                                    <th className="text-start py-3 px-4 text-sm font-semibold text-gray-600">Type</th>
+                                    <th className="text-start py-3 px-4 text-sm font-semibold text-gray-600">Salaire</th>
+                                    <th className="text-end py-3 px-4 text-sm font-semibold text-gray-600">Montant</th>
                                     <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Statut</th>
-                                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
+                                    <th className="text-end py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -385,7 +385,7 @@ export default function PaiementsPage() {
                                         <td className="py-3 px-4 text-gray-600 text-sm">
                                             {getSalaryTypeLabel(payment.salaryType)}
                                         </td>
-                                        <td className="py-3 px-4 text-right font-bold text-gray-800">
+                                        <td className="py-3 px-4 text-end font-bold text-gray-800">
                                             {payment.calculatedAmount.toFixed(2)} MAD
                                         </td>
                                         <td className="py-3 px-4 text-center">
@@ -398,7 +398,7 @@ export default function PaiementsPage() {
                                                 {payment.status === 'PAID' ? 'Payé' : payment.status === 'PARTIAL' ? 'Partiel' : 'En attente'}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4 text-right">
+                                        <td className="py-3 px-4 text-end">
                                             <div className="flex items-center justify-end gap-2">
                                                 {payment.status !== 'PAID' && (
                                                     <button

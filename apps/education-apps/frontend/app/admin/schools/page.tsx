@@ -211,7 +211,7 @@ export default function SuperAdminSchoolsPage() {
                             </li>
                         ))}
                     </ul>
-                    <table className="hidden w-full text-left md:table">
+                    <table className="hidden w-full text-start md:table">
                         <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
                             <tr>
                                 <th className="px-6 py-4">École</th>

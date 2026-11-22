@@ -241,7 +241,7 @@ const TeachersContent = () => {
                     onClick={() => handleOpenModal(null)}
                     className={`${buttonClass} hover:opacity-90 transition-opacity`}
                 >
-                    <PlusCircle size={18} className="mr-2" />
+                    <PlusCircle size={18} className="me-2" />
                     {isFormationMode ? 'Nouveau Formateur' : isCrecheMode ? 'Nouvelle Éducatrice' : 'Nouveau Professeur'}
                 </Button>
             </div>
@@ -250,13 +250,13 @@ const TeachersContent = () => {
             <div className={`p-1 rounded-xl bg-gradient-to-r ${headerGradient} shadow-sm`}>
                 <div className="bg-white rounded-lg p-1">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
                             placeholder={isFormationMode ? "Rechercher un instructeur..." : isCrecheMode ? "Rechercher par nom..." : "Rechercher par nom ou matière..."}
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border-none rounded-lg focus:ring-0 outline-none"
+                            className="w-full ps-10 pe-4 py-2 border-none rounded-lg focus:ring-0 outline-none"
                         />
                     </div>
                 </div>
@@ -322,7 +322,7 @@ const TeachersContent = () => {
                                 <User size={14} className="text-indigo-400" />
                                 {teacher._count?.groups || 0} Groupes
                             </span>
-                            <div className="text-right">
+                            <div className="text-end">
                                 <p className={`font-bold ${isFormationMode ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600' : 'text-gray-900'}`}>
                                     {teacher.paymentType === 'PERCENTAGE'
                                         ? `${teacher.commission}% / Ins.`
@@ -355,31 +355,31 @@ const TeachersContent = () => {
                                 <div className="col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Nom Complet *</label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <User className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         <input
                                             required
                                             type="text"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ps-10"
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
                                             placeholder="Ex: Ahmed Bennani"
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-400 mt-1 ml-1">Nom complet tel qu'il apparaîtra sur les contrats</p>
+                                    <p className="text-xs text-gray-400 mt-1 ms-1">Nom complet tel qu'il apparaîtra sur les contrats</p>
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Email</label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                        <input type="email" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                                        <Mail className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <input type="email" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ps-10" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1 font-bold text-blue-700 dark:text-yellow-400">Téléphone</label>
                                     <div className="relative">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                        <input type="tel" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                                        <Phone className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <input type="tel" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ps-10" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                                     </div>
                                 </div>
 
@@ -402,11 +402,11 @@ const TeachersContent = () => {
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">WhatsApp</label>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase ms-1">WhatsApp</label>
                                             <input type="text" className="w-full px-4 py-1.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.socialMedia.whatsapp} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, whatsapp: e.target.value } })} placeholder="Numéro" />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Facebook</label>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase ms-1">Facebook</label>
                                             <input type="text" className="w-full px-4 py-1.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all" value={formData.socialMedia.facebook} onChange={e => setFormData({ ...formData, socialMedia: { ...formData.socialMedia, facebook: e.target.value } })} placeholder="Pseudo/Lien" />
                                         </div>
                                     </div>
@@ -434,10 +434,10 @@ const TeachersContent = () => {
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1 text-xs uppercase tracking-wide text-gray-500">Commission (%)</label>
                                                 <div className="relative">
-                                                    <Percent className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                    <Percent className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                     <input
                                                         type="number"
-                                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10"
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ps-10"
                                                         value={formData.commission}
                                                         onChange={e => setFormData({ ...formData, commission: parseFloat(e.target.value) })}
                                                         placeholder="Ex: 30"
@@ -451,10 +451,10 @@ const TeachersContent = () => {
                                                     {formData.paymentType === 'HOURLY' ? 'Taux Horaire (MAD/h)' : 'Salaire Fixe (MAD)'}
                                                 </label>
                                                 <div className="relative">
-                                                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                    <Clock className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                                     <input
                                                         type="number"
-                                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all pl-10"
+                                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all ps-10"
                                                         value={formData.hourlyRate}
                                                         onChange={e => setFormData({ ...formData, hourlyRate: parseFloat(e.target.value) })}
                                                     />
@@ -536,7 +536,7 @@ const TeachersContent = () => {
                             type="button"
                             onClick={() => setPortalLink(null)}
                             aria-label="Fermer"
-                            className="absolute right-3 top-3 z-10 rounded-lg p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+                            className="absolute end-3 top-3 z-10 rounded-lg p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
                         >
                             <X size={18} />
                         </button>

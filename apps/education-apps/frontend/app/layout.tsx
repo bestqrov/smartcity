@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Poppins } from 'next/font/google';
+import { Cairo, Poppins } from 'next/font/google';
 import './globals.css';
 
 // Poppins is the font of the staff spaces (admin, owner, secretary): exposed as a CSS variable, used via `font-vibrant`.
@@ -7,6 +7,14 @@ const poppins = Poppins({
     subsets: ['latin'],
     weight: ['400', '500', '600', '700', '800'],
     variable: '--font-poppins',
+    display: 'swap',
+});
+
+// Cairo: Arabic font of the staff spaces (applied when <html lang="ar">, see globals.css); Latin text keeps a clean shape too.
+const cairo = Cairo({
+    subsets: ['arabic', 'latin'],
+    weight: ['400', '500', '600', '700', '800'],
+    variable: '--font-arabic',
     display: 'swap',
 });
 
@@ -25,7 +33,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="fr" className={poppins.variable} suppressHydrationWarning>
+        <html lang="fr" className={`${poppins.variable} ${cairo.variable}`} suppressHydrationWarning>
             <head>
                 <script dangerouslySetInnerHTML={{ __html: NO_FLASH_THEME }} />
             </head>

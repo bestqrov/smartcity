@@ -338,15 +338,15 @@ export default function SecretairePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                         <span className="text-gray-500">ID:</span>
-                        <span className="ml-2 font-mono text-gray-800">{secretary.id}</span>
+                        <span className="ms-2 font-mono text-gray-800">{secretary.id}</span>
                     </div>
                     <div>
                         <span className="text-gray-500">Rôle:</span>
-                        <span className="ml-2 font-semibold text-purple-600">{secretary.role}</span>
+                        <span className="ms-2 font-semibold text-purple-600">{secretary.role}</span>
                     </div>
                     <div>
                         <span className="text-gray-500">Créé le:</span>
-                        <span className="ml-2 text-gray-800">{new Date(secretary.createdAt).toLocaleDateString('fr-FR')}</span>
+                        <span className="ms-2 text-gray-800">{new Date(secretary.createdAt).toLocaleDateString('fr-FR')}</span>
                     </div>
                 </div>
             </div>

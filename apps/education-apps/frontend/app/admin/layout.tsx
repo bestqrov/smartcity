@@ -8,6 +8,7 @@ import PackUpgradeHost from '@/components/packs/PackUpgradeHost';
 import { Sidebar } from '@/components/Sidebar';
 
 import TopBar from '@/components/TopBar';
+import { I18nProvider } from '@/lib/i18n/I18nProvider';
 import useAuthStore, { getActiveBranchId } from '@/store/useAuthStore';
 
 const SUPER_ADMIN_HOME = '/admin/platform';
@@ -38,6 +39,7 @@ export default function AdminLayout({
     }
 
     return (
+        <I18nProvider>
         <RequireRole allowedRoles={['ADMIN', 'OWNER']}>
             <PackUpgradeHost />
             <div className="vib-shell flex h-screen h-[100dvh] transition-colors duration-300 lg:p-4 lg:gap-4">
@@ -53,5 +55,6 @@ export default function AdminLayout({
                 </div>
             </div>
         </RequireRole>
+        </I18nProvider>
     );
 }

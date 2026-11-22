@@ -5,6 +5,7 @@ import { RequireRole } from '@/components/auth/RequireRole';
 import PackUpgradeHost from '@/components/packs/PackUpgradeHost';
 import { Sidebar } from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
+import { I18nProvider } from '@/lib/i18n/I18nProvider';
 
 export default function SecretaryLayout({
     children,
@@ -14,6 +15,7 @@ export default function SecretaryLayout({
     const pathname = usePathname();
 
     return (
+        <I18nProvider>
         <RequireRole allowedRoles={['SECRETARY']}>
             <PackUpgradeHost />
             <div className="vib-shell flex h-screen h-[100dvh] transition-colors duration-300 lg:p-4 lg:gap-4">
@@ -28,5 +30,6 @@ export default function SecretaryLayout({
                 </div>
             </div>
         </RequireRole>
+        </I18nProvider>
     );
 }

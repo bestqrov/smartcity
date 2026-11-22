@@ -158,7 +158,7 @@ export default function BranchesSummaryPage() {
                     <button
                         key={branch.id}
                         onClick={() => handleOpenBranch(branch.id)}
-                        className="rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 p-5 text-left transition-colors hover:border-blue-400 dark:hover:border-blue-500"
+                        className="rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 p-5 text-start transition-colors hover:border-blue-400 dark:hover:border-blue-500"
                     >
                         <p className="font-semibold text-slate-900 dark:text-white">{branch.name}</p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">{branch.city}</p>

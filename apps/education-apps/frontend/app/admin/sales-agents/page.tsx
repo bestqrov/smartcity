@@ -169,7 +169,7 @@ export default function SalesAgentsPage() {
                     ))}
                 </ul>
                 <div className="hidden md:block overflow-x-auto bg-white rounded-xl border border-gray-200">
-                    <table className="w-full text-left text-sm">
+                    <table className="w-full text-start text-sm">
                         <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
                             <tr>
                                 <th className="px-3 py-2">École</th>
@@ -279,7 +279,7 @@ export default function SalesAgentsPage() {
                                         onClick={() => toggleSchools(agent.id)}
                                         aria-expanded={expandedId === agent.id}
                                         aria-label={`Voir les écoles de ${agent.name}`}
-                                        className="flex items-center gap-1 text-left text-sm font-semibold text-indigo-700 hover:underline"
+                                        className="flex items-center gap-1 text-start text-sm font-semibold text-indigo-700 hover:underline"
                                     >
                                         {expandedId === agent.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                         {agent.totals.activeSchools} / {agent.totals.schools} écoles
@@ -297,7 +297,7 @@ export default function SalesAgentsPage() {
                             </li>
                         ))}
                     </ul>
-                    <table className="hidden md:table w-full text-left">
+                    <table className="hidden md:table w-full text-start">
                         <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
                             <tr>
                                 <th className="px-3 py-3 sm:px-6 sm:py-4">Commercial</th>
@@ -346,7 +346,7 @@ export default function SalesAgentsPage() {
                                             onClick={() => toggleSchools(agent.id)}
                                             aria-expanded={expandedId === agent.id}
                                             aria-label={`Voir les écoles de ${agent.name}`}
-                                            className="flex items-center gap-1 text-left font-semibold text-indigo-700 hover:underline"
+                                            className="flex items-center gap-1 text-start font-semibold text-indigo-700 hover:underline"
                                         >
                                             {expandedId === agent.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                             {agent.totals.activeSchools} / {agent.totals.schools}

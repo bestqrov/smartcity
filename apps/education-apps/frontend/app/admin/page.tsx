@@ -310,7 +310,7 @@ export default function AdminDashboard() {
                                     <button
                                         type="button"
                                         onClick={() => router.push(t.href)}
-                                        className="w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
+                                        className="w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 text-start text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
                                     >
                                         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} aria-hidden="true" />
                                         <span className="flex-1">{t.text}</span>
@@ -363,7 +363,7 @@ export default function AdminDashboard() {
                     <div className="bg-white dark:bg-vib-card rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-200">
                         <button
                             onClick={() => setIsInscriptionModalOpen(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2 bg-gray-100 dark:bg-white/10 rounded-full transition-colors z-10"
+                            className="absolute top-4 end-4 text-gray-400 hover:text-gray-600 p-2 bg-gray-100 dark:bg-white/10 rounded-full transition-colors z-10"
                         >
                             <span className="sr-only">Fermer</span>
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

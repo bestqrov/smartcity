@@ -23,17 +23,17 @@ import { createInscription } from '@/lib/services/inscriptions';
 // Helper component for modern inputs with icons
 const ModernInput = ({ icon: Icon, label, required, ...props }: any) => (
     <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-gray-700 ml-1 flex items-center gap-1">
+        <label className="text-sm font-semibold text-gray-700 ms-1 flex items-center gap-1">
             {label}
             {required && <span className="text-red-500">*</span>}
         </label>
         <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
                 <Icon className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
             </div>
             <input
                 {...props}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all bg-gray-50/50 focus:bg-white hover:bg-white text-gray-800 placeholder-gray-400"
+                className="block w-full ps-10 pe-3 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all bg-gray-50/50 focus:bg-white hover:bg-white text-gray-800 placeholder-gray-400"
             />
         </div>
     </div>
@@ -275,7 +275,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                                         onChange={handleChange}
                                                         className="hidden"
                                                     />
-                                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center mr-4 transition-colors ${isSelected
+                                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center me-4 transition-colors ${isSelected
                                                         ? 'bg-blue-500 border-blue-500'
                                                         : 'border-gray-300 group-hover:border-blue-400 bg-white'
                                                         }`}>
@@ -312,7 +312,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                     type="submit"
                                     className={`bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] ${onCancel ? 'flex-[2]' : 'w-full'}`}
                                 >
-                                    <Save className="mr-2" size={20} />
+                                    <Save className="me-2" size={20} />
                                     Confirmer l'Inscription
                                 </Button>
                             </div>
@@ -325,8 +325,8 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                     <div className="sticky top-6">
                         <div className="bg-gray-900 text-white rounded-3xl p-6 shadow-2xl overflow-hidden relative">
                             {/* Background decoration */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/10 rounded-full -ml-16 -mb-16 blur-2xl"></div>
+                            <div className="absolute top-0 end-0 w-32 h-32 bg-blue-500/10 rounded-full -me-16 -mt-16 blur-2xl"></div>
+                            <div className="absolute bottom-0 start-0 w-32 h-32 bg-purple-500/10 rounded-full -ms-16 -mb-16 blur-2xl"></div>
 
                             <div className="relative z-10">
                                 <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-800">
@@ -361,7 +361,7 @@ export default function FormationInscriptionForm({ onSuccessRedirect, onSuccess,
                                 <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
                                     <div className="flex justify-between items-end">
                                         <span className="text-gray-400 font-medium">Total à payer</span>
-                                        <div className="text-right">
+                                        <div className="text-end">
                                             <span className="text-3xl font-bold text-white block">{total}</span>
                                             <span className="text-sm text-gray-400 font-medium">Dirhams (DH)</span>
                                         </div>

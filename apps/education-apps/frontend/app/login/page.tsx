@@ -6,8 +6,25 @@ import useAuthStore from '../../store/useAuthStore';
 import { useRouter } from 'next/navigation';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import { GraduationCap, X } from 'lucide-react';
+import LangSwitcher from '@/components/LangSwitcher';
+import { I18nProvider, useI18n } from '@/lib/i18n/I18nProvider';
+
+// Server messages are English: the known ones get a French source text, which the dictionary translates.
+const LOGIN_ERRORS: Record<string, string> = {
+    'Invalid email or password': 'E-mail ou mot de passe incorrect.',
+    'Network error': 'Connexion au serveur impossible. Vérifiez votre connexion internet.',
+};
 
 export default function LoginPage() {
+    return (
+        <I18nProvider>
+            <LoginForm />
+        </I18nProvider>
+    );
+}
+
+function LoginForm() {
+    const { tr } = useI18n();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -26,7 +43,7 @@ export default function LoginPage() {
         e.preventDefault();
         setError(null);
         const res = await login(email.trim(), password);
-        if (!res.success) return setError(res.message || 'Login failed');
+        if (!res.success) return setError(tr(LOGIN_ERRORS[res.message ?? ''] ?? res.message ?? 'Échec de la connexion.'));
 
         const user = useAuthStore.getState().user;
         if (user?.role === 'OWNER') router.push('/admin/select-branch');
@@ -58,30 +75,33 @@ export default function LoginPage() {
                     </h2>
                     <div className="h-1.5 w-24 bg-emerald-500 rounded-full mx-auto mb-8 shadow-[0_0_20px_rgba(16,185,129,0.6)]"></div>
                     <p className="text-emerald-100/60 text-xl font-medium leading-relaxed">
-                        La plateforme tout-en-un pour piloter votre établissement avec précision et élégance.
+                        {tr('La plateforme tout-en-un pour piloter votre établissement avec précision et élégance.')}
                     </p>
                 </div>
 
                 {/* Decorative Bottom Credits */}
-                <div className="absolute bottom-8 left-0 right-0 flex justify-center items-center text-white/20 text-[10px] font-black tracking-[0.4em] uppercase font-mono">
+                <div className="absolute bottom-8 start-0 end-0 flex justify-center items-center text-white/20 text-[10px] font-black tracking-[0.4em] uppercase font-mono">
                     <div className="flex items-center gap-4">
                         <div className="w-8 h-[1px] bg-white/20"></div>
-                        <span>Gestion Administrative v2.0</span>
+                        <span>{tr('Gestion Administrative v2.0')}</span>
                         <div className="w-8 h-[1px] bg-white/20"></div>
                     </div>
                 </div>
             </div>
 
             {/* Right Column: Login Form Container */}
-            <div className="w-full lg:w-1/2 h-screen flex flex-col px-8 sm:px-16 lg:px-24 py-4 lg:py-8 bg-white relative z-10 border-l border-slate-50 shadow-[-50px_0_100px_-50px_rgba(0,0,0,0.05)] overflow-y-auto lg:overflow-hidden custom-scrollbar">
+            <div className="w-full lg:w-1/2 h-screen flex flex-col px-8 sm:px-16 lg:px-24 py-4 lg:py-8 bg-white relative z-10 border-s border-slate-50 shadow-[-50px_0_100px_-50px_rgba(0,0,0,0.05)] rtl:shadow-[50px_0_100px_-50px_rgba(0,0,0,0.05)] overflow-y-auto lg:overflow-hidden custom-scrollbar">
                 <div className="max-w-md w-full mx-auto flex flex-col h-full">
 
                     {/* Middle Section: Header & Form (Grows to fill space) */}
                     <div className="flex-1 flex flex-col justify-center min-h-0">
                         {/* Welcome Header */}
                         <div className="mb-6 lg:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+                            <div className="mb-6 flex justify-end">
+                                <LangSwitcher />
+                            </div>
                             <h1 className="text-4xl lg:text-5xl font-black tracking-tighter mb-2 text-slate-900 leading-tight">
-                                Espace <span className="text-emerald-600">Connexion</span>
+                                {tr('Espace')} <span className="text-emerald-600">{tr('Connexion')}</span>
                             </h1>
                         </div>
 
@@ -104,7 +124,7 @@ export default function LoginPage() {
                                 required
                                 autoComplete="off"
                                 className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-emerald-500 focus:ring-8 focus:ring-emerald-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                                placeholder="Adresse e-mail"
+                                placeholder={tr('Adresse e-mail')}
                             />
 
                             <Input
@@ -114,13 +134,13 @@ export default function LoginPage() {
                                 required
                                 autoComplete="new-password"
                                 className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-emerald-500 focus:ring-8 focus:ring-emerald-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                                placeholder="Mot de passe"
+                                placeholder={tr('Mot de passe')}
                             />
 
                             <div className="pt-4 lg:pt-6">
                                 <Button className="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2rem] font-black text-xl shadow-[0_20px_45px_-10px_rgba(5,150,105,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-4 group">
-                                    Accéder au portail
-                                    <svg className="w-6 h-6 transform group-hover:translate-x-1.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    {tr('Accéder au portail')}
+                                    <svg className="w-6 h-6 transform group-hover:translate-x-1.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-1.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                     </svg>
                                 </Button>
@@ -132,12 +152,12 @@ export default function LoginPage() {
                     <div className="shrink-0 mt-8 pt-6 border-t border-slate-50 flex flex-col items-center gap-4 animate-in fade-in duration-1000 delay-500 text-center">
                         <div className="flex flex-col gap-2 text-slate-400 font-medium text-xs mt-2">
                             <div className="flex items-center justify-center gap-2">
-                                <span>🌐 Site :</span>
+                                <span>🌐 {tr('Site :')}</span>
                                 <a href="https://education.morosmartcitys.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-bold">education.morosmartcitys.com</a>
                             </div>
                             <div className="flex items-center justify-center gap-2">
-                                <span>📱 Gsm / WhatsApp :</span>
-                                <a href="https://wa.me/212608183886" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-bold">+212 608183886</a>
+                                <span>📱 {tr('Gsm / WhatsApp :')}</span>
+                                <a href="https://wa.me/212608183886" target="_blank" rel="noopener noreferrer" dir="ltr" className="text-emerald-600 hover:underline font-bold">+212 608183886</a>
                             </div>
                         </div>
                     </div>

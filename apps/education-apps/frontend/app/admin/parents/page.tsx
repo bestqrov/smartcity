@@ -146,20 +146,20 @@ export default function ParentsPage() {
                 {/* Filters Bar */}
                 <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                         <input
                             type="text"
                             placeholder="Rechercher par nom, téléphone, email..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
+                            className="w-full ps-10 pe-4 py-2 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
                         />
                     </div>
                 </div>
 
                 {/* Table */}
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-start">
                         <thead className="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 font-bold text-xs uppercase tracking-wider">
                             <tr>
                                 <th className="px-6 py-4">
@@ -177,7 +177,7 @@ export default function ParentsPage() {
                                         <Baby size={14} /> Enfants
                                     </div>
                                 </th>
-                                <th className="px-6 py-4 text-right">Actions</th>
+                                <th className="px-6 py-4 text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -231,7 +231,7 @@ export default function ParentsPage() {
                                                 {parent.students?.length || 0}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-5 text-right">
+                                        <td className="px-6 py-5 text-end">
                                             <a
                                                 href={`/admin/parents/${parent.id}`}
                                                 className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all"

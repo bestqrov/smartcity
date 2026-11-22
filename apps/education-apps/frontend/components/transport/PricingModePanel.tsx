@@ -62,7 +62,7 @@ export default function PricingModePanel() {
                         <input
                             type="radio"
                             name="transportPricingMode"
-                            className="mr-2"
+                            className="me-2"
                             checked={mode === m.value}
                             onChange={() => setMode(m.value)}
                         />

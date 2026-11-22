@@ -170,13 +170,13 @@ export default function StudentsPage() {
                         {/* Filters Bar */}
                         <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-4">
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                 <input
                                     type="text"
                                     placeholder="Rechercher par nom, email, téléphone..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
+                                    className="w-full ps-10 pe-4 py-2 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
                                 />
                             </div>
                             <div className="flex gap-3">
@@ -201,7 +201,7 @@ export default function StudentsPage() {
 
                         {/* Table */}
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+                            <table className="w-full text-start">
                                 <thead className="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 font-bold text-xs uppercase tracking-wider">
                                     <tr>
                                         <th className="px-4 py-3 flex items-center gap-2">
@@ -222,7 +222,7 @@ export default function StudentsPage() {
                                                 <Shield size={14} /> Statut
                                             </div>
                                         </th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-4 py-3 text-end">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -253,7 +253,7 @@ export default function StudentsPage() {
                                                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold shadow-sm group-hover:scale-105 transition-transform">
                                                             {student.name?.charAt(0).toUpperCase() || '?'}
                                                         </div>
-                                                        <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-800 ${student.active ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                                                        <div className={`absolute -bottom-1 -end-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-800 ${student.active ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
                                                     </div>
                                                     <div>
                                                         <div className="font-bold text-slate-900 dark:text-white text-sm leading-tight">
@@ -286,7 +286,7 @@ export default function StudentsPage() {
                                                         )}
                                                     </span>
                                                     {student.subjects && Object.keys(student.subjects).length > 0 && (
-                                                        <span className="text-[10px] text-indigo-500 font-bold flex items-center gap-1 ml-1 mt-1">
+                                                        <span className="text-[10px] text-indigo-500 font-bold flex items-center gap-1 ms-1 mt-1">
                                                             <BookOpen size={10} />
                                                             {Object.keys(student.subjects).length} Matière(s)
                                                             <span className="text-slate-300 mx-1">|</span>
@@ -300,7 +300,7 @@ export default function StudentsPage() {
                                                         </span>
                                                     )}
                                                     {student.cin && (
-                                                        <span className="text-[10px] text-slate-400 font-medium ml-1">CIN: {student.cin}</span>
+                                                        <span className="text-[10px] text-slate-400 font-medium ms-1">CIN: {student.cin}</span>
                                                     )}
                                                 </div>
                                             </td>
@@ -339,7 +339,7 @@ export default function StudentsPage() {
                                                     {student.active ? 'Actif' : 'Inactif'}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3 text-right">
+                                            <td className="px-4 py-3 text-end">
                                                 <div className="flex justify-end gap-1 group-hover:translate-x-[-4px] transition-transform">
                                                     <button
                                                         onClick={() => handleOpenGroupModal(student)}

@@ -59,13 +59,13 @@ export function Table<T extends { id: string }>({
                         {columns.map((column) => (
                             <th
                                 key={String(column.key)}
-                                className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                                className="px-6 py-3 text-start text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                             >
                                 {column.label}
                             </th>
                         ))}
                         {(onEdit || onDelete) && (
-                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-end text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Actions
                             </th>
                         )}
@@ -85,7 +85,7 @@ export function Table<T extends { id: string }>({
                                 </td>
                             ))}
                             {(onEdit || onDelete || extraActions) && (
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
                                     <div className="flex items-center justify-end gap-2">
                                         {extraActions?.map((action, index) => (
                                             <button

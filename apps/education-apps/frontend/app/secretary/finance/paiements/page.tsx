@@ -59,7 +59,7 @@ export default function SecretaryPaiementsPage() {
                         className="px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-bold"
                     />
                 </div>
-                <div className="sm:text-right">
+                <div className="sm:text-end">
                     <div className="text-xs font-bold text-slate-400 uppercase">Masse Salariale du Mois</div>
                     <div className="text-2xl font-bold text-gray-900">
                         {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)} MAD
@@ -68,13 +68,13 @@ export default function SecretaryPaiementsPage() {
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
-                <table className="w-full text-left">
+                <table className="w-full text-start">
                     <thead className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
                         <tr>
                             <th className="px-6 py-4">Nom</th>
                             <th className="px-6 py-4">Type</th>
                             <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4 text-right">Montant</th>
+                            <th className="px-6 py-4 text-end">Montant</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -94,7 +94,7 @@ export default function SecretaryPaiementsPage() {
                                         {p.status === 'PAID' ? 'PAYÉ' : 'EN ATTENTE'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-right font-bold text-gray-900">{p.calculatedAmount.toFixed(2)} MAD</td>
+                                <td className="px-6 py-4 text-end font-bold text-gray-900">{p.calculatedAmount.toFixed(2)} MAD</td>
                             </tr>
                         ))}
                     </tbody>

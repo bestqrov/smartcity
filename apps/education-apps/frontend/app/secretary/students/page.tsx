@@ -131,13 +131,13 @@ export default function SecretaryStudentsPage() {
                     <>
                         <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4">
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                 <input
                                     type="text"
                                     placeholder="Rechercher par nom, email, téléphone..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                                    className="w-full ps-10 pe-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all font-medium"
                                 />
                             </div>
                             <select
@@ -153,7 +153,7 @@ export default function SecretaryStudentsPage() {
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+                            <table className="w-full text-start">
                                 <thead className="bg-slate-50/50 text-slate-500 font-bold text-xs uppercase tracking-wider">
                                     <tr>
                                         <th className="px-6 py-4 flex items-center gap-2">
@@ -169,7 +169,7 @@ export default function SecretaryStudentsPage() {
                                                 <Users size={14} /> Tuteur & Contact
                                             </div>
                                         </th>
-                                        <th className="px-6 py-4 text-right">Actions</th>
+                                        <th className="px-6 py-4 text-end">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -196,7 +196,7 @@ export default function SecretaryStudentsPage() {
                                                         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:scale-105 transition-transform">
                                                             {student.name?.charAt(0).toUpperCase() || '?'}
                                                         </div>
-                                                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${student.active ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                                                        <div className={`absolute -bottom-1 -end-1 w-4 h-4 rounded-full border-2 border-white ${student.active ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
                                                     </div>
                                                     <div>
                                                         <div className="font-bold text-slate-900 text-base leading-tight">
@@ -229,7 +229,7 @@ export default function SecretaryStudentsPage() {
                                                         )}
                                                     </span>
                                                     {student.subjects && Object.keys(student.subjects).length > 0 && (
-                                                        <span className="text-[10px] text-indigo-500 font-bold flex items-center gap-1 ml-1 mt-1">
+                                                        <span className="text-[10px] text-indigo-500 font-bold flex items-center gap-1 ms-1 mt-1">
                                                             <BookOpen size={10} />
                                                             {Object.keys(student.subjects).length} Matière(s)
                                                         </span>
@@ -263,7 +263,7 @@ export default function SecretaryStudentsPage() {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-5 text-right">
+                                            <td className="px-6 py-5 text-end">
                                                 <button
                                                     onClick={() => handleEdit(student)}
                                                     className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"

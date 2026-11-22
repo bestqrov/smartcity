@@ -6,6 +6,8 @@ import useAuthStore, { setActiveBranchId } from '../../store/useAuthStore';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signupSchool, SignupSchoolData } from '../../lib/services/schools';
 import { GraduationCap, X } from 'lucide-react';
+import LangSwitcher from '@/components/LangSwitcher';
+import { I18nProvider, useI18n } from '@/lib/i18n/I18nProvider';
 import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, isInstitutionType, type InstitutionType } from '../../lib/institutionTypes';
 import { checkReferralCode } from '../../lib/services/salesAgents';
 import { whatsappUrl } from '../../lib/landing/whatsapp';
@@ -26,6 +28,7 @@ const OFFER_LABELS: Record<OfferPeriod, string> = { MONTHLY: 'Mensuel', SEMIANNU
 const PERIOD_SUFFIX: Record<OfferPeriod, string> = { MONTHLY: ' / mois', SEMIANNUAL: ' / 6 mois', YEARLY: ' / an' };
 
 function SignupForm() {
+    const { tr } = useI18n();
     const router = useRouter();
     const setUser = useAuthStore((state) => state.setUser);
     const setAccessTokenState = useAuthStore((state) => state.setAccessToken);
@@ -145,10 +148,10 @@ function SignupForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        if (!institutionType) { setError("Choisissez le type de votre établissement."); return; }
+        if (!institutionType) { setError(tr('Choisissez le type de votre établissement.')); return; }
         const code = referralCode.trim();
-        if (!code) { setError('Le code commercial est obligatoire.'); return; }
-        if (codeStatus === 'invalid') { setError('Code commercial invalide.'); return; }
+        if (!code) { setError(tr('Le code commercial est obligatoire.')); return; }
+        if (codeStatus === 'invalid') { setError(tr('Code commercial invalide.')); return; }
         setLoading(true);
         try {
             const { token, user, branch } = await signupSchool({
@@ -163,15 +166,15 @@ function SignupForm() {
             setActiveBranchId(branch.id);
             router.push('/admin/settings');
         } catch (err: any) {
-            const msg = err.response?.data?.error || err.response?.data?.message || 'Signup failed';
+            const msg = err.response?.data?.error || err.response?.data?.message || '';
             if (msg === 'Invalid referral code' || msg === 'Referral code is required') {
                 setCodeStatus('invalid');
-                setError(msg === 'Invalid referral code' ? 'Code commercial invalide.' : 'Le code commercial est obligatoire.');
+                setError(tr(msg === 'Invalid referral code' ? 'Code commercial invalide.' : 'Le code commercial est obligatoire.'));
             } else if (msg === 'This offer is only available through a partner') {
                 setEligible(false);
-                setError("Cette offre n'est disponible que via un partenaire.");
+                setError(tr("Cette offre n'est disponible que via un partenaire."));
             } else {
-                setError(msg);
+                setError(msg === 'Email already exists' ? tr('Cette adresse e-mail est déjà utilisée.') : msg || tr("L'inscription a échoué. Réessayez."));
             }
         } finally {
             setLoading(false);
@@ -199,30 +202,33 @@ function SignupForm() {
                     </h2>
                     <div className="h-1.5 w-24 bg-indigo-500 rounded-full mx-auto mb-8 shadow-[0_0_20px_rgba(99,102,241,0.6)]"></div>
                     <p className="text-indigo-100/60 text-xl font-medium leading-relaxed">
-                        Créez votre école en quelques minutes et pilotez votre établissement avec précision et élégance.
+                        {tr('Créez votre école en quelques minutes et pilotez votre établissement avec précision et élégance.')}
                     </p>
                 </div>
 
                 {/* Decorative Bottom Credits */}
-                <div className="absolute bottom-8 left-0 right-0 flex justify-center items-center text-white/20 text-[10px] font-black tracking-[0.4em] uppercase font-mono">
+                <div className="absolute bottom-8 start-0 end-0 flex justify-center items-center text-white/20 text-[10px] font-black tracking-[0.4em] uppercase font-mono">
                     <div className="flex items-center gap-4">
                         <div className="w-8 h-[1px] bg-white/20"></div>
-                        <span>Gestion Administrative v2.0</span>
+                        <span>{tr('Gestion Administrative v2.0')}</span>
                         <div className="w-8 h-[1px] bg-white/20"></div>
                     </div>
                 </div>
             </div>
 
             {/* Right Column: Signup Form Container */}
-            <div className="w-full lg:w-1/2 h-screen flex flex-col px-8 sm:px-16 lg:px-24 py-4 lg:py-8 bg-white relative z-10 border-l border-slate-50 shadow-[-50px_0_100px_-50px_rgba(0,0,0,0.05)] overflow-y-auto custom-scrollbar">
+            <div className="w-full lg:w-1/2 h-screen flex flex-col px-8 sm:px-16 lg:px-24 py-4 lg:py-8 bg-white relative z-10 border-s border-slate-50 shadow-[-50px_0_100px_-50px_rgba(0,0,0,0.05)] rtl:shadow-[50px_0_100px_-50px_rgba(0,0,0,0.05)] overflow-y-auto custom-scrollbar">
                 <div className="max-w-md w-full mx-auto flex flex-col">
 
                     {/* Header */}
                     <div className="mb-6 lg:mb-8 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+                        <div className="mb-6 flex justify-end">
+                            <LangSwitcher />
+                        </div>
                         <h1 className="text-4xl lg:text-5xl font-black tracking-tighter mb-2 text-slate-900 leading-tight">
-                            Créer votre <span className="text-indigo-600">école</span>
+                            {tr('Créer votre')} <span className="text-indigo-600">{tr('école')}</span>
                         </h1>
-                        <p className="text-slate-400 font-medium">Démarrez votre essai en créant votre premier établissement.</p>
+                        <p className="text-slate-400 font-medium">{tr('Démarrez votre essai en créant votre premier établissement.')}</p>
                     </div>
 
                     {/* Error Notification */}
@@ -239,7 +245,7 @@ function SignupForm() {
                     <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-5 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 pb-8">
                         <div className="space-y-3">
                             <label className="block text-sm font-bold text-slate-600" htmlFor="institutionType">
-                                Type de votre établissement
+                                {tr('Type de votre établissement')}
                             </label>
                             <select
                                 id="institutionType"
@@ -248,37 +254,37 @@ function SignupForm() {
                                 required
                                 className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:outline-none font-bold text-lg shadow-sm"
                             >
-                                <option value="">Choisir…</option>
+                                <option value="">{tr('Choisir…')}</option>
                                 {INSTITUTION_TYPES.map((type) => (
                                     <option key={type} value={type}>
-                                        {INSTITUTION_TYPE_LABELS[type]}
+                                        {tr(INSTITUTION_TYPE_LABELS[type])}
                                     </option>
                                 ))}
                             </select>
 
                             {lockedOffer && (
                                 <div className="rounded-2xl border-2 border-amber-400 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
-                                    <p className="mb-1 text-xs font-extrabold uppercase tracking-wider text-amber-600">Offre spéciale via Partenaire</p>
+                                    <p className="mb-1 text-xs font-extrabold uppercase tracking-wider text-amber-600">{tr('Offre spéciale via Partenaire')}</p>
                                     {codeStatus === 'valid' || codeStatus === 'invalid'
                                         ? codeStatus === 'valid'
-                                            ? "Ce code n'est pas celui d'un partenaire : la réduction nécessite le code de votre partenaire (commercial)."
-                                            : "Code introuvable : la réduction nécessite le code de votre partenaire (commercial)."
-                                        : `Entrez le code de votre partenaire (commercial) pour bénéficier de −${lockedOffer.monthlyDiscount} % / −${lockedOffer.semiannualDiscount} % / −${lockedOffer.yearlyDiscount} % sur votre pack.`}
+                                            ? tr("Ce code n'est pas celui d'un partenaire : la réduction nécessite le code de votre partenaire (commercial).")
+                                            : tr('Code introuvable : la réduction nécessite le code de votre partenaire (commercial).')
+                                        : tr('Entrez le code de votre partenaire (commercial) pour bénéficier de −{m} % / −{s} % / −{y} % sur votre pack.', { m: lockedOffer.monthlyDiscount, s: lockedOffer.semiannualDiscount, y: lockedOffer.yearlyDiscount })}
                                     {(codeStatus === 'valid' || codeStatus === 'invalid') && (
                                         <button
                                             type="button"
                                             onClick={() => setWantsOffer(false)}
                                             className="mt-2 block rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-700"
                                         >
-                                            Continuer sans l&apos;offre
+                                            {tr("Continuer sans l'offre")}
                                         </button>
                                     )}
                                 </div>
                             )}
 
                             {packs.length > 0 && (
-                                <div className="grid gap-2" role="radiogroup" aria-label="Durée">
-                                    <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Durée</p>
+                                <div className="grid gap-2" role="radiogroup" aria-label={tr('Durée')}>
+                                    <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">{tr('Durée')}</p>
                                     <div className="grid grid-cols-3 gap-2">
                                         {OFFER_PERIODS.map((period) => (
                                             <label
@@ -295,7 +301,7 @@ function SignupForm() {
                                                     onChange={() => setOfferPeriod(period)}
                                                     className="sr-only"
                                                 />
-                                                <span className="block font-bold text-slate-800">{OFFER_LABELS[period]}</span>
+                                                <span className="block font-bold text-slate-800">{tr(OFFER_LABELS[period])}</span>
                                                 {offer && (
                                                     <span className="block text-xs font-extrabold text-emerald-600">−{offerDiscount(offer, period)} %</span>
                                                 )}
@@ -306,7 +312,7 @@ function SignupForm() {
                             )}
 
                             {packs.length > 0 && (
-                                <div className="grid gap-2" role="radiogroup" aria-label="Pack">
+                                <div className="grid gap-2" role="radiogroup" aria-label={tr('Pack')}>
                                     {packs.map((pack) => (
                                         <label
                                             key={pack.code}
@@ -325,32 +331,32 @@ function SignupForm() {
                                                 {pack.name}
                                                 {pack.recommended && (
                                                     <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-[11px] font-bold text-white">
-                                                        Recommandé
+                                                        {tr('Recommandé')}
                                                     </span>
                                                 )}
                                             </span>
                                             {offer ? (
-                                                <span className="text-right text-sm font-semibold text-slate-500">
-                                                    <span className="block text-xs line-through">{formatOfferMoney(packBasePrice(pack, offerPeriod))} MAD</span>
+                                                <span className="text-end text-sm font-semibold text-slate-500">
+                                                    <span className="block text-xs line-through">{formatOfferMoney(packBasePrice(pack, offerPeriod))}{tr(' MAD')}</span>
                                                     <span className="block font-extrabold text-emerald-700">
-                                                        {formatOfferMoney(packOfferPrice(pack, offer, offerPeriod))} MAD{PERIOD_SUFFIX[offerPeriod]}
+                                                        {formatOfferMoney(packOfferPrice(pack, offer, offerPeriod))} {tr(' MAD')}{tr(PERIOD_SUFFIX[offerPeriod])}
                                                     </span>
                                                 </span>
                                             ) : (
                                                 <span className="text-sm font-semibold text-slate-500">
-                                                    {formatOfferMoney(packBasePrice(pack, offerPeriod))} MAD{PERIOD_SUFFIX[offerPeriod]}
+                                                    {formatOfferMoney(packBasePrice(pack, offerPeriod))}{tr(' MAD')}{tr(PERIOD_SUFFIX[offerPeriod])}
                                                 </span>
                                             )}
                                         </label>
                                     ))}
-                                    <p className="text-xs text-slate-400">15 jours d&apos;essai gratuit, sans carte bancaire.</p>
+                                    <p className="text-xs text-slate-400">{tr("15 jours d'essai gratuit, sans carte bancaire.")}</p>
                                 </div>
                             )}
                         </div>
 
                         <div className="space-y-2">
                             <label className="block text-sm font-bold text-slate-600" htmlFor="referralCode">
-                                Code commercial
+                                {tr('Code commercial')}
                             </label>
                             <input
                                 id="referralCode"
@@ -366,7 +372,7 @@ function SignupForm() {
                                 onBlur={() => checkedCode.current !== referralCode.trim() && verifyCode(referralCode.trim())}
                                 required
                                 autoComplete="off"
-                                placeholder="Ex. YOUSSEF22"
+                                placeholder={tr('Ex. YOUSSEF22')}
                                 className={`w-full px-6 py-4 bg-slate-50 border-2 rounded-[2rem] focus:bg-white focus:outline-none font-bold text-lg shadow-sm tracking-wider ${
                                     lockedOffer && codeStatus !== 'valid' && codeStatus !== 'invalid' ? 'ring-4 ring-amber-300 border-amber-400 ' : ''
                                 }${
@@ -377,35 +383,35 @@ function SignupForm() {
                                         : 'border-slate-100 focus:border-indigo-500'
                                 }`}
                             />
-                            {codeStatus === 'checking' && <p className="text-xs text-slate-400">Vérification…</p>}
-                            {codeStatus === 'valid' && <p className="text-xs font-semibold text-emerald-600">Code valide ✓</p>}
+                            {codeStatus === 'checking' && <p className="text-xs text-slate-400">{tr('Vérification…')}</p>}
+                            {codeStatus === 'valid' && <p className="text-xs font-semibold text-emerald-600">{tr('Code valide ✓')}</p>}
                             {codeStatus === 'invalid' && (
-                                <p className="text-xs font-semibold text-red-600">Ce code n&apos;existe pas ou n&apos;est plus actif.</p>
+                                <p className="text-xs font-semibold text-red-600">{tr("Ce code n'existe pas ou n'est plus actif.")}</p>
                             )}
                             {selectedPack && (
                                 <div
                                     aria-live="polite"
                                     className={`rounded-2xl border-2 px-5 py-4 ${offer ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}
                                 >
-                                    <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Prix final</p>
+                                    <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">{tr('Prix final')}</p>
                                     <p className="mt-1 text-sm font-semibold text-slate-600">
-                                        {selectedPack.name} · {OFFER_LABELS[offerPeriod]}
+                                        {selectedPack.name} · {tr(OFFER_LABELS[offerPeriod])}
                                     </p>
                                     {offer && (
                                         <p className="mt-1 text-sm text-slate-500">
-                                            <span className="line-through">{formatOfferMoney(packBasePrice(selectedPack, offerPeriod))} MAD</span>
+                                            <span className="line-through">{formatOfferMoney(packBasePrice(selectedPack, offerPeriod))}{tr(' MAD')}</span>
                                             <span className="ms-2 rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-bold text-white">
-                                                −{offerDiscount(offer, offerPeriod)} % partenaire
+                                                {tr('−{d} % partenaire', { d: offerDiscount(offer, offerPeriod) })}
                                             </span>
                                         </p>
                                     )}
                                     <p className={`mt-1 text-3xl font-black ${offer ? 'text-emerald-700' : 'text-slate-900'}`}>
-                                        {formatOfferMoney(finalPrice)} MAD
-                                        <span className="text-base font-semibold text-slate-500">{PERIOD_SUFFIX[offerPeriod]}</span>
+                                        {formatOfferMoney(finalPrice)}{tr(' MAD')}
+                                        <span className="text-base font-semibold text-slate-500">{tr(PERIOD_SUFFIX[offerPeriod])}</span>
                                     </p>
                                     {!offer && prices && (
                                         <p className="mt-1 text-xs text-slate-500">
-                                            Avec le code d&apos;un partenaire : −{offerDiscount(prices, offerPeriod)} % sur ce prix.
+                                            {tr("Avec le code d'un partenaire : −{d} % sur ce prix.", { d: offerDiscount(prices, offerPeriod) })}
                                         </p>
                                     )}
                                 </div>
@@ -416,7 +422,7 @@ function SignupForm() {
                                 rel="noopener noreferrer"
                                 className="inline-block text-xs font-bold text-emerald-700 hover:underline"
                             >
-                                Pas de code ? Contactez-nous sur WhatsApp
+                                {tr('Pas de code ? Contactez-nous sur WhatsApp')}
                             </a>
                         </div>
 
@@ -427,7 +433,7 @@ function SignupForm() {
                             required
                             autoComplete="off"
                             className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                            placeholder="Votre nom"
+                            placeholder={tr('Votre nom')}
                         />
 
                         <Input
@@ -437,7 +443,7 @@ function SignupForm() {
                             required
                             autoComplete="off"
                             className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                            placeholder="Adresse e-mail"
+                            placeholder={tr('Adresse e-mail')}
                         />
 
                         <Input
@@ -448,14 +454,14 @@ function SignupForm() {
                             minLength={8}
                             autoComplete="new-password"
                             className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
-                            placeholder="Mot de passe (8 caractères min.)"
+                            placeholder={tr('Mot de passe (8 caractères min.)')}
                         />
 
                         <div className="pt-4 lg:pt-6">
                             <Button isLoading={loading} disabled={loading} className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-xl shadow-[0_20px_45px_-10px_rgba(79,70,229,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-4 group">
-                                {loading ? 'Création…' : 'Créer mon compte'}
+                                {loading ? tr('Création…') : tr('Créer mon compte')}
                                 {!loading && (
-                                    <svg className="w-6 h-6 transform group-hover:translate-x-1.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-6 h-6 transform group-hover:translate-x-1.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-1.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                     </svg>
                                 )}
@@ -467,11 +473,11 @@ function SignupForm() {
                     <div className="shrink-0 pb-8 pt-2 border-t border-slate-50 flex flex-col items-center gap-4 animate-in fade-in duration-1000 delay-500 text-center">
                         <div className="flex flex-col gap-2 text-slate-400 font-medium text-xs mt-4">
                             <span>
-                                Déjà un compte ?{' '}
-                                <a href="/login" className="text-indigo-600 hover:underline font-bold">Se connecter</a>
+                                {tr('Déjà un compte ?')}{' '}
+                                <a href="/login" className="text-indigo-600 hover:underline font-bold">{tr('Se connecter')}</a>
                             </span>
                             <div className="flex items-center justify-center gap-2">
-                                <span>📧 Email :</span>
+                                <span>📧 {tr('Email :')}</span>
                                 <a href="mailto:contact@smartecole.com" className="text-indigo-600 hover:underline font-bold">contact@smartecole.com</a>
                             </div>
                         </div>
@@ -512,8 +518,10 @@ function SignupForm() {
 export default function SignupPage() {
     // useSearchParams needs a Suspense boundary during the production build.
     return (
-        <Suspense fallback={null}>
-            <SignupForm />
-        </Suspense>
+        <I18nProvider>
+            <Suspense fallback={null}>
+                <SignupForm />
+            </Suspense>
+        </I18nProvider>
     );
 }

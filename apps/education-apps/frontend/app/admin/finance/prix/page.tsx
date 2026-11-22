@@ -227,10 +227,10 @@ export default function PrixPage() {
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="bg-gradient-to-r from-purple-100 to-purple-50 border-b-2 border-purple-200">
-                                        <th className="text-left py-3 px-4 font-bold text-gray-700 border border-gray-200">NIVEAU</th>
-                                        <th className="text-left py-3 px-4 font-bold text-gray-700 border border-gray-200">MATIÈRE</th>
-                                        <th className="text-right py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">PRIX (DH)</th>
-                                        <th className="text-right py-3 px-4 font-bold text-gray-700 border border-gray-200 w-28">ACTIONS</th>
+                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200">NIVEAU</th>
+                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200">MATIÈRE</th>
+                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">PRIX (DH)</th>
+                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-28">ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -253,20 +253,20 @@ export default function PrixPage() {
                                                     </td>
                                                 )}
                                                 <td className="py-4 px-4 font-medium text-gray-800 border border-gray-200">{item.subject}</td>
-                                                <td className="py-4 px-4 text-right border border-gray-200">
+                                                <td className="py-4 px-4 text-end border border-gray-200">
                                                     {editingId === item.id ? (
                                                         <input
                                                             type="number"
                                                             value={editPrice}
                                                             onChange={(e) => setEditPrice(e.target.value)}
-                                                            className="w-24 px-2 py-1 border-2 border-purple-300 rounded-lg text-right focus:border-purple-500 focus:outline-none"
+                                                            className="w-24 px-2 py-1 border-2 border-purple-300 rounded-lg text-end focus:border-purple-500 focus:outline-none"
                                                             autoFocus
                                                         />
                                                     ) : (
                                                         <span className="font-semibold">{item.price} DH</span>
                                                     )}
                                                 </td>
-                                                <td className="py-4 px-4 text-right border border-gray-200">
+                                                <td className="py-4 px-4 text-end border border-gray-200">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {editingId === item.id ? (
                                                             <>
@@ -368,10 +368,10 @@ export default function PrixPage() {
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="bg-gradient-to-r from-orange-100 to-orange-50 border-b-2 border-orange-200">
-                                        <th className="text-left py-3 px-4 font-bold text-gray-700 border border-gray-200">FORMATION</th>
-                                        <th className="text-left py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">DURÉE</th>
-                                        <th className="text-right py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">PRIX (DH)</th>
-                                        <th className="text-right py-3 px-4 font-bold text-gray-700 border border-gray-200 w-28">ACTIONS</th>
+                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200">FORMATION</th>
+                                        <th className="text-start py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">DURÉE</th>
+                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-40">PRIX (DH)</th>
+                                        <th className="text-end py-3 px-4 font-bold text-gray-700 border border-gray-200 w-28">ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -410,19 +410,19 @@ export default function PrixPage() {
                                                     formation.duration
                                                 )}
                                             </td>
-                                            <td className="py-4 px-4 text-right border border-gray-200">
+                                            <td className="py-4 px-4 text-end border border-gray-200">
                                                 {editingFormationId === formation.id ? (
                                                     <input
                                                         type="number"
                                                         value={editFormation.price}
                                                         onChange={(e) => setEditFormation((prev) => ({ ...prev, price: e.target.value }))}
-                                                        className="w-24 px-2 py-1 border-2 border-orange-300 rounded-lg text-right focus:border-orange-500 focus:outline-none"
+                                                        className="w-24 px-2 py-1 border-2 border-orange-300 rounded-lg text-end focus:border-orange-500 focus:outline-none"
                                                     />
                                                 ) : (
                                                     <span className="font-semibold">{formation.price} DH</span>
                                                 )}
                                             </td>
-                                            <td className="py-4 px-4 text-right border border-gray-200">
+                                            <td className="py-4 px-4 text-end border border-gray-200">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {editingFormationId === formation.id ? (
                                                         <>

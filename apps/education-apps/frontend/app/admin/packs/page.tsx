@@ -274,7 +274,7 @@ export default function SuperAdminPacksPage() {
                         Aucun pack. Exécutez <code>npm run prisma:seed-packs</code> ou créez-en un.
                     </p>
                 ) : (
-                    <table className="w-full text-left">
+                    <table className="w-full text-start">
                         <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
                             <tr>
                                 <th className="px-4 py-3">Pack</th>

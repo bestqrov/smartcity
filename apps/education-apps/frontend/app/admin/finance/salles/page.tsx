@@ -202,7 +202,7 @@ export default function ManageRoomsPage() {
                         onClick={openModalForNew}
                         className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20"
                     >
-                        <PlusCircle size={18} className="mr-2" /> Nouvelle Salle
+                        <PlusCircle size={18} className="me-2" /> Nouvelle Salle
                     </Button>
                 </div>
             </div>
@@ -257,13 +257,13 @@ export default function ManageRoomsPage() {
 
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <div className="relative flex-1 md:w-64">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                            <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                             <input
                                 type="text"
                                 placeholder="Rechercher..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-50 border-transparent focus:bg-white border focus:border-blue-200 rounded-xl focus:ring-4 focus:ring-blue-50 transition-all outline-none"
+                                className="w-full ps-10 pe-4 py-2 bg-gray-50 border-transparent focus:bg-white border focus:border-blue-200 rounded-xl focus:ring-4 focus:ring-blue-50 transition-all outline-none"
                             />
                         </div>
                         <div className="flex bg-gray-100 rounded-lg p-1">

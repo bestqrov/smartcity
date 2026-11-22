@@ -575,7 +575,7 @@ export default function SettingsPage() {
                                                     {adminUser.avatar && (
                                                         <button
                                                             onClick={() => setAdminUser({ ...adminUser, avatar: '' })}
-                                                            className="ml-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-semibold transition-colors"
+                                                            className="ms-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-semibold transition-colors"
                                                         >
                                                             Supprimer
                                                         </button>
@@ -648,7 +648,7 @@ export default function SettingsPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowAdminPassword(!showAdminPassword)}
-                                                className="absolute right-3 top-[38px] text-gray-500 hover:text-gray-700"
+                                                className="absolute end-3 top-[38px] text-gray-500 hover:text-gray-700"
                                             >
                                                 {showAdminPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                             </button>
@@ -719,7 +719,7 @@ export default function SettingsPage() {
                                                     {secretaryUser.avatar && (
                                                         <button
                                                             onClick={() => setSecretaryUser({ ...secretaryUser, avatar: '' })}
-                                                            className="ml-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-semibold transition-colors"
+                                                            className="ms-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg font-semibold transition-colors"
                                                         >
                                                             Supprimer
                                                         </button>
@@ -792,7 +792,7 @@ export default function SettingsPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowSecretaryPassword(!showSecretaryPassword)}
-                                                className="absolute right-3 top-[38px] text-gray-500 hover:text-gray-700"
+                                                className="absolute end-3 top-[38px] text-gray-500 hover:text-gray-700"
                                             >
                                                 {showSecretaryPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                             </button>
@@ -931,7 +931,7 @@ export default function SettingsPage() {
                                             <input
                                                 type="file"
                                                 accept=".sql,.backup"
-                                                className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 cursor-pointer"
+                                                className="block w-full text-sm text-gray-600 file:me-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-100 file:text-orange-700 hover:file:bg-orange-200 cursor-pointer"
                                             />
                                             <Button
                                                 onClick={handleRestore}

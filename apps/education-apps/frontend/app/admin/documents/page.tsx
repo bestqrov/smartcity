@@ -167,13 +167,13 @@ export default function DocumentsPage() {
                     {/* Search */}
                     <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
                         <div className="relative">
-                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                            <Search className="absolute start-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                             <Input
                                 type="text"
                                 placeholder={isCrecheMode ? 'Rechercher un enfant...' : `Rechercher un élève de ${activeFilter === 'SOUTIEN' ? 'Soutien' : 'Formation'}...`}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-12"
+                                className="ps-12"
                             />
                         </div>
                     </div>
@@ -256,7 +256,7 @@ export default function DocumentsPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-right hidden sm:block print:block">
+                                    <div className="text-end hidden sm:block print:block">
                                         <p className="text-xs font-bold uppercase tracking-widest text-white/60 print:text-gray-500">Document Officiel</p>
                                         <p className="text-lg font-bold mt-1">N° {new Date().getFullYear()}/DOC</p>
                                     </div>
@@ -278,13 +278,13 @@ export default function DocumentsPage() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <span className="font-semibold">NOM:</span>
-                                                <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[200px]">
+                                                <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[200px]">
                                                     {selectedStudent.surname}
                                                 </span>
                                             </div>
                                             <div>
                                                 <span className="font-semibold">PRÉNOM:</span>
-                                                <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[200px]">
+                                                <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[200px]">
                                                     {selectedStudent.name}
                                                 </span>
                                             </div>
@@ -294,13 +294,13 @@ export default function DocumentsPage() {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <span className="font-semibold">Date de naissance:</span>
-                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
+                                                    <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
                                                         {selectedStudent.birthDate ? new Date(selectedStudent.birthDate).toLocaleDateString('fr-FR') : ''}
                                                     </span>
                                                 </div>
                                                 <div>
                                                     <span className="font-semibold">Lieu de naissance:</span>
-                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
+                                                    <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
                                                         {selectedStudent.birthPlace || ''}
                                                     </span>
                                                 </div>
@@ -311,22 +311,22 @@ export default function DocumentsPage() {
                                             isCrecheMode ? (
                                                 <div>
                                                     <span className="font-semibold">Tuteur légal:</span>
-                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
+                                                    <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
                                                         {selectedStudent.parentName || ''}
                                                     </span>
-                                                    <span className="ml-4 font-semibold">Lien:</span>
-                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
+                                                    <span className="ms-4 font-semibold">Lien:</span>
+                                                    <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
                                                         {selectedStudent.parentRelation || ''}
                                                     </span>
                                                 </div>
                                             ) : (
                                                 <div>
                                                     <span className="font-semibold">Fille ou fils de:</span>
-                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
+                                                    <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
                                                         {selectedStudent.fatherName || ''}
                                                     </span>
-                                                    <span className="ml-4 font-semibold">Et de:</span>
-                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
+                                                    <span className="ms-4 font-semibold">Et de:</span>
+                                                    <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[250px]">
                                                         {selectedStudent.motherName || ''}
                                                     </span>
                                                 </div>
@@ -335,21 +335,21 @@ export default function DocumentsPage() {
 
                                         <div>
                                             <span className="font-semibold">Numéro du CIN:</span>
-                                            <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[300px]">
+                                            <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[300px]">
                                                 {selectedStudent.cin || ''}
                                             </span>
                                         </div>
 
                                         <div>
                                             <span className="font-semibold">Adresse des parents:</span>
-                                            <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[400px]">
+                                            <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[400px]">
                                                 {selectedStudent.address || ''}
                                             </span>
                                         </div>
 
                                         <div>
                                             <span className="font-semibold">Numéro de téléphone:</span>
-                                            <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[300px]">
+                                            <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[300px]">
                                                 {selectedStudent.phone || ''}
                                             </span>
                                         </div>
@@ -358,13 +358,13 @@ export default function DocumentsPage() {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <span className="font-semibold">Niveau scolaire:</span>
-                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
+                                                    <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
                                                         {selectedStudent.schoolLevel || ''}
                                                     </span>
                                                 </div>
                                                 <div>
                                                     <span className="font-semibold">Nom de l'École:</span>
-                                                    <span className="ml-2 border-b border-dotted border-gray-400 inline-block min-w-[200px]">
+                                                    <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[200px]">
                                                         {selectedStudent.currentSchool || ''}
                                                     </span>
                                                 </div>
@@ -389,7 +389,7 @@ export default function DocumentsPage() {
                                                     </tr>
                                                     {['Maths', 'Physique et Chimique', 'S.V.T'].map((subject) => (
                                                         <tr key={subject}>
-                                                            <td className="border border-gray-400 p-2 pl-8">-{subject}</td>
+                                                            <td className="border border-gray-400 p-2 ps-8">-{subject}</td>
                                                             <td className="border border-gray-400 p-2 text-center">
                                                                 {checkSubject(selectedStudent, subject) ? '✓' : ''}
                                                             </td>
@@ -403,7 +403,7 @@ export default function DocumentsPage() {
                                                     </tr>
                                                     {['Français', 'Anglais', 'Allemande', 'Espagnole'].map((subject) => (
                                                         <tr key={subject}>
-                                                            <td className="border border-gray-400 p-2 pl-8">-{subject}</td>
+                                                            <td className="border border-gray-400 p-2 ps-8">-{subject}</td>
                                                             <td className="border border-gray-400 p-2 text-center">
                                                                 {checkSubject(selectedStudent, subject) ? '✓' : ''}
                                                             </td>

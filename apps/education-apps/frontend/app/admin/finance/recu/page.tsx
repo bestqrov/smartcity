@@ -460,7 +460,7 @@ export default function RecuPage() {
                             <Calendar size={14} /> {new Date(receipt.date).toLocaleDateString('fr-FR')}
                         </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-end">
                         <div className="font-bold text-xl text-gray-800">{receipt.totalAmount.toFixed(2)} DH</div>
                         <span className={`px-2 py-0.5 text-xs font-semibold rounded-full mt-1 inline-block ${receipt.receiptType === 'Soutien'
                             ? 'bg-blue-100 text-blue-800'
@@ -556,23 +556,23 @@ export default function RecuPage() {
 
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <input
                         type="text"
                         placeholder="Rechercher par nom ou numéro..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-300"
+                        className="w-full ps-10 pe-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-300"
                     />
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                        <Calendar className="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                         <input
                             type="date"
                             value={filterDate}
                             onChange={e => { setFilterDate(e.target.value); setFilterMonth(''); }}
-                            className="pl-9 pr-3 py-2 border-2 border-gray-100 rounded-lg text-sm focus:border-blue-400 focus:outline-none transition-all"
+                            className="ps-9 pe-3 py-2 border-2 border-gray-100 rounded-lg text-sm focus:border-blue-400 focus:outline-none transition-all"
                         />
                     </div>
                     <div className="relative">
@@ -602,7 +602,7 @@ export default function RecuPage() {
                 {/* Soutien Section */}
                 {organizedReceipts.Soutien.length > 0 && (
                     <div>
-                        <div className="flex items-center gap-2 mb-4 border-l-4 border-blue-500 pl-3">
+                        <div className="flex items-center gap-2 mb-4 border-s-4 border-blue-500 ps-3">
                             <h2 className="text-xl font-bold text-gray-800">Soutien Scolaire</h2>
                             <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                 {organizedReceipts.Soutien.length}
@@ -617,7 +617,7 @@ export default function RecuPage() {
                 {/* Formation Pro Section */}
                 {organizedReceipts.Formation.length > 0 && (
                     <div>
-                        <div className="flex items-center gap-2 mb-4 border-l-4 border-green-500 pl-3">
+                        <div className="flex items-center gap-2 mb-4 border-s-4 border-green-500 ps-3">
                             <h2 className="text-xl font-bold text-gray-800">Formation Pro</h2>
                             <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                 {organizedReceipts.Formation.length}
@@ -632,7 +632,7 @@ export default function RecuPage() {
                 {/* Other Section */}
                 {organizedReceipts.Other.length > 0 && (
                     <div>
-                        <div className="flex items-center gap-2 mb-4 border-l-4 border-purple-500 pl-3">
+                        <div className="flex items-center gap-2 mb-4 border-s-4 border-purple-500 ps-3">
                             <h2 className="text-xl font-bold text-gray-800">Autres Reçus</h2>
                             <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                 {organizedReceipts.Other.length}
@@ -909,7 +909,7 @@ export default function RecuPage() {
                                         <button
                                             type="button"
                                             onClick={() => removeItem(index)}
-                                            className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100"
+                                            className="absolute -top-2 -end-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100"
                                         >
                                             <X size={14} />
                                         </button>

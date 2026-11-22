@@ -132,11 +132,11 @@ export default function UsersCRUD() {
 
             {/* Search Bar */}
             <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                     type="text"
                     placeholder="Rechercher par nom ou email..."
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm"
+                    className="w-full ps-10 pe-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -144,12 +144,12 @@ export default function UsersCRUD() {
 
             {/* Users Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
-                <table className="w-full text-left">
+                <table className="w-full text-start">
                     <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider">Utilisateur</th>
                             <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider">Rôle</th>
-                            <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider text-right">Actions</th>
+                            <th className="px-6 py-4 text-sm font-bold text-gray-600 uppercase tracking-wider text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -194,7 +194,7 @@ export default function UsersCRUD() {
                                             {user.role}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-end">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => handleOpenModal(user)}
@@ -295,11 +295,11 @@ export default function UsersCRUD() {
                                     {editingUser && <span className="text-[10px] text-gray-400 font-normal italic">(Laissez vide pour conserver)</span>}
                                 </label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                    <Lock className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                     <Input
                                         type="password"
                                         placeholder="••••••••"
-                                        className="pl-10"
+                                        className="ps-10"
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         required={!editingUser}

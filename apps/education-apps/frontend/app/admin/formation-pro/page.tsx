@@ -171,7 +171,7 @@ export default function FormationDashboard() {
                                                     <p className="text-sm text-gray-500">{new Date(inscription.createdAt).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
+                                            <div className="text-end">
                                                 <p className="font-bold text-gray-800">{inscription.amount} DH</p>
                                                 <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Payé</span>
                                             </div>
@@ -187,7 +187,7 @@ export default function FormationDashboard() {
                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                                 <button
                                     onClick={() => setIsModalOpen(true)}
-                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
+                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <BookOpen className="mb-3 text-blue-400 group-hover:scale-110 transition-transform" size={24} />
                                     <p className="font-medium">Nouvelle Formation</p>
@@ -195,7 +195,7 @@ export default function FormationDashboard() {
                                 </button>
                                 <button
                                     onClick={() => setIsInscriptionModalOpen(true)}
-                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
+                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <Users className="mb-3 text-purple-400 group-hover:scale-110 transition-transform" size={24} />
                                     <p className="font-medium">Inscrire un élève</p>
@@ -203,7 +203,7 @@ export default function FormationDashboard() {
                                 </button>
                                 <button
                                     onClick={() => router.push('/admin/teachers?type=FORMATION')}
-                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
+                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <TrendingUp className="mb-3 text-pink-400 group-hover:scale-110 transition-transform" size={24} />
                                     <p className="font-medium">Nouveau Professeur</p>
@@ -211,7 +211,7 @@ export default function FormationDashboard() {
                                 </button>
                                 <button
                                     onClick={() => router.push('/admin/groups?type=FORMATION')}
-                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
+                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <Calendar className="mb-3 text-orange-400 group-hover:scale-110 transition-transform" size={24} />
                                     <p className="font-medium">Planning</p>
@@ -219,7 +219,7 @@ export default function FormationDashboard() {
                                 </button>
                                 <button
                                     onClick={() => router.push('/admin/finance')}
-                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-left group"
+                                    className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                                 >
                                     <TrendingUp className="mb-3 text-green-400 group-hover:scale-110 transition-transform" size={24} />
                                     <p className="font-medium">Rapports</p>
@@ -235,8 +235,8 @@ export default function FormationDashboard() {
             {isModalOpen && (
                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
                     <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 to-purple-500 p-4 sm:p-8 text-white">
-                        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-black/10 rounded-full blur-3xl"></div>
+                        <div className="absolute top-0 end-0 -mt-10 -me-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 start-0 -mb-10 -ms-10 w-40 h-40 bg-black/10 rounded-full blur-3xl"></div>
 
                         <div className="relative z-10 flex justify-between items-center">
                             <div>
@@ -272,10 +272,10 @@ export default function FormationDashboard() {
                                                 value={formData.duration}
                                                 onChange={handleFormChange}
                                                 required
-                                                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                                className="w-full ps-10 pe-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
                                                 placeholder="Ex: 3 mois"
                                             />
-                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                            <Clock className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         </div>
                                     </div>
                                     <div>
@@ -288,10 +288,10 @@ export default function FormationDashboard() {
                                                 onChange={handleFormChange}
                                                 required
                                                 min="0"
-                                                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                                                className="w-full ps-10 pe-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
                                                 placeholder="Ex: 2500"
                                             />
-                                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                            <DollarSign className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         </div>
                                     </div>
                                 </div>

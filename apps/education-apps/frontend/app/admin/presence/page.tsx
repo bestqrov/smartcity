@@ -283,7 +283,7 @@ export default function PresencePage() {
                     ))}
                 </div>
 
-                <div className="flex items-center gap-2 xl:ml-auto">
+                <div className="flex items-center gap-2 xl:ms-auto">
                     <IconButton label="Semaine précédente" onClick={() => setWeekOf(addDays(weekStart, -7))}>
                         <ChevronLeft size={18} />
                     </IconButton>
@@ -441,11 +441,11 @@ function Timetable({
         <div className="overflow-x-auto">
             <div className="min-w-[760px]">
                 <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))] border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60">
-                    <div className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-900" />
+                    <div className="sticky start-0 z-10 bg-slate-50 dark:bg-slate-900" />
                     {week.days.map((day) => (
                         <div
                             key={day.date}
-                            className={`border-l border-slate-200 dark:border-slate-700 px-2 py-2 text-center text-sm font-semibold capitalize ${
+                            className={`border-s border-slate-200 dark:border-slate-700 px-2 py-2 text-center text-sm font-semibold capitalize ${
                                 day.date === todayKey ? 'text-blue-700 dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'
                             }`}
                         >
@@ -458,11 +458,11 @@ function Timetable({
                 </div>
 
                 <div className="grid grid-cols-[3.5rem_repeat(7,minmax(0,1fr))]">
-                    <div className="sticky left-0 z-10 bg-white dark:bg-slate-800" style={{ height }}>
+                    <div className="sticky start-0 z-10 bg-white dark:bg-slate-800" style={{ height }}>
                         {hours.map((m) => (
                             <span
                                 key={m}
-                                className="absolute right-2 -translate-y-1/2 text-[11px] text-slate-400 first:translate-y-0"
+                                className="absolute end-2 -translate-y-1/2 text-[11px] text-slate-400 first:translate-y-0"
                                 style={{ top: ((m - DAY_START_MIN) / ROW_MIN) * ROW_PX }}
                             >
                                 {String(Math.floor(m / 60)).padStart(2, '0')}:00
@@ -471,7 +471,7 @@ function Timetable({
                     </div>
 
                     {week.days.map((day) => (
-                        <div key={day.date} className="relative hatched border-l border-slate-200 dark:border-slate-700" style={{ height }}>
+                        <div key={day.date} className="relative hatched border-s border-slate-200 dark:border-slate-700" style={{ height }}>
                             {Array.from({ length: ROWS }, (_, i) => (
                                 <div
                                     key={i}
@@ -482,7 +482,7 @@ function Timetable({
 
                             {day.date === todayKey && nowMin >= DAY_START_MIN && nowMin <= DAY_END_MIN && (
                                 <div className="absolute inset-x-0 z-20 h-0.5 bg-red-500" style={{ top: ((nowMin - DAY_START_MIN) / ROW_MIN) * ROW_PX }}>
-                                    <span className="absolute -left-1 -top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
+                                    <span className="absolute -start-1 -top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                                 </div>
                             )}
 
@@ -519,7 +519,7 @@ function Timetable({
                                         disabled={!!day.holiday}
                                         onClick={() => onOpen(session)}
                                         aria-label={`${longDay(day.date)} ${slot.startTime}-${slot.endTime} : ${status}`}
-                                        className={`absolute inset-x-1 z-10 overflow-hidden rounded-lg border px-2 py-1 text-left text-xs shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${tone}`}
+                                        className={`absolute inset-x-1 z-10 overflow-hidden rounded-lg border px-2 py-1 text-start text-xs shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${tone}`}
                                         style={{ top: top + 1, height: blockHeight }}
                                     >
                                         <span className="block font-bold">
@@ -582,14 +582,14 @@ function Recap({
             <table className="w-full border-collapse text-sm">
                 <thead>
                     <tr className="bg-slate-50 dark:bg-slate-900/60">
-                        <th rowSpan={2} className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-r border-slate-200 dark:border-slate-700 px-3 py-2 text-left font-semibold text-slate-700 dark:text-slate-200 min-w-[10rem]">
+                        <th rowSpan={2} className="sticky start-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-e border-slate-200 dark:border-slate-700 px-3 py-2 text-start font-semibold text-slate-700 dark:text-slate-200 min-w-[10rem]">
                             Élève
                         </th>
                         {days.map((day) => (
                             <th
                                 key={day.date}
                                 colSpan={day.slots.length}
-                                className={`border-b border-r border-slate-200 dark:border-slate-700 px-2 py-2 text-center font-semibold capitalize ${day.date === todayKey ? 'text-blue-700 dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'}`}
+                                className={`border-b border-e border-slate-200 dark:border-slate-700 px-2 py-2 text-center font-semibold capitalize ${day.date === todayKey ? 'text-blue-700 dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'}`}
                             >
                                 {shortDay(day.date)}
                                 {day.holiday && <span className="block text-[11px] font-normal normal-case text-slate-500">{day.holiday}</span>}
@@ -601,7 +601,7 @@ function Recap({
                     </tr>
                     <tr className="bg-slate-50 dark:bg-slate-900/60">
                         {sessions.map((s) => (
-                            <th key={sessionKey(s)} className="border-b border-r border-slate-200 dark:border-slate-700 p-1 text-center">
+                            <th key={sessionKey(s)} className="border-b border-e border-slate-200 dark:border-slate-700 p-1 text-center">
                                 <button
                                     type="button"
                                     disabled={!!s.holiday}
@@ -621,7 +621,7 @@ function Recap({
                         const r100 = rate(student.id);
                         return (
                             <tr key={student.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-700/30">
-                                <td className="sticky left-0 z-10 bg-white dark:bg-slate-800 border-b border-r border-slate-200 dark:border-slate-700 px-3 py-1.5 font-medium text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                <td className="sticky start-0 z-10 bg-white dark:bg-slate-800 border-b border-e border-slate-200 dark:border-slate-700 px-3 py-1.5 font-medium text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                     {studentHref ? (
                                         <Link href={studentHref(student.id)} className="hover:text-blue-600 dark:hover:text-blue-400">
                                             {name}
@@ -632,7 +632,7 @@ function Recap({
                                 </td>
                                 {sessions.map((s) => {
                                     if (s.holiday) {
-                                        return <td key={sessionKey(s)} className="hatched border-b border-r border-slate-200 dark:border-slate-700" title={s.holiday} />;
+                                        return <td key={sessionKey(s)} className="hatched border-b border-e border-slate-200 dark:border-slate-700" title={s.holiday} />;
                                     }
                                     const r = recordsByKey.get(recordKey(student.id, s.date, s.startTime));
                                     const tip = r
@@ -643,7 +643,7 @@ function Recap({
                                           ? 'Séance à venir'
                                           : 'Pas encore saisi';
                                     return (
-                                        <td key={sessionKey(s)} className="border-b border-r border-slate-200 dark:border-slate-700 p-1 text-center">
+                                        <td key={sessionKey(s)} className="border-b border-e border-slate-200 dark:border-slate-700 p-1 text-center">
                                             <button
                                                 type="button"
                                                 onClick={() => onOpen(s)}
@@ -659,7 +659,7 @@ function Recap({
                                             >
                                                 <span>{r ? ATTENDANCE_META[r.status].short : '·'}</span>
                                                 {r?.scannedAt && <span className="text-[10px] font-medium opacity-80">{formatTime(r.scannedAt)}</span>}
-                                                {r?.note && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden />}
+                                                {r?.note && <span className="absolute end-1 top-1 h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden />}
                                             </button>
                                         </td>
                                     );
@@ -679,13 +679,13 @@ function Recap({
                 </tbody>
                 <tfoot>
                     <tr className="bg-slate-50 dark:bg-slate-900/60">
-                        <td className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                        <td className="sticky start-0 z-10 bg-slate-50 dark:bg-slate-900 border-e border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
                             Présents
                         </td>
                         {sessions.map((s) => {
                             const { present, total } = sessionStats(s);
                             return (
-                                <td key={sessionKey(s)} className="border-r border-slate-200 dark:border-slate-700 px-2 py-2 text-center text-xs text-slate-600 dark:text-slate-300">
+                                <td key={sessionKey(s)} className="border-e border-slate-200 dark:border-slate-700 px-2 py-2 text-center text-xs text-slate-600 dark:text-slate-300">
                                     {s.holiday || isUpcoming(s) ? '' : `${present}/${total}`}
                                 </td>
                             );

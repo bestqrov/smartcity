@@ -101,7 +101,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                 </form>
 
                 <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-left text-sm">
+                <table className="w-full min-w-[560px] text-start text-sm">
                     <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
                         <tr>
                             <th className="px-3 py-2">Date</th>
@@ -122,7 +122,7 @@ export default function SchoolPaymentsModal({ school, onClose }: Props) {
                                 <td className="px-3 py-2">{p.packName ?? '—'}</td>
                                 <td className="px-3 py-2">{p.salesAgent ? `${p.salesAgent.name} (${p.salesAgent.code})` : '—'}</td>
                                 <td className="px-3 py-2">{formatMAD(p.commissionAmount)} <span className="text-xs text-gray-500">({p.commissionRate} %)</span></td>
-                                <td className="px-3 py-2 text-right">
+                                <td className="px-3 py-2 text-end">
                                     <button onClick={() => remove(p.id)} disabled={busy} className="text-red-600 hover:text-red-800" aria-label="Supprimer">
                                         <Trash2 size={16} />
                                     </button>

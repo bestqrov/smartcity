@@ -121,14 +121,14 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                     </div>
                 </div>
                 {/* Abstract Background Shapes */}
-                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl"></div>
+                <div className="absolute top-0 end-0 -me-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 start-0 -ms-20 -mb-20 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl"></div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Personal Info Card - Blue Theme */}
                 <div className="group bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 group-hover:w-2 transition-all"></div>
+                    <div className="absolute top-0 start-0 w-1.5 h-full bg-blue-500 group-hover:w-2 transition-all"></div>
 
                     <div className="flex items-center gap-4 mb-8">
                         <div className="bg-blue-50 p-3 rounded-2xl text-blue-600 group-hover:scale-110 transition-transform">
@@ -142,7 +142,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1">Nom</label>
+                            <label className="text-sm font-bold text-slate-600 ms-1">Nom</label>
                             <Input
                                 name="name"
                                 value={formData.name}
@@ -154,7 +154,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1">Prénom</label>
+                            <label className="text-sm font-bold text-slate-600 ms-1">Prénom</label>
                             <Input
                                 name="surname"
                                 value={formData.surname}
@@ -166,7 +166,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1 flex items-center gap-2">
+                            <label className="text-sm font-bold text-slate-600 ms-1 flex items-center gap-2">
                                 <Calendar size={14} className="text-blue-400" />
                                 Date de Naissance
                             </label>
@@ -180,7 +180,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1 flex items-center gap-2">
+                            <label className="text-sm font-bold text-slate-600 ms-1 flex items-center gap-2">
                                 <CreditCard size={14} className="text-blue-400" />
                                 CIN (Optionnel)
                             </label>
@@ -194,7 +194,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         </div>
 
                         <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1">Email de l'élève</label>
+                            <label className="text-sm font-bold text-slate-600 ms-1">Email de l'élève</label>
                             <Input
                                 type="email"
                                 name="email"
@@ -210,7 +210,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                 {/* Academic & Location Card - Emerald Theme */}
                 {institutionType !== 'CRECHE' && (
                 <div className="group bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500 group-hover:w-2 transition-all"></div>
+                    <div className="absolute top-0 start-0 w-1.5 h-full bg-emerald-500 group-hover:w-2 transition-all"></div>
 
                     <div className="flex items-center gap-4 mb-8">
                         <div className="bg-emerald-50 p-3 rounded-2xl text-emerald-600 group-hover:scale-110 transition-transform">
@@ -224,7 +224,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1">Niveau Scolaire</label>
+                            <label className="text-sm font-bold text-slate-600 ms-1">Niveau Scolaire</label>
                             <select
                                 name="schoolLevel"
                                 value={formData.schoolLevel}
@@ -238,7 +238,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1 flex items-center gap-2">
+                            <label className="text-sm font-bold text-slate-600 ms-1 flex items-center gap-2">
                                 <Phone size={14} className="text-emerald-400" />
                                 Téléphone Élève
                             </label>
@@ -253,7 +253,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         </div>
 
                         <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1">Adresse Domicile</label>
+                            <label className="text-sm font-bold text-slate-600 ms-1">Adresse Domicile</label>
                             <Input
                                 name="address"
                                 value={formData.address}
@@ -268,7 +268,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
 
                 {institutionType === 'CRECHE' && (
                     <div className="group bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500 group-hover:w-2 transition-all"></div>
+                        <div className="absolute top-0 start-0 w-1.5 h-full bg-emerald-500 group-hover:w-2 transition-all"></div>
                         <div className="flex items-center gap-4 mb-8">
                             <div className="bg-emerald-50 p-3 rounded-2xl text-emerald-600 group-hover:scale-110 transition-transform">
                                 <Users size={24} />
@@ -281,7 +281,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-600 ml-1">Section</label>
+                                <label className="text-sm font-bold text-slate-600 ms-1">Section</label>
                                 <select
                                     name="crecheSection"
                                     value={formData.crecheSection || ''}
@@ -297,7 +297,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
 
                             {formData.crecheSection === 'GRANDE' && (
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-600 ml-1">Numéro Massar</label>
+                                    <label className="text-sm font-bold text-slate-600 ms-1">Numéro Massar</label>
                                     <Input
                                         name="massarNumber"
                                         value={formData.massarNumber || ''}
@@ -309,7 +309,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                             )}
 
                             <div className="space-y-2 md:col-span-2">
-                                <label className="text-sm font-bold text-slate-600 ml-1">Allergies / Notes de santé</label>
+                                <label className="text-sm font-bold text-slate-600 ms-1">Allergies / Notes de santé</label>
                                 <textarea
                                     name="healthNotes"
                                     value={formData.healthNotes || ''}
@@ -369,7 +369,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         {!initialData && (
                         <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-600 ml-1">Frais d&apos;inscription (MAD)</label>
+                                <label className="text-sm font-bold text-slate-600 ms-1">Frais d&apos;inscription (MAD)</label>
                                 <Input
                                     type="number"
                                     min="0"
@@ -380,7 +380,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-600 ml-1">Frais mensuel (MAD)</label>
+                                <label className="text-sm font-bold text-slate-600 ms-1">Frais mensuel (MAD)</label>
                                 <Input
                                     type="number"
                                     min="0"
@@ -391,7 +391,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-600 ml-1">Montant payé maintenant (MAD)</label>
+                                <label className="text-sm font-bold text-slate-600 ms-1">Montant payé maintenant (MAD)</label>
                                 <Input
                                     type="number"
                                     min="0"
@@ -411,7 +411,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
 
                 {/* Parent/Guardian Card - Amber Theme */}
                 <div className="group bg-white rounded-3xl p-4 sm:p-8 shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500 group-hover:w-2 transition-all"></div>
+                    <div className="absolute top-0 start-0 w-1.5 h-full bg-amber-500 group-hover:w-2 transition-all"></div>
 
                     <div className="flex items-center gap-4 mb-8">
                         <div className="bg-amber-50 p-3 rounded-2xl text-amber-600 group-hover:scale-110 transition-transform">
@@ -425,7 +425,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1">Nom du Parent</label>
+                            <label className="text-sm font-bold text-slate-600 ms-1">Nom du Parent</label>
                             <Input
                                 name="parentName"
                                 value={formData.parentName}
@@ -437,7 +437,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1">Lien de parenté</label>
+                            <label className="text-sm font-bold text-slate-600 ms-1">Lien de parenté</label>
                             <select
                                 name="parentRelation"
                                 value={(formData as any).parentRelation || ''}
@@ -453,7 +453,7 @@ export default function AddStudentForm({ onSuccess, initialData }: AddStudentFor
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-600 ml-1 flex items-center gap-2">
+                            <label className="text-sm font-bold text-slate-600 ms-1 flex items-center gap-2">
                                 <Phone size={14} className="text-amber-400" />
                                 Téléphone Parent
                             </label>

@@ -77,3 +77,29 @@
 .print-only {
   display: none;
 }
+/* Arabic (staff spaces, login, signup): Cairo everywhere, slightly taller lines, no letter-spacing (it breaks
+   Arabic joining) and no forced uppercase. Set by I18nProvider through <html lang="ar" dir="rtl">. */
+html[lang='ar'] body,
+html[lang='ar'] .font-vibrant,
+html[lang='ar'] .font-sans,
+html[lang='ar'] .vib-shell {
+  font-family: var(--font-arabic), system-ui, sans-serif;
+}
+html[lang='ar'] .vib-shell,
+html[lang='ar'] body {
+  line-height: 1.7;
+}
+html[lang='ar'] [class*='tracking-'] {
+  letter-spacing: 0 !important;
+}
+html[lang='ar'] .uppercase {
+  text-transform: none;
+}
+/* Phone numbers, emails, amounts and codes stay left-to-right inside Arabic text. */
+html[dir='rtl'] input[type='email'],
+html[dir='rtl'] input[type='tel'],
+html[dir='rtl'] input[type='url'],
+html[dir='rtl'] input[type='password'] {
+  direction: ltr;
+  text-align: right;
+}

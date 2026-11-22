@@ -229,13 +229,13 @@ export default function SecretaryRecuPage() {
                     </div>
 
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                         <input
                             type="text"
                             placeholder="Rechercher par nom ou numéro..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border-none rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
+                            className="w-full ps-10 pe-4 py-2 border-none rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
 
@@ -247,14 +247,14 @@ export default function SecretaryRecuPage() {
                                         <h3 className="font-bold text-lg text-blue-600">{receipt.receiptNumber}</h3>
                                         <p className="text-xs text-gray-500">{new Date(receipt.date).toLocaleDateString('fr-FR')}</p>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-end">
                                         <div className="font-bold text-xl text-gray-900">{receipt.totalAmount.toFixed(2)} MAD</div>
                                         <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full">{receipt.receiptType}</span>
                                     </div>
                                 </div>
                                 <div className="space-y-1 mb-4">
-                                    <div className="text-sm font-bold text-gray-700 truncate"><User size={14} className="inline mr-1" /> {receipt.issuedTo}</div>
-                                    <div className="text-xs text-gray-500"><CreditCard size={14} className="inline mr-1" /> {receipt.paymentMethod}</div>
+                                    <div className="text-sm font-bold text-gray-700 truncate"><User size={14} className="inline me-1" /> {receipt.issuedTo}</div>
+                                    <div className="text-xs text-gray-500"><CreditCard size={14} className="inline me-1" /> {receipt.paymentMethod}</div>
                                 </div>
                                 <div className="flex justify-end gap-2 pt-4 border-t border-slate-50 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => setViewingReceipt(receipt)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Eye size={18} /></button>
@@ -299,7 +299,7 @@ export default function SecretaryRecuPage() {
                             <button type="button" onClick={addItem} className="text-sm font-bold text-blue-600 hover:underline">+ Ajouter une ligne</button>
                         </div>
                         <div className="pt-6 border-t flex justify-between items-center">
-                            <div className="text-right">
+                            <div className="text-end">
                                 <div className="text-sm text-gray-500">Total à payer</div>
                                 <div className="text-2xl font-bold font-mono text-gray-900">{totalAmount.toFixed(2)} MAD</div>
                             </div>

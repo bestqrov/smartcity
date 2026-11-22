@@ -48,7 +48,7 @@ export default function SelectBranchPage() {
                         <button
                             key={branch.id}
                             onClick={() => handleSelect(branch.id)}
-                            className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left hover:border-indigo-400 hover:bg-indigo-50"
+                            className="w-full rounded-xl border border-slate-200 bg-white p-4 text-start hover:border-indigo-400 hover:bg-indigo-50"
                         >
                             <p className="font-medium text-slate-900">{branch.name}</p>
                             <p className="text-sm text-slate-500">{branch.city}</p>

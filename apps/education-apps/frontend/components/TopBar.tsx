@@ -7,9 +7,12 @@ import { Sun, Moon, Cloud, Bell, Menu, Timer, Sparkles, Briefcase } from 'lucide
 import axios from 'axios';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import useAuthStore from '@/store/useAuthStore';
+import LangSwitcher from '@/components/LangSwitcher';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 
 export default function TopBar() {
     const { profile } = useSchoolProfile();
+    const { tr } = useI18n();
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [prayerTimes, setPrayerTimes] = useState<any>(null);
     const [nextPrayer, setNextPrayer] = useState<any>(null);
@@ -108,7 +111,7 @@ export default function TopBar() {
     };
 
     return (
-        <header className="h-16 bg-white/80 dark:bg-vib-panel/90 backdrop-blur-md border-b border-gray-200/70 dark:border-white/5 fixed top-0 right-0 left-0 z-20 pl-16 pr-4 sm:px-6 lg:top-4 lg:right-4 lg:left-[20rem] lg:pl-6 lg:rounded-3xl lg:border lg:shadow-sm flex items-center justify-end transition-all duration-300">
+        <header className="h-16 bg-white/80 dark:bg-vib-panel/90 backdrop-blur-md border-b border-gray-200/70 dark:border-white/5 fixed top-0 end-0 start-0 z-20 ps-16 pe-4 sm:px-6 lg:top-4 lg:end-4 lg:start-[20rem] lg:ps-6 lg:rounded-3xl lg:border lg:shadow-sm flex items-center justify-end transition-all duration-300">
             {/* Right: Actions & Profile */}
             <div className="flex items-center gap-2 sm:gap-4 lg:gap-6">
                 {/* Athan Widget */}
@@ -118,38 +121,41 @@ export default function TopBar() {
                             <Timer size={18} className="group-hover:rotate-12 transition-transform" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] uppercase tracking-widest text-emerald-500/80 leading-none mb-1">Prochain Athan</span>
+                            <span className="text-[10px] uppercase tracking-widest text-emerald-500/80 leading-none mb-1">{tr('Prochain Athan')}</span>
                             <div className="flex items-center gap-2">
-                                <span className="font-extrabold text-emerald-900 dark:text-emerald-100">{nextPrayer.name}</span>
+                                <span className="font-extrabold text-emerald-900 dark:text-emerald-100">{tr(nextPrayer.name)}</span>
                                 <span className="w-1 h-1 bg-emerald-300 rounded-full"></span>
                                 <span className="text-emerald-600 dark:text-emerald-400 font-black">{nextPrayer.time}</span>
                             </div>
                         </div>
-                        <Sparkles size={14} className="text-amber-400 animate-pulse ml-1" />
+                        <Sparkles size={14} className="text-amber-400 animate-pulse ms-1" />
                     </div>
                 )}
 
                 {user && user.role !== 'SALES_AGENT' && user.salesAgent && (
                     <Link
                         href="/agent"
-                        title="Espace commercial"
-                        aria-label="Espace commercial"
+                        title={tr('Espace commercial')}
+                        aria-label={tr('Espace commercial')}
                         className="flex items-center gap-2 px-3 py-2.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-full transition-colors"
                     >
                         <Briefcase size={18} />
-                        <span className="hidden sm:inline">Espace commercial</span>
+                        <span className="hidden sm:inline">{tr('Espace commercial')}</span>
                     </Link>
                 )}
+
+                <LangSwitcher className="hidden sm:flex" />
 
                 {/* Theme Toggle: sun / moon switch */}
                 <button
                     type="button"
                     role="switch"
+                    dir="ltr"
                     aria-checked={theme === 'dark'}
                     onClick={toggleTheme}
                     className="relative flex h-9 w-16 shrink-0 items-center rounded-full bg-gray-100 p-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vib-indigo dark:bg-white/10"
-                    title={theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair'}
-                    aria-label={theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair'}
+                    title={tr(theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair')}
+                    aria-label={tr(theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair')}
                 >
                     <span
                         aria-hidden="true"
@@ -160,9 +166,9 @@ export default function TopBar() {
                 </button>
 
                 {/* Notifications */}
-                <button className="p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors relative">
+                <button aria-label={tr('Notifications')} className="p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors relative">
                     <Bell size={20} />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-vib-panel"></span>
+                    <span className="absolute top-2 end-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-vib-panel"></span>
                 </button>
 
                 {/* Vertical Divider */}
@@ -170,9 +176,9 @@ export default function TopBar() {
 
                 {/* Admin Profile */}
                 <div className="flex items-center gap-3">
-                    <div className="text-right hidden sm:block">
+                    <div className="text-end hidden sm:block">
                         <p className="text-sm font-bold text-gray-800 dark:text-gray-200 leading-none">{adminName}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{adminRole}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{tr(adminRole)}</p>
                     </div>
                     <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-vib-indigo to-vib-pink p-0.5 cursor-pointer">
                         <div className="w-full h-full rounded-full bg-white dark:bg-vib-card p-0.5 flex items-center justify-center overflow-hidden">

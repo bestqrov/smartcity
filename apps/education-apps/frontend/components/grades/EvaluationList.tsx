@@ -29,7 +29,7 @@ export default function EvaluationList({ evaluations, studentCount, onOpen, onEd
                         key={ev.id}
                         className="flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4"
                     >
-                        <button type="button" onClick={() => onOpen(ev)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                        <button type="button" onClick={() => onOpen(ev)} className="flex min-w-0 flex-1 items-center gap-3 text-start">
                             <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
                                     <span className="truncate font-semibold text-slate-900 dark:text-white">{ev.title}</span>

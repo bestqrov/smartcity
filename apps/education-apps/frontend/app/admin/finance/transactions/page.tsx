@@ -274,13 +274,13 @@ export default function TransactionsPage() {
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     <input
                         type="text"
                         placeholder="Rechercher une transaction..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                        className="w-full ps-10 pe-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
                     />
                 </div>
                 <div className="flex gap-2">
@@ -305,12 +305,12 @@ export default function TransactionsPage() {
                     <table className="w-full">
                         <thead className="bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Type</th>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Description</th>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Catégorie</th>
-                                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600">Date</th>
-                                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-600">Montant</th>
-                                <th className="text-right py-4 px-6 text-sm font-semibold text-gray-600">Actions</th>
+                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">Type</th>
+                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">Description</th>
+                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">Catégorie</th>
+                                <th className="text-start py-4 px-6 text-sm font-semibold text-gray-600">Date</th>
+                                <th className="text-end py-4 px-6 text-sm font-semibold text-gray-600">Montant</th>
+                                <th className="text-end py-4 px-6 text-sm font-semibold text-gray-600">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -345,11 +345,11 @@ export default function TransactionsPage() {
                                         <td className="py-4 px-6 text-gray-600">
                                             {new Date(transaction.date).toLocaleDateString('fr-FR')}
                                         </td>
-                                        <td className={`py-4 px-6 text-right font-bold ${transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
+                                        <td className={`py-4 px-6 text-end font-bold ${transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
                                             }`}>
                                             {transaction.type === 'INCOME' ? '+' : '-'}{formatCurrency(transaction.amount)}
                                         </td>
-                                        <td className="py-4 px-6 text-right">
+                                        <td className="py-4 px-6 text-end">
                                             <button
                                                 onClick={() => handleDelete(transaction.id)}
                                                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
