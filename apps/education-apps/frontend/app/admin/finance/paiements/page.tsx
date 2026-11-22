@@ -19,6 +19,7 @@ import { getTeachers, createTeacher, updateTeacher, deleteTeacher } from '@/lib/
 import { getSecretaries } from '@/lib/services/users';
 import { createSalaryPayment } from '@/lib/services/payments';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface Personnel {
     id: string;
     name: string;
@@ -54,6 +55,7 @@ const getSalaryTypeLabel = (type: string) => {
 
 
 export default function PaiementsPage() {
+    const { tr } = useI18n();
     const [personnel, setPersonnel] = useState<Personnel[]>([]);
     const [payments, setPayments] = useState<SalaryPayment[]>([]);
     const [groups, setGroups] = useState<any[]>([]);
@@ -154,12 +156,12 @@ export default function PaiementsPage() {
                 }
                 loadData(); // Reload to get fresh data
             } else {
-                alert("La création de secrétaires doit se faire via la page Utilisateurs.");
+                alert(tr("La création de secrétaires doit se faire via la page Utilisateurs."));
             }
             resetForm();
         } catch (error) {
             console.error('Error saving personnel:', error);
-            alert('Erreur lors de la sauvegarde');
+            alert(tr("Erreur lors de la sauvegarde"));
         }
     };
 
@@ -190,7 +192,7 @@ export default function PaiementsPage() {
     };
 
     const handleDelete = (id: string) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer ce personnel ?')) {
+        if (confirm(tr("Êtes-vous sûr de vouloir supprimer ce personnel ?"))) {
             savePersonnel(personnel.filter(p => p.id !== id));
         }
     };
@@ -264,7 +266,7 @@ export default function PaiementsPage() {
     };
 
     const handleDeletePayment = (id: string) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer ce paiement ?')) {
+        if (confirm(tr("Êtes-vous sûr de vouloir supprimer ce paiement ?"))) {
             savePayments(payments.filter(p => p.id !== id));
         }
     };
@@ -280,24 +282,20 @@ export default function PaiementsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gestion des Salaires</h1>
-                    <p className="text-gray-600 mt-1">Gérer les salaires du personnel</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Gestion des Salaires")}</h1>
+                    <p className="text-gray-600 mt-1">{tr("Gérer les salaires du personnel")}</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                     <button
                         onClick={() => setShowPaymentModal(true)}
                         className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all"
                     >
-                        <DollarSign size={20} />
-                        Effectuer un salaire
-                    </button>
+                        <DollarSign size={20} />{tr("Effectuer un salaire")}</button>
                     <button
                         onClick={() => setShowPersonnelModal(true)}
                         className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all"
                     >
-                        <Plus size={20} />
-                        Ajouter Personnel
-                    </button>
+                        <Plus size={20} />{tr("Ajouter Personnel")}</button>
                 </div>
             </div>
 
@@ -310,7 +308,7 @@ export default function PaiementsPage() {
                         </div>
                     </div>
                     <h3 className="text-3xl font-bold text-gray-800">{teachers.length}</h3>
-                    <p className="text-gray-500 text-sm mt-1">Professeurs</p>
+                    <p className="text-gray-500 text-sm mt-1">{tr("Professeurs")}</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -320,7 +318,7 @@ export default function PaiementsPage() {
                         </div>
                     </div>
                     <h3 className="text-3xl font-bold text-gray-800">{secretaries.length}</h3>
-                    <p className="text-gray-500 text-sm mt-1">Secrétaires</p>
+                    <p className="text-gray-500 text-sm mt-1">{tr("Secrétaires")}</p>
                 </div>
 
                 <div className="bg-gradient-to-br from-green-600 to-emerald-600 p-6 rounded-2xl shadow-lg text-white">
@@ -330,16 +328,15 @@ export default function PaiementsPage() {
                         </div>
                     </div>
                     <h3 className="text-3xl font-bold">
-                        {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)} MAD
-                    </h3>
-                    <p className="text-green-100 text-sm mt-1">Total ce mois</p>
+                        {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)}{tr("MAD")}</h3>
+                    <p className="text-green-100 text-sm mt-1">{tr("Total ce mois")}</p>
                 </div>
             </div>
 
             {/* Monthly Salary Calculation */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-gray-800">Calcul Mensuel</h2>
+                    <h2 className="text-xl font-bold text-gray-800">{tr("Calcul Mensuel")}</h2>
                     <div className="flex items-center gap-4">
                         <input
                             type="month"
@@ -351,9 +348,7 @@ export default function PaiementsPage() {
                             onClick={generateMonthlySalaries}
                             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all"
                         >
-                            <Calendar size={18} />
-                            Générer Salaires
-                        </button>
+                            <Calendar size={18} />{tr("Générer Salaires")}</button>
                     </div>
                 </div>
 
@@ -362,12 +357,12 @@ export default function PaiementsPage() {
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th className="text-start py-3 px-4 text-sm font-semibold text-gray-600">Nom</th>
-                                    <th className="text-start py-3 px-4 text-sm font-semibold text-gray-600">Type</th>
-                                    <th className="text-start py-3 px-4 text-sm font-semibold text-gray-600">Salaire</th>
-                                    <th className="text-end py-3 px-4 text-sm font-semibold text-gray-600">Montant</th>
-                                    <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">Statut</th>
-                                    <th className="text-end py-3 px-4 text-sm font-semibold text-gray-600">Actions</th>
+                                    <th className="text-start py-3 px-4 text-sm font-semibold text-gray-600">{tr("Nom")}</th>
+                                    <th className="text-start py-3 px-4 text-sm font-semibold text-gray-600">{tr("Type")}</th>
+                                    <th className="text-start py-3 px-4 text-sm font-semibold text-gray-600">{tr("Salaire")}</th>
+                                    <th className="text-end py-3 px-4 text-sm font-semibold text-gray-600">{tr("Montant")}</th>
+                                    <th className="text-center py-3 px-4 text-sm font-semibold text-gray-600">{tr("Statut")}</th>
+                                    <th className="text-end py-3 px-4 text-sm font-semibold text-gray-600">{tr("Actions")}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -379,15 +374,14 @@ export default function PaiementsPage() {
                                                 ? 'bg-blue-100 text-blue-700'
                                                 : 'bg-purple-100 text-purple-700'
                                                 }`}>
-                                                {payment.personnelType === 'TEACHER' ? 'Professeur' : 'Secrétaire'}
+                                                {payment.personnelType === 'TEACHER' ? tr("Professeur") : tr("Secrétaire")}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-gray-600 text-sm">
-                                            {getSalaryTypeLabel(payment.salaryType)}
+                                            {tr(getSalaryTypeLabel(payment.salaryType))}
                                         </td>
                                         <td className="py-3 px-4 text-end font-bold text-gray-800">
-                                            {payment.calculatedAmount.toFixed(2)} MAD
-                                        </td>
+                                            {payment.calculatedAmount.toFixed(2)}{tr("MAD")}</td>
                                         <td className="py-3 px-4 text-center">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${payment.status === 'PAID'
                                                 ? 'bg-green-100 text-green-700'
@@ -395,7 +389,7 @@ export default function PaiementsPage() {
                                                     ? 'bg-yellow-100 text-yellow-700'
                                                     : 'bg-gray-100 text-gray-700'
                                                 }`}>
-                                                {payment.status === 'PAID' ? 'Payé' : payment.status === 'PARTIAL' ? 'Partiel' : 'En attente'}
+                                                {payment.status === 'PAID' ? tr("Payé") : payment.status === 'PARTIAL' ? tr("Partiel") : tr("En attente")}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-end">
@@ -404,7 +398,7 @@ export default function PaiementsPage() {
                                                     <button
                                                         onClick={() => markAsPaid(payment.id)}
                                                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                                        title="Marquer comme payé"
+                                                        title={tr("Marquer comme payé")}
                                                     >
                                                         <Check size={18} />
                                                     </button>
@@ -412,14 +406,14 @@ export default function PaiementsPage() {
                                                 <button
                                                     onClick={() => handleEditPayment(payment)}
                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    title="Modifier"
+                                                    title={tr("Modifier")}
                                                 >
                                                     <Edit size={18} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeletePayment(payment.id)}
                                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Supprimer"
+                                                    title={tr("Supprimer")}
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -431,9 +425,7 @@ export default function PaiementsPage() {
                         </table>
                     </div>
                 ) : (
-                    <div className="text-center py-8 text-gray-500">
-                        Aucun salaire calculé pour ce mois. Cliquez sur "Générer Salaires" pour commencer.
-                    </div>
+                    <div className="text-center py-8 text-gray-500">{tr("Aucun salaire calculé pour ce mois. Cliquez sur \"Générer Salaires\" pour commencer.")}</div>
                 )}
             </div>
 
@@ -441,10 +433,10 @@ export default function PaiementsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Teachers */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Professeurs</h2>
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">{tr("Professeurs")}</h2>
                     <div className="space-y-3">
                         {teachers.length === 0 ? (
-                            <p className="text-gray-500 text-center py-4">Aucun professeur</p>
+                            <p className="text-gray-500 text-center py-4">{tr("Aucun professeur")}</p>
                         ) : (
                             teachers.map(teacher => (
                                 <div key={teacher.id} className="p-4 border border-gray-100 rounded-xl hover:border-blue-200 transition-colors">
@@ -452,15 +444,14 @@ export default function PaiementsPage() {
                                         <div className="flex-1">
                                             <h3 className="font-bold text-gray-800">{teacher.name}</h3>
                                             <p className="text-sm text-gray-600 mt-1">
-                                                {getSalaryTypeLabel(teacher.salaryType)}
+                                                {tr(getSalaryTypeLabel(teacher.salaryType))}
                                                 {teacher.salaryType === 'PERCENTAGE' && ` (${teacher.salaryPercentage}%)`}
                                                 {(teacher.salaryType === 'FIXED_MONTHLY' || teacher.salaryType === 'FORFAIT') &&
-                                                    ` (${teacher.salaryAmount} MAD)`}
+                                                    tr(" ({salaryAmount} MAD)", { salaryAmount: teacher.salaryAmount })}
                                             </p>
                                             {teacher.groupIds && teacher.groupIds.length > 0 && (
                                                 <p className="text-xs text-gray-500 mt-1">
-                                                    {teacher.groupIds.length} groupe(s)
-                                                </p>
+                                                    {teacher.groupIds.length}{tr("groupe(s)")}</p>
                                             )}
                                         </div>
                                         <div className="flex gap-2">
@@ -486,19 +477,17 @@ export default function PaiementsPage() {
 
                 {/* Secretaries */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Secrétaires</h2>
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">{tr("Secrétaires")}</h2>
                     <div className="space-y-3">
                         {secretaries.length === 0 ? (
-                            <p className="text-gray-500 text-center py-4">Aucun secrétaire</p>
+                            <p className="text-gray-500 text-center py-4">{tr("Aucun secrétaire")}</p>
                         ) : (
                             secretaries.map(secretary => (
                                 <div key={secretary.id} className="p-4 border border-gray-100 rounded-xl hover:border-purple-200 transition-colors">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <h3 className="font-bold text-gray-800">{secretary.name}</h3>
-                                            <p className="text-sm text-gray-600 mt-1">
-                                                Forfait ({secretary.salaryAmount} MAD/mois)
-                                            </p>
+                                            <p className="text-sm text-gray-600 mt-1">{tr("Forfait (")}{secretary.salaryAmount}{tr("MAD/mois)")}</p>
                                         </div>
                                         <div className="flex gap-2">
                                             <button
@@ -528,7 +517,7 @@ export default function PaiementsPage() {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-gray-800">
-                                {editingPersonnel ? 'Modifier Personnel' : 'Ajouter Personnel'}
+                                {editingPersonnel ? tr("Modifier Personnel") : tr("Ajouter Personnel")}
                             </h2>
                             <button
                                 type="button"
@@ -540,7 +529,7 @@ export default function PaiementsPage() {
                         </div>
                         <form onSubmit={handleSubmitPersonnel} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Nom</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Nom")}</label>
                                 <input
                                     type="text"
                                     value={formData.name}
@@ -551,7 +540,7 @@ export default function PaiementsPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Type")}</label>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <button
                                         type="button"
@@ -560,9 +549,7 @@ export default function PaiementsPage() {
                                             ? 'border-blue-500 bg-blue-50 text-blue-600'
                                             : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                             }`}
-                                    >
-                                        Professeur
-                                    </button>
+                                    >{tr("Professeur")}</button>
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, type: 'SECRETARY', salaryType: 'FORFAIT' })}
@@ -570,15 +557,13 @@ export default function PaiementsPage() {
                                             ? 'border-purple-500 bg-purple-50 text-purple-600'
                                             : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                             }`}
-                                    >
-                                        Secrétaire
-                                    </button>
+                                    >{tr("Secrétaire")}</button>
                                 </div>
                             </div>
 
                             {formData.type === 'TEACHER' && (
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Type de Salaire</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Type de Salaire")}</label>
                                     <div className="grid grid-cols-3 gap-3">
                                         <button
                                             type="button"
@@ -587,9 +572,7 @@ export default function PaiementsPage() {
                                                 ? 'border-green-500 bg-green-50 text-green-600'
                                                 : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                                 }`}
-                                        >
-                                            Avec %
-                                        </button>
+                                        >{tr("Avec %")}</button>
                                         <button
                                             type="button"
                                             onClick={() => setFormData({ ...formData, salaryType: 'FIXED_MONTHLY' })}
@@ -597,9 +580,7 @@ export default function PaiementsPage() {
                                                 ? 'border-blue-500 bg-blue-50 text-blue-600'
                                                 : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                                 }`}
-                                        >
-                                            Mensuel Fixe
-                                        </button>
+                                        >{tr("Mensuel Fixe")}</button>
                                         <button
                                             type="button"
                                             onClick={() => setFormData({ ...formData, salaryType: 'FORFAIT' })}
@@ -607,36 +588,34 @@ export default function PaiementsPage() {
                                                 ? 'border-orange-500 bg-orange-50 text-orange-600'
                                                 : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                                 }`}
-                                        >
-                                            Forfait
-                                        </button>
+                                        >{tr("Forfait")}</button>
                                     </div>
                                 </div>
                             )}
 
                             {formData.salaryType === 'PERCENTAGE' ? (
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Pourcentage (%)</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Pourcentage (%)")}</label>
                                     <input
                                         type="number"
                                         step="0.1"
                                         value={formData.salaryPercentage}
                                         onChange={(e) => setFormData({ ...formData, salaryPercentage: e.target.value })}
                                         required
-                                        placeholder="Ex: 30"
+                                        placeholder={tr("Ex: 30")}
                                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                     />
                                 </div>
                             ) : (
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Montant (MAD)</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Montant (MAD)")}</label>
                                     <input
                                         type="number"
                                         step="0.01"
                                         value={formData.salaryAmount}
                                         onChange={(e) => setFormData({ ...formData, salaryAmount: e.target.value })}
                                         required
-                                        placeholder="Ex: 5000"
+                                        placeholder={tr("Ex: 5000")}
                                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                     />
                                 </div>
@@ -644,7 +623,7 @@ export default function PaiementsPage() {
 
                             {formData.type === 'TEACHER' && groups.length > 0 && (
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Groupes (optionnel)</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Groupes (optionnel)")}</label>
                                     <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3 space-y-2">
                                         {groups.map(group => (
                                             <label key={group.id} className="flex items-center gap-2 cursor-pointer">
@@ -672,7 +651,7 @@ export default function PaiementsPage() {
                                     type="submit"
                                     className="w-full py-3 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg transition-all"
                                 >
-                                    {editingPersonnel ? 'Mettre à jour' : 'Ajouter'}
+                                    {editingPersonnel ? tr("Mettre à jour") : tr("Ajouter")}
                                 </button>
                             </div>
                         </form>
@@ -686,7 +665,7 @@ export default function PaiementsPage() {
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-gray-800">
-                                {editingPayment ? 'Modifier Paiement' : 'Effectuer un Paiement'}
+                                {editingPayment ? tr("Modifier Paiement") : tr("Effectuer un Paiement")}
                             </h2>
                             <button
                                 type="button"
@@ -738,30 +717,30 @@ export default function PaiementsPage() {
                                     }
                                     setShowPaymentModal(false);
                                     setEditingPayment(null);
-                                    alert('Paiement enregistré avec succès et ajouté aux dépenses.');
+                                    alert(tr("Paiement enregistré avec succès et ajouté aux dépenses."));
                                 } catch (error) {
                                     console.error('Error paying salary:', error);
-                                    alert('Erreur lors du paiement du salaire');
+                                    alert(tr("Erreur lors du paiement du salaire"));
                                 }
                             }
                         }} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Personnel</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Personnel")}</label>
                                 <select
                                     name="personnel"
                                     required
                                     defaultValue={editingPayment?.personnelId || ''}
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                 >
-                                    <option value="">Sélectionner un personnel</option>
+                                    <option value="">{tr("Sélectionner un personnel")}</option>
                                     {personnel.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name} ({p.type === 'TEACHER' ? 'Prof' : 'Secrétaire'})</option>
+                                        <option key={p.id} value={p.id}>{p.name} ({p.type === 'TEACHER' ? tr("Prof") : tr("Secrétaire")})</option>
                                     ))}
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Montant (MAD)</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Montant (MAD)")}</label>
                                 <input
                                     type="number"
                                     name="amount"
@@ -774,7 +753,7 @@ export default function PaiementsPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">{tr("Date")}</label>
                                 <input
                                     type="date"
                                     name="date"
@@ -789,7 +768,7 @@ export default function PaiementsPage() {
                                     type="submit"
                                     className="w-full py-3 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 shadow-lg transition-all"
                                 >
-                                    {editingPayment ? 'Mettre à jour' : 'Confirmer le Paiement'}
+                                    {editingPayment ? tr("Mettre à jour") : tr("Confirmer le Paiement")}
                                 </button>
                             </div>
                         </form>

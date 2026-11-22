@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import useAuthStore from '@/store/useAuthStore';
 import { getPendingUpgrades, type PendingUpgrade } from '@/lib/services/subscription';
 
-const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+import { appLocale } from '@/lib/i18n/I18nProvider';
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(appLocale(), { day: 'numeric', month: 'long', year: 'numeric' });
 
 // Reminds ADMIN/OWNER of a pack upgrade not paid yet; red once the deadline has passed.
 export default function PackUpgradeBanner() {

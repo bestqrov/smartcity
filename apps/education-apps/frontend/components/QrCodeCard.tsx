@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 interface QrCodeCardProps {
     title: string;
     url: string;
 }
 
 export default function QrCodeCard({ title, url }: QrCodeCardProps) {
+    const { tr } = useI18n();
     const [dataUrl, setDataUrl] = useState<string | null>(null);
     const [error, setError] = useState(false);
 
@@ -33,16 +35,12 @@ export default function QrCodeCard({ title, url }: QrCodeCardProps) {
         <div className="flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4">
             <p className="text-sm font-medium text-gray-700">{title}</p>
             {error ? (
-                <div className="flex h-[240px] w-[240px] items-center justify-center text-sm text-red-500">
-                    Failed to generate QR code
-                </div>
+                <div className="flex h-[240px] w-[240px] items-center justify-center text-sm text-red-500">{tr("Failed to generate QR code")}</div>
             ) : dataUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={dataUrl} alt={`QR code for ${title}`} width={240} height={240} />
+                <img src={dataUrl} alt={tr("QR code for {title}", { title })} width={240} height={240} />
             ) : (
-                <div className="flex h-[240px] w-[240px] items-center justify-center text-sm text-gray-400">
-                    Generating…
-                </div>
+                <div className="flex h-[240px] w-[240px] items-center justify-center text-sm text-gray-400">{tr("Generating…")}</div>
             )}
             <p className="max-w-[240px] break-all text-center text-xs text-gray-400">{url}</p>
         </div>

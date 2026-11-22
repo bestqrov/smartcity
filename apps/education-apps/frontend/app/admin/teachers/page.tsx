@@ -32,6 +32,7 @@ import { formationsService } from '@/lib/services/formations';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import { Teacher } from '@/types';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 // Use global Teacher interface from @/types
 
 
@@ -302,7 +303,7 @@ const TeachersContent = () => {
                                 </button>
                                 {teacher.linkIssuedAt && (
                                     <span className="text-xs text-gray-500">
-                                        Lien envoyé le {new Date(teacher.linkIssuedAt).toLocaleDateString('fr-FR')}
+                                        Lien envoyé le {new Date(teacher.linkIssuedAt).toLocaleDateString(appLocale())}
                                     </span>
                                 )}
                             </div>

@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { AlertTriangle, Bell, Loader2, LogOut, MessageCircle, RefreshCw, Send, Smartphone } from 'lucide-react';
 import api from '@/lib/api';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 type WaStatus = 'DISCONNECTED' | 'CONNECTING' | 'CONNECTED';
 interface StatusDto {
     configured: boolean;
@@ -368,7 +369,7 @@ export default function WhatsappAutoCard() {
                                     <p className="truncate text-xs text-gray-500 dark:text-slate-400">
                                         {m.to && <bdi dir="ltr">{m.to}</bdi>}
                                         {m.to && ' · '}
-                                        {new Date(m.createdAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
+                                        {new Date(m.createdAt).toLocaleString(appLocale(), { dateStyle: 'short', timeStyle: 'short' })}
                                     </p>
                                     {m.status === 'FAILED' && m.error && <p className="truncate text-xs text-rose-500">{m.error}</p>}
                                 </div>

@@ -5,6 +5,7 @@ import { CalendarOff, Trash2, Plus } from 'lucide-react';
 import { holidaysService } from '@/lib/services/holidays';
 import type { Holiday } from '@/types';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 export default function VacancesPage() {
     const [items, setItems] = useState<Holiday[]>([]);
     const [loading, setLoading] = useState(true);
@@ -120,7 +121,7 @@ export default function VacancesPage() {
                                 <div>
                                     <p className="font-semibold text-gray-800">{h.title}</p>
                                     <p className="text-sm text-gray-500 mt-1">
-                                        {new Date(h.startDate).toLocaleDateString('fr-FR')} – {new Date(h.endDate).toLocaleDateString('fr-FR')}
+                                        {new Date(h.startDate).toLocaleDateString(appLocale())} – {new Date(h.endDate).toLocaleDateString(appLocale())}
                                     </p>
                                 </div>
                                 <button

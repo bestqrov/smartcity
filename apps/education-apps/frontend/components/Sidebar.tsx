@@ -542,7 +542,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
             onClick={handleLogout}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors group"
           >
-            <LogOut size={16} className="group-hover:-translate-x-1 rtl:group-hover:translate-x-1 rtl:-scale-x-100 transition-transform" />
+            <LogOut size={16} className="group-hover:-translate-x-1 rtl:group-hover:translate-x-1 transition-transform" />
             <span className="font-semibold text-[13px]">{tr('Déconnexion')}</span>
           </button>
         </div>

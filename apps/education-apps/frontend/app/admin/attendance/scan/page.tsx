@@ -8,11 +8,13 @@ import { ATTENDANCE_META, attendanceErrorMessage, formatTime } from '@/lib/atten
 import { groupsService } from '@/lib/services/groups';
 import type { Group } from '@/types';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 type ScanResult = { type: 'success' | 'error'; message: string } | null;
 
 const RESCAN_COOLDOWN_MS = 3000;
 
 export default function AttendanceScanPage() {
+    const { tr } = useI18n();
     const [groups, setGroups] = useState<Group[]>([]);
     const [selectedGroupId, setSelectedGroupId] = useState('');
     const [lastResult, setLastResult] = useState<ScanResult>(null);
@@ -50,12 +52,12 @@ export default function AttendanceScanPage() {
                         const attendance = await scanAttendance(decodedText, selectedGroupId);
                         setLastResult({
                             type: 'success',
-                            message: `${ATTENDANCE_META[attendance.status].label} — séance de ${attendance.slotStart || ''}, scanné à ${formatTime(attendance.scannedAt)}`,
+                            message: tr('{status} — séance de {start}, scanné à {time}', { status: tr(ATTENDANCE_META[attendance.status].label), start: attendance.slotStart || '', time: formatTime(attendance.scannedAt) }),
                         });
                     } catch (error: any) {
                         setLastResult({
                             type: 'error',
-                            message: attendanceErrorMessage(error, 'Échec du scan'),
+                            message: tr(attendanceErrorMessage(error, 'Échec du scan')),
                         });
                     } finally {
                         processingRef.current = false;
@@ -67,7 +69,7 @@ export default function AttendanceScanPage() {
             )
             .then(() => true)
             .catch(() => {
-                setCameraError("Impossible de démarrer la caméra. Vérifiez les autorisations.");
+                setCameraError(tr("Impossible de démarrer la caméra. Vérifiez les autorisations."));
                 return false;
             });
 
@@ -83,17 +85,13 @@ export default function AttendanceScanPage() {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Scanner de présence</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">
-                    Sélectionnez un groupe puis scannez la carte QR de chaque élève.
-                </p>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{tr("Scanner de présence")}</h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-1">{tr("Sélectionnez un groupe puis scannez la carte QR de chaque élève.")}</p>
             </div>
 
             <div className="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm p-6 space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        Groupe
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{tr("Groupe")}</label>
                     <select
                         className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={selectedGroupId}
@@ -103,7 +101,7 @@ export default function AttendanceScanPage() {
                             lastCodeRef.current = null;
                         }}
                     >
-                        <option value="">Sélectionner un groupe…</option>
+                        <option value="">{tr("Sélectionner un groupe…")}</option>
                         {groups.map((group) => (
                             <option key={group.id} value={group.id}>
                                 {group.name}
@@ -115,7 +113,7 @@ export default function AttendanceScanPage() {
                 {!selectedGroupId && (
                     <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-400 dark:text-slate-500">
                         <QrCode size={40} />
-                        <p className="text-sm">Choisissez un groupe pour démarrer le scan</p>
+                        <p className="text-sm">{tr("Choisissez un groupe pour démarrer le scan")}</p>
                     </div>
                 )}
 
@@ -124,7 +122,7 @@ export default function AttendanceScanPage() {
                         <div id="qr-reader" className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700" />
                         {cameraError && (
                             <p className="mt-3 text-center text-sm font-medium text-red-600 dark:text-red-400">
-                                {cameraError}
+                                {tr(cameraError)}
                             </p>
                         )}
                     </div>
@@ -139,7 +137,7 @@ export default function AttendanceScanPage() {
                         }`}
                     >
                         {lastResult.type === 'success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
-                        <span>{lastResult.message}</span>
+                        <span>{tr(lastResult.message)}</span>
                     </div>
                 )}
             </div>

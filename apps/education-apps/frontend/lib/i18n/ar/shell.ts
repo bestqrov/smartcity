@@ -94,4 +94,7 @@ export const shell: Record<string, string> = {
     ' / 6 mois': ' / 6 أشهر',
     ' / an': ' / السنة',
     ' MAD': ' درهم',
+    ',': '،',
+    MAD: 'درهم',
+    DH: 'درهم',
 };

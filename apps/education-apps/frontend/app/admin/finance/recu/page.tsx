@@ -22,6 +22,7 @@ import {
     FileText
 } from 'lucide-react';
 
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 interface Receipt {
     id: number;
     date: string;
@@ -39,6 +40,7 @@ interface Receipt {
 }
 
 export default function RecuPage() {
+    const { tr } = useI18n();
     const router = useRouter();
     const [view, setView] = useState<'list' | 'form'>('list');
     const [receipts, setReceipts] = useState<Receipt[]>([]);
@@ -54,7 +56,7 @@ export default function RecuPage() {
 
     const initialFormState = {
         date: new Date().toISOString().substring(0, 10),
-        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        time: new Date().toLocaleTimeString(appLocale(), { hour: '2-digit', minute: '2-digit' }),
         receiptNumber: '', // Will be calculated on mount or change
         issuedTo: '',
         phoneNumber: '',
@@ -140,7 +142,7 @@ export default function RecuPage() {
                     return {
                         id: ins.id,
                         date: ins.date.substring(0, 10),
-                        time: new Date(ins.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                        time: new Date(ins.date).toLocaleTimeString(appLocale(), { hour: '2-digit', minute: '2-digit' }),
                         receiptNumber: `${schoolAbbrev}${typeSuffix} ${seq}/${mm}/${yyyy}`,
                         issuedTo: `${ins.student?.name || ''} ${ins.student?.surname || ''}`.trim() || 'Inconnu',
                         phoneNumber: ins.student?.phone || ins.student?.parentPhone || '',
@@ -258,7 +260,7 @@ export default function RecuPage() {
     };
 
     const handleDelete = (receipt: Receipt) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer ce reçu?')) {
+        if (window.confirm(tr("Êtes-vous sûr de vouloir supprimer ce reçu?"))) {
             saveReceipts(receipts.filter(r => r.id !== receipt.id));
         }
     };
@@ -267,8 +269,8 @@ export default function RecuPage() {
         const printWindow = window.open('', '_blank', 'width=800,height=600');
         if (!printWindow) return;
 
-        const currentDate = new Date(receipt.date).toLocaleDateString('fr-FR');
-        const currentTime = receipt.time || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const currentDate = new Date(receipt.date).toLocaleDateString(appLocale());
+        const currentTime = receipt.time || new Date().toLocaleTimeString(appLocale(), { hour: '2-digit', minute: '2-digit' });
         const remaining = receipt.totalAmount - receipt.amountPaid;
         const isPaidInFull = remaining <= 0;
         const items = receipt.items.map(item =>
@@ -457,11 +459,11 @@ export default function RecuPage() {
                     <div>
                         <h3 className="font-bold text-lg text-green-600">{receipt.receiptNumber}</h3>
                         <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                            <Calendar size={14} /> {new Date(receipt.date).toLocaleDateString('fr-FR')}
+                            <Calendar size={14} /> {new Date(receipt.date).toLocaleDateString(appLocale())}
                         </p>
                     </div>
                     <div className="text-end">
-                        <div className="font-bold text-xl text-gray-800">{receipt.totalAmount.toFixed(2)} DH</div>
+                        <div className="font-bold text-xl text-gray-800">{receipt.totalAmount.toFixed(2)}{' '}{tr("DH")}</div>
                         <span className={`px-2 py-0.5 text-xs font-semibold rounded-full mt-1 inline-block ${receipt.receiptType === 'Soutien'
                             ? 'bg-blue-100 text-blue-800'
                             : receipt.receiptType === 'Formation'
@@ -475,7 +477,7 @@ export default function RecuPage() {
 
                 <div className="pt-4 border-t border-gray-200 text-sm space-y-2">
                     <p className="flex items-center gap-2 text-gray-700">
-                        <User size={14} /> <strong>Client:</strong> {receipt.issuedTo}
+                        <User size={14} /> <strong>{tr("Client:")}</strong> {receipt.issuedTo}
                     </p>
                     {receipt.phoneNumber && (
                         <p className="flex items-center gap-2 text-gray-700">
@@ -492,14 +494,14 @@ export default function RecuPage() {
                 <button
                     onClick={() => setViewingReceipt(receipt)}
                     className="p-2 text-green-600 hover:bg-green-100 rounded-full"
-                    title="Voir"
+                    title={tr("Voir")}
                 >
                     <Eye size={18} />
                 </button>
                 <button
                     onClick={() => handlePrint(receipt)}
                     className="p-2 text-gray-600 hover:bg-gray-200 rounded-full"
-                    title="Imprimer"
+                    title={tr("Imprimer")}
                 >
                     <Printer size={18} />
                 </button>
@@ -508,7 +510,7 @@ export default function RecuPage() {
                         setEditingReceipt(receipt);
                         setFormData({
                             date: receipt.date,
-                            time: receipt.time || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                            time: receipt.time || new Date().toLocaleTimeString(appLocale(), { hour: '2-digit', minute: '2-digit' }),
                             receiptNumber: receipt.receiptNumber,
                             issuedTo: receipt.issuedTo,
                             phoneNumber: receipt.phoneNumber || '',
@@ -522,14 +524,14 @@ export default function RecuPage() {
                         setView('form');
                     }}
                     className="p-2 text-blue-600 hover:bg-blue-100 rounded-full"
-                    title="Modifier"
+                    title={tr("Modifier")}
                 >
                     <Edit size={18} />
                 </button>
                 <button
                     onClick={() => handleDelete(receipt)}
                     className="p-2 text-red-600 hover:bg-red-100 rounded-full"
-                    title="Supprimer"
+                    title={tr("Supprimer")}
                 >
                     <Trash2 size={18} />
                 </button>
@@ -540,7 +542,7 @@ export default function RecuPage() {
     const renderListView = () => (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Reçus</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Reçus")}</h1>
                 <Button onClick={() => {
                     const defaultType = 'Soutien';
                     setFormData({
@@ -550,8 +552,7 @@ export default function RecuPage() {
                     });
                     setView('form');
                 }} className="w-full sm:w-auto flex items-center gap-2">
-                    <PlusCircle size={18} /> Nouveau Reçu
-                </Button>
+                    <PlusCircle size={18} />{tr("Nouveau Reçu")}</Button>
             </div>
 
             <div className="flex flex-col md:flex-row gap-4">
@@ -559,7 +560,7 @@ export default function RecuPage() {
                     <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <input
                         type="text"
-                        placeholder="Rechercher par nom ou numéro..."
+                        placeholder={tr("Rechercher par nom ou numéro...")}
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         className="w-full ps-10 pe-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-300"
@@ -591,9 +592,7 @@ export default function RecuPage() {
                                 setFilterMonth('');
                             }}
                             className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 text-sm font-medium transition-colors"
-                        >
-                            Reset
-                        </button>
+                        >{tr("Reset")}</button>
                     )}
                 </div>
             </div>
@@ -603,7 +602,7 @@ export default function RecuPage() {
                 {organizedReceipts.Soutien.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 mb-4 border-s-4 border-blue-500 ps-3">
-                            <h2 className="text-xl font-bold text-gray-800">Soutien Scolaire</h2>
+                            <h2 className="text-xl font-bold text-gray-800">{tr("Soutien Scolaire")}</h2>
                             <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                 {organizedReceipts.Soutien.length}
                             </span>
@@ -618,7 +617,7 @@ export default function RecuPage() {
                 {organizedReceipts.Formation.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 mb-4 border-s-4 border-green-500 ps-3">
-                            <h2 className="text-xl font-bold text-gray-800">Formation Pro</h2>
+                            <h2 className="text-xl font-bold text-gray-800">{tr("Formation Pro")}</h2>
                             <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                 {organizedReceipts.Formation.length}
                             </span>
@@ -633,7 +632,7 @@ export default function RecuPage() {
                 {organizedReceipts.Other.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 mb-4 border-s-4 border-purple-500 ps-3">
-                            <h2 className="text-xl font-bold text-gray-800">Autres Reçus</h2>
+                            <h2 className="text-xl font-bold text-gray-800">{tr("Autres Reçus")}</h2>
                             <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                 {organizedReceipts.Other.length}
                             </span>
@@ -647,7 +646,7 @@ export default function RecuPage() {
                 {filteredReceipts.length === 0 && (
                     <div className="text-center py-12">
                         <FileText size={64} className="mx-auto text-gray-300 mb-4" />
-                        <p className="text-gray-500 text-lg">Aucun reçu trouvé</p>
+                        <p className="text-gray-500 text-lg">{tr("Aucun reçu trouvé")}</p>
                     </div>
                 )}
             </div>
@@ -660,19 +659,18 @@ export default function RecuPage() {
                 onClick={() => { setView('list'); setEditingReceipt(null); setFormData(initialFormState); }}
                 className="flex items-center gap-2 text-gray-600 hover:text-green-600 font-medium"
             >
-                <ArrowLeft size={18} /> Retour aux reçus
-            </button>
+                <ArrowLeft size={18} />{tr("Retour aux reçus")}</button>
 
             <form onSubmit={handleFormSubmit} className="bg-white rounded-2xl shadow-xl overflow-hidden">
                 <div className="p-6 bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-                    <h1 className="text-2xl sm:text-3xl font-bold">{editingReceipt ? 'Modifier le Reçu' : 'Nouveau Reçu'}</h1>
-                    <p className="opacity-90 mt-1">Remplissez les informations du reçu</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold">{editingReceipt ? tr("Modifier le Reçu") : tr("Nouveau Reçu")}</h1>
+                    <p className="opacity-90 mt-1">{tr("Remplissez les informations du reçu")}</p>
                 </div>
 
                 <div className="p-6 space-y-8">
                     {/* Receipt Type */}
                     <div className="border-2 border-green-200 rounded-lg p-6">
-                        <h3 className="font-bold text-lg text-green-600 mb-4">Type de Reçu</h3>
+                        <h3 className="font-bold text-lg text-green-600 mb-4">{tr("Type de Reçu")}</h3>
                         <div className="grid grid-cols-3 gap-4">
                             {[
                                 { value: 'Soutien', label: 'Soutien', icon: <GraduationCap size={24} /> },
@@ -705,7 +703,7 @@ export default function RecuPage() {
                                         className="sr-only"
                                     />
                                     {type.icon}
-                                    <span className="font-semibold text-sm">{type.label}</span>
+                                    <span className="font-semibold text-sm">{tr(type.label)}</span>
                                 </label>
                             ))}
                         </div>
@@ -713,10 +711,10 @@ export default function RecuPage() {
 
                     {/* General Information */}
                     <div className="border-2 border-indigo-200 rounded-lg p-6">
-                        <h3 className="font-bold text-lg text-indigo-600 mb-4">Informations Générales</h3>
+                        <h3 className="font-bold text-lg text-indigo-600 mb-4">{tr("Informations Générales")}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="relative">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Client *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Client *")}</label>
                                 <div className="relative">
                                     <input
                                         type="text"
@@ -727,7 +725,7 @@ export default function RecuPage() {
                                             setShowStudentDropdown(true);
                                         }}
                                         onFocus={() => setShowStudentDropdown(true)}
-                                        placeholder="Rechercher un étudiant..."
+                                        placeholder={tr("Rechercher un étudiant...")}
                                         className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200"
                                         required
                                     />
@@ -775,7 +773,7 @@ export default function RecuPage() {
                                                 >
                                                     <div className="font-bold text-gray-800">{student.name} {student.surname}</div>
                                                     <div className="text-xs text-gray-500 flex items-center gap-2 mt-1">
-                                                        <Phone size={12} /> {student.phone || student.parentPhone || 'Pas de téléphone'}
+                                                        <Phone size={12} /> {student.phone || student.parentPhone || tr("Pas de téléphone")}
                                                         <span className="mx-1">•</span>
                                                         <GraduationCap size={12} /> {student.schoolLevel || 'N/A'}
                                                     </div>
@@ -784,9 +782,7 @@ export default function RecuPage() {
                                         </div>
                                     )}
                                     {showStudentDropdown && studentSearchSubTerm && filteredStudents.length === 0 && (
-                                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-4 text-center text-gray-500 text-sm">
-                                            Aucun étudiant trouvé pour ce type
-                                        </div>
+                                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-4 text-center text-gray-500 text-sm">{tr("Aucun étudiant trouvé pour ce type")}</div>
                                     )}
                                 </div>
                                 {showStudentDropdown && (
@@ -797,7 +793,7 @@ export default function RecuPage() {
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Téléphone")}</label>
                                 <input
                                     type="tel"
                                     value={formData.phoneNumber}
@@ -806,7 +802,7 @@ export default function RecuPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Date *")}</label>
                                 <input
                                     type="date"
                                     value={formData.date}
@@ -816,7 +812,7 @@ export default function RecuPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Heure</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Heure")}</label>
                                 <input
                                     type="time"
                                     value={formData.time}
@@ -825,7 +821,7 @@ export default function RecuPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de Reçu *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Numéro de Reçu *")}</label>
                                 <input
                                     type="text"
                                     value={formData.receiptNumber}
@@ -839,7 +835,7 @@ export default function RecuPage() {
 
                     {/* Receipt Type */}
                     <div className="border-2 border-green-200 rounded-lg p-6">
-                        <h3 className="font-bold text-lg text-green-600 mb-4">Type de Reçu</h3>
+                        <h3 className="font-bold text-lg text-green-600 mb-4">{tr("Type de Reçu")}</h3>
                         <div className="grid grid-cols-3 gap-4">
                             {[
                                 { value: 'Soutien', label: 'Soutien', icon: <GraduationCap size={24} /> },
@@ -872,7 +868,7 @@ export default function RecuPage() {
                                         className="sr-only"
                                     />
                                     {type.icon}
-                                    <span className="font-semibold text-sm">{type.label}</span>
+                                    <span className="font-semibold text-sm">{tr(type.label)}</span>
                                 </label>
                             ))}
                         </div>
@@ -880,13 +876,13 @@ export default function RecuPage() {
 
                     {/* Items */}
                     <div className="border-2 border-teal-200 rounded-lg p-6">
-                        <h3 className="font-bold text-lg text-teal-600 mb-4">Articles et Services</h3>
+                        <h3 className="font-bold text-lg text-teal-600 mb-4">{tr("Articles et Services")}</h3>
                         <div className="space-y-4">
                             {formData.items.map((item, index) => (
                                 <div key={index} className="p-4 border rounded-lg bg-gray-50 relative group">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-medium mb-1">Description</label>
+                                            <label className="block text-xs font-medium mb-1">{tr("Description")}</label>
                                             <input
                                                 type="text"
                                                 value={item.description}
@@ -895,7 +891,7 @@ export default function RecuPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium mb-1">Montant (DH)</label>
+                                            <label className="block text-xs font-medium mb-1">{tr("Montant (DH)")}</label>
                                             <input
                                                 type="number"
                                                 value={item.amount || ''}
@@ -922,29 +918,28 @@ export default function RecuPage() {
                             onClick={addItem}
                             className="mt-4 text-sm font-medium text-green-600 hover:underline flex items-center gap-1"
                         >
-                            <PlusCircle size={14} /> Ajouter un article
-                        </button>
+                            <PlusCircle size={14} />{tr("Ajouter un article")}</button>
                     </div>
 
                     {/* Payment */}
                     <div className="border-2 border-amber-200 rounded-lg p-6">
-                        <h3 className="font-bold text-lg text-amber-600 mb-4">Paiement et Résumé</h3>
+                        <h3 className="font-bold text-lg text-amber-600 mb-4">{tr("Paiement et Résumé")}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Mode de Paiement</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Mode de Paiement")}</label>
                                     <select
                                         value={formData.paymentMethod}
                                         onChange={e => setFormData({ ...formData, paymentMethod: e.target.value as any })}
                                         className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200"
                                     >
-                                        <option value="Cash">Espèces</option>
-                                        <option value="Check">Chèque</option>
+                                        <option value="Cash">{tr("Espèces")}</option>
+                                        <option value="Check">{tr("Chèque")}</option>
                                     </select>
                                 </div>
                                 {formData.paymentMethod === 'Check' && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de Chèque</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Numéro de Chèque")}</label>
                                         <input
                                             type="text"
                                             value={formData.checkNumber}
@@ -954,7 +949,7 @@ export default function RecuPage() {
                                     </div>
                                 )}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Montant Payé (DH)</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Montant Payé (DH)")}</label>
                                     <input
                                         type="number"
                                         value={formData.amountPaid}
@@ -967,19 +962,18 @@ export default function RecuPage() {
                             </div>
                             <div className="bg-gray-100 p-6 rounded-lg space-y-3 flex flex-col justify-center">
                                 <div className="flex justify-between items-baseline">
-                                    <span className="text-gray-600">Total</span>
-                                    <span className="font-bold text-lg text-gray-800">{totalAmount.toFixed(2)} DH</span>
+                                    <span className="text-gray-600">{tr("Total")}</span>
+                                    <span className="font-bold text-lg text-gray-800">{totalAmount.toFixed(2)}{' '}{tr("DH")}</span>
                                 </div>
                                 <div className="flex justify-between items-baseline">
-                                    <span className="text-gray-600">Montant Payé</span>
-                                    <span className="font-bold text-lg text-green-600">{(parseFloat(formData.amountPaid) || 0).toFixed(2)} DH</span>
+                                    <span className="text-gray-600">{tr("Montant Payé")}</span>
+                                    <span className="font-bold text-lg text-green-600">{(parseFloat(formData.amountPaid) || 0).toFixed(2)}{' '}{tr("DH")}</span>
                                 </div>
                                 <div className="border-t-2 border-dashed my-2"></div>
                                 <div className="flex justify-between items-baseline">
-                                    <span className="font-bold text-gray-800">Reste</span>
+                                    <span className="font-bold text-gray-800">{tr("Reste")}</span>
                                     <span className="font-bold text-2xl text-green-600">
-                                        {(totalAmount - (parseFloat(formData.amountPaid) || 0)).toFixed(2)} DH
-                                    </span>
+                                        {(totalAmount - (parseFloat(formData.amountPaid) || 0)).toFixed(2)}{tr("DH")}</span>
                                 </div>
                             </div>
                         </div>
@@ -991,15 +985,11 @@ export default function RecuPage() {
                         type="button"
                         onClick={() => { setView('list'); setEditingReceipt(null); setFormData(initialFormState); }}
                         className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition-colors"
-                    >
-                        Annuler
-                    </button>
+                    >{tr("Annuler")}</button>
                     <button
                         type="submit"
                         className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors"
-                    >
-                        Enregistrer le Reçu
-                    </button>
+                    >{tr("Enregistrer le Reçu")}</button>
                 </div>
             </form>
         </div>
@@ -1015,7 +1005,7 @@ export default function RecuPage() {
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden flex flex-col max-h-[90vh]">
                             <div className="flex justify-between items-center p-4 border-b">
-                                <h2 className="text-lg font-bold text-gray-900">Aperçu du Reçu</h2>
+                                <h2 className="text-lg font-bold text-gray-900">{tr("Aperçu du Reçu")}</h2>
                                 <button onClick={() => setViewingReceipt(null)} className="text-gray-400 hover:text-gray-600">
                                     <X size={24} />
                                 </button>
@@ -1026,41 +1016,40 @@ export default function RecuPage() {
                                     <div className="flex items-center justify-between gap-2 mb-1">
                                         <div className="flex items-center gap-2 min-w-0">
                                             {schoolProfile.logo && (
-                                                <img src={schoolProfile.logo} alt="Logo" className="w-10 h-10 object-contain shrink-0" />
+                                                <img src={schoolProfile.logo} alt={tr("Logo")} className="w-10 h-10 object-contain shrink-0" />
                                             )}
                                             <div className="min-w-0">
                                                 <div className="font-bold tracking-wide truncate">{schoolProfile.schoolName}</div>
                                                 <div className="text-[9px] text-gray-500 truncate">{schoolProfile.address}</div>
-                                                <div className="text-[9px] text-gray-500">Tel: {schoolProfile.phone}</div>
+                                                <div className="text-[9px] text-gray-500">{tr("Tel:")}{' '}{schoolProfile.phone}</div>
                                             </div>
                                         </div>
-                                        <span className="shrink-0 inline-block border border-green-600 text-green-600 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-center">
-                                            Reçu de<br />{viewingReceipt.receiptType}
+                                        <span className="shrink-0 inline-block border border-green-600 text-green-600 rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-center">{tr("Reçu de")}<br />{viewingReceipt.receiptType}
                                         </span>
                                     </div>
                                     <div className="h-[3px] bg-green-600 rounded-full my-2"></div>
 
                                     <div className="text-xs space-y-0.5">
-                                        <div>Date: {new Date(viewingReceipt.date).toLocaleDateString('fr-FR')} {viewingReceipt.time || ''}</div>
-                                        <div className="font-bold">No: {viewingReceipt.receiptNumber}</div>
+                                        <div>{tr("Date:")}{' '}{new Date(viewingReceipt.date).toLocaleDateString(appLocale())} {viewingReceipt.time || ''}</div>
+                                        <div className="font-bold">{tr("No:")}{' '}{viewingReceipt.receiptNumber}</div>
                                     </div>
 
                                     <div className="border-b border-dashed border-gray-400 my-2"></div>
 
                                     <div className="text-xs space-y-1">
                                         <div>{viewingReceipt.issuedTo}</div>
-                                        <div>Tel: {viewingReceipt.phoneNumber || 'N/A'}</div>
-                                        <div>Paiement: {viewingReceipt.paymentMethod}</div>
+                                        <div>{tr("Tel:")}{' '}{viewingReceipt.phoneNumber || 'N/A'}</div>
+                                        <div>{tr("Paiement:")}{' '}{viewingReceipt.paymentMethod}</div>
                                         {viewingReceipt.paymentMethod === 'Check' && viewingReceipt.checkNumber && (
-                                            <div>Chèque No: {viewingReceipt.checkNumber}</div>
+                                            <div>{tr("Chèque No:")}{' '}{viewingReceipt.checkNumber}</div>
                                         )}
                                     </div>
 
                                     <div className="border-b border-dashed border-gray-400 my-2"></div>
 
                                     <div className="flex justify-between font-bold text-xs mb-1">
-                                        <span>Description</span>
-                                        <span>Montant</span>
+                                        <span>{tr("Description")}</span>
+                                        <span>{tr("Montant")}</span>
                                     </div>
                                     <div className="border-b border-dashed border-gray-400 mb-2"></div>
 
@@ -1068,7 +1057,7 @@ export default function RecuPage() {
                                         {viewingReceipt.items.map((item, i) => (
                                             <div key={i} className="flex justify-between text-xs">
                                                 <span>{item.description}</span>
-                                                <span>{item.amount.toFixed(2)} MAD</span>
+                                                <span>{item.amount.toFixed(2)}{' '}{tr("MAD")}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -1081,22 +1070,22 @@ export default function RecuPage() {
                                         return (
                                             <div className="text-xs space-y-1 bg-gray-100 rounded-md px-2.5 py-2">
                                                 <div className="flex justify-between">
-                                                    <span>Total:</span>
-                                                    <span className="font-bold">{viewingReceipt.totalAmount.toFixed(2)} MAD</span>
+                                                    <span>{tr("Total:")}</span>
+                                                    <span className="font-bold">{viewingReceipt.totalAmount.toFixed(2)}{' '}{tr("MAD")}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span>Payé:</span>
-                                                    <span className="font-bold">{viewingReceipt.amountPaid.toFixed(2)} MAD</span>
+                                                    <span>{tr("Payé:")}</span>
+                                                    <span className="font-bold">{viewingReceipt.amountPaid.toFixed(2)}{' '}{tr("MAD")}</span>
                                                 </div>
                                                 <div className={`flex justify-between font-bold ${isPaidInFull ? 'text-green-600' : 'text-red-600'}`}>
-                                                    <span>Reste:</span>
-                                                    <span>{remaining.toFixed(2)} MAD</span>
+                                                    <span>{tr("Reste:")}</span>
+                                                    <span>{remaining.toFixed(2)}{' '}{tr("MAD")}</span>
                                                 </div>
                                             </div>
                                         );
                                     })()}
 
-                                    <div className="text-center text-xs mt-4 mb-2">{schoolProfile.schoolName} vous remercie pour votre paiement!</div>
+                                    <div className="text-center text-xs mt-4 mb-2">{schoolProfile.schoolName}{' '}{tr("vous remercie pour votre paiement!")}</div>
                                 </div>
                             </div>
 
@@ -1105,14 +1094,11 @@ export default function RecuPage() {
                                     onClick={() => handlePrint(viewingReceipt)}
                                     className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 font-medium transition-colors"
                                 >
-                                    <Printer size={18} /> Imprimer
-                                </button>
+                                    <Printer size={18} />{tr("Imprimer")}</button>
                                 <button
                                     onClick={() => setViewingReceipt(null)}
                                     className="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors"
-                                >
-                                    Fermer
-                                </button>
+                                >{tr("Fermer")}</button>
                             </div>
                         </div>
                     </div>

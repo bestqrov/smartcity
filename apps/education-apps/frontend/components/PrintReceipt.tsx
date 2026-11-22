@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 interface PrintReceiptProps {
     studentName: string;
     studentSurname: string;
@@ -23,7 +24,7 @@ export const PrintReceipt: React.FC<PrintReceiptProps> = ({
     receiptNumber,
 }) => {
     const { profile } = useSchoolProfile();
-    const currentDate = new Date().toLocaleDateString('fr-FR');
+    const currentDate = new Date().toLocaleDateString(appLocale());
     const receiptNo = receiptNumber || `RCPT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
 
     return (

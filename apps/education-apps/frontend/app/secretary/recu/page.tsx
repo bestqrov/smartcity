@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/Button';
 
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 interface Receipt {
     id: number;
     date: string;
@@ -37,6 +38,7 @@ interface Receipt {
 }
 
 export default function SecretaryRecuPage() {
+    const { tr } = useI18n();
     const [view, setView] = useState<'list' | 'form'>('list');
     const [receipts, setReceipts] = useState<Receipt[]>([]);
     const [editingReceipt, setEditingReceipt] = useState<Receipt | null>(null);
@@ -45,7 +47,7 @@ export default function SecretaryRecuPage() {
 
     const initialFormState = {
         date: new Date().toISOString().substring(0, 10),
-        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+        time: new Date().toLocaleTimeString(appLocale(), { hour: '2-digit', minute: '2-digit' }),
         receiptNumber: `RCPT-${new Date().getFullYear()}-${String(receipts.length + 1).padStart(3, '0')}`,
         issuedTo: '',
         phoneNumber: '',
@@ -136,7 +138,7 @@ export default function SecretaryRecuPage() {
     };
 
     const handleDelete = (receipt: Receipt) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer ce reçu?')) {
+        if (window.confirm(tr("Êtes-vous sûr de vouloir supprimer ce reçu?"))) {
             saveReceipts(receipts.filter(r => r.id !== receipt.id));
         }
     };
@@ -145,8 +147,8 @@ export default function SecretaryRecuPage() {
         const printWindow = window.open('', '_blank', 'width=800,height=600');
         if (!printWindow) return;
 
-        const currentDate = new Date(receipt.date).toLocaleDateString('fr-FR');
-        const currentTime = receipt.time || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const currentDate = new Date(receipt.date).toLocaleDateString(appLocale());
+        const currentTime = receipt.time || new Date().toLocaleTimeString(appLocale(), { hour: '2-digit', minute: '2-digit' });
         const items = receipt.items.map(item =>
             `<div style="display: flex; justify-content: space-between;"><span>${item.description}</span><span>${item.amount.toFixed(2)} MAD</span></div>`
         ).join('');
@@ -222,17 +224,16 @@ export default function SecretaryRecuPage() {
             {view === 'list' ? (
                 <>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Gestion des Reçus</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Gestion des Reçus")}</h1>
                         <Button onClick={() => setView('form')} className="flex items-center gap-2">
-                            <PlusCircle size={20} /> Nouveau Reçu
-                        </Button>
+                            <PlusCircle size={20} />{tr("Nouveau Reçu")}</Button>
                     </div>
 
                     <div className="relative">
                         <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                         <input
                             type="text"
-                            placeholder="Rechercher par nom ou numéro..."
+                            placeholder={tr("Rechercher par nom ou numéro...")}
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                             className="w-full ps-10 pe-4 py-2 border-none rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
@@ -245,10 +246,10 @@ export default function SecretaryRecuPage() {
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
                                         <h3 className="font-bold text-lg text-blue-600">{receipt.receiptNumber}</h3>
-                                        <p className="text-xs text-gray-500">{new Date(receipt.date).toLocaleDateString('fr-FR')}</p>
+                                        <p className="text-xs text-gray-500">{new Date(receipt.date).toLocaleDateString(appLocale())}</p>
                                     </div>
                                     <div className="text-end">
-                                        <div className="font-bold text-xl text-gray-900">{receipt.totalAmount.toFixed(2)} MAD</div>
+                                        <div className="font-bold text-xl text-gray-900">{receipt.totalAmount.toFixed(2)}{' '}{tr("MAD")}</div>
                                         <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full">{receipt.receiptType}</span>
                                     </div>
                                 </div>
@@ -268,42 +269,42 @@ export default function SecretaryRecuPage() {
             ) : (
                 <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
                     <div className="p-6 bg-blue-600 text-white flex justify-between items-center">
-                        <h2 className="text-xl font-bold">{editingReceipt ? 'Modifier le Reçu' : 'Créer un Nouveau Reçu'}</h2>
+                        <h2 className="text-xl font-bold">{editingReceipt ? tr("Modifier le Reçu") : tr("Créer un Nouveau Reçu")}</h2>
                         <button onClick={() => setView('list')} className="text-white/80 hover:text-white"><X size={24} /></button>
                     </div>
                     <form onSubmit={handleFormSubmit} className="p-4 sm:p-8 space-y-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Nom du Client</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">{tr("Nom du Client")}</label>
                                 <input type="text" value={formData.issuedTo} onChange={e => setFormData({ ...formData, issuedTo: e.target.value })} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" required />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Date</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">{tr("Date")}</label>
                                 <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" required />
                             </div>
                         </div>
                         {/* Simplified for brevity in code snippet, but functional */}
                         <div className="space-y-4">
-                            <h3 className="font-bold text-gray-900">Services / Articles</h3>
+                            <h3 className="font-bold text-gray-900">{tr("Services / Articles")}</h3>
                             {formData.items.map((item, index) => (
                                 <div key={index} className="flex gap-4 items-end">
                                     <div className="flex-1">
-                                        <input type="text" placeholder="Description" value={item.description} onChange={e => handleItemChange(index, 'description', e.target.value)} className="w-full px-4 py-2 border border-slate-200 rounded-xl" />
+                                        <input type="text" placeholder={tr("Description")} value={item.description} onChange={e => handleItemChange(index, 'description', e.target.value)} className="w-full px-4 py-2 border border-slate-200 rounded-xl" />
                                     </div>
                                     <div className="w-32">
-                                        <input type="number" placeholder="Montant" value={item.amount || ''} onChange={e => handleItemChange(index, 'amount', e.target.value)} className="w-full px-4 py-2 border border-slate-200 rounded-xl" />
+                                        <input type="number" placeholder={tr("Montant")} value={item.amount || ''} onChange={e => handleItemChange(index, 'amount', e.target.value)} className="w-full px-4 py-2 border border-slate-200 rounded-xl" />
                                     </div>
                                     <button type="button" onClick={() => removeItem(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={20} /></button>
                                 </div>
                             ))}
-                            <button type="button" onClick={addItem} className="text-sm font-bold text-blue-600 hover:underline">+ Ajouter une ligne</button>
+                            <button type="button" onClick={addItem} className="text-sm font-bold text-blue-600 hover:underline">{tr("+ Ajouter une ligne")}</button>
                         </div>
                         <div className="pt-6 border-t flex justify-between items-center">
                             <div className="text-end">
-                                <div className="text-sm text-gray-500">Total à payer</div>
-                                <div className="text-2xl font-bold font-mono text-gray-900">{totalAmount.toFixed(2)} MAD</div>
+                                <div className="text-sm text-gray-500">{tr("Total à payer")}</div>
+                                <div className="text-2xl font-bold font-mono text-gray-900">{totalAmount.toFixed(2)}{' '}{tr("MAD")}</div>
                             </div>
-                            <button type="submit" className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-all">Enregistrer le Reçu</button>
+                            <button type="submit" className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-all">{tr("Enregistrer le Reçu")}</button>
                         </div>
                     </form>
                 </div>

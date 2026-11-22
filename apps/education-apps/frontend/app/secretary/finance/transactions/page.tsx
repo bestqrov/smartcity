@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { transactionsApi } from '@/lib/services/transactions';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 export default function SecretaryTransactionsPage() {
     const [transactions, setTransactions] = useState<any[]>([]);
     const [stats, setStats] = useState({ totalIncome: 0, totalExpense: 0, balance: 0 });
@@ -41,7 +42,7 @@ export default function SecretaryTransactionsPage() {
     };
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format(amount);
+        return new Intl.NumberFormat(appLocale(), { style: 'currency', currency: 'MAD' }).format(amount);
     };
 
     const filteredTransactions = transactions.filter(t => {

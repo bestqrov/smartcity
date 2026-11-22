@@ -10,7 +10,9 @@ import { lastMonths, mad, madShort, num, pct, sumByMonth } from '@/lib/dashboard
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import type { Inscription, Student } from '@/types';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function SecretaryAnalytics() {
+    const { tr } = useI18n();
     const router = useRouter();
     const { profile } = useSchoolProfile();
     const [analytics, setAnalytics] = useState<InscriptionAnalytics | null>(null);
@@ -26,7 +28,7 @@ export default function SecretaryAnalytics() {
                 setAnalytics(data);
             } catch (err: any) {
                 console.error('Error fetching analytics:', err);
-                setError('Impossible de charger les statistiques');
+                setError(tr("Impossible de charger les statistiques"));
             } finally {
                 setLoading(false);
             }
@@ -39,7 +41,7 @@ export default function SecretaryAnalytics() {
         fetchAnalytics();
     }, []);
 
-    const months = useMemo(() => lastMonths(12), []);
+    const months = useMemo(() => lastMonths(12), [tr]); // month names follow the language
     const amountPoints = useMemo(() => sumByMonth(inscriptions, months, (i) => i.date || i.createdAt, (i) => i.amount), [inscriptions, months]);
     const countBars = useMemo(() => sumByMonth(inscriptions, months, (i) => i.date || i.createdAt, () => 1).slice(-6), [inscriptions, months]);
 
@@ -54,7 +56,7 @@ export default function SecretaryAnalytics() {
     if (error) {
         return (
             <div className="rounded-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300">
-                {error}
+                {tr(error)}
             </div>
         );
     }
@@ -65,8 +67,8 @@ export default function SecretaryAnalytics() {
     const activeStudents = students.filter((s) => s.active !== false);
     const withoutInscription = activeStudents.filter((s) => (s.inscriptions?.length ?? 0) === 0).length;
     const typeSlices = [
-        { key: 'soutien', label: isCreche ? 'Enfants' : 'Soutien scolaire', value: analytics.monthly.soutien, tone: 0 },
-        { key: 'formation', label: 'Formation pro', value: analytics.monthly.formation, tone: 4 },
+        { key: 'soutien', label: tr(isCreche ? 'Enfants' : 'Soutien scolaire'), value: analytics.monthly.soutien, tone: 0 },
+        { key: 'formation', label: tr('Formation pro'), value: analytics.monthly.formation, tone: 4 },
     ];
 
     return (
@@ -74,7 +76,7 @@ export default function SecretaryAnalytics() {
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <VibrantKpi
                     tone="indigo"
-                    label="Inscriptions du jour"
+                    label={tr("Inscriptions du jour")}
                     value={num(analytics.daily.count)}
                     sub={mad(analytics.daily.total)}
                     icon={<CalendarCheck size={18} />}
@@ -82,45 +84,45 @@ export default function SecretaryAnalytics() {
                 />
                 <VibrantKpi
                     tone="emerald"
-                    label="Montant du mois"
+                    label={tr("Montant du mois")}
                     value={mad(analytics.monthly.total)}
-                    sub="Total des inscriptions"
+                    sub={tr("Total des inscriptions")}
                     icon={<Wallet size={18} />}
                     onClick={() => router.push('/secretary/recus')}
                 />
                 <VibrantKpi
                     tone="violet"
-                    label="Inscriptions du mois"
+                    label={tr("Inscriptions du mois")}
                     value={num(analytics.monthly.count)}
-                    sub={`${num(analytics.monthly.soutien)} soutien · ${num(analytics.monthly.formation)} formation`}
+                    sub={tr("{v0} soutien · {v1} formation", { v0: num(analytics.monthly.soutien), v1: num(analytics.monthly.formation) })}
                     icon={<BookOpen size={18} />}
                 />
                 <VibrantKpi
                     tone="pink"
-                    label={isCreche ? 'Enfants actifs' : 'Élèves actifs'}
+                    label={isCreche ? tr("Enfants actifs") : tr("Élèves actifs")}
                     value={num(activeStudents.length)}
-                    sub={`${num(students.length)} au total`}
+                    sub={tr("{v0} au total", { v0: num(students.length) })}
                     icon={<Users size={18} />}
                 />
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <ChartCard palette="vibrant" className="xl:col-span-2" title="Montant des inscriptions" hint="12 derniers mois">
+                <ChartCard palette="vibrant" className="xl:col-span-2" title={tr("Montant des inscriptions")} hint={tr("12 derniers mois")}>
                     <SplineChart palette="vibrant" points={amountPoints} rtl={false} format={mad} formatShort={madShort} />
                 </ChartCard>
-                <ChartCard palette="vibrant" title="Inscriptions du mois par type">
-                    <DonutChart palette="vibrant" data={typeSlices} totalLabel="inscriptions" formatValue={num} formatPct={pct} empty="Aucune inscription ce mois" />
+                <ChartCard palette="vibrant" title={tr("Inscriptions du mois par type")}>
+                    <DonutChart palette="vibrant" data={typeSlices} totalLabel="inscriptions" formatValue={num} formatPct={pct} empty={tr("Aucune inscription ce mois")} />
                 </ChartCard>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <ChartCard palette="vibrant" title="Inscriptions par mois" hint="6 derniers mois">
-                    <VBarChart palette="vibrant" data={countBars} format={num} empty="Aucune inscription sur la période" />
+                <ChartCard palette="vibrant" title={tr("Inscriptions par mois")} hint={tr("6 derniers mois")}>
+                    <VBarChart palette="vibrant" data={countBars} format={num} empty={tr("Aucune inscription sur la période")} />
                 </ChartCard>
                 <section className="vib-card p-5">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">À faire</h3>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">{tr("À faire")}</h3>
                     {withoutInscription === 0 ? (
-                        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Rien d&apos;urgent pour le moment.</p>
+                        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{tr("Rien d'urgent pour le moment.")}</p>
                     ) : (
                         <button
                             type="button"
@@ -128,7 +130,7 @@ export default function SecretaryAnalytics() {
                             className="mt-3 w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
                         >
                             <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#059669]" aria-hidden="true" />
-                            <span className="flex-1">{num(withoutInscription)} {isCreche ? 'enfants' : 'élèves'} actifs sans inscription</span>
+                            <span className="flex-1">{num(withoutInscription)} {isCreche ? 'enfants' : tr("élèves")}{' '}{tr("actifs sans inscription")}</span>
                             <ChevronRight size={16} className="shrink-0 text-gray-400" />
                         </button>
                     )}

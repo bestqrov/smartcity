@@ -9,6 +9,7 @@ import QrCodeCard from '@/components/QrCodeCard';
 import { publicUrl } from '@/lib/publicUrl';
 import StudentTransportCard from '@/components/transport/StudentTransportCard';
 
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 type Tab = 'attendance' | 'finance' | 'inscriptions' | 'info';
 
 const TABS: { key: Tab; label: string }[] = [
@@ -19,6 +20,7 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 export default function StudentProfilePage() {
+    const { tr } = useI18n();
     const { id } = useParams<{ id: string }>();
     const [student, setStudent] = useState<Student | null>(null);
     const [tab, setTab] = useState<Tab>('attendance');
@@ -34,7 +36,7 @@ export default function StudentProfilePage() {
     }, [id]);
 
     const handleRegenerate = async () => {
-        if (!window.confirm("This will invalidate the student's current attendance card immediately. Continue?")) {
+        if (!window.confirm(tr("This will invalidate the student's current attendance card immediately. Continue?"))) {
             return;
         }
         const result = await regenerateStudentToken(id);
@@ -43,7 +45,7 @@ export default function StudentProfilePage() {
     };
 
     const handleRegeneratePortal = async () => {
-        if (!window.confirm("Ceci invalidera immédiatement l'ancien lien de profil de l'élève. Continuer ?")) {
+        if (!window.confirm(tr("Ceci invalidera immédiatement l'ancien lien de profil de l'élève. Continuer ?"))) {
             return;
         }
         const result = await regenerateStudentPortalToken(id);
@@ -51,8 +53,8 @@ export default function StudentProfilePage() {
         setRawPortalToken(result.rawToken);
     };
 
-    if (loading) return <div className="p-6">Chargement…</div>;
-    if (!student) return <div className="p-6">Élève introuvable</div>;
+    if (loading) return <div className="p-6">{tr("Chargement…")}</div>;
+    if (!student) return <div className="p-6">{tr("Élève introuvable")}</div>;
 
     const balanceDue =
         (student.inscriptions || []).reduce((sum, i) => sum + i.amount, 0) -
@@ -71,28 +73,24 @@ export default function StudentProfilePage() {
                     <button
                         className="rounded-xl bg-slate-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-slate-700"
                         onClick={handleRegeneratePortal}
-                    >
-                        Générer le lien de profil élève
-                    </button>
+                    >{tr("Générer le lien de profil élève")}</button>
                     <button
                         className="rounded-xl bg-blue-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
                         onClick={handleRegenerate}
-                    >
-                        Régénérer le QR de présence
-                    </button>
+                    >{tr("Régénérer le QR de présence")}</button>
                 </div>
             </div>
 
             {rawPortalToken && (
                 <QrCodeCard
-                    title="Nouveau lien de profil élève — à partager avec l'élève, ne sera plus affiché"
+                    title={tr("Nouveau lien de profil élève — à partager avec l'élève, ne sera plus affiché")}
                     url={publicUrl(`/s/${rawPortalToken}`)}
                 />
             )}
 
             {rawToken && (
                 <QrCodeCard
-                    title="Nouveau jeton de présence — réservé au personnel scanneur"
+                    title={tr("Nouveau jeton de présence — réservé au personnel scanneur")}
                     url={rawToken}
                 />
             )}
@@ -118,7 +116,7 @@ export default function StudentProfilePage() {
                     {tab === 'attendance' && (
                         <ul className="space-y-2">
                             {(student.attendances || []).length === 0 && (
-                                <p className="text-slate-500">Aucune présence enregistrée.</p>
+                                <p className="text-slate-500">{tr("Aucune présence enregistrée.")}</p>
                             )}
                             {(student.attendances || []).map((a) => (
                                 <li
@@ -126,13 +124,13 @@ export default function StudentProfilePage() {
                                     className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-900 px-4 py-2"
                                 >
                                     <span>
-                                        {new Date(a.date).toLocaleDateString('fr-FR')}
+                                        {new Date(a.date).toLocaleDateString(appLocale())}
                                         {a.slotStart && <span className="text-slate-500"> · {a.slotStart}</span>}
-                                        {a.scannedAt && <span className="text-slate-500"> (scanné à {formatTime(a.scannedAt)})</span>}
+                                        {a.scannedAt && <span className="text-slate-500">{' '}{tr("(scanné à")}{' '}{formatTime(a.scannedAt)})</span>}
                                         {a.note && <span className="block text-xs text-slate-500">« {a.note} »</span>}
                                     </span>
                                     <span className={`px-2 py-0.5 rounded-md text-xs font-medium border ${ATTENDANCE_META[a.status].badge}`}>
-                                        {ATTENDANCE_META[a.status].label}
+                                        {tr(ATTENDANCE_META[a.status].label)}
                                     </span>
                                 </li>
                             ))}
@@ -141,16 +139,11 @@ export default function StudentProfilePage() {
 
                     {tab === 'finance' && (
                         <div className="space-y-4">
-                            <p className="font-medium text-slate-900 dark:text-white">
-                                Solde dû (inscriptions vs. paiements) : {balanceDue} MAD
-                                <span className="block text-xs font-normal text-slate-500 dark:text-slate-400">
-                                    N'inclut pas les frais mensuels récurrents — voir les analyses du
-                                    tableau de bord pour le revenu total.
-                                </span>
+                            <p className="font-medium text-slate-900 dark:text-white">{tr("Solde dû (inscriptions vs. paiements) :")}{balanceDue}{tr("MAD")}<span className="block text-xs font-normal text-slate-500 dark:text-slate-400">{tr("N'inclut pas les frais mensuels récurrents — voir les analyses du tableau de bord pour le revenu total.")}</span>
                             </p>
                             <ul className="space-y-2">
                                 {(student.payments || []).length === 0 && (
-                                    <p className="text-slate-500">Aucun paiement enregistré.</p>
+                                    <p className="text-slate-500">{tr("Aucun paiement enregistré.")}</p>
                                 )}
                                 {(student.payments || []).map((p) => (
                                     <li
@@ -159,7 +152,7 @@ export default function StudentProfilePage() {
                                     >
                                         <span>{new Date(p.date).toLocaleDateString()}</span>
                                         <span className="font-medium">
-                                            {p.amount} MAD ({p.method})
+                                            {p.amount}{' '}{tr("MAD (")}{p.method})
                                         </span>
                                     </li>
                                 ))}
@@ -170,7 +163,7 @@ export default function StudentProfilePage() {
                     {tab === 'inscriptions' && (
                         <ul className="space-y-2">
                             {(student.inscriptions || []).length === 0 && (
-                                <p className="text-slate-500">Aucune inscription enregistrée.</p>
+                                <p className="text-slate-500">{tr("Aucune inscription enregistrée.")}</p>
                             )}
                             {(student.inscriptions || []).map((i) => (
                                 <li
@@ -180,7 +173,7 @@ export default function StudentProfilePage() {
                                     <span>
                                         {i.type} — {i.category}
                                     </span>
-                                    <span className="font-medium">{i.amount} MAD</span>
+                                    <span className="font-medium">{i.amount}{' '}{tr("MAD")}</span>
                                 </li>
                             ))}
                         </ul>
@@ -189,20 +182,20 @@ export default function StudentProfilePage() {
                     {tab === 'info' && (
                         <div className="space-y-2">
                             <p>
-                                <span className="text-slate-500">Téléphone : </span>
+                                <span className="text-slate-500">{tr("Téléphone :")}{' '}</span>
                                 {student.phone || '—'}
                             </p>
                             <p>
-                                <span className="text-slate-500">CIN : </span>
+                                <span className="text-slate-500">{tr("CIN :")}{' '}</span>
                                 {student.cin || '—'}
                             </p>
                             <p>
-                                <span className="text-slate-500">Adresse : </span>
+                                <span className="text-slate-500">{tr("Adresse :")}{' '}</span>
                                 {student.address || '—'}
                             </p>
                             {student.parent ? (
                                 <p>
-                                    <span className="text-slate-500">Parent : </span>
+                                    <span className="text-slate-500">{tr("Parent :")}{' '}</span>
                                     <a
                                         className="text-blue-600 hover:underline"
                                         href={`/admin/parents/${student.parent.id}`}
@@ -212,7 +205,7 @@ export default function StudentProfilePage() {
                                 </p>
                             ) : (
                                 <p>
-                                    <span className="text-slate-500">Parent : </span>
+                                    <span className="text-slate-500">{tr("Parent :")}{' '}</span>
                                     {student.parentName || '—'} ({student.parentPhone || '—'})
                                 </p>
                             )}
@@ -221,20 +214,20 @@ export default function StudentProfilePage() {
 
                     {tab === 'info' && (student.crecheSection || student.healthNotes || (student.authorizedPickup && student.authorizedPickup.length > 0)) && (
                         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                            <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">Crèche</h2>
+                            <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">{tr("Crèche")}</h2>
                             <div className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
                                 {student.crecheSection && (
-                                    <p><span className="text-slate-500">Section : </span>{student.crecheSection}</p>
+                                    <p><span className="text-slate-500">{tr("Section :")}{' '}</span>{student.crecheSection}</p>
                                 )}
                                 {student.massarNumber && (
-                                    <p><span className="text-slate-500">Massar : </span>{student.massarNumber}</p>
+                                    <p><span className="text-slate-500">{tr("Massar :")}{' '}</span>{student.massarNumber}</p>
                                 )}
                                 {student.healthNotes && (
-                                    <p><span className="text-slate-500">Santé : </span>{student.healthNotes}</p>
+                                    <p><span className="text-slate-500">{tr("Santé :")}{' '}</span>{student.healthNotes}</p>
                                 )}
                                 {student.authorizedPickup && student.authorizedPickup.length > 0 && (
                                     <div>
-                                        <span className="text-slate-500">Personnes autorisées : </span>
+                                        <span className="text-slate-500">{tr("Personnes autorisées :")}{' '}</span>
                                         <ul className="mt-1 list-disc list-inside">
                                             {student.authorizedPickup.map((p, i) => (
                                                 <li key={i}>{p.name} — {p.phone} ({p.relation})</li>

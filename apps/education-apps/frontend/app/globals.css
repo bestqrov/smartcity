@@ -103,3 +103,18 @@ html[dir='rtl'] input[type='password'] {
   direction: ltr;
   text-align: right;
 }
+
+/* Direction icons point the other way in RTL (back/next, previous/next week...). `scale` composes with the
+   Tailwind transform utilities already on the icon instead of replacing them. */
+html[dir='rtl'] .lucide-chevron-left,
+html[dir='rtl'] .lucide-chevron-right,
+html[dir='rtl'] .lucide-chevrons-left,
+html[dir='rtl'] .lucide-chevrons-right,
+html[dir='rtl'] .lucide-arrow-left,
+html[dir='rtl'] .lucide-arrow-right,
+html[dir='rtl'] .lucide-arrow-up-right,
+html[dir='rtl'] .lucide-arrow-down-left,
+html[dir='rtl'] .lucide-log-out,
+html[dir='rtl'] .lucide-log-in {
+  scale: -1 1;
+}

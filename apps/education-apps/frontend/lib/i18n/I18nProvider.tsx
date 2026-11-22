@@ -7,17 +7,23 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { AR } from './ar';
 
 export type AppLang = 'fr' | 'ar';
-export type TrParams = Record<string, string | number>;
+export type TrParams = Record<string, string | number | null | undefined>;
 
 const STORAGE_KEY = 'app-lang';
 // The landing page's choice is the fallback, so a visitor who picked Arabic there lands in Arabic.
 const LANDING_KEY = 'landing-lang';
 
 const interpolate = (text: string, params?: TrParams) =>
-    params ? text.replace(/\{(\w+)\}/g, (match, key) => (key in params ? String(params[key]) : match)) : text;
+    params ? text.replace(/\{(\w+)\}/g, (match, key) => (key in params ? String(params[key] ?? '') : match)) : text;
 
 export const translate = (lang: AppLang, text: string, params?: TrParams): string =>
     interpolate(lang === 'ar' ? AR[text] ?? text : text, params);
+
+// Current language for plain helpers (date / money formatting) that are not React components.
+// Set by the provider while it renders, so it is up to date before any child formats a value.
+let currentLang: AppLang = 'fr';
+export const appLang = (): AppLang => currentLang;
+export const appLocale = (): string => (currentLang === 'ar' ? 'ar-MA-u-nu-latn' : 'fr-FR');
 
 const read = (key: string) => {
     try {
@@ -69,13 +75,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
+    currentLang = lang;
     const value = useMemo<I18nValue>(
         () => ({
             lang,
             dir: lang === 'ar' ? 'rtl' : 'ltr',
             setLang,
             tr: (text, params) => translate(lang, text, params),
-            locale: lang === 'ar' ? 'ar-MA-u-nu-latn' : 'fr-FR',
+            locale: appLocale(),
         }),
         [lang, setLang]
     );

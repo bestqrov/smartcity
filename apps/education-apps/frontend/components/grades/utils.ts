@@ -1,5 +1,6 @@
 import type { EvaluationWithGrades, GradeStudent } from '@/lib/services/grades';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 /** "12,5" → 12.5; "" → null; anything else → NaN. */
 export const parseScore = (raw: string): number | null => {
     const t = raw.trim().replace(',', '.');
@@ -33,5 +34,5 @@ export const todayIso = () => {
 
 export const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(appLocale(), { day: '2-digit', month: 'short', year: 'numeric' });
 };

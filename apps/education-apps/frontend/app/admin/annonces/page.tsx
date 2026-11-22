@@ -5,6 +5,7 @@ import { Megaphone, Trash2, Plus } from 'lucide-react';
 import { announcementsService } from '@/lib/services/announcements';
 import type { Announcement } from '@/types';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 export default function AnnoncesPage() {
     const [items, setItems] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
@@ -103,7 +104,7 @@ export default function AnnoncesPage() {
                                 <div>
                                     <p className="font-semibold text-gray-800">{a.title}</p>
                                     <p className="text-sm text-gray-500 mt-1 whitespace-pre-wrap">{a.body}</p>
-                                    <p className="text-xs text-gray-400 mt-2">{new Date(a.createdAt).toLocaleDateString('fr-FR')}</p>
+                                    <p className="text-xs text-gray-400 mt-2">{new Date(a.createdAt).toLocaleDateString(appLocale())}</p>
                                 </div>
                                 <button
                                     onClick={() => handleDelete(a.id)}

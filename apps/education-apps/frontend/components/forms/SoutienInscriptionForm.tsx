@@ -22,12 +22,14 @@ import {
     CheckCircle
 } from 'lucide-react';
 
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 interface SoutienInscriptionFormProps {
     onSuccess?: () => void;
     onSuccessRedirect?: string;
 }
 
 export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }: SoutienInscriptionFormProps) {
+    const { tr } = useI18n();
     const router = useRouter();
     const { user } = useAuthStore();
     const { profile } = useSchoolProfile();
@@ -185,7 +187,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
         const printWindow = window.open('', '_blank', 'width=800,height=600');
         if (!printWindow) return;
 
-        const currentDate = new Date().toLocaleDateString('fr-FR');
+        const currentDate = new Date().toLocaleDateString(appLocale());
         const receiptNo = `RCPT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
 
         printWindow.document.write(`
@@ -303,18 +305,18 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                 const message = err.response.data?.message || err.response.data?.error;
 
                 if (status === 401) {
-                    setError('Session expired. Please login again.');
+                    setError(tr("Session expired. Please login again."));
                 } else if (status === 403) {
-                    setError('You do not have permission to create students.');
+                    setError(tr("You do not have permission to create students."));
                 } else if (status === 400) {
-                    setError(message || 'Invalid data. Please check all fields.');
+                    setError(message || tr('Invalid data. Please check all fields.'));
                 } else {
-                    setError(message || `Server error (${status}). Please try again.`);
+                    setError(message || tr('Server error ({status}). Please try again.', { status }));
                 }
             } else if (err.request) {
-                setError('Cannot connect to server. Please check if the backend is running.');
+                setError(tr("Cannot connect to server. Please check if the backend is running."));
             } else {
-                setError(err.message || 'An unexpected error occurred');
+                setError(err.message || tr('An unexpected error occurred'));
             }
         } finally {
             setLoading(false);
@@ -343,19 +345,17 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                         <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-8 shadow-xl rounded-2xl border border-green-100">
                             <div className="text-center mb-8 space-y-2 border-b-2 border-green-600 pb-6">
                                 <div className="flex justify-between text-sm font-bold text-gray-700">
-                                    <span>Le : {new Date().toLocaleDateString()}</span>
-                                    <span>ROYAUME DU MAROC</span>
+                                    <span>{tr("Le :")}{' '}{new Date().toLocaleDateString()}</span>
+                                    <span>{tr("ROYAUME DU MAROC")}</span>
                                 </div>
-                                <h2 className="font-bold text-lg text-gray-800">MINISTERE D'EDUCATION NATIONALE</h2>
-                                <h1 className="font-bold text-3xl tracking-wider text-green-700">{profile?.schoolName || 'ArwaEduc'}</h1>
-                                <div className="mt-4 inline-block border-2 border-green-600 px-6 py-3 font-bold text-lg bg-green-50 rounded-lg">
-                                    Fiche de renseignements individuelle
-                                </div>
+                                <h2 className="font-bold text-lg text-gray-800">{tr("MINISTERE D'EDUCATION NATIONALE")}</h2>
+                                <h1 className="font-bold text-3xl tracking-wider text-green-700">{profile?.schoolName || tr("ArwaEduc")}</h1>
+                                <div className="mt-4 inline-block border-2 border-green-600 px-6 py-3 font-bold text-lg bg-green-50 rounded-lg">{tr("Fiche de renseignements individuelle")}</div>
                             </div>
 
                             {error && (
                                 <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 print:hidden border border-red-200">
-                                    {error}
+                                    {tr(error)}
                                 </div>
                             )}
 
@@ -364,42 +364,42 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     <div className="bg-blue-100 p-2 rounded-lg">
                                         <User className="text-blue-600" size={24} />
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-800">Informations Personnelles</h3>
+                                    <h3 className="text-xl font-bold text-gray-800">{tr("Informations Personnelles")}</h3>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <Input
-                                        label="PRENOM *"
+                                        label={tr("PRENOM *")}
                                         name="surname"
                                         value={formData.surname}
                                         onChange={handleChange}
                                         required
-                                        placeholder="Prénom de l'étudiant"
+                                        placeholder={tr("Prénom de l'étudiant")}
                                     />
                                     <Input
-                                        label="NOM *"
+                                        label={tr("NOM *")}
                                         name="name"
                                         value={formData.name}
                                         onChange={handleChange}
                                         required
-                                        placeholder="Nom de famille"
+                                        placeholder={tr("Nom de famille")}
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <Input
-                                        label="Date de naissance"
+                                        label={tr("Date de naissance")}
                                         name="birthDate"
                                         type="date"
                                         value={formData.birthDate}
                                         onChange={handleChange}
                                     />
                                     <Input
-                                        label="Lieu de naissance"
+                                        label={tr("Lieu de naissance")}
                                         name="birthPlace"
                                         value={formData.birthPlace}
                                         onChange={handleChange}
-                                        placeholder="Ville de naissance"
+                                        placeholder={tr("Ville de naissance")}
                                     />
                                 </div>
 
@@ -407,22 +407,20 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     <div className="bg-purple-100 p-2 rounded-lg">
                                         <Users className="text-purple-600" size={24} />
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-800">Parents</h3>
+                                    <h3 className="text-xl font-bold text-gray-800">{tr("Parents")}</h3>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <Input
-                                        label="Nom du Parent (Tuteur) *"
+                                        label={tr("Nom du Parent (Tuteur) *")}
                                         name="parentName"
                                         value={formData.parentName}
                                         onChange={handleChange}
                                         required
-                                        placeholder="Nom Complet"
+                                        placeholder={tr("Nom Complet")}
                                     />
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Lien de parenté *
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Lien de parenté *")}</label>
                                         <select
                                             name="parentRelation"
                                             value={formData.parentRelation}
@@ -430,17 +428,17 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                             required
                                             className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-colors"
                                         >
-                                            <option value="">Sélectionner...</option>
-                                            <option value="PÈRE">Père</option>
-                                            <option value="MÈRE">Mère</option>
-                                            <option value="TUTEUR">Tuteur / Autre</option>
+                                            <option value="">{tr("Sélectionner...")}</option>
+                                            <option value="PÈRE">{tr("Père")}</option>
+                                            <option value="MÈRE">{tr("Mère")}</option>
+                                            <option value="TUTEUR">{tr("Tuteur / Autre")}</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
                                     <Input
-                                        label="Téléphone Parent *"
+                                        label={tr("Téléphone Parent *")}
                                         name="parentPhone"
                                         value={formData.parentPhone}
                                         onChange={handleChange}
@@ -448,20 +446,20 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                         placeholder="06XXXXXXXX"
                                     />
                                     <Input
-                                        label="Fille ou fils de"
+                                        label={tr("Fille ou fils de")}
                                         name="fatherName"
                                         value={formData.fatherName}
                                         onChange={handleChange}
-                                        placeholder="Nom du père"
+                                        placeholder={tr("Nom du père")}
                                     />
                                 </div>
 
                                 <Input
-                                    label="Et de"
+                                    label={tr("Et de")}
                                     name="motherName"
                                     value={formData.motherName}
                                     onChange={handleChange}
-                                    placeholder="Nom de la mère"
+                                    placeholder={tr("Nom de la mère")}
                                     className="mt-4"
                                 />
 
@@ -469,27 +467,27 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     <div className="bg-orange-100 p-2 rounded-lg">
                                         <MapPin className="text-orange-600" size={24} />
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-800">Coordonnées</h3>
+                                    <h3 className="text-xl font-bold text-gray-800">{tr("Coordonnées")}</h3>
                                 </div>
 
                                 <Input
-                                    label="Numéro du CIN"
+                                    label={tr("Numéro du CIN")}
                                     name="cin"
                                     value={formData.cin}
                                     onChange={handleChange}
-                                    placeholder="Numéro de carte d'identité"
+                                    placeholder={tr("Numéro de carte d'identité")}
                                 />
 
                                 <Input
-                                    label="Adresse des parents"
+                                    label={tr("Adresse des parents")}
                                     name="address"
                                     value={formData.address}
                                     onChange={handleChange}
-                                    placeholder="Adresse complète"
+                                    placeholder={tr("Adresse complète")}
                                 />
 
                                 <Input
-                                    label="Numéro de téléphone (Mobile)"
+                                    label={tr("Numéro de téléphone (Mobile)")}
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
@@ -500,32 +498,30 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     <div className="bg-green-100 p-2 rounded-lg">
                                         <GraduationCap className="text-green-600" size={24} />
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-800">Scolarité</h3>
+                                    <h3 className="text-xl font-bold text-gray-800">{tr("Scolarité")}</h3>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Niveau scolaire
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">{tr("Niveau scolaire")}</label>
                                         <select
                                             name="schoolLevel"
                                             value={formData.schoolLevel}
                                             onChange={(e) => setFormData(prev => ({ ...prev, schoolLevel: e.target.value }))}
                                             className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-colors"
                                         >
-                                            <option value="">Sélectionner un niveau</option>
-                                            <option value="PRIMAIRE">Primaire</option>
-                                            <option value="COLLEGE">Collège</option>
-                                            <option value="LYCEE">Lycée</option>
+                                            <option value="">{tr("Sélectionner un niveau")}</option>
+                                            <option value="PRIMAIRE">{tr("Primaire")}</option>
+                                            <option value="COLLEGE">{tr("Collège")}</option>
+                                            <option value="LYCEE">{tr("Lycée")}</option>
                                         </select>
                                     </div>
                                     <Input
-                                        label="Nom de l'Ecole pour les étudiants"
+                                        label={tr("Nom de l'Ecole pour les étudiants")}
                                         name="currentSchool"
                                         value={formData.currentSchool}
                                         onChange={handleChange}
-                                        placeholder="Nom de l'établissement"
+                                        placeholder={tr("Nom de l'établissement")}
                                     />
                                 </div>
                             </div>
@@ -535,24 +531,22 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     <div className="bg-indigo-100 p-2 rounded-lg">
                                         <BookOpen className="text-indigo-600" size={24} />
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-800">Les Cours de Soutien</h3>
+                                    <h3 className="text-xl font-bold text-gray-800">{tr("Les Cours de Soutien")}</h3>
                                 </div>
 
                                 {!formData.schoolLevel ? (
                                     <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-8 text-center">
                                         <BookOpen className="mx-auto text-yellow-400 mb-3" size={48} />
-                                        <p className="text-yellow-700 font-medium">
-                                            Veuillez d'abord sélectionner le niveau scolaire pour activer la sélection des cours
-                                        </p>
+                                        <p className="text-yellow-700 font-medium">{tr("Veuillez d'abord sélectionner le niveau scolaire pour activer la sélection des cours")}</p>
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto rounded-lg border border-gray-200">
                                         <table className="w-full border-collapse">
                                             <thead>
                                                 <tr className="bg-gradient-to-r from-green-100 to-emerald-100">
-                                                    <th className="border border-gray-200 p-3 text-start font-bold text-gray-700">Matières</th>
-                                                    <th className="border border-gray-200 p-3 text-center font-bold text-gray-700">Sélection</th>
-                                                    <th className="border border-gray-200 p-3 text-center font-bold text-gray-700 w-40">Prix (DH)</th>
+                                                    <th className="border border-gray-200 p-3 text-start font-bold text-gray-700">{tr("Matières")}</th>
+                                                    <th className="border border-gray-200 p-3 text-center font-bold text-gray-700">{tr("Sélection")}</th>
+                                                    <th className="border border-gray-200 p-3 text-center font-bold text-gray-700 w-40">{tr("Prix (DH)")}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white">
@@ -567,13 +561,11 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                             {scientificSubjects.length > 0 && (
                                                                 <>
                                                                     <tr className="bg-blue-50">
-                                                                        <td className="border border-gray-200 p-3 font-bold text-blue-800" colSpan={3}>
-                                                                            📐 LES Matières scientifiques
-                                                                        </td>
+                                                                        <td className="border border-gray-200 p-3 font-bold text-blue-800" colSpan={3}>{tr("📐 LES Matières scientifiques")}</td>
                                                                     </tr>
                                                                     {scientificSubjects.map((subject) => (
                                                                         <tr key={subject.key} className="hover:bg-gray-50 transition-colors">
-                                                                            <td className="border border-gray-200 p-3 ps-8">- {subject.label}</td>
+                                                                            <td className="border border-gray-200 p-3 ps-8">- {tr(subject.label)}</td>
                                                                             <td className="border border-gray-200 p-3 text-center">
                                                                                 <input
                                                                                     type="checkbox"
@@ -601,13 +593,11 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                             {languageSubjects.length > 0 && (
                                                                 <>
                                                                     <tr className="bg-purple-50">
-                                                                        <td className="border border-gray-200 p-3 font-bold text-purple-800" colSpan={3}>
-                                                                            🌍 Les Langues
-                                                                        </td>
+                                                                        <td className="border border-gray-200 p-3 font-bold text-purple-800" colSpan={3}>{tr("🌍 Les Langues")}</td>
                                                                     </tr>
                                                                     {languageSubjects.map((subject) => (
                                                                         <tr key={subject.key} className="hover:bg-gray-50 transition-colors">
-                                                                            <td className="border border-gray-200 p-3 ps-8">- {subject.label}</td>
+                                                                            <td className="border border-gray-200 p-3 ps-8">- {tr(subject.label)}</td>
                                                                             <td className="border border-gray-200 p-3 text-center">
                                                                                 <input
                                                                                     type="checkbox"
@@ -635,13 +625,11 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                             {otherSubjects.length > 0 && (
                                                                 <>
                                                                     <tr className="bg-orange-50">
-                                                                        <td className="border border-gray-200 p-3 font-bold text-orange-800" colSpan={3}>
-                                                                            ✨ Autre
-                                                                        </td>
+                                                                        <td className="border border-gray-200 p-3 font-bold text-orange-800" colSpan={3}>{tr("✨ Autre")}</td>
                                                                     </tr>
                                                                     {otherSubjects.map((subject) => (
                                                                         <tr key={subject.key} className="hover:bg-gray-50 transition-colors">
-                                                                            <td className="border border-gray-200 p-3 ps-8">- {subject.label}</td>
+                                                                            <td className="border border-gray-200 p-3 ps-8">- {tr(subject.label)}</td>
                                                                             <td className="border border-gray-200 p-3 text-center">
                                                                                 <input
                                                                                     type="checkbox"
@@ -680,8 +668,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                     disabled={loading}
                                     className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
-                                    <Save size={20} /> Enregistrer l'inscription
-                                </Button>
+                                    <Save size={20} />{tr("Enregistrer l'inscription")}</Button>
                             </div>
                         </form>
                     </div>
@@ -692,14 +679,14 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                 <div className="bg-green-100 p-2 rounded-lg">
                                     <ShoppingCart className="text-green-600" size={24} />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-800">Récapitulatif</h3>
+                                <h3 className="text-xl font-bold text-gray-800">{tr("Récapitulatif")}</h3>
                             </div>
 
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
                                         <CreditCard className="text-blue-500" size={18} />
-                                        <span className="font-semibold text-gray-700">Frais d'inscription</span>
+                                        <span className="font-semibold text-gray-700">{tr("Frais d'inscription")}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -709,20 +696,20 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                         onChange={(e) => setInscriptionFee(Number(e.target.value))}
                                         className="w-32 px-3 py-2 border-2 border-green-200 rounded-lg text-end font-bold focus:border-green-500 focus:ring-2 focus:ring-green-200"
                                     />
-                                    <span className="font-bold text-gray-700">DH</span>
+                                    <span className="font-bold text-gray-700">{tr("DH")}</span>
                                 </div>
                             </div>
 
                             <div className="mb-6">
                                 <div className="flex items-center gap-2 mb-3">
                                     <Calculator className="text-purple-500" size={18} />
-                                    <span className="font-semibold text-gray-700">Matières sélectionnées</span>
+                                    <span className="font-semibold text-gray-700">{tr("Matières sélectionnées")}</span>
                                 </div>
 
                                 {selectedSubjects.length === 0 ? (
                                     <div className="text-center py-8 text-gray-400">
                                         <BookOpen size={48} className="mx-auto mb-2 opacity-30" />
-                                        <p className="text-sm">Aucune matière sélectionnée</p>
+                                        <p className="text-sm">{tr("Aucune matière sélectionnée")}</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -732,7 +719,7 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                                     <CheckCircle className="text-green-600" size={16} />
                                                     <span className="text-sm font-medium text-gray-700">{subject.name}</span>
                                                 </div>
-                                                <span className="font-bold text-green-700">{subject.price} DH</span>
+                                                <span className="font-bold text-green-700">{subject.price}{' '}{tr("DH")}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -741,25 +728,23 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
 
                             {selectedSubjects.length > 0 && (
                                 <div className="flex items-center justify-between py-3 border-t border-gray-200">
-                                    <span className="text-gray-600 font-medium">Sous-total matières:</span>
-                                    <span className="font-bold text-gray-800">{subjectsTotal} DH</span>
+                                    <span className="text-gray-600 font-medium">{tr("Sous-total matières:")}</span>
+                                    <span className="font-bold text-gray-800">{subjectsTotal}{' '}{tr("DH")}</span>
                                 </div>
                             )}
 
                             <div className="mt-6 pt-6 border-t-2 border-green-300">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xl font-bold text-gray-800">Total à payer:</span>
+                                    <span className="text-xl font-bold text-gray-800">{tr("Total à payer:")}</span>
                                     <div className="text-end">
                                         <div className="text-3xl font-bold text-green-600">{total}</div>
-                                        <div className="text-sm text-gray-500 font-semibold">DH</div>
+                                        <div className="text-sm text-gray-500 font-semibold">{tr("DH")}</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                <p className="text-xs text-blue-800 text-center">
-                                    💳 Le paiement sera effectué lors de la validation de l'inscription
-                                </p>
+                                <p className="text-xs text-blue-800 text-center">{tr("💳 Le paiement sera effectué lors de la validation de l'inscription")}</p>
                             </div>
                         </div>
                     </div>
@@ -772,16 +757,15 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
                                 <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                                     <CheckCircle className="text-green-600" size={32} />
                                 </div>
-                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Enregistré avec succès!</h2>
-                                <p className="text-gray-600">L'inscription a été enregistrée avec succès.</p>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">{tr("Enregistré avec succès!")}</h2>
+                                <p className="text-gray-600">{tr("L'inscription a été enregistrée avec succès.")}</p>
                             </div>
                             <div className="flex gap-3">
                                 <Button
                                     onClick={handleSuccessPrint}
                                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
                                 >
-                                    <Printer size={18} /> Imprimer
-                                </Button>
+                                    <Printer size={18} />{tr("Imprimer")}</Button>
                                 <Button
                                     onClick={handleSuccessOk}
                                     className="flex-1 bg-green-600 hover:bg-green-700 text-white"

@@ -22,11 +22,13 @@ import {
     Users2
 } from 'lucide-react';
 import { getStudents, deleteStudent } from '@/lib/services/students';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 import { groupsService } from '@/lib/services/groups'; // Adjust path if needed
 import AddStudentForm from '@/components/forms/AddStudentForm'; // Adjust path
 import StudentGroupModal from '@/components/StudentGroupModal'; // Adjust path
 
 export default function StudentsPage() {
+    const { tr } = useI18n();
     const [students, setStudents] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -58,7 +60,7 @@ export default function StudentsPage() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Êtes-vous sûr de vouloir supprimer cet élève ?')) {
+        if (confirm(tr("Êtes-vous sûr de vouloir supprimer cet élève ?"))) {
             try {
                 await deleteStudent(id);
                 fetchStudents();
@@ -105,14 +107,14 @@ export default function StudentsPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                         {isAddMode
-                            ? (editingStudent ? 'Modifier l\'Élève' : 'Nouvel Élève')
-                            : 'Gestion des Élèves'
+                            ? (editingStudent ? tr("Modifier l'Élève") : tr("Nouvel Élève"))
+                            : tr("Gestion des Élèves")
                         }
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">
                         {isAddMode
-                            ? 'Remplissez les informations ci-dessous'
-                            : 'Gérez les inscriptions et les dossiers scolaires'
+                            ? tr("Remplissez les informations ci-dessous")
+                            : tr("Gérez les inscriptions et les dossiers scolaires")
                         }
                     </p>
                 </div>
@@ -134,7 +136,7 @@ export default function StudentsPage() {
                             <Users size={20} />
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-slate-500">Total Élèves</p>
+                            <p className="text-xs font-medium text-slate-500">{tr("Total Élèves")}</p>
                             <p className="text-xl font-black text-slate-900 dark:text-white">{students.length}</p>
                         </div>
                     </div>
@@ -143,7 +145,7 @@ export default function StudentsPage() {
                             <Shield size={20} />
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-slate-500">Élèves Actifs</p>
+                            <p className="text-xs font-medium text-slate-500">{tr("Élèves Actifs")}</p>
                             <p className="text-xl font-black text-slate-900 dark:text-white">
                                 {students.filter(s => s.active).length}
                             </p>
@@ -154,7 +156,7 @@ export default function StudentsPage() {
                             <GraduationCap size={20} />
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-slate-500">Niveaux Gérés</p>
+                            <p className="text-xs font-medium text-slate-500">{tr("Niveaux Gérés")}</p>
                             <p className="text-xl font-black text-slate-900 dark:text-white">3</p>
                         </div>
                     </div>
@@ -173,7 +175,7 @@ export default function StudentsPage() {
                                 <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                 <input
                                     type="text"
-                                    placeholder="Rechercher par nom, email, téléphone..."
+                                    placeholder={tr("Rechercher par nom, email, téléphone...")}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full ps-10 pe-4 py-2 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-500 transition-all"
@@ -185,10 +187,10 @@ export default function StudentsPage() {
                                     onChange={(e) => setFilterLevel(e.target.value)}
                                     className="px-4 py-2 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
                                 >
-                                    <option value="ALL">Tous les niveaux</option>
-                                    <option value="PRIMAIRE">Primaire</option>
-                                    <option value="COLLEGE">Collège</option>
-                                    <option value="LYCEE">Lycée</option>
+                                    <option value="ALL">{tr("Tous les niveaux")}</option>
+                                    <option value="PRIMAIRE">{tr("Primaire")}</option>
+                                    <option value="COLLEGE">{tr("Collège")}</option>
+                                    <option value="LYCEE">{tr("Lycée")}</option>
                                 </select>
                                 <button
                                     onClick={() => setShowFilters(!showFilters)}
@@ -205,24 +207,20 @@ export default function StudentsPage() {
                                 <thead className="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 font-bold text-xs uppercase tracking-wider">
                                     <tr>
                                         <th className="px-4 py-3 flex items-center gap-2">
-                                            <UserIcon size={14} /> Étudiant
+                                            <UserIcon size={14} />{tr("Étudiant")}</th>
+                                        <th className="px-4 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <GraduationCap size={14} />{tr("Niveau")}</div>
                                         </th>
                                         <th className="px-4 py-3">
                                             <div className="flex items-center gap-2">
-                                                <GraduationCap size={14} /> Niveau
-                                            </div>
+                                                <Users size={14} />{tr("Tuteur & Contact")}</div>
                                         </th>
                                         <th className="px-4 py-3">
                                             <div className="flex items-center gap-2">
-                                                <Users size={14} /> Tuteur & Contact
-                                            </div>
+                                                <Shield size={14} />{tr("Statut")}</div>
                                         </th>
-                                        <th className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Shield size={14} /> Statut
-                                            </div>
-                                        </th>
-                                        <th className="px-4 py-3 text-end">Actions</th>
+                                        <th className="px-4 py-3 text-end">{tr("Actions")}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -230,9 +228,7 @@ export default function StudentsPage() {
                                         <tr>
                                             <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
                                                 <div className="flex justify-center items-center gap-3">
-                                                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                                    Chargement des données...
-                                                </div>
+                                                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>{tr("Chargement des données...")}</div>
                                             </td>
                                         </tr>
                                     ) : filteredStudents.length === 0 ? (
@@ -241,8 +237,8 @@ export default function StudentsPage() {
                                                 <div className="mx-auto w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
                                                     <Search size={32} className="opacity-50" />
                                                 </div>
-                                                <p className="font-medium">Aucun élève trouvé</p>
-                                                <p className="text-sm mt-1">Essayez de modifier vos filtres de recherche</p>
+                                                <p className="font-medium">{tr("Aucun élève trouvé")}</p>
+                                                <p className="text-sm mt-1">{tr("Essayez de modifier vos filtres de recherche")}</p>
                                             </td>
                                         </tr>
                                     ) : filteredStudents.map((student) => (
@@ -262,13 +258,13 @@ export default function StudentsPage() {
                                                                     {student.name} {student.surname}
                                                                 </Link>
                                                             ) : (
-                                                                <button onClick={() => handleEdit(student)} className="text-slate-400 font-normal italic hover:text-blue-500 transition-colors">Non renseigné</button>
+                                                                <button onClick={() => handleEdit(student)} className="text-slate-400 font-normal italic hover:text-blue-500 transition-colors">{tr("Non renseigné")}</button>
                                                             )}
                                                         </div>
                                                         <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
                                                             <Mail size={12} className="text-slate-400" />
                                                             {student.email || (
-                                                                <button onClick={() => handleEdit(student)} className="text-slate-300 dark:text-slate-600 italic hover:text-blue-500 transition-colors">Pas d'email</button>
+                                                                <button onClick={() => handleEdit(student)} className="text-slate-300 dark:text-slate-600 italic hover:text-blue-500 transition-colors">{tr("Pas d'email")}</button>
                                                             )}
                                                         </div>
                                                     </div>
@@ -282,25 +278,24 @@ export default function StudentsPage() {
                                                                     'bg-slate-50 text-slate-400 border-slate-100 italic'
                                                         }`}>
                                                         {student.schoolLevel || (
-                                                            <button onClick={() => handleEdit(student)} className="hover:text-blue-500 transition-colors">Non renseigné</button>
+                                                            <button onClick={() => handleEdit(student)} className="hover:text-blue-500 transition-colors">{tr("Non renseigné")}</button>
                                                         )}
                                                     </span>
                                                     {student.subjects && Object.keys(student.subjects).length > 0 && (
                                                         <span className="text-[10px] text-indigo-500 font-bold flex items-center gap-1 ms-1 mt-1">
                                                             <BookOpen size={10} />
-                                                            {Object.keys(student.subjects).length} Matière(s)
-                                                            <span className="text-slate-300 mx-1">|</span>
+                                                            {Object.keys(student.subjects).length}{tr("Matière(s)")}<span className="text-slate-300 mx-1">|</span>
                                                             {(() => {
                                                                 let total = 0;
                                                                 Object.values(student.subjects).forEach((val: any) => {
                                                                     if (typeof val === 'number') total += val;
                                                                 });
-                                                                return <span className="text-indigo-600 font-black">{total} MAD/m</span>;
+                                                                return <span className="text-indigo-600 font-black">{total}{' '}{tr("MAD/m")}</span>;
                                                             })()}
                                                         </span>
                                                     )}
                                                     {student.cin && (
-                                                        <span className="text-[10px] text-slate-400 font-medium ms-1">CIN: {student.cin}</span>
+                                                        <span className="text-[10px] text-slate-400 font-medium ms-1">{tr("CIN:")}{' '}{student.cin}</span>
                                                     )}
                                                 </div>
                                             </td>
@@ -314,7 +309,7 @@ export default function StudentsPage() {
                                                                 </Link>
                                                             ) : student.parentName
                                                         ) : (
-                                                            <button onClick={() => handleEdit(student)} className="text-slate-400 font-normal italic hover:text-blue-500 transition-colors">Non renseigné</button>
+                                                            <button onClick={() => handleEdit(student)} className="text-slate-400 font-normal italic hover:text-blue-500 transition-colors">{tr("Non renseigné")}</button>
                                                         )}
                                                     </span>
                                                     {student.parentRelation && (
@@ -326,7 +321,7 @@ export default function StudentsPage() {
                                                 <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
                                                     <Phone size={11} className="text-slate-400" />
                                                     {student.parentPhone || (
-                                                        <button onClick={() => handleEdit(student)} className="text-slate-300 dark:text-slate-600 italic hover:text-blue-500 transition-colors">Pas de téléphone</button>
+                                                        <button onClick={() => handleEdit(student)} className="text-slate-300 dark:text-slate-600 italic hover:text-blue-500 transition-colors">{tr("Pas de téléphone")}</button>
                                                     )}
                                                 </div>
                                             </td>
@@ -336,7 +331,7 @@ export default function StudentsPage() {
                                                     : 'bg-red-50 text-red-700 border border-red-100'
                                                     }`}>
                                                     <span className={`w-1.5 h-1.5 rounded-full ${student.active ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-                                                    {student.active ? 'Actif' : 'Inactif'}
+                                                    {student.active ? tr("Actif") : tr("Inactif")}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-end">
@@ -344,21 +339,21 @@ export default function StudentsPage() {
                                                     <button
                                                         onClick={() => handleOpenGroupModal(student)}
                                                         className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
-                                                        title="Assigner au groupe"
+                                                        title={tr("Assigner au groupe")}
                                                     >
                                                         <Users2 size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleEdit(student)}
                                                         className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all"
-                                                        title="Modifier"
+                                                        title={tr("Modifier")}
                                                     >
                                                         <Edit size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(student.id)}
                                                         className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                                        title="Supprimer"
+                                                        title={tr("Supprimer")}
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -379,18 +374,14 @@ export default function StudentsPage() {
                             <div className="mb-8 flex items-center justify-between">
                                 <div>
                                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                                        {editingStudent ? 'Modification du dossier' : 'Formulaire d\'inscription'}
+                                        {editingStudent ? tr("Modification du dossier") : tr("Formulaire d'inscription")}
                                     </h2>
-                                    <p className="text-sm text-slate-500">
-                                        Saisissez les informations personnelles et académiques
-                                    </p>
+                                    <p className="text-sm text-slate-500">{tr("Saisissez les informations personnelles et académiques")}</p>
                                 </div>
                                 <button
                                     onClick={handleCloseAddView}
                                     className="text-sm text-slate-500 hover:text-slate-900 underline underline-offset-4"
-                                >
-                                    Annuler et retour
-                                </button>
+                                >{tr("Annuler et retour")}</button>
                             </div>
 
                             <AddStudentForm

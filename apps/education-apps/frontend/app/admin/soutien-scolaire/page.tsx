@@ -14,7 +14,9 @@ import {
 } from 'lucide-react';
 import { getStudentAnalytics } from '@/lib/services/students';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function SoutienDashboard() {
+    const { tr } = useI18n();
     const router = useRouter();
     const [stats, setStats] = useState({
         totalStudents: 0,
@@ -56,40 +58,38 @@ export default function SoutienDashboard() {
         </div>
     );
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Chargement des données...</div>;
+    if (loading) return <div className="p-8 text-center text-gray-500">{tr("Chargement des données...")}</div>;
 
     return (
         <div className="p-0 lg:p-6 space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Etat de Soutien Scolaire</h1>
-                    <p className="text-gray-500 mt-1">Vue d'ensemble de l'activité</p>
+                    <h1 className="text-2xl font-bold text-gray-800">{tr("Etat de Soutien Scolaire")}</h1>
+                    <p className="text-gray-500 mt-1">{tr("Vue d'ensemble de l'activité")}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
-                        Exporter
-                    </button>
+                    <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">{tr("Exporter")}</button>
                 </div>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
-                    title="Total Étudiants"
+                    title={tr("Total Étudiants")}
                     value={stats.totalStudents}
                     icon={GraduationCap}
                     color="bg-blue-500"
                     trend={12}
                 />
                 <StatCard
-                    title="Inscriptions Totales"
+                    title={tr("Inscriptions Totales")}
                     value={stats.totalInscriptions}
                     icon={Users}
                     color="bg-purple-500"
                     trend={8}
                 />
                 <StatCard
-                    title="Total Profit"
+                    title={tr("Total Profit")}
                     value={`${Number(stats.totalRevenue).toFixed(2)} MAD`}
                     icon={DollarSign}
                     color="bg-green-500"
@@ -102,12 +102,12 @@ export default function SoutienDashboard() {
                 {/* Recent Inscriptions */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-bold text-gray-800">Inscriptions Récentes</h3>
-                        <button className="text-blue-600 text-sm font-medium hover:underline">Voir tout</button>
+                        <h3 className="text-lg font-bold text-gray-800">{tr("Inscriptions Récentes")}</h3>
+                        <button className="text-blue-600 text-sm font-medium hover:underline">{tr("Voir tout")}</button>
                     </div>
                     <div className="space-y-4">
                         {stats.recentInscriptions.length === 0 ? (
-                            <p className="text-gray-500 text-center py-4">Aucune inscription récente</p>
+                            <p className="text-gray-500 text-center py-4">{tr("Aucune inscription récente")}</p>
                         ) : (
                             stats.recentInscriptions.map((inscription: any) => (
                                 <div key={inscription.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
@@ -121,8 +121,8 @@ export default function SoutienDashboard() {
                                         </div>
                                     </div>
                                     <div className="text-end">
-                                        <p className="font-bold text-gray-800">{Number(inscription.amount).toFixed(2)} MAD</p>
-                                        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Payé</span>
+                                        <p className="font-bold text-gray-800">{Number(inscription.amount).toFixed(2)}{' '}{tr("MAD")}</p>
+                                        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">{tr("Payé")}</span>
                                     </div>
                                 </div>
                             ))
@@ -132,39 +132,39 @@ export default function SoutienDashboard() {
 
                 {/* Quick Actions or Charts Placeholder */}
                 <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-lg p-6 text-white">
-                    <h3 className="text-lg font-bold mb-4">Actions Rapides</h3>
+                    <h3 className="text-lg font-bold mb-4">{tr("Actions Rapides")}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button
                             onClick={() => router.push('/admin/inscriptions')}
                             className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                         >
                             <GraduationCap className="mb-3 text-blue-400 group-hover:scale-110 transition-transform" size={24} />
-                            <p className="font-medium">Nouvel Étudiant</p>
-                            <p className="text-sm text-gray-400 mt-1">Inscrire un élève</p>
+                            <p className="font-medium">{tr("Nouvel Étudiant")}</p>
+                            <p className="text-sm text-gray-400 mt-1">{tr("Inscrire un élève")}</p>
                         </button>
                         <button
                             onClick={() => router.push('/admin/students')}
                             className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                         >
                             <Users className="mb-3 text-purple-400 group-hover:scale-110 transition-transform" size={24} />
-                            <p className="font-medium">Liste Étudiants</p>
-                            <p className="text-sm text-gray-400 mt-1">Voir tous les élèves</p>
+                            <p className="font-medium">{tr("Liste Étudiants")}</p>
+                            <p className="text-sm text-gray-400 mt-1">{tr("Voir tous les élèves")}</p>
                         </button>
                         <button
                             onClick={() => router.push('/admin/groups')}
                             className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                         >
                             <Calendar className="mb-3 text-orange-400 group-hover:scale-110 transition-transform" size={24} />
-                            <p className="font-medium">Planning</p>
-                            <p className="text-sm text-gray-400 mt-1">Gérer les cours</p>
+                            <p className="font-medium">{tr("Planning")}</p>
+                            <p className="text-sm text-gray-400 mt-1">{tr("Gérer les cours")}</p>
                         </button>
                         <button
                             onClick={() => router.push('/admin/finance')}
                             className="p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-colors text-start group"
                         >
                             <TrendingUp className="mb-3 text-green-400 group-hover:scale-110 transition-transform" size={24} />
-                            <p className="font-medium">Rapports</p>
-                            <p className="text-sm text-gray-400 mt-1">Voir les statistiques</p>
+                            <p className="font-medium">{tr("Rapports")}</p>
+                            <p className="text-sm text-gray-400 mt-1">{tr("Voir les statistiques")}</p>
                         </button>
                     </div>
                 </div>

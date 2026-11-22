@@ -1,9 +1,10 @@
-// Shared helpers for the Vibrant school dashboards (admin / owner / secretary). French only.
+// Shared helpers for the Vibrant school dashboards (admin / owner / secretary), in the staff space's language.
 import { fmtMAD, fmtMADShort, fmtNumber } from '@/lib/agent/format';
+import { appLang, appLocale } from '@/lib/i18n/I18nProvider';
 
-export const mad = (v: number) => fmtMAD(v, 'fr');
-export const madShort = (v: number) => fmtMADShort(v, 'fr');
-export const num = (v: number) => fmtNumber(v, 'fr');
+export const mad = (v: number) => fmtMAD(v, appLang());
+export const madShort = (v: number) => fmtMADShort(v, appLang());
+export const num = (v: number) => fmtNumber(v, appLang());
 export const pct = (p: number) => `${p} %`;
 
 export interface MonthBucket {
@@ -19,8 +20,8 @@ export function lastMonths(count = 12, now = new Date()): MonthBucket[] {
         const start = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
         return {
             key: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`,
-            label: start.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', ''),
-            title: start.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+            label: start.toLocaleDateString(appLocale(), { month: 'short' }).replace('.', ''),
+            title: start.toLocaleDateString(appLocale(), { month: 'long', year: 'numeric' }),
             start,
         };
     });
@@ -55,7 +56,8 @@ export function topCategories(labels: string[], max = 6) {
     return rows;
 }
 
-export const greeting = (now = new Date()) => (now.getHours() < 18 ? 'Bonjour' : 'Bonsoir');
+export const greeting = (now = new Date()) =>
+    appLang() === 'ar' ? (now.getHours() < 12 ? 'صباح الخير' : 'مساء الخير') : now.getHours() < 18 ? 'Bonjour' : 'Bonsoir';
 
 export const todayLabel = (now = new Date()) =>
-    now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    now.toLocaleDateString(appLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });

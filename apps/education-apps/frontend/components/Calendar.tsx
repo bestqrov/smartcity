@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 export default function Calendar() {
+    const { tr } = useI18n();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [days, setDays] = useState<(number | null)[]>([]);
 
@@ -38,12 +40,15 @@ export default function Calendar() {
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
     };
 
-    const monthNames = [
-        'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-    ];
-
-    const weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    // Month and weekday names in the current language (Monday first; 2024-01-01 was a Monday).
+    const locale = appLocale();
+    const monthNames = Array.from({ length: 12 }, (_, m) => {
+        const name = new Date(2024, m, 1).toLocaleDateString(locale, { month: 'long' });
+        return name.charAt(0).toUpperCase() + name.slice(1);
+    });
+    const weekDays = Array.from({ length: 7 }, (_, d) =>
+        new Date(2024, 0, 1 + d).toLocaleDateString(locale, { weekday: locale.startsWith('ar') ? 'narrow' : 'short' }).replace('.', '')
+    );
 
     const isToday = (day: number) => {
         const today = new Date();
@@ -127,7 +132,7 @@ export default function Calendar() {
             <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-center gap-2 text-sm">
                     <div className="w-3 h-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-sm"></div>
-                    <span className="text-gray-600 font-medium">Aujourd'hui</span>
+                    <span className="text-gray-600 font-medium">{tr("Aujourd'hui")}</span>
                 </div>
             </div>
         </div>

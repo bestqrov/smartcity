@@ -6,6 +6,7 @@ import type { Homework, HomeworkClient } from '@/lib/services/homework';
 import { apiErrorMessage } from '@/lib/services/grades';
 import HomeworkForm from './HomeworkForm';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 interface Props {
     client: HomeworkClient;
     groupId: string;
@@ -15,7 +16,7 @@ interface Props {
     setHomework: (updater: (prev: Homework[]) => Homework[]) => void;
 }
 
-const fmt = (d: string) => new Date(d.slice(0, 10) + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+const fmt = (d: string) => new Date(d.slice(0, 10) + 'T12:00:00').toLocaleDateString(appLocale(), { weekday: 'short', day: 'numeric', month: 'short' });
 const todayKey = () => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

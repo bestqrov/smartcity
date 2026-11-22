@@ -16,6 +16,7 @@ import {
 import { triggerDashboardRefresh } from '@/lib/utils/dashboardRefresh';
 import { transactionsApi } from '@/lib/services/transactions';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 interface Transaction {
     id: string;
     type: 'INCOME' | 'EXPENSE';
@@ -209,7 +210,7 @@ export default function TransactionsPage() {
     });
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format(amount);
+        return new Intl.NumberFormat(appLocale(), { style: 'currency', currency: 'MAD' }).format(amount);
     };
 
     return (
@@ -343,7 +344,7 @@ export default function TransactionsPage() {
                                             {transaction.category}
                                         </td>
                                         <td className="py-4 px-6 text-gray-600">
-                                            {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                                            {new Date(transaction.date).toLocaleDateString(appLocale())}
                                         </td>
                                         <td className={`py-4 px-6 text-end font-bold ${transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
                                             }`}>

@@ -7,6 +7,7 @@ import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 interface Student {
     id: string;
     name: string;
@@ -265,7 +266,7 @@ export default function DocumentsPage() {
                                 <div className="p-4 sm:p-0">
                                     {/* Traditional Header */}
                                     <div className="text-center mb-8">
-                                        <p className="text-sm">Le: {new Date().toLocaleDateString('fr-FR')}</p>
+                                        <p className="text-sm">Le: {new Date().toLocaleDateString(appLocale())}</p>
                                         <h1 className="text-2xl font-bold mt-4">ROYAUME DU MAROC</h1>
                                         <p className="text-lg font-semibold mt-2">MINISTERE D'EDUCATION NATIONALE</p>
                                         <h2 className="text-xl font-bold mt-8 mb-6 uppercase border-b-2 border-dashed border-gray-400 inline-block pb-1">
@@ -295,7 +296,7 @@ export default function DocumentsPage() {
                                                 <div>
                                                     <span className="font-semibold">Date de naissance:</span>
                                                     <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
-                                                        {selectedStudent.birthDate ? new Date(selectedStudent.birthDate).toLocaleDateString('fr-FR') : ''}
+                                                        {selectedStudent.birthDate ? new Date(selectedStudent.birthDate).toLocaleDateString(appLocale()) : ''}
                                                     </span>
                                                 </div>
                                                 <div>
@@ -450,7 +451,7 @@ export default function DocumentsPage() {
                                                 <tbody>
                                                     <tr>
                                                         <td className="border border-gray-400 p-2 text-center">
-                                                            {new Date(selectedStudent.inscriptions[0].date).toLocaleDateString('fr-FR')}
+                                                            {new Date(selectedStudent.inscriptions[0].date).toLocaleDateString(appLocale())}
                                                         </td>
                                                         <td className="border border-gray-400 p-2 text-center">
                                                             {selectedStudent.inscriptions[0].amount}
@@ -516,7 +517,7 @@ export default function DocumentsPage() {
                                             <tr>
                                                 <td className="border border-black p-4 text-center h-24 align-middle">
                                                     {selectedStudent.inscriptions.filter(i => i.type === activeFilter).length > 0
-                                                        ? new Date(selectedStudent.inscriptions.filter(i => i.type === activeFilter)[0].date).toLocaleDateString('fr-FR')
+                                                        ? new Date(selectedStudent.inscriptions.filter(i => i.type === activeFilter)[0].date).toLocaleDateString(appLocale())
                                                         : '....................'}
                                                 </td>
                                                 <td className="border border-black p-4 text-center h-24 align-middle">
@@ -567,7 +568,7 @@ export default function DocumentsPage() {
                                                         <td className="border border-black p-2 font-semibold">{month}</td>
                                                         <td className="border border-black p-2 text-center">
                                                             {payment ? (
-                                                                <span className="font-medium">{new Date(payment.date).toLocaleDateString('fr-FR')}</span>
+                                                                <span className="font-medium">{new Date(payment.date).toLocaleDateString(appLocale())}</span>
                                                             ) : (
                                                                 <div className="border-b border-dotted border-black h-6 mt-2"></div>
                                                             )}

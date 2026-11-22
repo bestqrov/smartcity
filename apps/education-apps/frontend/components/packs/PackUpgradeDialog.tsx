@@ -13,6 +13,7 @@ import { limitMessage, limitsLine, type StudentLimitDetails } from '@/lib/packs/
 import { apiErrorMessage, fetchPublicPacks, type PublicPack } from '@/lib/services/packs';
 import { getSchoolCapacity, upgradePack, type SchoolCapacity, type UpgradeResult } from '@/lib/services/subscription';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 interface Props {
     details: StudentLimitDetails;
     onDone: (upgraded: boolean) => void;
@@ -28,7 +29,7 @@ const room = (pack: PublicPack, kind: Kind = 'students') => {
 // Students: the smallest pack that fits (unchanged). Branches: the cheapest pack that fits.
 const cheapestFirst = (kind: Kind) => (a: PublicPack, b: PublicPack) =>
     kind === 'branches' ? a.monthlyPrice - b.monthlyPrice : room(a) - room(b);
-const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(appLocale(), { day: 'numeric', month: 'long', year: 'numeric' });
 const featureLabel = (key: string) => PACK_FEATURES.find((feature) => feature.key === key)?.label ?? key;
 
 export default function PackUpgradeDialog({ details, onDone }: Props) {

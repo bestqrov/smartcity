@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 // Utility to merge Tailwind classes
 export function cn(...inputs: ClassValue[]) {
     return clsx(inputs);
@@ -13,7 +14,7 @@ export function formatCurrency(amount: number): string {
 // Format date
 export function formatDate(date: string | Date): string {
     const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('fr-FR', {
+    return d.toLocaleDateString(appLocale(), {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -29,7 +30,7 @@ export function formatDateForInput(date: string | Date): string {
 // Format datetime
 export function formatDateTime(date: string | Date): string {
     const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('fr-FR', {
+    return d.toLocaleDateString(appLocale(), {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

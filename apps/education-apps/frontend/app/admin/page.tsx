@@ -26,9 +26,11 @@ import { ChartCard, DonutChart, SplineChart, VBarChart, VibrantKpi } from '@/com
 import { greeting, lastMonths, mad, madShort, num, pct, sumByMonth, todayLabel, topCategories } from '@/lib/dashboard/vibrant';
 import type { Payment, Student } from '@/types';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 const CRECHE_SECTIONS: Record<string, string> = { NOURRISSON: 'Nourrissons', MOYENNE: 'Moyenne section', GRANDE: 'Grande section' };
 
 export default function AdminDashboard() {
+    const { tr } = useI18n();
     const router = useRouter();
     const user = useAuthStore((state) => state.user);
     const { profile, loading: profileLoading, refreshProfile } = useSchoolProfile();
@@ -166,7 +168,7 @@ export default function AdminDashboard() {
     const isCreche = profile.institutionType === 'CRECHE';
     const studentWord = isCreche ? 'Enfants' : 'Élèves';
 
-    const months = useMemo(() => lastMonths(12), []);
+    const months = useMemo(() => lastMonths(12), [tr]); // month names follow the language
     const revenuePoints = useMemo(() => sumByMonth(payments, months, (p) => p.date || p.createdAt, (p) => p.amount), [payments, months]);
     const revenue12 = revenuePoints.reduce((s, p) => s + p.value, 0);
 
@@ -180,23 +182,23 @@ export default function AdminDashboard() {
             topCategories(
                 students
                     .filter((s) => s.active !== false)
-                    .map((s) => (isCreche && s.crecheSection ? CRECHE_SECTIONS[s.crecheSection] : s.schoolLevel?.trim()) || 'Non renseigné')
+                    .map((s) => (isCreche && s.crecheSection ? tr(CRECHE_SECTIONS[s.crecheSection]) : s.schoolLevel?.trim()) || tr('Non renseigné'))
             ),
-        [students, isCreche]
+        [students, isCreche, tr]
     );
 
     const withoutInscription = students.filter((s) => s.active !== false && (s.inscriptions?.length ?? 0) === 0).length;
     const todo = [
-        stats.unpaid > 0 && { key: 'unpaid', text: `Relancer les impayés (${mad(stats.unpaid)})`, href: '/admin/finance/paiements', color: '#D97706' },
-        withoutInscription > 0 && { key: 'noinsc', text: `${num(withoutInscription)} ${studentWord.toLowerCase()} actifs sans inscription`, href: '/admin/inscriptions', color: '#059669' },
-        stats.netCash < 0 && { key: 'net', text: `Net du mois négatif (${mad(stats.netCash)}) : vérifier les dépenses`, href: '/admin/finance/transactions', color: '#BE185D' },
+        stats.unpaid > 0 && { key: 'unpaid', text: tr('Relancer les impayés ({amount})', { amount: mad(stats.unpaid) }), href: '/admin/finance/paiements', color: '#D97706' },
+        withoutInscription > 0 && { key: 'noinsc', text: tr(isCreche ? '{n} enfants actifs sans inscription' : '{n} élèves actifs sans inscription', { n: num(withoutInscription) }), href: '/admin/inscriptions', color: '#059669' },
+        stats.netCash < 0 && { key: 'net', text: tr('Net du mois négatif ({amount}) : vérifier les dépenses', { amount: mad(stats.netCash) }), href: '/admin/finance/transactions', color: '#BE185D' },
     ].filter(Boolean) as { key: string; text: string; href: string; color: string }[];
 
     if (loading || profileLoading) return (
         <div className="flex items-center justify-center h-96">
             <div className="flex flex-col items-center gap-4">
                 <div className="w-12 h-12 border-4 border-vib-indigo border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 dark:text-gray-400 font-medium">Chargement du tableau de bord...</p>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">{tr("Chargement du tableau de bord...")}</p>
             </div>
         </div>
     );
@@ -210,14 +212,14 @@ export default function AdminDashboard() {
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div className="flex items-center gap-4 min-w-0">
                     {profile.logo && (
-                        <img src={profile.logo} alt="Logo" className="w-14 h-14 rounded-2xl object-contain bg-white shadow-sm shrink-0" />
+                        <img src={profile.logo} alt={tr("Logo")} className="w-14 h-14 rounded-2xl object-contain bg-white shadow-sm shrink-0" />
                     )}
                     <div className="min-w-0">
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white truncate">
-                            {greeting()}{firstName ? `, ${firstName}` : ''}
+                            {greeting()}{firstName ? `${tr(',')} ${firstName}` : ''}
                         </h1>
                         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 first-letter:uppercase">
-                            {todayLabel()} &bull; {profile.schoolName}
+                            {todayLabel()}{' '}•{' '}{profile.schoolName}
                         </p>
                     </div>
                 </div>
@@ -226,8 +228,8 @@ export default function AdminDashboard() {
                     <button
                         onClick={() => { loadDashboardData(false); refreshProfile(); }}
                         className="p-2.5 text-gray-500 hover:text-vib-indigo hover:bg-white dark:text-gray-400 dark:hover:bg-white/10 rounded-xl transition-all active:scale-95"
-                        title="Actualiser"
-                        aria-label="Actualiser"
+                        title={tr("Actualiser")}
+                        aria-label={tr("Actualiser")}
                     >
                         <RefreshCw size={20} />
                     </button>
@@ -235,9 +237,7 @@ export default function AdminDashboard() {
                         onClick={() => setIsInscriptionModalOpen(true)}
                         className="flex-1 lg:flex-none px-4 py-2.5 bg-vib-ink hover:bg-gray-800 text-white dark:bg-white dark:text-vib-ink dark:hover:bg-gray-200 rounded-2xl font-semibold shadow-sm transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
                     >
-                        <Plus size={18} />
-                        Nouvelle Inscription
-                    </button>
+                        <Plus size={18} />{tr("Nouvelle Inscription")}</button>
                 </div>
             </div>
 
@@ -245,33 +245,33 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <VibrantKpi
                     tone="indigo"
-                    label={`${studentWord} actifs`}
+                    label={tr(isCreche ? 'Enfants actifs' : 'Élèves actifs')}
                     value={num(stats.activeStudents)}
-                    sub={stats.studentsThisMonth > 0 ? `+${num(stats.studentsThisMonth)} ce mois` : `${num(stats.totalStudents)} au total`}
+                    sub={stats.studentsThisMonth > 0 ? tr("+{v0} ce mois", { v0: num(stats.studentsThisMonth) }) : tr("{v0} au total", { v0: num(stats.totalStudents) })}
                     icon={<Users size={18} />}
                     onClick={() => router.push('/admin/students')}
                 />
                 <VibrantKpi
                     tone="emerald"
-                    label="Encaissé ce mois"
+                    label={tr("Encaissé ce mois")}
                     value={mad(stats.totalReceivedMonth)}
-                    sub={`Net du mois : ${mad(stats.netCash)}`}
+                    sub={tr("Net du mois : {v0}", { v0: mad(stats.netCash) })}
                     icon={<Wallet size={18} />}
                     onClick={() => router.push('/admin/finance/paiements')}
                 />
                 <VibrantKpi
                     tone="amber"
-                    label="Impayés"
+                    label={tr("Impayés")}
                     value={mad(stats.unpaid)}
-                    sub={`CA théorique : ${mad(stats.revenueThisMonth)}`}
+                    sub={tr("CA théorique : {v0}", { v0: mad(stats.revenueThisMonth) })}
                     icon={<AlertCircle size={18} />}
                     onClick={() => router.push('/admin/finance/paiements')}
                 />
                 <VibrantKpi
                     tone="pink"
-                    label="Dépenses du mois"
+                    label={tr("Dépenses du mois")}
                     value={mad(stats.expenses)}
-                    sub="Inclut salaires et charges"
+                    sub={tr("Inclut salaires et charges")}
                     icon={<ArrowDownRight size={18} />}
                     onClick={() => router.push('/admin/finance/transactions')}
                 />
@@ -279,30 +279,30 @@ export default function AdminDashboard() {
 
             {/* Charts */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <ChartCard palette="vibrant" className="xl:col-span-2" title="Encaissements mensuels" hint={`12 derniers mois · ${mad(revenue12)}`}>
+                <ChartCard palette="vibrant" className="xl:col-span-2" title={tr("Encaissements mensuels")} hint={tr("12 derniers mois · {v0}", { v0: mad(revenue12) })}>
                     <SplineChart palette="vibrant" points={revenuePoints} rtl={false} format={mad} formatShort={madShort} />
                 </ChartCard>
-                <ChartCard palette="vibrant" title={isCreche ? 'Enfants par section' : 'Élèves par niveau'} hint={`${studentWord} actifs`}>
+                <ChartCard palette="vibrant" title={isCreche ? tr("Enfants par section") : tr("Élèves par niveau")} hint={tr(isCreche ? 'Enfants actifs' : 'Élèves actifs')}>
                     <DonutChart
                         palette="vibrant"
                         data={levelSlices}
-                        totalLabel={studentWord.toLowerCase()}
+                        totalLabel={tr(isCreche ? 'enfants' : 'élèves')}
                         formatValue={num}
                         formatPct={pct}
-                        empty="Aucun élève actif"
+                        empty={tr("Aucun élève actif")}
                     />
                 </ChartCard>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <ChartCard palette="vibrant" title="Inscriptions par mois" hint="6 derniers mois">
-                    <VBarChart palette="vibrant" data={inscriptionBars} format={num} empty="Aucune inscription sur la période" />
+                <ChartCard palette="vibrant" title={tr("Inscriptions par mois")} hint={tr("6 derniers mois")}>
+                    <VBarChart palette="vibrant" data={inscriptionBars} format={num} empty={tr("Aucune inscription sur la période")} />
                 </ChartCard>
 
                 <section className="vib-card p-5">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">À faire</h3>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">{tr("À faire")}</h3>
                     {todo.length === 0 ? (
-                        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Rien d&apos;urgent pour le moment.</p>
+                        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{tr("Rien d'urgent pour le moment.")}</p>
                     ) : (
                         <ul className="mt-3 space-y-2">
                             {todo.map((t) => (
@@ -313,7 +313,7 @@ export default function AdminDashboard() {
                                         className="w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 text-start text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5"
                                     >
                                         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} aria-hidden="true" />
-                                        <span className="flex-1">{t.text}</span>
+                                        <span className="flex-1">{tr(t.text)}</span>
                                         <ChevronRight size={16} className="shrink-0 text-gray-400" />
                                     </button>
                                 </li>
@@ -321,10 +321,10 @@ export default function AdminDashboard() {
                         </ul>
                     )}
 
-                    <h3 className="mt-6 text-sm font-bold text-gray-900 dark:text-white">Accès rapide</h3>
+                    <h3 className="mt-6 text-sm font-bold text-gray-900 dark:text-white">{tr("Accès rapide")}</h3>
                     <div className="mt-3 grid grid-cols-2 gap-2">
                         {[
-                            { label: studentWord, icon: Users, href: '/admin/students', color: '#059669' },
+                            { label: tr(studentWord), icon: Users, href: '/admin/students', color: '#059669' },
                             { label: 'Profs', icon: Briefcase, href: '/admin/teachers', color: '#7C3AED' },
                             { label: 'Paiements', icon: DollarSign, href: '/admin/finance/paiements', color: '#D97706' },
                             { label: 'Rapports', icon: TrendingUp, href: '/admin/finance/transactions', color: '#4F46E5' },
@@ -338,7 +338,7 @@ export default function AdminDashboard() {
                                 <span className="flex h-[26px] w-[26px] items-center justify-center rounded-lg text-white" style={{ backgroundColor: q.color }}>
                                     <q.icon size={15} />
                                 </span>
-                                {q.label}
+                                {tr(q.label)}
                             </button>
                         ))}
                     </div>
@@ -346,10 +346,9 @@ export default function AdminDashboard() {
 
                 <section className="vib-card p-5">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">Vie de l&apos;école</h3>
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white">{tr("Vie de l'école")}</h3>
                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                            <UserPlus size={14} /> {num(stats.totalEmployees)} membres du personnel
-                        </span>
+                            <UserPlus size={14} /> {num(stats.totalEmployees)}{tr("membres du personnel")}</span>
                     </div>
                     <div className="mt-2 scale-[0.85] origin-top -mb-10">
                         <Calendar />
@@ -365,7 +364,7 @@ export default function AdminDashboard() {
                             onClick={() => setIsInscriptionModalOpen(false)}
                             className="absolute top-4 end-4 text-gray-400 hover:text-gray-600 p-2 bg-gray-100 dark:bg-white/10 rounded-full transition-colors z-10"
                         >
-                            <span className="sr-only">Fermer</span>
+                            <span className="sr-only">{tr("Fermer")}</span>
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -375,7 +374,7 @@ export default function AdminDashboard() {
                                 onSuccess={() => {
                                     setIsInscriptionModalOpen(false);
                                     loadDashboardData();
-                                    alert('Inscription réussie !');
+                                    alert(tr("Inscription réussie !"));
                                 }}
                             />
                         </div>

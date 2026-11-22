@@ -11,6 +11,7 @@ import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institu
 import { formatOfferMoney } from '@/lib/services/partnerOffer';
 import { apiErrorMessage, assignSchoolPack, getAllPacks, type AdminPack } from '@/lib/services/packs';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 const OFFER_BADGE_LABELS = { MONTHLY: 'Mensuel', SEMIANNUAL: '6 mois', YEARLY: 'Annuel' } as const;
 
 export default function SuperAdminSchoolsPage() {
@@ -168,7 +169,7 @@ export default function SuperAdminSchoolsPage() {
         </>
     );
     const typeLabel = (school: SchoolListItem) => INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE];
-    const trialLabel = (school: SchoolListItem) => (school.trialEndsAt ? new Date(school.trialEndsAt).toLocaleDateString('fr-FR') : '—');
+    const trialLabel = (school: SchoolListItem) => (school.trialEndsAt ? new Date(school.trialEndsAt).toLocaleDateString(appLocale()) : '—');
 
     return (
         <div className="space-y-6">

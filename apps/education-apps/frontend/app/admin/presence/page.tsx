@@ -29,6 +29,7 @@ import {
 } from '@/lib/attendanceStatus';
 import type { AttendanceStatus, WeeklyAttendance, WeeklyAttendanceRecord } from '@/types';
 
+import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 // Same window groups can be scheduled in (see groups page / API timetable validation).
 const DAY_START_MIN = 8 * 60; // 08:00
 const DAY_END_MIN = 23 * 60 + 30; // 23:30
@@ -70,10 +71,10 @@ const addDays = (key: string, days: number) => {
 };
 
 const shortDay = (key: string) =>
-    fromDateKey(key).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+    fromDateKey(key).toLocaleDateString(appLocale(), { weekday: 'short', day: '2-digit', month: '2-digit' });
 
 const longDay = (key: string) =>
-    fromDateKey(key).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    fromDateKey(key).toLocaleDateString(appLocale(), { weekday: 'long', day: 'numeric', month: 'long' });
 
 const sessionStartDate = (s: Session) => {
     const d = fromDateKey(s.date);
@@ -107,6 +108,7 @@ const writeStorage = (key: string, value: string) => {
 };
 
 export default function PresencePage() {
+    const { tr } = useI18n();
     // Mounted under /admin and /secretary: keep links inside the current space.
     const isSecretary = (usePathname() || '').startsWith('/secretary');
     const base = isSecretary ? '/secretary' : '/admin';
@@ -150,7 +152,7 @@ export default function PresencePage() {
             setWeek(await getWeeklyAttendance(groupId, weekOf));
         } catch (error) {
             setWeek(null);
-            setLoadError(attendanceErrorMessage(error, 'Impossible de charger la présence de ce groupe.'));
+            setLoadError(tr(attendanceErrorMessage(error, 'Impossible de charger la présence de ce groupe.')));
         } finally {
             setLoadingWeek(false);
         }
@@ -216,44 +218,43 @@ export default function PresencePage() {
     const weekEnd = addDays(weekStart, 6);
     const todayKey = toDateKey(now);
     const isCurrentWeek = todayKey >= weekStart && todayKey <= weekEnd;
-    const weekTitle = `Semaine du ${fromDateKey(weekStart).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au ${fromDateKey(weekEnd).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    const weekTitle = tr('Semaine du {from} au {to}', {
+        from: fromDateKey(weekStart).toLocaleDateString(appLocale(), { day: 'numeric', month: 'long' }),
+        to: fromDateKey(weekEnd).toLocaleDateString(appLocale(), { day: 'numeric', month: 'long', year: 'numeric' }),
+    });
 
     return (
         <div className="space-y-5 animate-in fade-in duration-500">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between print:hidden">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Présence de la semaine</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        Les séances viennent de l&apos;emploi du temps du groupe. Cliquez sur une séance pour faire l&apos;appel.
-                    </p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{tr("Présence de la semaine")}</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">{tr("Les séances viennent de l'emploi du temps du groupe. Cliquez sur une séance pour faire l'appel.")}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <Link
                         href={`${base}/attendance/scan`}
                         className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
-                        <QrCode size={18} /> Scanner QR
-                    </Link>
+                        <QrCode size={18} />{tr("Scanner QR")}</Link>
                     <button
                         type="button"
                         onClick={() => window.print()}
                         disabled={!week}
                         className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50"
                     >
-                        <Printer size={18} /> Imprimer
-                    </button>
+                        <Printer size={18} />{tr("Imprimer")}</button>
                 </div>
             </div>
 
             <div className="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col gap-3 xl:flex-row xl:items-center print:hidden">
                 <select
-                    aria-label="Groupe"
+                    aria-label={tr("Groupe")}
                     className="w-full xl:max-w-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={groupId}
                     onChange={(e) => selectGroup(e.target.value)}
                     disabled={loadingGroups || groups.length === 0}
                 >
-                    {groups.length === 0 && <option value="">{loadingGroups ? 'Chargement…' : 'Aucun groupe'}</option>}
+                    {groups.length === 0 && <option value="">{loadingGroups ? tr("Chargement…") : tr("Aucun groupe")}</option>}
                     {groups.map((g) => (
                         <option key={g.id} value={g.id}>
                             {g.name}
@@ -261,10 +262,10 @@ export default function PresencePage() {
                     ))}
                 </select>
 
-                <div className="inline-flex self-start rounded-xl border border-slate-300 dark:border-slate-600 p-1" role="tablist" aria-label="Affichage">
+                <div className="inline-flex self-start rounded-xl border border-slate-300 dark:border-slate-600 p-1" role="tablist" aria-label={tr("Affichage")}>
                     {([
-                        ['timetable', 'Emploi du temps', LayoutGrid],
-                        ['recap', 'Récap par élève', Table2],
+                        ['timetable', tr('Emploi du temps'), LayoutGrid],
+                        ['recap', tr('Récap par élève'), Table2],
                     ] as const).map(([key, label, Icon]) => (
                         <button
                             key={key}
@@ -284,13 +285,13 @@ export default function PresencePage() {
                 </div>
 
                 <div className="flex items-center gap-2 xl:ms-auto">
-                    <IconButton label="Semaine précédente" onClick={() => setWeekOf(addDays(weekStart, -7))}>
+                    <IconButton label={tr("Semaine précédente")} onClick={() => setWeekOf(addDays(weekStart, -7))}>
                         <ChevronLeft size={18} />
                     </IconButton>
                     <span className="min-w-0 flex-1 text-center text-sm font-medium text-slate-700 dark:text-slate-200 xl:min-w-[18rem]">
                         {weekTitle}
                     </span>
-                    <IconButton label="Semaine suivante" onClick={() => setWeekOf(addDays(weekStart, 7))}>
+                    <IconButton label={tr("Semaine suivante")} onClick={() => setWeekOf(addDays(weekStart, 7))}>
                         <ChevronRight size={18} />
                     </IconButton>
                     {!isCurrentWeek && (
@@ -298,23 +299,20 @@ export default function PresencePage() {
                             type="button"
                             onClick={() => setWeekOf(toDateKey(new Date()))}
                             className="rounded-xl px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10"
-                        >
-                            Aujourd&apos;hui
-                        </button>
+                        >{tr("Aujourd'hui")}</button>
                     )}
                 </div>
             </div>
 
             {!loadingGroups && groups.length === 0 && (
-                <EmptyState icon={<CalendarDays size={40} />} title="Aucun groupe">
-                    Créez d&apos;abord un groupe avec son emploi du temps dans{' '}
-                    {isSecretary ? <>Groupes (par l&apos;administrateur)</> : <Link className="text-blue-600 underline" href="/admin/groups">Groupes</Link>}.
+                <EmptyState icon={<CalendarDays size={40} />} title={tr("Aucun groupe")}>{tr("Créez d'abord un groupe avec son emploi du temps dans")}{' '}
+                    {isSecretary ? <>{tr("Groupes (par l'administrateur)")}</> : <Link className="text-blue-600 underline" href="/admin/groups">{tr("Groupes")}</Link>}.
                 </EmptyState>
             )}
 
             {loadError && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-                    {loadError}
+                    {tr(loadError)}
                 </div>
             )}
 
@@ -324,10 +322,10 @@ export default function PresencePage() {
                         <h2 className="font-bold text-slate-900 dark:text-white">{week.group.name}</h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             {[
-                                week.group.teacherName && `Enseignant : ${week.group.teacherName}`,
-                                week.group.room && `Salle : ${week.group.room}`,
-                                `${week.students.length} élève(s)`,
-                                `${sessions.length} séance(s) cette semaine`,
+                                week.group.teacherName && tr('Enseignant : {name}', { name: week.group.teacherName }),
+                                week.group.room && tr('Salle : {room}', { room: week.group.room }),
+                                tr('{n} élève(s)', { n: week.students.length }),
+                                tr('{n} séance(s) cette semaine', { n: sessions.length }),
                             ]
                                 .filter(Boolean)
                                 .join(' · ')}
@@ -336,9 +334,8 @@ export default function PresencePage() {
                     </div>
 
                     {sessions.length === 0 ? (
-                        <EmptyState icon={<Clock3 size={40} />} title="Pas de séance cette semaine" bare>
-                            Ce groupe n&apos;a aucune séance dans son emploi du temps. Ajoutez ses jours et heures (entre 08:00 et 23:30) dans{' '}
-                            {isSecretary ? <>Groupes (par l&apos;administrateur)</> : <Link className="text-blue-600 underline" href="/admin/groups">Groupes</Link>}.
+                        <EmptyState icon={<Clock3 size={40} />} title={tr("Pas de séance cette semaine")} bare>{tr("Ce groupe n'a aucune séance dans son emploi du temps. Ajoutez ses jours et heures (entre 08:00 et 23:30) dans")}{' '}
+                            {isSecretary ? <>{tr("Groupes (par l'administrateur)")}</> : <Link className="text-blue-600 underline" href="/admin/groups">{tr("Groupes")}</Link>}.
                         </EmptyState>
                     ) : view === 'timetable' ? (
                         <Timetable
@@ -368,12 +365,11 @@ export default function PresencePage() {
                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-600 dark:text-slate-300">
                     {ATTENDANCE_STATUSES.map((s) => (
                         <span key={s} className="inline-flex items-center gap-1.5">
-                            <StatusChip status={s} /> {ATTENDANCE_META[s].label}
+                            <StatusChip status={s} /> {tr(ATTENDANCE_META[s].label)}
                         </span>
                     ))}
                     <span className="inline-flex items-center gap-1.5">
-                        <span className="h-4 w-6 rounded hatched border border-slate-200 dark:border-slate-700" /> Pas de séance pour ce groupe
-                    </span>
+                        <span className="h-4 w-6 rounded hatched border border-slate-200 dark:border-slate-700" />{tr("Pas de séance pour ce groupe")}</span>
                 </div>
             )}
 
@@ -433,6 +429,7 @@ function Timetable({
     sessionStats: (s: Session) => { present: number; marked: number; total: number };
     onOpen: (s: Session) => void;
 }) {
+    const { tr } = useI18n();
     const hours = Array.from({ length: Math.ceil(ROWS / 2) }, (_, i) => DAY_START_MIN + i * 60);
     const nowMin = now.getHours() * 60 + now.getMinutes();
     const height = ROWS * ROW_PX;
@@ -451,7 +448,7 @@ function Timetable({
                         >
                             {shortDay(day.date)}
                             <span className="block text-[11px] font-normal normal-case text-slate-500 dark:text-slate-400 truncate">
-                                {day.holiday ? `🏖 ${day.holiday}` : `${day.slots.length} séance(s)`}
+                                {day.holiday ? `🏖 ${day.holiday}` : tr("{length} séance(s)", { length: day.slots.length })}
                             </span>
                         </div>
                     ))}
@@ -558,6 +555,7 @@ function Recap({
     sessionStats: (s: Session) => { present: number; marked: number; total: number };
     onOpen: (s: Session) => void;
 }) {
+    const { tr } = useI18n();
     const days = week.days.filter((d) => d.slots.length > 0);
 
     const rate = (studentId: string) => {
@@ -574,7 +572,7 @@ function Recap({
     };
 
     if (week.students.length === 0) {
-        return <p className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">Aucun élève inscrit dans ce groupe.</p>;
+        return <p className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">{tr("Aucun élève inscrit dans ce groupe.")}</p>;
     }
 
     return (
@@ -582,9 +580,7 @@ function Recap({
             <table className="w-full border-collapse text-sm">
                 <thead>
                     <tr className="bg-slate-50 dark:bg-slate-900/60">
-                        <th rowSpan={2} className="sticky start-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-e border-slate-200 dark:border-slate-700 px-3 py-2 text-start font-semibold text-slate-700 dark:text-slate-200 min-w-[10rem]">
-                            Élève
-                        </th>
+                        <th rowSpan={2} className="sticky start-0 z-10 bg-slate-50 dark:bg-slate-900 border-b border-e border-slate-200 dark:border-slate-700 px-3 py-2 text-start font-semibold text-slate-700 dark:text-slate-200 min-w-[10rem]">{tr("Élève")}</th>
                         {days.map((day) => (
                             <th
                                 key={day.date}
@@ -595,9 +591,7 @@ function Recap({
                                 {day.holiday && <span className="block text-[11px] font-normal normal-case text-slate-500">{day.holiday}</span>}
                             </th>
                         ))}
-                        <th rowSpan={2} className="border-b border-slate-200 dark:border-slate-700 px-3 py-2 text-center font-semibold text-slate-700 dark:text-slate-200">
-                            Taux
-                        </th>
+                        <th rowSpan={2} className="border-b border-slate-200 dark:border-slate-700 px-3 py-2 text-center font-semibold text-slate-700 dark:text-slate-200">{tr("Taux")}</th>
                     </tr>
                     <tr className="bg-slate-50 dark:bg-slate-900/60">
                         {sessions.map((s) => (
@@ -606,7 +600,7 @@ function Recap({
                                     type="button"
                                     disabled={!!s.holiday}
                                     onClick={() => onOpen(s)}
-                                    title={`Faire l'appel ${s.startTime} - ${s.endTime}`}
+                                    title={tr("Faire l'appel {startTime} - {endTime}", { startTime: s.startTime, endTime: s.endTime })}
                                     className="rounded-md px-1.5 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-500/10 dark:hover:text-blue-300 disabled:hover:bg-transparent"
                                 >
                                     {s.startTime}
@@ -636,12 +630,12 @@ function Recap({
                                     }
                                     const r = recordsByKey.get(recordKey(student.id, s.date, s.startTime));
                                     const tip = r
-                                        ? [ATTENDANCE_META[r.status].label, r.scannedAt && `scanné à ${formatTime(r.scannedAt)}`, r.note && `« ${r.note} »`]
+                                        ? [tr(ATTENDANCE_META[r.status].label), r.scannedAt && tr('scanné à {time}', { time: formatTime(r.scannedAt) }), r.note && `« ${r.note} »`]
                                               .filter(Boolean)
                                               .join(' — ')
                                         : isUpcoming(s)
-                                          ? 'Séance à venir'
-                                          : 'Pas encore saisi';
+                                          ? tr('Séance à venir')
+                                          : tr('Pas encore saisi');
                                     return (
                                         <td key={sessionKey(s)} className="border-b border-e border-slate-200 dark:border-slate-700 p-1 text-center">
                                             <button
@@ -679,9 +673,7 @@ function Recap({
                 </tbody>
                 <tfoot>
                     <tr className="bg-slate-50 dark:bg-slate-900/60">
-                        <td className="sticky start-0 z-10 bg-slate-50 dark:bg-slate-900 border-e border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                            Présents
-                        </td>
+                        <td className="sticky start-0 z-10 bg-slate-50 dark:bg-slate-900 border-e border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300">{tr("Présents")}</td>
                         {sessions.map((s) => {
                             const { present, total } = sessionStats(s);
                             return (
@@ -715,6 +707,7 @@ function RollCallDialog({
     onClose: () => void;
     onSaved: (saved: WeeklyAttendanceRecord[]) => void;
 }) {
+    const { tr } = useI18n();
     const initial = useMemo(() => {
         const entries: Record<string, RollEntry> = {};
         week.students.forEach((st) => {
@@ -809,40 +802,36 @@ function RollCallDialog({
             <div className="flex max-h-[92vh] w-full max-w-2xl flex-col rounded-t-2xl sm:rounded-2xl bg-white dark:bg-slate-800 shadow-xl">
                 <div className="flex items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-700 px-5 py-4">
                     <div>
-                        <h2 id="roll-title" className="text-lg font-bold text-slate-900 dark:text-white">
-                            Appel · {week.group.name}
+                        <h2 id="roll-title" className="text-lg font-bold text-slate-900 dark:text-white">{tr("Appel ·")}{week.group.name}
                         </h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400 first-letter:uppercase">
                             {longDay(session.date)} · {session.startTime} – {session.endTime}
                         </p>
                     </div>
-                    <button type="button" onClick={onClose} disabled={saving} aria-label="Fermer" className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <button type="button" onClick={onClose} disabled={saving} aria-label={tr("Fermer")} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
                         <X size={20} />
                     </button>
                 </div>
 
                 {upcoming && (
-                    <p className="mx-5 mt-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 px-3 py-2 text-sm text-blue-800 dark:text-blue-300">
-                        Séance à venir : vous pouvez seulement saisir une absence justifiée à l&apos;avance.
-                    </p>
+                    <p className="mx-5 mt-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 px-3 py-2 text-sm text-blue-800 dark:text-blue-300">{tr("Séance à venir : vous pouvez seulement saisir une absence justifiée à l'avance.")}</p>
                 )}
 
                 {!upcoming && unmarked > 0 && (
                     <div className="mx-5 mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 px-3 py-2">
-                        <span className="text-sm text-slate-600 dark:text-slate-300">{unmarked} élève(s) pas encore saisi(s)</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-300">{unmarked}{' '}{tr("élève(s) pas encore saisi(s)")}</span>
                         <button
                             type="button"
                             onClick={markRestPresent}
                             className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
                         >
-                            <CheckCheck size={16} /> Les autres sont présents
-                        </button>
+                            <CheckCheck size={16} />{tr("Les autres sont présents")}</button>
                     </div>
                 )}
 
                 <ul className="flex-1 divide-y divide-slate-100 dark:divide-slate-700 overflow-y-auto px-5 py-2">
                     {week.students.length === 0 && (
-                        <li className="py-8 text-center text-sm text-slate-500">Aucun élève inscrit dans ce groupe.</li>
+                        <li className="py-8 text-center text-sm text-slate-500">{tr("Aucun élève inscrit dans ce groupe.")}</li>
                     )}
                     {week.students.map((st) => {
                         const entry = entries[st.id];
@@ -858,12 +847,12 @@ function RollCallDialog({
                                         {record && (
                                             <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                                                 {record.source === 'SCAN' ? <ScanLine size={12} /> : <PenLine size={12} />}
-                                                {SOURCE_LABEL[record.source]}
+                                                {tr(SOURCE_LABEL[record.source])}
                                                 {record.scannedAt && ` à ${formatTime(record.scannedAt)}`}
                                             </p>
                                         )}
                                     </div>
-                                    <div className="flex shrink-0 gap-1" role="radiogroup" aria-label={`Statut de ${st.name}`}>
+                                    <div className="flex shrink-0 gap-1" role="radiogroup" aria-label={tr("Statut de {name}", { name: st.name })}>
                                         {ATTENDANCE_STATUSES.map((s) => {
                                             const selected = entry.status === s;
                                             return (
@@ -872,8 +861,8 @@ function RollCallDialog({
                                                     type="button"
                                                     role="radio"
                                                     aria-checked={selected}
-                                                    aria-label={ATTENDANCE_META[s].label}
-                                                    title={ATTENDANCE_META[s].label}
+                                                    aria-label={tr(ATTENDANCE_META[s].label)}
+                                                    title={tr(ATTENDANCE_META[s].label)}
                                                     disabled={upcoming && s !== 'JUSTIFIED'}
                                                     onClick={() => setEntry(st.id, { status: s })}
                                                     className={`h-9 w-11 rounded-lg text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-30 ${
@@ -882,7 +871,7 @@ function RollCallDialog({
                                                             : 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600'
                                                     }`}
                                                 >
-                                                    {ATTENDANCE_META[s].short}
+                                                    {tr(ATTENDANCE_META[s].short)}
                                                 </button>
                                             );
                                         })}
@@ -894,8 +883,8 @@ function RollCallDialog({
                                         maxLength={300}
                                         value={entry.note}
                                         onChange={(e) => setEntry(st.id, { note: e.target.value })}
-                                        placeholder={entry.status === 'JUSTIFIED' ? 'Motif (ex. certificat médical)' : 'Remarque (optionnel)'}
-                                        aria-label={`Remarque pour ${st.name}`}
+                                        placeholder={entry.status === 'JUSTIFIED' ? tr("Motif (ex. certificat médical)") : tr("Remarque (optionnel)")}
+                                        aria-label={tr("Remarque pour {name}", { name: st.name })}
                                         className="mt-2 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-1.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 )}
@@ -906,7 +895,7 @@ function RollCallDialog({
 
                 <div className="flex flex-col-reverse gap-2 border-t border-slate-200 dark:border-slate-700 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <p className={`text-sm ${error ? 'font-medium text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}>
-                        {error || (changed.length > 0 ? `${changed.length} modification(s)` : 'Aucune modification')}
+                        {error || (changed.length > 0 ? tr("{length} modification(s)", { length: changed.length }) : tr("Aucune modification"))}
                     </p>
                     <div className="flex gap-2">
                         <button
@@ -914,16 +903,14 @@ function RollCallDialog({
                             onClick={onClose}
                             disabled={saving}
                             className="flex-1 sm:flex-none rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
-                        >
-                            Annuler
-                        </button>
+                        >{tr("Annuler")}</button>
                         <button
                             type="button"
                             onClick={save}
                             disabled={saving}
                             className="flex-1 sm:flex-none rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
                         >
-                            {saving ? 'Enregistrement…' : 'Enregistrer'}
+                            {saving ? tr("Enregistrement…") : tr("Enregistrer")}
                         </button>
                     </div>
                 </div>
@@ -935,9 +922,10 @@ function RollCallDialog({
 /* ---------------------------------------------------------------- small pieces */
 
 function StatusChip({ status }: { status: AttendanceStatus }) {
+    const { tr } = useI18n();
     return (
         <span className={`inline-flex h-5 w-5 items-center justify-center rounded font-bold ${ATTENDANCE_META[status].cell}`}>
-            {ATTENDANCE_META[status].short}
+            {tr(ATTENDANCE_META[status].short)}
         </span>
     );
 }

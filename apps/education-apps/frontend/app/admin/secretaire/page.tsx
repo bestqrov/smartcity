@@ -7,6 +7,7 @@ import Button from '@/components/Button';
 import Input from '@/components/Input';
 import { UserCog, Save, AlertCircle, CheckCircle, Lock, Mail, User as UserIcon } from 'lucide-react';
 
+import { appLocale } from '@/lib/i18n/I18nProvider';
 export default function SecretairePage() {
     const router = useRouter();
     const [secretary, setSecretary] = useState<Secretary | null>(null);
@@ -346,7 +347,7 @@ export default function SecretairePage() {
                     </div>
                     <div>
                         <span className="text-gray-500">Créé le:</span>
-                        <span className="ms-2 text-gray-800">{new Date(secretary.createdAt).toLocaleDateString('fr-FR')}</span>
+                        <span className="ms-2 text-gray-800">{new Date(secretary.createdAt).toLocaleDateString(appLocale())}</span>
                     </div>
                 </div>
             </div>

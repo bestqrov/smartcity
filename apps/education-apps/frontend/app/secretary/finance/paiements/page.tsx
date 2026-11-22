@@ -12,7 +12,9 @@ import {
 import { getTeachers } from '@/lib/services/teachers';
 import { getSecretaries } from '@/lib/services/users';
 
+import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function SecretaryPaiementsPage() {
+    const { tr } = useI18n();
     const [personnel, setPersonnel] = useState<any[]>([]);
     const [payments, setPayments] = useState<any[]>([]);
     const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
@@ -45,8 +47,8 @@ export default function SecretaryPaiementsPage() {
     return (
         <div className="p-0 lg:p-6 space-y-6">
             <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Suivi des Salaires</h1>
-                <p className="text-gray-500">Consultation des paiements du personnel pour le mois en cours</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{tr("Suivi des Salaires")}</h1>
+                <p className="text-gray-500">{tr("Consultation des paiements du personnel pour le mois en cours")}</p>
             </div>
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -60,10 +62,9 @@ export default function SecretaryPaiementsPage() {
                     />
                 </div>
                 <div className="sm:text-end">
-                    <div className="text-xs font-bold text-slate-400 uppercase">Masse Salariale du Mois</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase">{tr("Masse Salariale du Mois")}</div>
                     <div className="text-2xl font-bold text-gray-900">
-                        {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)} MAD
-                    </div>
+                        {monthlyPayments.reduce((sum, p) => sum + p.calculatedAmount, 0).toFixed(2)}{tr("MAD")}</div>
                 </div>
             </div>
 
@@ -71,15 +72,15 @@ export default function SecretaryPaiementsPage() {
                 <table className="w-full text-start">
                     <thead className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
                         <tr>
-                            <th className="px-6 py-4">Nom</th>
-                            <th className="px-6 py-4">Type</th>
-                            <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4 text-end">Montant</th>
+                            <th className="px-6 py-4">{tr("Nom")}</th>
+                            <th className="px-6 py-4">{tr("Type")}</th>
+                            <th className="px-6 py-4">{tr("Status")}</th>
+                            <th className="px-6 py-4 text-end">{tr("Montant")}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {monthlyPayments.length === 0 ? (
-                            <tr><td colSpan={4} className="p-10 text-center text-slate-400">Aucun paiement enregistré pour ce mois</td></tr>
+                            <tr><td colSpan={4} className="p-10 text-center text-slate-400">{tr("Aucun paiement enregistré pour ce mois")}</td></tr>
                         ) : monthlyPayments.map(p => (
                             <tr key={p.id} className="hover:bg-slate-50/50">
                                 <td className="px-6 py-4 font-bold text-gray-700">{p.personnelName}</td>
@@ -91,10 +92,10 @@ export default function SecretaryPaiementsPage() {
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold ${p.status === 'PAID' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
                                         {p.status === 'PAID' ? <Check size={12} /> : <X size={12} />}
-                                        {p.status === 'PAID' ? 'PAYÉ' : 'EN ATTENTE'}
+                                        {p.status === 'PAID' ? tr("PAYÉ") : tr("EN ATTENTE")}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-end font-bold text-gray-900">{p.calculatedAmount.toFixed(2)} MAD</td>
+                                <td className="px-6 py-4 text-end font-bold text-gray-900">{p.calculatedAmount.toFixed(2)}{' '}{tr("MAD")}</td>
                             </tr>
                         ))}
                     </tbody>
