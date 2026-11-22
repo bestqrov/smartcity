@@ -190,7 +190,7 @@ export default function DocumentsPage() {
                                 >
                                     <h3 className="font-semibold text-gray-800">{student.name} {student.surname}</h3>
                                     {student.cin && <p className="text-sm text-gray-600">{tr("CIN:")}{' '}{student.cin}</p>}
-                                    {student.schoolLevel && <p className="text-sm text-gray-600">{tr("Niveau:")}{' '}{student.schoolLevel}</p>}
+                                    {student.schoolLevel && <p className="text-sm text-gray-600">{tr("Niveau:")}{' '}{tr(student.schoolLevel)}</p>}
                                 </div>
                             ))}
                         </div>
@@ -355,7 +355,7 @@ export default function DocumentsPage() {
                                                 <div>
                                                     <span className="font-semibold">{tr("Niveau scolaire:")}</span>
                                                     <span className="ms-2 border-b border-dotted border-gray-400 inline-block min-w-[150px]">
-                                                        {selectedStudent.schoolLevel || ''}
+                                                        {tr(selectedStudent.schoolLevel)}
                                                     </span>
                                                 </div>
                                                 <div>
@@ -385,7 +385,7 @@ export default function DocumentsPage() {
                                                     </tr>
                                                     {['Maths', 'Physique et Chimique', 'S.V.T'].map((subject) => (
                                                         <tr key={subject}>
-                                                            <td className="border border-gray-400 p-2 ps-8">-{subject}</td>
+                                                            <td className="border border-gray-400 p-2 ps-8">-{tr(subject)}</td>
                                                             <td className="border border-gray-400 p-2 text-center">
                                                                 {checkSubject(selectedStudent, subject) ? '✓' : ''}
                                                             </td>
@@ -399,7 +399,7 @@ export default function DocumentsPage() {
                                                     </tr>
                                                     {['Français', 'Anglais', 'Allemande', 'Espagnole'].map((subject) => (
                                                         <tr key={subject}>
-                                                            <td className="border border-gray-400 p-2 ps-8">-{subject}</td>
+                                                            <td className="border border-gray-400 p-2 ps-8">-{tr(subject)}</td>
                                                             <td className="border border-gray-400 p-2 text-center">
                                                                 {checkSubject(selectedStudent, subject) ? '✓' : ''}
                                                             </td>
@@ -479,7 +479,7 @@ export default function DocumentsPage() {
                                         </div>
                                         {activeFilter === 'SOUTIEN' && (
                                             <div>
-                                                <span className="font-bold">{tr("Niveau:")}</span> {selectedStudent.schoolLevel}
+                                                <span className="font-bold">{tr("Niveau:")}</span> {tr(selectedStudent.schoolLevel)}
                                             </div>
                                         )}
                                     </div>

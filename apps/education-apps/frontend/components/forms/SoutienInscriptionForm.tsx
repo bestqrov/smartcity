@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
+import { printFont, printHtmlAttrs } from '@/lib/i18n/print';
 interface SoutienInscriptionFormProps {
     onSuccess?: () => void;
     onSuccessRedirect?: string;
@@ -192,16 +193,17 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
 
         printWindow.document.write(`
             <!DOCTYPE html>
-            <html>
+            <html ${printHtmlAttrs()}>
             <head>
-                <title>Reçu - ${lastRegisteredStudent.name} ${lastRegisteredStudent.surname}</title>
+                <meta charset="utf-8" />
+                <title>${tr('Reçu')} - ${lastRegisteredStudent.name} ${lastRegisteredStudent.surname}</title>
                 <style>
                     @page {
                         size: 80mm auto;
                         margin: 0;
                     }
                     body {
-                        font-family: monospace;
+                        font-family: ${printFont()};
                         font-size: 12px;
                         width: 80mm;
                         margin: 0;
@@ -221,44 +223,48 @@ export default function SoutienInscriptionForm({ onSuccess, onSuccessRedirect }:
             <body>
                 <div class="center header bold">${profile?.schoolName || 'ArwaEduc'}</div>
                 ${profile?.address ? `<div class="center small">${profile.address}</div>` : ''}
-                ${profile?.phone ? `<div class="center small">Tél: ${profile.phone}</div>` : ''}
+                ${profile?.phone ? `<div class="center small">${tr('Tél:')} <bdi dir="ltr">${profile.phone}</bdi></div>` : ''}
                 
-                <div class="center title bold">Reçu Soutien</div>
+                <div class="center title bold">${tr('Reçu Soutien')}</div>
                 <div class="dashed"></div>
                 
                 <div class="flex medium">
-                    <span>Date: ${currentDate}</span>
-                    <span>Reçu No: ${receiptNo}</span>
+                    <span>${tr('Date:')} ${currentDate}</span>
+                    <span>${tr('Reçu No:')} ${receiptNo}</span>
                 </div>
                 <div class="dashed"></div>
                 
                 <div class="medium">
-                    <div>Client: ${lastRegisteredStudent.name} ${lastRegisteredStudent.surname}</div>
-                    <div>Tél: ${lastRegisteredStudent.phone}</div>
-                    <div>Paiement: Cash</div>
+                    <div>${tr('Client:')} ${lastRegisteredStudent.name} ${lastRegisteredStudent.surname}</div>
+                    <div>${tr('Tél:')} <bdi dir="ltr">${lastRegisteredStudent.phone}</bdi></div>
+                    <div>${tr('Paiement:')} ${tr('Cash')}</div>
                 </div>
                 <div class="dashed"></div>
                 
                 <div class="flex bold medium">
-                    <span>Description</span>
-                    <span>Montant</span>
+                    <span>${tr('Description')}</span>
+                    <span>${tr('Montant')}</span>
                 </div>
                 
                 <div class="medium">
+                    ${lastRegisteredStudent.total - lastRegisteredStudent.subjectsTotal > 0 ? `<div class="flex">
+                        <span>${tr("Frais d'inscription")}</span>
+                        <span>${(lastRegisteredStudent.total - lastRegisteredStudent.subjectsTotal).toFixed(2)} ${tr('MAD')}</span>
+                    </div>` : ''}
                     <div class="flex">
-                        <span>May Tuition Fee</span>
-                        <span>${lastRegisteredStudent.subjectsTotal.toFixed(2)} MAD</span>
+                        <span>${tr('Cours de soutien')}</span>
+                        <span>${lastRegisteredStudent.subjectsTotal.toFixed(2)} ${tr('MAD')}</span>
                     </div>
                 </div>
                 <div class="dashed"></div>
                 
                 <div class="medium">
-                    <div class="flex"><span>Total:</span><span class="bold">${lastRegisteredStudent.total.toFixed(2)} MAD</span></div>
-                    <div class="flex"><span>Payé:</span><span class="bold">${lastRegisteredStudent.total.toFixed(2)} MAD</span></div>
-                    <div class="flex"><span>Reste:</span><span class="bold">0,00 MAD</span></div>
+                    <div class="flex"><span>${tr('Total:')}</span><span class="bold">${lastRegisteredStudent.total.toFixed(2)} ${tr('MAD')}</span></div>
+                    <div class="flex"><span>${tr('Payé:')}</span><span class="bold">${lastRegisteredStudent.total.toFixed(2)} ${tr('MAD')}</span></div>
+                    <div class="flex"><span>${tr('Reste:')}</span><span class="bold">0,00 ${tr('MAD')}</span></div>
                 </div>
                 
-                <div class="center medium mt-20">Merci pour votre visite!</div>
+                <div class="center medium mt-20">${tr('Merci pour votre visite!')}</div>
             </body>
             </html>
         `);

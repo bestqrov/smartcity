@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
+import { printFont, printHtmlAttrs } from '@/lib/i18n/print';
 interface Receipt {
     id: number;
     date: string;
@@ -274,18 +275,19 @@ export default function RecuPage() {
         const remaining = receipt.totalAmount - receipt.amountPaid;
         const isPaidInFull = remaining <= 0;
         const items = receipt.items.map(item =>
-            `<div class="flex"><span>${item.description}</span><span>${item.amount.toFixed(2)} MAD</span></div>`
+            `<div class="flex"><span>${tr(item.description)}</span><span>${item.amount.toFixed(2)} ${tr('MAD')}</span></div>`
         ).join('');
 
         printWindow.document.write(`
             <!DOCTYPE html>
-            <html>
+            <html ${printHtmlAttrs()}>
             <head>
-                <title>Reçu - ${receipt.receiptNumber}</title>
+                <meta charset="utf-8" />
+                <title>${tr('Reçu')} - ${receipt.receiptNumber}</title>
                 <style>
                     @page { size: 80mm auto; margin: 0; }
                     body {
-                        font-family: monospace;
+                        font-family: ${printFont()};
                         font-size: 12px;
                         width: 80mm;
                         margin: 0;
@@ -332,30 +334,30 @@ export default function RecuPage() {
                         <div style="min-width: 0;">
                             <div class="header bold">${schoolProfile.schoolName}</div>
                             <div class="small">${schoolProfile.address}</div>
-                            <div class="small">Tel: ${schoolProfile.phone}</div>
+                            <div class="small">${tr('Tel:')} <bdi dir="ltr">${schoolProfile.phone}</bdi></div>
                         </div>
                     </div>
-                    <span class="title-box">Reçu de<br/>${receipt.receiptType}</span>
+                    <span class="title-box">${tr('Reçu de')}<br/>${tr(receipt.receiptType)}</span>
                 </div>
                 <div class="accent-bar"></div>
 
                 <div class="medium">
-                    <div>Date: ${currentDate} ${currentTime}</div>
-                    <div class="bold">No: ${receipt.receiptNumber}</div>
+                    <div>${tr('Date:')} ${currentDate} ${currentTime}</div>
+                    <div class="bold">${tr('No:')} ${receipt.receiptNumber}</div>
                 </div>
                 <div class="dashed"></div>
 
                 <div class="medium">
-                    <div>Client: ${receipt.issuedTo}</div>
-                    <div>Tel: ${receipt.phoneNumber || 'N/A'}</div>
-                    <div>Paiement: ${receipt.paymentMethod}</div>
-                    ${receipt.paymentMethod === 'Check' && receipt.checkNumber ? `<div>Chèque No: ${receipt.checkNumber}</div>` : ''}
+                    <div>${tr('Client:')} ${receipt.issuedTo}</div>
+                    <div>${tr('Tel:')} <bdi dir="ltr">${receipt.phoneNumber || '—'}</bdi></div>
+                    <div>${tr('Paiement:')} ${tr(receipt.paymentMethod)}</div>
+                    ${receipt.paymentMethod === 'Check' && receipt.checkNumber ? `<div>${tr('Chèque No:')} ${receipt.checkNumber}</div>` : ''}
                 </div>
                 <div class="dashed"></div>
 
                 <div class="flex bold medium">
-                    <span>Description</span>
-                    <span>Montant</span>
+                    <span>${tr('Description')}</span>
+                    <span>${tr('Montant')}</span>
                 </div>
                 <div class="dashed"></div>
 
@@ -365,12 +367,12 @@ export default function RecuPage() {
                 <div class="dashed"></div>
 
                 <div class="medium totals-box">
-                    <div class="flex"><span>Total:</span><span class="bold">${receipt.totalAmount.toFixed(2)} MAD</span></div>
-                    <div class="flex"><span>Payé:</span><span class="bold">${receipt.amountPaid.toFixed(2)} MAD</span></div>
-                    <div class="flex remaining"><span class="bold">Reste:</span><span class="bold">${remaining.toFixed(2)} MAD</span></div>
+                    <div class="flex"><span>${tr('Total:')}</span><span class="bold">${receipt.totalAmount.toFixed(2)} ${tr('MAD')}</span></div>
+                    <div class="flex"><span>${tr('Payé:')}</span><span class="bold">${receipt.amountPaid.toFixed(2)} ${tr('MAD')}</span></div>
+                    <div class="flex remaining"><span class="bold">${tr('Reste:')}</span><span class="bold">${remaining.toFixed(2)} ${tr('MAD')}</span></div>
                 </div>
 
-                <div class="center medium mt-20">${schoolProfile.schoolName} vous remercie pour votre paiement!</div>
+                <div class="center medium mt-20">${schoolProfile.schoolName} ${tr('vous remercie pour votre paiement!')}</div>
             </body>
             </html>
         `);

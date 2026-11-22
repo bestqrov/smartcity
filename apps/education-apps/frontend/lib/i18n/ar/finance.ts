@@ -257,4 +257,11 @@ export const finance: Record<string, string> = {
     'Transport scolaire': 'النقل المدرسي',
     'Lignes, véhicules, abonnements et paiements mensuels': 'الخطوط والمركبات والاشتراكات والأداءات الشهرية',
     Abonnements: 'الاشتراكات',
+    // ---- printed receipts (new window)
+    Reçu: 'وصل',
+    'Reçu de': 'وصل',
+    Cash: 'نقداً',
+    Check: 'شيك',
+    'Merci pour votre confiance!': 'شكراً على ثقتكم!',
+    'Cours de soutien': 'حصص الدعم',
 };

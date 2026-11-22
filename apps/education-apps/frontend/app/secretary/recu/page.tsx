@@ -21,6 +21,7 @@ import {
 import Button from '@/components/Button';
 
 import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
+import { printFont, printHtmlAttrs } from '@/lib/i18n/print';
 interface Receipt {
     id: number;
     date: string;
@@ -150,25 +151,25 @@ export default function SecretaryRecuPage() {
         const currentDate = new Date(receipt.date).toLocaleDateString(appLocale());
         const currentTime = receipt.time || new Date().toLocaleTimeString(appLocale(), { hour: '2-digit', minute: '2-digit' });
         const items = receipt.items.map(item =>
-            `<div style="display: flex; justify-content: space-between;"><span>${item.description}</span><span>${item.amount.toFixed(2)} MAD</span></div>`
+            `<div style="display: flex; justify-content: space-between;"><span>${tr(item.description)}</span><span>${item.amount.toFixed(2)} ${tr('MAD')}</span></div>`
         ).join('');
 
         printWindow.document.write(`
-            <html>
-            <head><title>Reçu - ${receipt.receiptNumber}</title></head>
-            <body style="font-family: monospace; width: 80mm; padding: 10mm;">
+            <html ${printHtmlAttrs()}>
+            <head><meta charset="utf-8" /><title>${tr('Reçu')} - ${receipt.receiptNumber}</title></head>
+            <body style="font-family: ${printFont()}; width: 80mm; padding: 10mm;">
                 <div style="text-align: center;">
                     <h2 style="margin: 0;">${schoolProfile.schoolName}</h2>
                     <p style="font-size: 10px; margin: 4px 0;">${schoolProfile.address}</p>
-                    <p style="font-size: 10px; margin: 0;">Tel: ${schoolProfile.phone}</p>
+                    <p style="font-size: 10px; margin: 0;">${tr('Tel:')} <bdi dir="ltr">${schoolProfile.phone}</bdi></p>
                 </div>
                 <div style="text-align: center; border-top: 1px dashed #000; border-bottom: 1px dashed #000; margin: 10px 0; padding: 5px 0;">
-                    <strong>REÇU DE ${receipt.receiptType.toUpperCase()}</strong>
+                    <strong>${tr('Reçu de')} ${tr(receipt.receiptType)}</strong>
                 </div>
                 <div style="font-size: 11px;">
-                    <div style="display: flex; justify-content: space-between;"><span>Date: ${currentDate}</span><span>No: ${receipt.receiptNumber}</span></div>
-                    <div>Client: ${receipt.issuedTo}</div>
-                    <div>Paiement: ${receipt.paymentMethod}</div>
+                    <div style="display: flex; justify-content: space-between;"><span>${tr('Date:')} ${currentDate}</span><span>${tr('No:')} ${receipt.receiptNumber}</span></div>
+                    <div>${tr('Client:')} ${receipt.issuedTo}</div>
+                    <div>${tr('Paiement:')} ${tr(receipt.paymentMethod)}</div>
                 </div>
                 <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
                 <div style="font-size: 11px;">
@@ -176,11 +177,11 @@ export default function SecretaryRecuPage() {
                 </div>
                 <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
                 <div style="font-size: 11px; font-weight: bold;">
-                    <div style="display: flex; justify-content: space-between;"><span>Total:</span><span>${receipt.totalAmount.toFixed(2)} MAD</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>Payé:</span><span>${receipt.amountPaid.toFixed(2)} MAD</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>Reste:</span><span>${(receipt.totalAmount - receipt.amountPaid).toFixed(2)} MAD</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>${tr('Total:')}</span><span>${receipt.totalAmount.toFixed(2)} ${tr('MAD')}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>${tr('Payé:')}</span><span>${receipt.amountPaid.toFixed(2)} ${tr('MAD')}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>${tr('Reste:')}</span><span>${(receipt.totalAmount - receipt.amountPaid).toFixed(2)} ${tr('MAD')}</span></div>
                 </div>
-                <div style="text-align: center; font-size: 10px; margin-top: 20px;">Merci pour votre confiance!</div>
+                <div style="text-align: center; font-size: 10px; margin-top: 20px;">${tr('Merci pour votre confiance!')}</div>
             </body>
             </html>
         `);
