@@ -169,6 +169,9 @@ export default function SuperAdminSchoolsPage() {
         </>
     );
     const typeLabel = (school: SchoolListItem) => INSTITUTION_TYPE_LABELS[school.institutionType ?? DEFAULT_INSTITUTION_TYPE];
+    // Signup date and time, in the browser's time zone (e.g. "22/11/2026 14:35").
+    const signupLabel = (school: SchoolListItem) =>
+        new Date(school.createdAt).toLocaleString(appLocale(), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     const trialLabel = (school: SchoolListItem) => (school.trialEndsAt ? new Date(school.trialEndsAt).toLocaleDateString(appLocale()) : '—');
 
     return (
@@ -206,6 +209,9 @@ export default function SuperAdminSchoolsPage() {
                                 <div className="text-sm text-gray-600">
                                     {typeLabel(school)} · Fin essai : {trialLabel(school)}
                                 </div>
+                                <div className="text-sm text-gray-600">
+                                    Inscrite le <span className="tabular-nums">{signupLabel(school)}</span>
+                                </div>
                                 {packSelect(school, 'w-full min-h-10 px-3 py-2')}
                                 {agentSelect(school, 'w-full min-h-10 px-3 py-2')}
                                 <div className="flex flex-wrap gap-2">{actionButtons(school, 'flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold')}</div>
@@ -215,30 +221,32 @@ export default function SuperAdminSchoolsPage() {
                     <table className="hidden w-full text-start md:table">
                         <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
                             <tr>
-                                <th className="px-6 py-4">École</th>
-                                <th className="px-6 py-4">Email propriétaire</th>
-                                <th className="px-6 py-4">Statut</th>
-                                <th className="px-6 py-4">Fin essai</th>
-                                <th className="px-6 py-4">Type</th>
-                                <th className="px-6 py-4">Pack</th>
-                                <th className="px-6 py-4">Commercial</th>
-                                <th className="px-6 py-4">Action</th>
+                                <th className="px-4 py-3">École</th>
+                                <th className="px-4 py-3">Email propriétaire</th>
+                                <th className="px-4 py-3">Inscrite le</th>
+                                <th className="px-4 py-3">Statut</th>
+                                <th className="px-4 py-3">Fin essai</th>
+                                <th className="px-4 py-3">Type</th>
+                                <th className="px-4 py-3">Pack</th>
+                                <th className="px-4 py-3">Commercial</th>
+                                <th className="px-4 py-3">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {schools.map((school) => (
                                 <tr key={school.id} className="border-t border-gray-100">
-                                    <td className="px-6 py-4 font-semibold text-gray-800">
+                                    <td className="px-4 py-3 font-semibold text-gray-800">
                                         {school.name}
                                         {partnerBadge(school)}
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600">{school.ownerEmail}</td>
-                                    <td className="px-6 py-4">{statusBadge(school.status)}</td>
-                                    <td className="px-6 py-4 text-gray-600">{trialLabel(school)}</td>
-                                    <td className="px-6 py-4 text-gray-600">{typeLabel(school)}</td>
-                                    <td className="px-6 py-4">{packSelect(school, 'px-3 py-1.5')}</td>
-                                    <td className="px-6 py-4">{agentSelect(school, 'px-3 py-1.5')}</td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-3 text-gray-600">{school.ownerEmail}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap tabular-nums text-gray-600">{signupLabel(school)}</td>
+                                    <td className="px-4 py-3">{statusBadge(school.status)}</td>
+                                    <td className="px-4 py-3 text-gray-600">{trialLabel(school)}</td>
+                                    <td className="px-4 py-3 text-gray-600">{typeLabel(school)}</td>
+                                    <td className="px-4 py-3">{packSelect(school, 'px-3 py-1.5')}</td>
+                                    <td className="px-4 py-3">{agentSelect(school, 'px-3 py-1.5')}</td>
+                                    <td className="px-4 py-3">
                                         <div className="flex items-center gap-2">{actionButtons(school, 'flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm')}</div>
                                     </td>
                                 </tr>
