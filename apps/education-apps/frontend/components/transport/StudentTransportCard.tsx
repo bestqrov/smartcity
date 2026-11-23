@@ -40,7 +40,7 @@ export default function StudentTransportCard({ studentId }: { studentId: string 
                     </p>
                     <p>
                         <span className="text-slate-500">{tr("Tarif :")}{' '}</span>
-                        {sub.monthlyPrice}{tr("MAD / mois")}</p>
+                        {sub.monthlyPrice}{' '}{tr("MAD / mois")}</p>
                     <p className={sub.paidCurrentMonth ? 'font-medium text-emerald-600' : 'font-medium text-red-600'}>
                         {sub.paidCurrentMonth ? tr("Mois {currentMonth} payé", { currentMonth: sub.currentMonth }) : tr("Mois {currentMonth} non payé", { currentMonth: sub.currentMonth })}
                     </p>

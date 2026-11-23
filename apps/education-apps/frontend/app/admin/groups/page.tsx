@@ -27,6 +27,7 @@ import { formationsService } from '@/lib/services/formations';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
+import { levelLabel } from '@/lib/levels';
 // Types
 interface TimeSlot {
     day: string;
@@ -74,6 +75,13 @@ const SUBJECTS = [
     'Français', 'Anglais', 'Arabe', 'Histoire-Géo',
     'Philosophie', 'Informatique'
 ];
+
+// Groups saved before the form existed (or imported) may hold "COLLEGE", "Collège" or "Maths":
+// match them to the form's options so editing shows the saved value instead of an empty choice.
+const fold = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+const SUBJECT_ALIASES: Record<string, string> = { maths: 'Mathématiques', math: 'Mathématiques', pc: 'Physique', 'physique-chimie': 'Physique', 'histoire geo': 'Histoire-Géo' };
+const toLevelKey = (level: string) => NIVEAUX_SCOLAIRE.find((n) => fold(n.key) === fold(level) || fold(n.nameKey) === fold(level))?.key ?? level;
+const toSubject = (subject: string) => SUBJECTS.find((s) => fold(s) === fold(subject)) ?? SUBJECT_ALIASES[fold(subject)] ?? subject;
 
 const GroupsContent = () => {
     const { tr } = useI18n();
@@ -155,8 +163,8 @@ const GroupsContent = () => {
             setFormData({
                 name: group.name,
                 type: group.type,
-                subject: group.subject || '',
-                level: group.level || '',
+                subject: group.subject ? toSubject(group.subject) : '',
+                level: group.level ? toLevelKey(group.level) : '',
                 formationId: group.formation?.id || '',
                 teacherId: group.teacher?.id || '',
                 whatsappUrl: group.whatsappUrl || '',
@@ -295,7 +303,7 @@ const GroupsContent = () => {
                                         </p>
                                     </div>
                                     <span className={`px-2.5 py-1 text-xs font-medium rounded-full bg-${themeColor}-50 text-${themeColor}-700`}>
-                                        {group.type === 'FORMATION' ? tr("Formation") : tr(group.level)}
+                                        {group.type === 'FORMATION' ? tr("Formation") : tr(levelLabel(group.level))}
                                     </span>
                                 </div>
 
@@ -443,6 +451,8 @@ const GroupsContent = () => {
                                             >
                                                 <option value="">{tr("Choisir le niveau...")}</option>
                                                 {NIVEAUX_SCOLAIRE.map(n => <option key={n.key} value={n.key}>{tr(n.nameKey)}</option>)}
+                                                {/* A level outside the list stays visible (and saved as is). */}
+                                                {formData.level && !NIVEAUX_SCOLAIRE.some((n) => n.key === formData.level) && <option value={formData.level}>{tr(formData.level)}</option>}
                                             </select>
                                             <TrendingUp className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             <div className="absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -461,6 +471,7 @@ const GroupsContent = () => {
                                             >
                                                 <option value="">{tr("Choisir la matière...")}</option>
                                                 {SUBJECTS.map(s => <option key={s} value={s}>{tr(s)}</option>)}
+                                                {formData.subject && !SUBJECTS.includes(formData.subject) && <option value={formData.subject}>{tr(formData.subject)}</option>}
                                             </select>
                                             <BookCopy className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                             <div className="absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -511,8 +522,10 @@ const GroupsContent = () => {
                                         >
                                             <option value="">{tr("Sélectionner une salle...")}</option>
                                             {rooms.map(r => (
-                                                <option key={r.id} value={r.name}>{r.name} ({r.capacity || '?'}{' '}{tr("places)")}{' '}{r.type ? `- ${r.type}` : ''}</option>
+                                                <option key={r.id} value={r.name}>{r.name} ({r.capacity || '?'}{' '}{tr("places)")}{' '}{r.type ? `- ${tr(r.type)}` : ''}</option>
                                             ))}
+                                            {/* Rooms are kept in this browser: a room saved from another device still shows. */}
+                                            {formData.room && !rooms.some((r) => r.name === formData.room) && <option value={formData.room}>{formData.room}</option>}
                                         </select>
                                         <Building className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         <div className="absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none">

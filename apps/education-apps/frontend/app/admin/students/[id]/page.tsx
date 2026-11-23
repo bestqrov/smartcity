@@ -10,6 +10,7 @@ import { publicUrl } from '@/lib/publicUrl';
 import StudentTransportCard from '@/components/transport/StudentTransportCard';
 
 import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
+import { levelLabel } from '@/lib/levels';
 type Tab = 'attendance' | 'finance' | 'inscriptions' | 'info';
 
 const TABS: { key: Tab; label: string }[] = [
@@ -56,9 +57,12 @@ export default function StudentProfilePage() {
     if (loading) return <div className="p-6">{tr("Chargement…")}</div>;
     if (!student) return <div className="p-6">{tr("Élève introuvable")}</div>;
 
-    const balanceDue =
+    // Monthly payments are not inscriptions: paying them must not show a negative balance due.
+    const balanceDue = Math.max(
+        0,
         (student.inscriptions || []).reduce((sum, i) => sum + i.amount, 0) -
-        (student.payments || []).reduce((sum, p) => sum + p.amount, 0);
+            (student.payments || []).reduce((sum, p) => sum + p.amount, 0)
+    );
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -67,7 +71,7 @@ export default function StudentProfilePage() {
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                         {student.name} {student.surname}
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">{tr(student.schoolLevel) || '—'}</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">{tr(levelLabel(student.schoolLevel)) || '—'}</p>
                 </div>
                 <div className="flex gap-2">
                     <button
@@ -152,7 +156,7 @@ export default function StudentProfilePage() {
                                     >
                                         <span>{new Date(p.date).toLocaleDateString()}</span>
                                         <span className="font-medium">
-                                            {p.amount}{' '}{tr("MAD (")}{p.method})
+                                            {p.amount}{' '}{tr("MAD (")}{tr(p.method)})
                                         </span>
                                     </li>
                                 ))}

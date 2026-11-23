@@ -122,7 +122,7 @@ export default function VacancesPage() {
                                 <div>
                                     <p className="font-semibold text-gray-800">{tr(h.title)}</p>
                                     <p className="text-sm text-gray-500 mt-1">
-                                        {new Date(h.startDate).toLocaleDateString(appLocale())} – {new Date(h.endDate).toLocaleDateString(appLocale())}
+                                        <bdi dir="ltr">{new Date(h.startDate).toLocaleDateString(appLocale())} – {new Date(h.endDate).toLocaleDateString(appLocale())}</bdi>
                                     </p>
                                 </div>
                                 <button
