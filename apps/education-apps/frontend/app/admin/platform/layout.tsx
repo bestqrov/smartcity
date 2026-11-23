@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Briefcase, Building, LayoutDashboard, Package } from 'lucide-react';
 import { RequireRole } from '@/components/auth/RequireRole';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import useAuthStore from '@/store/useAuthStore';
 import { PlatformPrefsProvider, usePlatformPrefs } from '@/lib/platform/prefs';
+import { DECLARATIONS_CHANGED, getPendingDeclarationsCount } from '@/lib/services/paymentDeclarations';
 
 function Shell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -24,8 +25,22 @@ function Shell({ children }: { children: React.ReactNode }) {
         if (user && user.role !== 'SUPER_ADMIN') router.replace('/admin');
     }, [user, router]);
 
+    // Payments declared by sales agents and waiting for validation: a red count on the dashboard entry.
+    const [pending, setPending] = useState(0);
+    useEffect(() => {
+        if (user?.role !== 'SUPER_ADMIN') return;
+        const refresh = () => getPendingDeclarationsCount().then(setPending).catch(() => {});
+        refresh();
+        const timer = window.setInterval(refresh, 60_000);
+        window.addEventListener(DECLARATIONS_CHANGED, refresh);
+        return () => {
+            window.clearInterval(timer);
+            window.removeEventListener(DECLARATIONS_CHANGED, refresh);
+        };
+    }, [user?.role]);
+
     const nav = [
-        { key: 'dashboard', label: m.nav_dashboard, icon: LayoutDashboard, href: '/admin/platform', active: true },
+        { key: 'dashboard', label: m.nav_dashboard, icon: LayoutDashboard, href: '/admin/platform', active: true, badge: pending },
         { key: 'schools', label: m.nav_schools, icon: Building, href: '/admin/schools', active: false },
         { key: 'packs', label: m.nav_packs, icon: Package, href: '/admin/packs', active: false },
         { key: 'agents', label: m.nav_agents, icon: Briefcase, href: '/admin/sales-agents', active: false },

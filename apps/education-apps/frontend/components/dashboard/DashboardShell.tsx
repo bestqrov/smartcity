@@ -29,6 +29,7 @@ export interface ShellNavItem {
     href: string;
     active: boolean;
     onClick?: () => void;
+    badge?: number; // items waiting for action (e.g. payments to confirm), shown as a red count
 }
 
 interface Props {
@@ -107,6 +108,9 @@ export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, user
                                 >
                                     <Icon size={17} aria-hidden="true" />
                                     {item.label}
+                                    {!!item.badge && (
+                                        <span className="ms-auto me-3 min-w-[1.4rem] rounded-full bg-red-600 px-1.5 text-center text-xs font-bold leading-5 text-white">{item.badge}</span>
+                                    )}
                                 </Link>
                             );
                         })}
@@ -157,6 +161,7 @@ export function DashboardShell({ lang, setLang, theme, toggleTheme, m, nav, user
                                     >
                                         <Icon size={14} aria-hidden="true" />
                                         {item.label}
+                                        {!!item.badge && <span className="rounded-full bg-red-600 px-1.5 text-[10px] font-bold leading-4 text-white">{item.badge}</span>}
                                     </Link>
                                 );
                             })}

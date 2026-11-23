@@ -13,8 +13,9 @@ import type { AgentSection } from '@/lib/agent/prefs';
 import { ClientStatusBadge, PayoutStatusBadge, StatusLegend } from './StatusBadge';
 import { cardClass, ChartCard, dailyCounts, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from '@/components/dashboard/Charts';
 import { cardEmptyClass, cardItemClass, cardListClass, emptyRowClass, mutedClass, rowClass, Slicer, TabButton, tdClass, theadClass, thClass } from '@/components/dashboard/ui';
+import type { PaymentDeclaration } from '@/lib/services/paymentDeclarations';
 
-type Tab = 'schools' | 'commissions' | 'payouts';
+type Tab = 'schools' | 'commissions' | 'payouts' | 'declarations';
 type School = AgentReport['schools'][number];
 type Commission = AgentReport['commissions'][number];
 
@@ -26,6 +27,9 @@ interface Props {
     lang?: AgentLang; // 'fr' by default (admin page)
     m?: AgentMessages; // defaults to the dictionary of `lang`
     focus?: { id: AgentSection; n: number }; // sidebar request to show a section
+    // Agent space only: payments declared to the super admin, and the action to declare one.
+    declarations?: PaymentDeclaration[];
+    onDeclare?: (school: { id: string; name: string; packName: string | null }) => void;
 }
 
 interface Filters {
@@ -173,7 +177,7 @@ function RateTable({ rows, m, lang }: { rows: RateTableRow[]; m: AgentMessages; 
     );
 }
 
-export default function AgentReportView({ report, onDeletePayout, busy, ratesTitle, lang = 'fr', m = agentMessages[lang], focus }: Props) {
+export default function AgentReportView({ report, onDeletePayout, busy, ratesTitle, lang = 'fr', m = agentMessages[lang], focus, declarations, onDeclare }: Props) {
     const [tab, setTab] = useState<Tab>('schools');
     const [copied, setCopied] = useState(false);
     const [monthOpen, setMonthOpen] = useState(false);
@@ -334,7 +338,19 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
         { id: 'schools', label: m.tab_clients, count: data.schools.length },
         { id: 'commissions', label: m.tab_commissions, count: data.commissions.length },
         { id: 'payouts', label: m.tab_payouts, count: data.payouts.length },
+        ...(declarations ? [{ id: 'declarations' as Tab, label: m.tab_declarations, count: declarations.length }] : []),
     ];
+    const pendingDeclarations = (declarations ?? []).filter((d) => d.status === 'PENDING').length;
+    const declareButton = (school: School) =>
+        onDeclare ? (
+            <button
+                type="button"
+                onClick={() => onDeclare({ id: school.id, name: school.name, packName: school.packName })}
+                className="whitespace-nowrap rounded-lg bg-espresso-800 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-espresso-700 dark:bg-espresso-200 dark:text-espresso-950"
+            >
+                {m.decl_button}
+            </button>
+        ) : null;
 
     return (
         <div className="space-y-4">
@@ -584,6 +600,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                                         </span>
                                         <span className="font-bold tabular-nums">{money(school.totalPaid)}</span>
                                     </div>
+                                    {onDeclare && <div className="flex justify-end">{declareButton(school)}</div>}
                                 </li>
                             ))}
                         </ul>
@@ -599,6 +616,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                                     <th className={thClass}>{m.col_purchase}</th>
                                     <th className={thClass}>{m.col_last_payment}</th>
                                     <th className={thClass}>{m.col_total_paid}</th>
+                                    {onDeclare && <th className={thClass}><span className="sr-only">{m.decl_button}</span></th>}
                                 </tr>
                             </thead>
                             <tbody className="text-gray-800 dark:text-espresso-100">
@@ -625,11 +643,12 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                                         <td className={`${tdClass} whitespace-nowrap tabular-nums`}>{school.firstPaidAt ? fmtDay(school.firstPaidAt, lang) : '—'}</td>
                                         <td className={`${tdClass} whitespace-nowrap tabular-nums`}>{lastPayment(school)}</td>
                                         <td className={`${tdClass} whitespace-nowrap tabular-nums`}>{money(school.totalPaid)}</td>
+                                        {onDeclare && <td className={tdClass}>{declareButton(school)}</td>}
                                     </tr>
                                 ))}
                                 {data.schools.length === 0 && (
                                     <tr>
-                                        <td colSpan={8} className={emptyRowClass}>
+                                        <td colSpan={onDeclare ? 9 : 8} className={emptyRowClass}>
                                             {m.no_clients}
                                         </td>
                                     </tr>
@@ -702,6 +721,49 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                             </tbody>
                         </table>
                         </>
+                    )}
+
+                    {tab === 'declarations' && declarations && (
+                        <div className="space-y-2 p-3">
+                            {pendingDeclarations > 0 && (
+                                <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+                                    {m.decl_pending_count(pendingDeclarations)}
+                                </p>
+                            )}
+                            {declarations.length === 0 && <p className={cardEmptyClass}>{m.no_declarations}</p>}
+                            <ul className="divide-y divide-espresso-100 dark:divide-espresso-800">
+                                {declarations.map((d) => (
+                                    <li key={d.id} className="flex flex-wrap items-start justify-between gap-2 py-2.5 text-sm">
+                                        <div className="min-w-0">
+                                            <div className="font-semibold">{d.school.name}</div>
+                                            <div className={mutedClass}>
+                                                {money(d.amount)} · {m.period[d.period]} · {m.decl_methods[d.method]} · {fmtDay(d.paidAt, lang)}
+                                            </div>
+                                            <div className={mutedClass}>
+                                                {m.decl_declared_on} {fmtDay(d.createdAt, lang)}
+                                                {d.note ? ` · ${d.note}` : ''}
+                                            </div>
+                                            {d.status === 'REJECTED' && d.rejectReason && (
+                                                <div className="mt-1 text-xs font-semibold text-red-700 dark:text-red-300">
+                                                    {m.decl_reason} : {d.rejectReason}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span
+                                            className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                                                d.status === 'CONFIRMED'
+                                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200'
+                                                    : d.status === 'REJECTED'
+                                                      ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-200'
+                                                      : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200'
+                                            }`}
+                                        >
+                                            {m.decl_status[d.status]}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     )}
 
                     {tab === 'payouts' && (

@@ -82,28 +82,28 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  schoolId String? @db.ObjectId
-  school   School? @relation(fields: [schoolId], references: [id])
-  branchId String? @db.ObjectId
-  branch   Branch? @relation(fields: [branchId], references: [id])
+  schoolId   String?     @db.ObjectId
+  school     School?     @relation(fields: [schoolId], references: [id])
+  branchId   String?     @db.ObjectId
+  branch     Branch?     @relation(fields: [branchId], references: [id])
   salesAgent SalesAgent?
 
   @@map("users")
 }
 
 model Parent {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
   name            String
   phone           String
   whatsapp        String?
   email           String?
   cin             String?
   address         String?
-  accessTokenHash String   @unique
+  accessTokenHash String    @unique
   // When the current access link was created or re-issued; null for parents created by an import (no link handed out yet).
   linkIssuedAt    DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   students      Student[]
   notifications AttendanceNotification[]
@@ -138,13 +138,14 @@ model School {
   branches Branch[]
   users    User[]
 
-  institutionType InstitutionType? // null is treated as PRIVATE_SCHOOL
-  packId          String?          @db.ObjectId
-  pack            Pack?            @relation(fields: [packId], references: [id])
-  salesAgentId String?          @db.ObjectId
-  salesAgent   SalesAgent?      @relation(fields: [salesAgentId], references: [id])
-  payments     SchoolPayment[]
-  packUpgrades PackUpgrade[]
+  institutionType     InstitutionType? // null is treated as PRIVATE_SCHOOL
+  packId              String?              @db.ObjectId
+  pack                Pack?                @relation(fields: [packId], references: [id])
+  salesAgentId        String?              @db.ObjectId
+  salesAgent          SalesAgent?          @relation(fields: [salesAgentId], references: [id])
+  payments            SchoolPayment[]
+  packUpgrades        PackUpgrade[]
+  paymentDeclarations PaymentDeclaration[]
 
   // Partner offer taken at signup through a partner's referral link: period and price are frozen then.
   partnerOffer Boolean             @default(false)
@@ -686,9 +687,10 @@ model SalesAgent {
   userId String? @unique @db.ObjectId
   user   User?   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  schools  School[]
-  payments SchoolPayment[]
-  payouts  AgentPayout[]
+  schools             School[]
+  payments            SchoolPayment[]
+  paymentDeclarations PaymentDeclaration[]
+  payouts             AgentPayout[]
 
   @@map("sales_agents")
 }
@@ -774,27 +776,27 @@ model PartnerOffer {
   monthlyPrice       Float?
   semiannualPrice    Float?
   yearlyPrice        Float?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@map("partner_offers")
 }
 
 model Evaluation {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  branchId    String   @db.ObjectId
-  groupId     String   @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  branchId    String    @db.ObjectId
+  groupId     String    @db.ObjectId
   title       String
   subject     String
   period      String
   date        DateTime
-  maxScore    Float    @default(20)
-  coefficient Float    @default(1)
-  published   Boolean  @default(false)
+  maxScore    Float     @default(20)
+  coefficient Float     @default(1)
+  published   Boolean   @default(false)
   notifiedAt  DateTime? // set on the first publish: parents are notified once, never on re-publish
   createdBy   String? // "teacher:<id>" or "user:<id>"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   grades      Grade[]
 
   @@index([branchId, groupId, period])
@@ -872,25 +874,25 @@ model OutboundMessage {
 }
 
 model Activity {
-  id           String             @id @default(auto()) @map("_id") @db.ObjectId
-  branchId     String             @db.ObjectId
-  title        String
-  description  String?
-  startAt      DateTime
-  endAt        DateTime?
-  location     String?
-  price        Float? // null/0 = free
-  needsConsent Boolean            @default(true)
-  deadline     DateTime? // exact datetime after which parents can no longer answer
-  audience     String             @default("ALL") // ALL | GROUPS
-  groupIds     String[]           @db.ObjectId
-  coverImage   String? // data URL
-  published    Boolean            @default(false)
-  notifiedAt   DateTime?
+  id             String             @id @default(auto()) @map("_id") @db.ObjectId
+  branchId       String             @db.ObjectId
+  title          String
+  description    String?
+  startAt        DateTime
+  endAt          DateTime?
+  location       String?
+  price          Float? // null/0 = free
+  needsConsent   Boolean            @default(true)
+  deadline       DateTime? // exact datetime after which parents can no longer answer
+  audience       String             @default("ALL") // ALL | GROUPS
+  groupIds       String[]           @db.ObjectId
+  coverImage     String? // data URL
+  published      Boolean            @default(false)
+  notifiedAt     DateTime?
   lastRemindedAt DateTime? // staff reminders: at most one per 24 h
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  responses    ActivityResponse[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  responses      ActivityResponse[]
 
   @@index([branchId, startAt])
   @@map("activities")
@@ -944,4 +946,38 @@ model ParentNotification {
 
   @@index([parentId, createdAt])
   @@map("parent_notifications")
+}
+
+enum PaymentDeclarationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+// A school payment reported by its sales agent, with the proof (receipt, transfer screenshot). It becomes a
+// SchoolPayment (commission computed, school activated) only when the super admin confirms it.
+model PaymentDeclaration {
+  id              String                   @id @default(auto()) @map("_id") @db.ObjectId
+  schoolId        String                   @db.ObjectId
+  school          School                   @relation(fields: [schoolId], references: [id])
+  salesAgentId    String                   @db.ObjectId
+  salesAgent      SalesAgent               @relation(fields: [salesAgentId], references: [id])
+  amount          Float
+  period          SubscriptionPeriod
+  paidAt          DateTime
+  method          String // CASH, BANK_TRANSFER, CHEQUE, MOBILE_MONEY
+  note            String?
+  proof           String // data URL (image or PDF)
+  proofName       String?
+  status          PaymentDeclarationStatus @default(PENDING)
+  rejectReason    String?
+  reviewedAt      DateTime?
+  reviewedById    String?                  @db.ObjectId
+  schoolPaymentId String?                  @db.ObjectId // the payment created on confirmation
+  createdAt       DateTime                 @default(now())
+
+  @@index([status, createdAt])
+  @@index([salesAgentId, createdAt])
+  @@index([schoolId])
+  @@map("payment_declarations")
 }

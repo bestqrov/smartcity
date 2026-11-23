@@ -29,6 +29,7 @@ import useAuthStore from '@/store/useAuthStore';
 import { applyInstitutionType, getInstitutionTypeConfig } from '@/lib/institutionTypes';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import LangSwitcher from '@/components/LangSwitcher';
+import { DECLARATIONS_CHANGED, getPendingDeclarationsCount } from '@/lib/services/paymentDeclarations';
 
 interface SidebarProps {
   currentPath: string;
@@ -338,6 +339,16 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     ? superAdminMenuItems
     : effectiveRole === 'ADMIN' ? adminMenuItems : secretaryMenuItems;
 
+  // Super admin: payments declared by sales agents waiting for validation, as a count on the dashboard entry.
+  const [pendingDeclarations, setPendingDeclarations] = useState(0);
+  useEffect(() => {
+    if (effectiveRole !== 'SUPER_ADMIN') return;
+    const refresh = () => getPendingDeclarationsCount().then(setPendingDeclarations).catch(() => {});
+    refresh();
+    window.addEventListener(DECLARATIONS_CHANGED, refresh);
+    return () => window.removeEventListener(DECLARATIONS_CHANGED, refresh);
+  }, [effectiveRole]);
+
   const institutionType = effectiveRole === 'SUPER_ADMIN' ? null : profile.institutionType;
   const typeConfig = getInstitutionTypeConfig(institutionType);
   // Hidden ids, relabels and ordering of the institution type apply first; entries are then sorted into the groups.
@@ -512,6 +523,9 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                           >
                             {chip}
                             <span className="truncate text-[13px]">{tr(item.label)}</span>
+                            {item.id === 'platform' && pendingDeclarations > 0 && (
+                              <span className="ms-auto min-w-[1.4rem] rounded-full bg-red-600 px-1.5 text-center text-[11px] font-bold leading-5 text-white">{pendingDeclarations}</span>
+                            )}
                             {item.comingSoon && (
                               <span className="ms-auto rounded-full bg-amber-100 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 px-2 py-0.5 text-[10px] font-bold">{tr('Bientôt')}</span>
                             )}
