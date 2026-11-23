@@ -280,6 +280,22 @@ CHAPTERS = [
         ],
     },
     {
+        'title': ('فضاء التلميذ', "L'espace élève"),
+        'lead': ('لكل تلميذ فضاء خاص به، على الهاتف أو الحاسوب، عبر رابط شخصي بدون كلمة مرور.',
+                 'Chaque élève a son propre espace, sur téléphone ou ordinateur, avec un lien personnel sans mot de passe.'),
+        'blocks': [
+            ('steps',
+             ['افتح ملف التلميذ (' + '{ui:التلاميذ}' + ' ← اسم التلميذ) ثم انقر على ' + '{ui:إنشاء رابط الملف الشخصي للتلميذ}' + '.',
+              'أرسل الرابط للتلميذ (أو لولي أمره). لا يُعرض الرابط إلا مرة واحدة؛ إذا ضاع، أنشئ رابطاً جديداً.',
+              'يرى التلميذ: المبالغ (الواجب أداؤه، المؤدّى، الرصيد)، حصصه ومجموعاته، استعمال الزمن، الإعلانات، العطل وسجل حضوره. يختار العربية أو الفرنسية بزر FR / ع.'],
+             ["Ouvrez la fiche de l'élève ({ui:Students} → nom de l'élève) puis cliquez sur {ui:Générer le lien de profil élève}.",
+              "Envoyez le lien à l'élève (ou à son parent). Il n'est affiché qu'une fois ; s'il est perdu, créez-en un nouveau.",
+              "L'élève voit : les montants (à payer, payé, solde), ses cours et ses groupes, l'emploi du temps, les annonces, les vacances et l'historique de présence. Il choisit le français ou l'arabe avec le bouton FR / ع."]),
+            ('img', 'student-desk', ('فضاء التلميذ على الحاسوب', "L'espace élève sur ordinateur")),
+            ('phones', [('student-phone', ('فضاء التلميذ على الهاتف', "L'espace élève sur téléphone"))]),
+        ],
+    },
+    {
         'title': ('التواصل: الإعلانات، العطل وواتساب', 'Communication : annonces, vacances et WhatsApp'),
         'lead': ('', ''),
         'blocks': [
