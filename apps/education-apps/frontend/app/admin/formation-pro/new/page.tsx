@@ -7,6 +7,7 @@ import Button from '@/components/Button';
 import { formationsService } from '@/lib/services/formations';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
+import { describeApiError } from '@/lib/apiError';
 export default function NewFormationPage() {
     const { tr } = useI18n();
     const router = useRouter();
@@ -38,8 +39,7 @@ export default function NewFormationPage() {
             router.push('/admin/formation-pro');
         } catch (error: any) {
             console.error('Formation creation failed:', error);
-            const errorMessage = error.response?.data?.error || error.message || 'Erreur lors de la création';
-            alert(tr("Erreur : {msg}", { msg: tr(errorMessage) }));
+            alert(describeApiError(error, tr, 'Erreur lors de la création'));
         } finally {
             setLoading(false);
         }

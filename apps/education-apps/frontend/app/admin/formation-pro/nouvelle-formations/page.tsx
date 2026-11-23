@@ -10,6 +10,7 @@ import { formationsService } from '@/lib/services/formations';
 import { useRouter } from 'next/navigation';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
+import { describeApiError } from '@/lib/apiError';
 export default function NouvelleFormationsPage() {
     const { tr } = useI18n();
     const router = useRouter();
@@ -42,7 +43,7 @@ export default function NouvelleFormationsPage() {
             router.push('/admin/formation-pro/inscription');
         } catch (err) {
             console.error(err);
-            setError(tr("Erreur lors de la création de la formation"));
+            setError(describeApiError(err, tr, 'Erreur lors de la création de la formation'));
         } finally {
             setLoading(false);
         }

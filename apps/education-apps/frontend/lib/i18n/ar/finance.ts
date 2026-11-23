@@ -271,4 +271,13 @@ export const finance: Record<string, string> = {
     Check: 'شيك',
     'Merci pour votre confiance!': 'شكراً على ثقتكم!',
     'Cours de soutien': 'حصص الدعم',
+    // ---- reasons for a refused action (lib/apiError.ts)
+    "Votre compte n'a pas le droit de faire cette action (réservé au propriétaire ou à l'administrateur).":
+        'ليست لحسابك صلاحية القيام بهذا الإجراء (خاص بالمالك أو المدير).',
+    'Choisissez à nouveau votre établissement, puis réessayez.': 'اختر مؤسستك من جديد، ثم أعد المحاولة.',
+    "Votre compte n'est rattaché à aucun établissement. Contactez le propriétaire de l'école.":
+        'حسابك غير مرتبط بأي مؤسسة. تواصل مع مالك المؤسسة.',
+    'Le nom de la formation est obligatoire.': 'اسم التكوين إلزامي.',
+    'La durée de la formation est obligatoire.': 'مدة التكوين إلزامية.',
+    'Le prix doit être un nombre positif.': 'يجب أن يكون الثمن عدداً موجباً.',
 };

@@ -16,6 +16,7 @@ import api from '@/lib/api';
 import { formationsService, Formation } from '@/lib/services/formations';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
+import { describeApiError } from '@/lib/apiError';
 interface PricingItem {
     id: string;
     category: string; // 'SOUTIEN' | 'FORMATION'
@@ -50,7 +51,7 @@ export default function PrixPage() {
             const res = await api.get('/pricing');
             if (res.data.success) setPricing(res.data.data);
         } catch (e) {
-            setError(tr("Impossible de charger les prix"));
+            setError(describeApiError(e, tr, "Impossible de charger les prix"));
         }
     };
 
@@ -61,7 +62,7 @@ export default function PrixPage() {
             const data = await formationsService.getAll();
             setFormations(Array.isArray(data) ? data : []);
         } catch (e) {
-            setError(tr("Impossible de charger les formations"));
+            setError(describeApiError(e, tr, "Impossible de charger les formations"));
         }
     };
 
@@ -92,7 +93,7 @@ export default function PrixPage() {
             setNewSoutien({ level: newSoutien.level, subject: '', price: '' });
             fetchPricing();
         } catch (e) {
-            setError(tr("Impossible d'ajouter la matière"));
+            setError(describeApiError(e, tr, "Impossible d'ajouter la matière"));
         }
     };
 
@@ -109,7 +110,7 @@ export default function PrixPage() {
             setNewFormation({ name: '', duration: '', price: '' });
             fetchFormations();
         } catch (e) {
-            setError(tr("Impossible d'ajouter la formation"));
+            setError(describeApiError(e, tr, "Impossible d'ajouter la formation"));
         }
     };
 
@@ -134,7 +135,7 @@ export default function PrixPage() {
             setEditingFormationId(null);
             fetchFormations();
         } catch (e) {
-            setError(tr("Impossible de mettre à jour la formation"));
+            setError(describeApiError(e, tr, "Impossible de mettre à jour la formation"));
         } finally {
             setBusyId(null);
         }
@@ -147,7 +148,7 @@ export default function PrixPage() {
             await formationsService.delete(id);
             fetchFormations();
         } catch (e) {
-            setError(tr("Impossible de supprimer la formation"));
+            setError(describeApiError(e, tr, "Impossible de supprimer la formation"));
         } finally {
             setBusyId(null);
         }
@@ -170,7 +171,7 @@ export default function PrixPage() {
             setEditingId(null);
             fetchPricing();
         } catch (e) {
-            setError(tr("Impossible de mettre à jour le prix"));
+            setError(describeApiError(e, tr, "Impossible de mettre à jour le prix"));
         } finally {
             setBusyId(null);
         }
@@ -183,7 +184,7 @@ export default function PrixPage() {
             await api.delete(`/pricing/${id}`);
             fetchPricing();
         } catch (e) {
-            setError(tr("Impossible de supprimer"));
+            setError(describeApiError(e, tr, "Impossible de supprimer"));
         } finally {
             setBusyId(null);
         }

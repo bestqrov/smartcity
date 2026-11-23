@@ -8,18 +8,29 @@ import {
 } from './formations.service';
 import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
+// Checked here so a bad form answers 400 with a sentence for the user, not a 500 "Error creating formation".
+const validateFormation = (body: Record<string, unknown>) => {
+    const name = typeof body.name === 'string' ? body.name.trim() : '';
+    const duration = typeof body.duration === 'string' ? body.duration.trim() : '';
+    const price = body.price === undefined || body.price === null || body.price === '' ? 0 : Number(body.price);
+    if (!name) return { error: 'Le nom de la formation est obligatoire.' };
+    if (!duration) return { error: 'La durée de la formation est obligatoire.' };
+    if (!Number.isFinite(price) || price < 0) return { error: 'Le prix doit être un nombre positif.' };
+    const description = typeof body.description === 'string' && body.description.trim() ? body.description.trim() : undefined;
+    return { data: { name, duration, price, description } };
+};
+
 export const createFormationHandler = async (req: TenantRequest, res: Response) => {
+    const checked = validateFormation(req.body ?? {});
+    if (!checked.data) {
+        res.status(400).json({ error: checked.error });
+        return;
+    }
     try {
-        const { name, duration, price, description } = req.body;
-        const formation = await createFormation({
-            name,
-            duration,
-            price: parseFloat(price),
-            branchId: req.branchId!,
-            description,
-        });
+        const formation = await createFormation({ ...checked.data, branchId: req.branchId! });
         res.status(201).json(formation);
     } catch (error) {
+        console.error('Error creating formation:', error);
         res.status(500).json({ error: 'Error creating formation' });
     }
 };
@@ -36,15 +47,19 @@ export const getFormationsHandler = async (req: TenantRequest, res: Response) =>
 export const updateFormationHandler = async (req: TenantRequest, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, duration, price, description } = req.body;
-        const formation = await updateFormation(id, req.branchId!, {
-            name,
-            duration,
-            price: parseFloat(price),
-            description,
-        });
+        const checked = validateFormation(req.body ?? {});
+        if (!checked.data) {
+            res.status(400).json({ error: checked.error });
+            return;
+        }
+        const formation = await updateFormation(id, req.branchId!, checked.data);
         res.json(formation);
     } catch (error) {
+        console.error('Error updating formation:', error);
+        if (error instanceof Error && error.message === 'Formation not found') {
+            res.status(404).json({ error: error.message });
+            return;
+        }
         res.status(500).json({ error: 'Error updating formation' });
     }
 };
