@@ -11,7 +11,7 @@ import { agentMessages, type AgentLang, type AgentMessages } from '@/lib/agent/m
 import { fmtDate, fmtDay, fmtMAD, fmtMADShort, fmtMonthShort, fmtMonthYear, fmtNumber } from '@/lib/agent/format';
 import type { AgentSection } from '@/lib/agent/prefs';
 import { ClientStatusBadge, PayoutStatusBadge, StatusLegend } from './StatusBadge';
-import { cardClass, ChartCard, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from '@/components/dashboard/Charts';
+import { cardClass, ChartCard, dailyCounts, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from '@/components/dashboard/Charts';
 import { cardEmptyClass, cardItemClass, cardListClass, emptyRowClass, mutedClass, rowClass, Slicer, TabButton, tdClass, theadClass, thClass } from '@/components/dashboard/ui';
 
 type Tab = 'schools' | 'commissions' | 'payouts';
@@ -275,6 +275,11 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
         .filter((d) => d.value > 0)
         .sort((a, b) => b.value - a.value);
 
+    // New clients per day over the last 30 days (the status / type / pack filters apply).
+    const dailyClients = dailyCounts(data.schools.map((s) => s.createdAt), lang);
+    const dailyTotal = dailyClients.reduce((total, day) => total + day.value, 0);
+    const dailyToday = dailyClients[dailyClients.length - 1]?.value ?? 0;
+
     const packCounts = new Map<string, number>();
     data.schools.forEach((s) => packCounts.set(s.packName ?? '', (packCounts.get(s.packName ?? '') ?? 0) + 1));
     const byPack = Array.from(packCounts, ([pack, count]) => ({ key: pack || '-', label: pack || m.no_pack, value: count }))
@@ -490,6 +495,9 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
 
             {/* ---- charts */}
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <ChartCard title={m.chart_daily_clients} hint={m.chart_daily_hint(dailyTotal, dailyToday)} className="sm:col-span-2 lg:col-span-3">
+                    <VBarChart data={dailyClients} format={(v) => (v ? fmtNumber(v, lang) : '')} empty={m.chart_empty} barWidth={24} />
+                </ChartCard>
                 <ChartCard title={m.chart_trend} hint={m.chart_trend_hint} className="sm:col-span-2 lg:col-span-2">
                     <SplineChart
                         points={trend}

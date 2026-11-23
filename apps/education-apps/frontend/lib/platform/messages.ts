@@ -49,6 +49,8 @@ const fr = {
     chart_schools_status: 'Écoles par statut',
     chart_revenue_period: "Chiffre d'affaires par période",
     chart_top_agents: "Meilleurs commerciaux par chiffre d'affaires apporté",
+    chart_daily_schools: 'Nouvelles écoles par jour (30 derniers jours)',
+    chart_daily_hint: (total: number, today: number) => `${total} sur la période · ${today} aujourd'hui`,
 
     // tables
     tab_schools: 'Écoles',
@@ -129,6 +131,8 @@ const ar: PlatformMessages = {
     chart_schools_status: 'المؤسسات حسب الحالة',
     chart_revenue_period: 'رقم المعاملات حسب المدة',
     chart_top_agents: 'أفضل المندوبين حسب رقم المعاملات المحقَّق',
+    chart_daily_schools: 'المؤسسات الجديدة حسب اليوم (آخر 30 يومًا)',
+    chart_daily_hint: (total: number, today: number) => `${total} خلال الفترة · ${today} اليوم`,
 
     tab_schools: 'المؤسسات',
     tab_payments: 'الدفعات',

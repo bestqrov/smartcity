@@ -181,13 +181,14 @@ export function HBarChart({ data: all, format, empty, maxRows = 6 }: { data: Bar
 
 // ---- vertical bars (HTML, direction-aware) -----------------------------------------------------------------
 
-export function VBarChart({ data, format, empty, palette = 'espresso' }: { data: BarDatum[]; format: (v: number) => string; empty: string; palette?: ChartPalette }) {
+// `barWidth`: minimum width per bar before the chart scrolls (narrower for long series such as 30 days).
+export function VBarChart({ data, format, empty, palette = 'espresso', barWidth = 40 }: { data: BarDatum[]; format: (v: number) => string; empty: string; palette?: ChartPalette; barWidth?: number }) {
     const P = PAL[palette];
     const max = Math.max(0, ...data.map((d) => d.value));
     if (data.length === 0 || max === 0) return <EmptyChart text={empty} palette={palette} />;
     return (
         <div className="overflow-x-auto">
-            <div className="flex min-w-full gap-1.5" style={{ minWidth: `${data.length * 40}px` }}>
+            <div className="flex min-w-full gap-1.5" style={{ minWidth: `${data.length * barWidth}px` }}>
                 {data.map((d) => (
                     <div key={d.key} className="flex min-w-0 flex-1 flex-col items-center">
                         <div className="flex h-24 w-full flex-col items-center justify-end">
@@ -445,4 +446,24 @@ export function VibrantKpi({
             {body}
         </button>
     );
+}
+
+/**
+ * Count of items per calendar day over the last `days` days (oldest first, today last), for a VBarChart.
+ * Local days, so a school created at 23:30 counts on that evening's day.
+ */
+export function dailyCounts(dates: (string | Date)[], lang: 'fr' | 'ar', days = 30, now = new Date()): BarDatum[] {
+    const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const counts = new Map<string, number>();
+    for (const value of dates) {
+        const d = new Date(value);
+        if (!Number.isNaN(d.getTime())) counts.set(dayKey(d), (counts.get(dayKey(d)) ?? 0) + 1);
+    }
+    // "dd/mm" written by hand: some Arabic locales give "mm/dd" or a bidi-reversed string.
+    return Array.from({ length: days }, (_, i) => {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1 - i));
+        const key = dayKey(d);
+        const label = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return { key, label: lang === 'ar' ? `\u2066${label}\u2069` : label, value: counts.get(key) ?? 0 };
+    });
 }

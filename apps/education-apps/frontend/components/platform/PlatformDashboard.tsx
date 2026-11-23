@@ -14,7 +14,7 @@ import type { PlatformMessages } from '@/lib/platform/messages';
 import type { AgentLang } from '@/lib/agent/messages';
 import { fmtDay, fmtMAD, fmtMADShort, fmtMonthShort, fmtMonthYear, fmtNumber } from '@/lib/agent/format';
 import { AgentAvatar } from '@/components/agent/AgentAvatar';
-import { cardClass, ChartCard, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from '@/components/dashboard/Charts';
+import { cardClass, ChartCard, dailyCounts, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from '@/components/dashboard/Charts';
 import { cardEmptyClass, cardItemClass, cardListClass, emptyRowClass, mutedClass, rowClass, Slicer, TabButton, tdClass, theadClass, thClass } from '@/components/dashboard/ui';
 
 type Tab = 'schools' | 'payments' | 'agents';
@@ -93,6 +93,11 @@ export default function PlatformDashboard({ data: overview, lang, m }: Props) {
 
     const anyFilter = Object.values(filters).some(Boolean);
     const setFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => setFilters((f) => ({ ...f, [key]: value }));
+
+    // ---- new schools per day (last 30 days; the month filter does not apply, the others do)
+    const dailySchools = dailyCounts(d.schoolsAnyMonth.map((s) => s.createdAt), lang);
+    const dailyTotal = dailySchools.reduce((sum, day) => sum + day.value, 0);
+    const dailyToday = dailySchools[dailySchools.length - 1]?.value ?? 0;
 
     // ---- KPIs
     const newThisMonth = d.schoolsAnyMonth.filter((s) => ym(new Date(s.createdAt)) === thisMonth);
@@ -367,6 +372,9 @@ export default function PlatformDashboard({ data: overview, lang, m }: Props) {
 
             {/* ---- charts */}
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <ChartCard title={m.chart_daily_schools} hint={m.chart_daily_hint(dailyTotal, dailyToday)} className="sm:col-span-2 lg:col-span-3">
+                    <VBarChart data={dailySchools} format={(v) => (v ? count(v) : '')} empty={m.chart_empty} barWidth={24} />
+                </ChartCard>
                 <ChartCard title={m.chart_revenue_trend} hint={m.chart_trend_hint} className="sm:col-span-2 lg:col-span-2">
                     <SplineChart
                         points={trend}
