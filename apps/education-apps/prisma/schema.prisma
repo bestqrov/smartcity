@@ -1027,3 +1027,22 @@ model TuitionFee {
   @@unique([branchId, level])
   @@map("tuition_fees")
 }
+
+// Platform-wide settings edited by the super admin: one document (key "default"), created on first read.
+model PlatformSettings {
+  id              String               @id @default(auto()) @map("_id") @db.ObjectId
+  key             String               @unique @default("default")
+  trialDays       Int                  @default(15)
+  signupOpen      Boolean              @default(true)
+  signupPeriods   SubscriptionPeriod[]
+  platformName    String               @default("ArwaEduc")
+  supportPhone    String?
+  supportWhatsapp String?
+  supportEmail    String?
+  bannerText      String?
+  bannerActive    Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@map("platform_settings")
+}

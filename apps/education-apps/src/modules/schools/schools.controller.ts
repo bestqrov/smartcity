@@ -6,6 +6,9 @@ import {
     listSchools,
     updateSchoolStatus,
     assignPackToSchool,
+    updateSchoolByAdmin,
+    resetOwnerPassword,
+    SignupClosedError,
 } from './schools.service';
 import { generateToken } from '../../utils/jwt';
 import { sendSuccess, sendError } from '../../utils/response';
@@ -72,6 +75,10 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
             201
         );
     } catch (error: any) {
+        if (error instanceof SignupClosedError) {
+            sendError(res, 'SIGNUP_CLOSED', 'Signup failed', 403);
+            return;
+        }
         sendError(res, error.message, 'Signup failed', 400);
     }
 };
@@ -133,4 +140,17 @@ export const assignPack = (req: AuthRequest, res: Response) =>
     respond(res, () => assignPackToSchool(req.params.id, req.body?.packId), {
         message: 'School pack updated',
         failure: 'Failed to update school pack',
+    });
+
+export const updateByAdmin = (req: AuthRequest, res: Response) =>
+    respond(res, () => updateSchoolByAdmin(req.params.id, req.body ?? {}), {
+        message: 'School updated',
+        failure: 'Failed to update school',
+    });
+
+// The body holds a password: it is passed to the service only, never logged.
+export const resetOwnerPasswordByAdmin = (req: AuthRequest, res: Response) =>
+    respond(res, () => resetOwnerPassword(req.params.id, req.body?.password), {
+        message: 'Owner password updated',
+        failure: 'Failed to update owner password',
     });

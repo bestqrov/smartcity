@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { signup, getMe, updateMe, list, updateStatus, assignPack } from './schools.controller';
+import { signup, getMe, updateMe, list, updateStatus, assignPack, updateByAdmin, resetOwnerPasswordByAdmin } from './schools.controller';
 import { assignAgent, listPayments, addPayment, removePayment } from '../sales-agents/salesAgents.controller';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
@@ -24,6 +24,8 @@ router.put('/me', authMiddleware, roleMiddleware('OWNER', 'ADMIN'), updateMe);
 
 // Platform-level: SUPER_ADMIN sees and activates every school, bypassing tenant scoping
 router.get('/', authMiddleware, roleMiddleware('SUPER_ADMIN'), list);
+router.patch('/:id', authMiddleware, roleMiddleware('SUPER_ADMIN'), updateByAdmin);
+router.patch('/:id/owner-password', authMiddleware, roleMiddleware('SUPER_ADMIN'), resetOwnerPasswordByAdmin);
 router.patch('/:id/status', authMiddleware, roleMiddleware('SUPER_ADMIN'), updateStatus);
 router.patch('/:id/pack', authMiddleware, roleMiddleware('SUPER_ADMIN'), assignPack);
 router.patch('/:id/sales-agent', authMiddleware, roleMiddleware('SUPER_ADMIN'), assignAgent);

@@ -6,13 +6,22 @@ import {
     listSchools,
     updateSchoolStatus,
     assignPackToSchool,
+    updateSchoolByAdmin,
+    resetOwnerPassword,
+    SignupClosedError,
 } from './schools.service';
 import * as bcryptUtil from '../../utils/bcrypt';
+import { getPlatformSettings, DEFAULT_PLATFORM_SETTINGS } from '../platform/platformSettings.service';
+
+jest.mock('../platform/platformSettings.service', () => {
+    const actual = jest.requireActual('../platform/platformSettings.service');
+    return { ...actual, getPlatformSettings: jest.fn() };
+});
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
     default: {
-        user: { findUnique: jest.fn() },
+        user: { findUnique: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
         school: { findUnique: jest.fn(), update: jest.fn(), findMany: jest.fn() },
         pack: { findFirst: jest.fn() },
         salesAgent: { findFirst: jest.fn() },
@@ -57,8 +66,11 @@ const pack = (over: Record<string, unknown> = {}) => ({
 
 const agent = { id: 'agent1', code: 'YOUSSEF22', active: true, commissionRate: 15 };
 
+const ID = '507f1f77bcf86cd799439011';
+
 beforeEach(() => {
     jest.clearAllMocks();
+    (getPlatformSettings as jest.Mock).mockResolvedValue({ ...DEFAULT_PLATFORM_SETTINGS });
     (prisma.salesAgent.findFirst as jest.Mock).mockResolvedValue(agent);
 });
 
@@ -505,5 +517,125 @@ describe('assignPackToSchool', () => {
             data: { packId: 'pack1' },
             include: { pack: true },
         });
+    });
+});
+
+describe('signupSchool — platform settings', () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    it('stamps trialEndsAt from the settings trialDays', async () => {
+        (getPlatformSettings as jest.Mock).mockResolvedValue({ ...DEFAULT_PLATFORM_SETTINGS, trialDays: 30 });
+        const { txClient } = arrangeSignup();
+        const before = Date.now();
+        await signupSchool(baseInput);
+        const trialEndsAt: Date = (txClient.school.create as jest.Mock).mock.calls[0][0].data.trialEndsAt;
+        const days = (trialEndsAt.getTime() - before) / 86400000;
+        expect(days).toBeGreaterThan(29.99);
+        expect(days).toBeLessThan(30.01);
+    });
+
+    it('refuses with SignupClosedError when signups are closed, before touching anything', async () => {
+        (getPlatformSettings as jest.Mock).mockResolvedValue({ ...DEFAULT_PLATFORM_SETTINGS, signupOpen: false });
+        arrangeSignup();
+        await expect(signupSchool(baseInput)).rejects.toBeInstanceOf(SignupClosedError);
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+        expect(prisma.salesAgent.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('refuses a period outside signupPeriods', async () => {
+        (getPlatformSettings as jest.Mock).mockResolvedValue({ ...DEFAULT_PLATFORM_SETTINGS, signupPeriods: ['YEARLY'] });
+        arrangeSignup();
+        await expect(signupSchool({ ...baseInput, offerPeriod: 'MONTHLY' })).rejects.toThrow('offerPeriod is not available');
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('accepts a period inside signupPeriods', async () => {
+        (getPlatformSettings as jest.Mock).mockResolvedValue({ ...DEFAULT_PLATFORM_SETTINGS, signupPeriods: ['YEARLY'] });
+        const { txClient } = arrangeSignup();
+        (prisma.pack.findFirst as jest.Mock).mockResolvedValue(pack({ monthlyPrice: 100, yearlyPrice: 1000 }));
+        await signupSchool({ ...baseInput, offerPeriod: 'YEARLY' });
+        expect((txClient.school.create as jest.Mock).mock.calls[0][0].data.offerPeriod).toBe('YEARLY');
+    });
+});
+
+describe('updateSchoolByAdmin', () => {
+    const school = { id: ID, ownerEmail: 'old@example.com', name: 'A' };
+    const owner = { id: 'owner1', email: 'old@example.com', name: 'Old', role: 'OWNER' };
+    let tx: any;
+
+    beforeEach(() => {
+        (prisma.school.findUnique as jest.Mock).mockResolvedValue(school);
+        (prisma.user.findFirst as jest.Mock).mockResolvedValue(owner);
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+        tx = { user: { update: jest.fn() }, school: { update: jest.fn().mockResolvedValue({ id: ID }) } };
+        (prisma.$transaction as jest.Mock).mockImplementation(async (fn: any) => fn(tx));
+    });
+
+    it('updates the school fields and the owner User email and name', async () => {
+        await updateSchoolByAdmin(ID, {
+            name: ' New ', ownerName: 'Owner B', ownerEmail: 'New@Example.com', ownerPhone: '0600', city: 'Rabat',
+            address: '', institutionType: 'TUTORING_CENTER', trialEndsAt: '2026-12-31T00:00:00.000Z',
+        });
+        expect(tx.user.update).toHaveBeenCalledWith({ where: { id: 'owner1' }, data: { email: 'new@example.com', name: 'Owner B' } });
+        expect(tx.school.update).toHaveBeenCalledWith({
+            where: { id: ID },
+            data: {
+                name: 'New', ownerName: 'Owner B', ownerEmail: 'new@example.com', ownerPhone: '0600', city: 'Rabat',
+                address: null, institutionType: 'TUTORING_CENTER', trialEndsAt: new Date('2026-12-31T00:00:00.000Z'),
+            },
+            include: { pack: true },
+        });
+    });
+
+    it('refuses an email already used by another user', async () => {
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'someone-else' });
+        await expect(updateSchoolByAdmin(ID, { ownerEmail: 'taken@example.com' })).rejects.toThrow('Email already exists');
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('does not check uniqueness when the email is unchanged', async () => {
+        await updateSchoolByAdmin(ID, { ownerEmail: 'OLD@example.com' });
+        expect(prisma.user.findUnique).not.toHaveBeenCalled();
+        expect(tx.user.update).not.toHaveBeenCalled();
+    });
+
+    it('maps a unique-index race to Email already exists', async () => {
+        (prisma.$transaction as jest.Mock).mockRejectedValue(Object.assign(new Error('dup'), { code: 'P2002' }));
+        await expect(updateSchoolByAdmin(ID, { ownerEmail: 'x@example.com' })).rejects.toThrow('Email already exists');
+    });
+
+    it.each([
+        [{ name: '' }, 'name is required'],
+        [{ ownerEmail: 'nope' }, 'ownerEmail is invalid'],
+        [{ institutionType: 'BAKERY' }, 'institutionType is invalid'],
+        [{ trialEndsAt: 'not a date' }, 'trialEndsAt must be a valid date'],
+    ])('validates %j', async (input, message) => {
+        await expect(updateSchoolByAdmin(ID, input)).rejects.toThrow(message);
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('rejects a bad id and an unknown school', async () => {
+        await expect(updateSchoolByAdmin('', { name: 'X' })).rejects.toThrow();
+        (prisma.school.findUnique as jest.Mock).mockResolvedValue(null);
+        await expect(updateSchoolByAdmin(ID, { name: 'X' })).rejects.toThrow('School not found');
+    });
+});
+
+describe('resetOwnerPassword', () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    it('hashes the password and stores it on the owner', async () => {
+        jest.spyOn(bcryptUtil, 'hashPassword').mockResolvedValue('hashed');
+        (prisma.user.findFirst as jest.Mock).mockResolvedValue({ id: 'owner1' });
+        await expect(resetOwnerPassword(ID, 'newpass123')).resolves.toEqual({ ok: true });
+        expect(bcryptUtil.hashPassword).toHaveBeenCalledWith('newpass123');
+        expect(prisma.user.update).toHaveBeenCalledWith({ where: { id: 'owner1' }, data: { password: 'hashed' } });
+    });
+
+    it('refuses a short password and a school without owner', async () => {
+        await expect(resetOwnerPassword(ID, 'short')).rejects.toThrow('at least 8');
+        (prisma.user.findFirst as jest.Mock).mockResolvedValue(null);
+        await expect(resetOwnerPassword(ID, 'longenough')).rejects.toThrow('Owner not found');
+        expect(prisma.user.update).not.toHaveBeenCalled();
     });
 });
