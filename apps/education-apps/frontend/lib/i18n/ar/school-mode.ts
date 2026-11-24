@@ -166,4 +166,10 @@ export const schoolMode: Record<string, string> = {
     'Aucune mensualité définie pour cet élève': 'لا يوجد واجب شهري محدد لهذا التلميذ',
     'Ce mois est déjà payé': 'هذا الشهر مؤدّى',
     "Le mode école privée n'est pas activé pour cet établissement": 'وضع المدرسة الخصوصية غير مفعّل لهذه المؤسسة',
+    'Chaque montant doit être un nombre positif': 'يجب أن يكون كل مبلغ عددا موجبا',
+    'La grille des tarifs est invalide': 'جدول الرسوم غير صالح',
+    'Un niveau ne fait pas partie des cycles de l’établissement': 'أحد المستويات لا ينتمي إلى أسلاك المؤسسة',
+    'Il reste {amount} MAD à payer pour ce mois': 'يتبقى {amount} درهم للأداء عن هذا الشهر',
+    'La scolarité de cet élève commence en {month}': 'يبدأ تمدرس هذا التلميذ في {month}',
+    'Payé (statut)': 'مؤدّى',
 };

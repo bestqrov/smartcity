@@ -9,7 +9,8 @@ import { collectMonth, getDues, type DueRow, type DuesList } from '@/lib/service
 
 const thisMonth = () => new Date().toISOString().slice(0, 7);
 const STATUS_CLS = { PAID: 'bg-emerald-50 text-emerald-700', PARTIAL: 'bg-amber-50 text-amber-800', UNPAID: 'bg-red-50 text-red-700' };
-const STATUS_TXT = { PAID: 'Payé', PARTIAL: 'Partiel', UNPAID: 'Non payé' };
+// « Payé (statut) » is its own key so Arabic shows مؤدّى here; French drops the suffix.
+const STATUS_TXT = { PAID: 'Payé (statut)', PARTIAL: 'Partiel', UNPAID: 'Non payé' };
 const HEADERS = ['Élève', 'Niveau', 'Mensualité', 'Payé', 'Statut', ''];
 
 // Monthly tuition: who paid this month, who did not; collect a month or remind the parent.
@@ -93,7 +94,7 @@ export default function MensualitesPage() {
                                     <td className="px-4 py-3">{tr(levelLabel(r.level))}</td>
                                     <td className="px-4 py-3"><bdi dir="ltr">{r.due}</bdi> {tr('MAD')}</td>
                                     <td className="px-4 py-3"><bdi dir="ltr">{r.paid}</bdi> {tr('MAD')}</td>
-                                    <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_CLS[r.status]}`}>{tr(STATUS_TXT[r.status])}</span></td>
+                                    <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xs font-bold ${STATUS_CLS[r.status]}`}>{tr(STATUS_TXT[r.status]).replace(' (statut)', '')}</span></td>
                                     <td className="px-4 py-3">
                                         {r.status !== 'PAID' && (
                                             <div className="flex gap-2">

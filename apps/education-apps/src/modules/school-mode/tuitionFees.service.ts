@@ -13,7 +13,7 @@ export const branchCycles = async (branchId: string): Promise<string[]> =>
 
 const amount = (value: unknown): number => {
     const n = typeof value === 'string' && value.trim() !== '' ? Number(value) : typeof value === 'number' ? value : value == null ? 0 : NaN;
-    if (!Number.isFinite(n) || n < 0) throw new Error('Each amount must be a positive number');
+    if (!Number.isFinite(n) || n < 0) throw new Error('Chaque montant doit être un nombre positif');
     return Math.round(n * 100) / 100;
 };
 
@@ -28,10 +28,10 @@ export const getTuitionGrid = async (branchId: string): Promise<TuitionRow[]> =>
 };
 
 export const saveTuitionGrid = async (branchId: string, items: unknown): Promise<TuitionRow[]> => {
-    if (!Array.isArray(items)) throw new Error('items must be a list');
+    if (!Array.isArray(items)) throw new Error('La grille des tarifs est invalide');
     const levels = levelsOfCycles(await branchCycles(branchId));
     const rows = items.map((item: any) => {
-        if (!levels.includes(item?.level)) throw new Error(`Level ${item?.level} is not one of this school's cycles`);
+        if (!levels.includes(item?.level)) throw new Error('Un niveau ne fait pas partie des cycles de l’établissement');
         return { level: item.level as string, inscriptionFee: amount(item.inscriptionFee), monthlyFee: amount(item.monthlyFee), insuranceFee: amount(item.insuranceFee) };
     });
     await prisma.$transaction(

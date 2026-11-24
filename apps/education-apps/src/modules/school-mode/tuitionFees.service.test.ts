@@ -39,9 +39,9 @@ describe('saveTuitionGrid', () => {
     });
 
     it('refuses levels outside the cycles and negative amounts', async () => {
-        await expect(saveTuitionGrid('b1', [{ level: 'P1', inscriptionFee: 1, monthlyFee: 1, insuranceFee: 1 }])).rejects.toThrow('P1');
-        await expect(saveTuitionGrid('b1', [{ level: 'PS1', inscriptionFee: -1, monthlyFee: 1, insuranceFee: 1 }])).rejects.toThrow('amount');
-        await expect(saveTuitionGrid('b1', 'nope' as any)).rejects.toThrow('items');
+        await expect(saveTuitionGrid('b1', [{ level: 'P1', inscriptionFee: 1, monthlyFee: 1, insuranceFee: 1 }])).rejects.toThrow('cycles de l’établissement');
+        await expect(saveTuitionGrid('b1', [{ level: 'PS1', inscriptionFee: -1, monthlyFee: 1, insuranceFee: 1 }])).rejects.toThrow('nombre positif');
+        await expect(saveTuitionGrid('b1', 'nope' as any)).rejects.toThrow('grille des tarifs');
         expect(db.tuitionFee.upsert).not.toHaveBeenCalled();
     });
 });
