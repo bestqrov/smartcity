@@ -124,6 +124,18 @@ export const update = async (req: TenantRequest, res: Response): Promise<void> =
         if (parentRelation !== undefined) updateData.parentRelation = parentRelation;
         if (parentId !== undefined) updateData.parentId = parentId;
 
+        // Complete private school file (see src/modules/school-mode)
+        const SCHOOL_FIELDS = [
+            'nameAr', 'surnameAr', 'gender', 'nationality', 'schoolYear', 'enrollmentKind', 'fatherCin', 'fatherPhone', 'fatherJob',
+            'motherCin', 'motherPhone', 'motherJob', 'payer', 'emergencyName', 'emergencyPhone', 'bloodGroup', 'chronicDiseases',
+            'medications', 'careConsent', 'documents',
+        ] as const;
+        for (const key of SCHOOL_FIELDS) if (req.body[key] !== undefined) updateData[key] = req.body[key];
+        if (req.body.gender !== undefined && req.body.gender !== null && !['M', 'F'].includes(req.body.gender)) {
+            sendError(res, 'Le sexe doit être M ou F', 'Validation error', 400);
+            return;
+        }
+
         const student = await updateStudent(id, req.branchId!, updateData);
 
         sendSuccess(res, stripTokenHash(student), 'Student updated successfully', 200);

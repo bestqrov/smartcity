@@ -3,7 +3,7 @@ import prisma from '../../config/database';
 import { getSchoolCapacity, remainingPlaces } from '../packs/packs.limits';
 import { assertStudentCapacity } from '../packs/packs.limits';
 import { generateRawToken, hashToken } from '../../utils/accessToken';
-import { duplicateKeys, foldText, normalizePhone, normalizeRow, type ImportRow, type NormalizedRow } from './normalize';
+import { duplicateKeys, foldText, normalizePhone, normalizeRow, schoolModeFields, type ImportRow, type NormalizedRow } from './normalize';
 
 export const MAX_IMPORT_ROWS = 1000;
 
@@ -39,12 +39,14 @@ const assertRows = (rows: unknown): ImportRow[] => {
 export const validateImport = async (branchId: string, input: unknown, today: Date = new Date()): Promise<ImportValidation> => {
     const rows = assertRows(input);
 
-    const [existing, groups, capacity, parentList] = await Promise.all([
+    const [existing, groups, capacity, parentList, settings] = await Promise.all([
         prisma.student.findMany({ where: { branchId }, select: { surname: true, name: true, birthDate: true, massarNumber: true } }),
         prisma.group.findMany({ where: { branchId }, select: { id: true, name: true } }),
         getSchoolCapacity(branchId),
         prisma.parent.findMany({ where: { branchId }, select: { id: true, phone: true } }),
+        prisma.settings.findUnique({ where: { branchId }, select: { schoolCycles: true } }),
     ]);
+    const cycles = settings?.schoolCycles ?? [];
 
     const parentIds = new Map<string, string>();
     for (const parent of parentList) {
@@ -59,6 +61,8 @@ export const validateImport = async (branchId: string, input: unknown, today: Da
 
     const checked: CheckedRow[] = rows.map((row) => {
         const normalized = normalizeRow(row, today);
+        // Arabic names, sex and level code for a complete private school (extra keys of the raw row)
+        Object.assign(normalized.data, schoolModeFields(row, cycles));
         if (normalized.errors.length > 0) return { ...normalized, status: 'error' };
 
         const keys = duplicateKeys(normalized.data);

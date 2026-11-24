@@ -14,6 +14,7 @@ jest.mock('../../config/database', () => ({
         student: { findMany: jest.fn(), create: jest.fn() },
         group: { findMany: jest.fn(), create: jest.fn() },
         parent: { findMany: jest.fn(), create: jest.fn() },
+        settings: { findUnique: jest.fn().mockResolvedValue(null) },
     },
 }));
 

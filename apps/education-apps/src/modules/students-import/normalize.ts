@@ -1,4 +1,6 @@
 // src/modules/students-import/normalize.ts
+import { levelCycle, levelFromText } from '../school-mode/levels';
+
 // Pure normalisation of one imported row: no database access, so it is fully unit-tested.
 
 export const TEXT_FIELDS = [
@@ -25,6 +27,9 @@ export const IMPORT_FIELDS = [
     'phone',
     'email',
     'parentPhone',
+    'nameAr',
+    'surnameAr',
+    'gender',
     ...TEXT_FIELDS,
 ] as const;
 
@@ -50,6 +55,9 @@ export interface StudentImportData {
     parentRelation?: string;
     crecheSection?: string;
     healthNotes?: string;
+    nameAr?: string;
+    surnameAr?: string;
+    gender?: string;
 }
 
 export interface NormalizedRow {
@@ -190,3 +198,20 @@ export const normalizeRow = (row: ImportRow, today: Date = new Date()): Normaliz
     const group = get('group');
     return { rowNumber: row.rowNumber, data, group: group || null, errors, warnings };
 };
+
+// Extra columns and level codes for a complete private school (branch with cycles).
+export function schoolModeFields(row: Partial<Record<'schoolLevel' | 'nameAr' | 'surnameAr' | 'gender', string>>, cycles: string[]) {
+    const out: Record<string, string> = {};
+    const code = levelFromText(row.schoolLevel);
+    if (cycles.length > 0 && code && cycles.includes(levelCycle(code) ?? '')) out.schoolLevel = code;
+    for (const key of ['nameAr', 'surnameAr'] as const) {
+        const value = row[key]?.trim();
+        if (value) out[key] = value.slice(0, 80);
+    }
+    const g = row.gender?.trim().toLowerCase();
+    if (g) {
+        if (/^(m|h|garcon|garçon|masculin|homme|ذكر)$/.test(g)) out.gender = 'M';
+        else if (/^(f|fille|feminin|féminin|femme|أنثى|انثى)$/.test(g)) out.gender = 'F';
+    }
+    return out;
+}
