@@ -2,6 +2,7 @@
 import prisma from '../../config/database';
 import { assertStudentCapacity } from '../packs/packs.limits';
 import { createSubscription } from '../transport/subscriptions.service';
+import { branchHasFeature } from '../packs/packFeatures';
 import { registerSchoolStudent, splitPaid } from './inscription.service';
 
 jest.mock('../packs/packs.limits', () => ({ assertStudentCapacity: jest.fn() }));
@@ -10,7 +11,7 @@ jest.mock('../packs/packFeatures', () => ({ branchHasFeature: jest.fn().mockReso
 jest.mock('../../config/database', () => {
     const tx = {
         parent: { findFirst: jest.fn(), create: jest.fn() },
-        student: { create: jest.fn() },
+        student: { create: jest.fn(), findFirst: jest.fn() },
         inscription: { create: jest.fn() },
         payment: { create: jest.fn() },
         transaction: { create: jest.fn() },
@@ -43,6 +44,7 @@ beforeEach(() => {
     db.tuitionFee.findUnique.mockResolvedValue({ inscriptionFee: 500, monthlyFee: 600, insuranceFee: 150 });
     db.student.findFirst.mockResolvedValue(null);
     tx.parent.findFirst.mockResolvedValue(null);
+    tx.student.findFirst.mockResolvedValue(null);
     tx.parent.create.mockResolvedValue({ id: 'par1' });
     tx.student.create.mockImplementation(({ data }: any) => ({ id: 'stu1', ...data }));
     tx.payment.create.mockImplementation(({ data }: any) => ({ id: `pay-${data.forMonth ?? 'fees'}`, ...data }));
@@ -137,5 +139,20 @@ describe('registerSchoolStudent', () => {
         // inactive students keep their Massar code too
         expect(db.student.findFirst.mock.calls.at(-1)[0].where).toEqual({ branchId: 'b1', massarNumber: 'J130000001' });
         expect(db.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('reports transport not in the pack and creates no subscription', async () => {
+        (branchHasFeature as jest.Mock).mockResolvedValueOnce(false);
+        const result = await registerSchoolStudent('b1', { ...base, transport: { routeId: 'aaaaaaaaaaaaaaaaaaaaaaaa', stopId: 'bbbbbbbbbbbbbbbbbbbbbbbb' } }, NOW);
+        expect(result.transportError).toBe("Le transport n'est pas inclus dans le pack");
+        expect(createSubscription).not.toHaveBeenCalled();
+        expect(tx.student.create).toHaveBeenCalled();
+    });
+
+    it('checks the Massar code again inside the transaction', async () => {
+        tx.student.findFirst.mockResolvedValue({ name: 'Adam', surname: 'Bennani' });
+        await expect(registerSchoolStudent('b1', { ...base, massarNumber: 'A123456789' }, NOW)).rejects.toThrow('Adam Bennani');
+        expect(db.student.findFirst).toHaveBeenCalled();
+        expect(tx.student.create).not.toHaveBeenCalled();
     });
 });

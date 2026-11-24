@@ -3,7 +3,7 @@ import prisma from '../../config/database';
 import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { tenantScopeMiddleware, type TenantRequest } from '../../middlewares/tenantScope.middleware';
-import { collect, dues, getGrid, register, saveGrid } from './schoolMode.controller';
+import { collect, dues, summary, getGrid, register, saveGrid } from './schoolMode.controller';
 
 // Only a private school (institution type) or a branch with school cycles may use school mode.
 export async function schoolModeGate(req: TenantRequest, res: Response, next: NextFunction): Promise<void> {
@@ -34,6 +34,7 @@ router.get('/tuition-fees', getGrid);
 router.put('/tuition-fees', roleMiddleware('ADMIN', 'OWNER'), saveGrid);
 router.post('/inscriptions', register);
 router.get('/dues', dues);
+router.get('/dues/summary', summary);
 router.post('/dues/payments', collect);
 
 export default router;

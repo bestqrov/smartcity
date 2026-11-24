@@ -432,6 +432,7 @@ model AccessLog {
   @@map("access_logs")
 }
 
+// SECRETARY can read Settings (school mode, sidebar): never store secrets here.
 model Settings {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   schoolName   String

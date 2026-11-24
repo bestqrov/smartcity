@@ -33,3 +33,21 @@ export const startMonthFor = (now = new Date()): string => {
     if (month === 7 || month === 8) return ym(year, 9);
     return ym(year, month);
 };
+
+/** Current month (AAAA-MM) in Morocco. */
+export const currentMonth = (now = new Date()): string => {
+    const { year, month } = moroccoYearMonth(now);
+    return ym(year, month);
+};
+
+/** Due months (September–June) from `from` to `to`, both included. */
+export const dueMonthsBetween = (from: string, to: string): string[] => {
+    const out: string[] = [];
+    let [y, m] = from.split('-').map(Number);
+    for (let key = ym(y, m); key <= to; key = ym(y, m)) {
+        if (isDueMonth(key)) out.push(key);
+        m += 1;
+        if (m > 12) { m = 1; y += 1; }
+    }
+    return out;
+};

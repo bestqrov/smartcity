@@ -8,7 +8,7 @@ import prisma from '../../config/database';
 
 jest.mock('./tuitionFees.service', () => ({ getTuitionGrid: jest.fn().mockResolvedValue([]), saveTuitionGrid: jest.fn().mockResolvedValue([]) }));
 jest.mock('./inscription.service', () => ({ registerSchoolStudent: jest.fn().mockResolvedValue({ student: { id: 's1' }, summary: {} }) }));
-jest.mock('./dues.service', () => ({ listDues: jest.fn().mockResolvedValue({ rows: [] }), collectMonth: jest.fn().mockResolvedValue({ id: 'p1' }) }));
+jest.mock('./dues.service', () => ({ listDues: jest.fn().mockResolvedValue({ rows: [] }), collectMonth: jest.fn().mockResolvedValue({ id: 'p1' }), duesSummary: jest.fn().mockResolvedValue({ unpaid: 1200, months: 1000, inscriptions: 200 }) }));
 jest.mock('../../middlewares/tenantScope.middleware', () => ({ tenantScopeMiddleware: (req: any, _res: any, next: any) => ((req.branchId = 'b1'), next()) }));
 jest.mock('../../config/database', () => ({
     __esModule: true,
@@ -55,6 +55,12 @@ it('records a monthly payment', async () => {
     const res = await request(app).post('/api/school-mode/dues/payments').set('Authorization', 'Bearer SECRETARY').send({ studentId: 's1', month: '2026-11' });
     expect(res.status).toBe(201);
     expect(collectMonth).toHaveBeenCalledWith('b1', { studentId: 's1', month: '2026-11' });
+});
+
+it('gives the secretary the unpaid summary', async () => {
+    const res = await request(app).get('/api/school-mode/dues/summary').set('Authorization', 'Bearer SECRETARY');
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({ unpaid: 1200, months: 1000, inscriptions: 200 });
 });
 
 it('answers 401 without a token', async () => {

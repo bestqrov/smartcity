@@ -92,6 +92,11 @@ export const registerSchoolStudent = async (branchId: string, input: Record<stri
     const startMonth = startMonthFor(now);
 
     const created = await prisma.$transaction(async (tx) => {
+        // Checked again inside the transaction: two concurrent inscriptions with the same code conflict here.
+        if (massar) {
+            const other = await tx.student.findFirst({ where: { branchId, massarNumber: massar }, select: { name: true, surname: true } });
+            if (other) throw new Error(`Code Massar déjà utilisé par ${other.name} ${other.surname}`);
+        }
         let parentId: string | undefined;
         if (parentPhone) {
             const existing = await tx.parent.findFirst({ where: { branchId, phone: parentPhone }, select: { id: true } });
@@ -184,8 +189,10 @@ export const registerSchoolStudent = async (branchId: string, input: Record<stri
 
     // Transport is optional: the inscription is committed, so a transport failure is reported, not thrown.
     let transportError: string | undefined;
-    if (input.transport?.routeId && input.transport?.stopId && (await branchHasFeature(branchId, 'TRANSPORT'))) {
-        try {
+    if (input.transport?.routeId && input.transport?.stopId) {
+        if (!(await branchHasFeature(branchId, 'TRANSPORT'))) {
+            transportError = "Le transport n'est pas inclus dans le pack";
+        } else try {
             await createSubscription({ studentId: created.student.id, routeId: input.transport.routeId, stopId: input.transport.stopId, branchId, startDate: now });
         } catch (error) {
             transportError = error instanceof Error ? error.message : String(error);

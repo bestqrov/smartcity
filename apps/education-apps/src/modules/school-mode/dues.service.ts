@@ -1,7 +1,7 @@
 // src/modules/school-mode/dues.service.ts
 import prisma from '../../config/database';
 import { assertId } from '../transport/ids';
-import { isDueMonth, isMonthKey } from './schoolYear';
+import { currentMonth, currentSchoolYear, dueMonthsBetween, isDueMonth, isMonthKey } from './schoolYear';
 
 export type DueStatus = 'PAID' | 'PARTIAL' | 'UNPAID';
 export const METHODS = ['CASH', 'CHEQUE', 'VIREMENT', 'CARD'];
@@ -14,15 +14,19 @@ export const listDues = async (branchId: string, month: string) => {
     const empty = { month, rows: [] as any[], totals: { expected: 0, collected: 0, remaining: 0 } };
     if (!isDueMonth(month)) return empty;
 
+    // Students inactive now but paid for that month still count for it (no deactivation date is stored).
+    const monthPayments = await prisma.payment.findMany({
+        where: { branchId, forMonth: month, ...TUITION },
+        select: { studentId: true, amount: true },
+    });
+    const paidIds = [...new Set(monthPayments.map((p) => p.studentId))];
     const students = await prisma.student.findMany({
-        where: { branchId, active: true, monthlyFee: { gt: 0 } },
+        where: { branchId, monthlyFee: { gt: 0 }, OR: [{ active: true }, { id: { in: paidIds } }] },
         select: { id: true, name: true, surname: true, schoolLevel: true, monthlyFee: true, parentPhone: true, groupIds: true, tuitionStartMonth: true },
         orderBy: [{ surname: 'asc' }, { name: 'asc' }],
     }).then((all) => all.filter((s) => !s.tuitionStartMonth || s.tuitionStartMonth <= month)); // not yet enrolled that month
-    const payments = await prisma.payment.findMany({
-        where: { branchId, forMonth: month, ...TUITION, studentId: { in: students.map((s) => s.id) } },
-        select: { studentId: true, amount: true },
-    });
+    const listed = new Set(students.map((s) => s.id));
+    const payments = monthPayments.filter((p) => listed.has(p.studentId));
     const paidBy = new Map<string, number>();
     for (const p of payments) paidBy.set(p.studentId, round((paidBy.get(p.studentId) ?? 0) + p.amount));
 
@@ -35,6 +39,43 @@ export const listDues = async (branchId: string, month: string) => {
     const expected = round(rows.reduce((sum, r) => sum + r.due, 0));
     const collected = round(rows.reduce((sum, r) => sum + Math.min(r.paid, r.due), 0));
     return { month, rows, totals: { expected, collected, remaining: round(expected - collected) } };
+};
+
+/**
+ * Everything still owed today by active school-mode students: unpaid months from
+ * max(tuitionStartMonth, start of the school year) to the current month (Sept–June, Morocco time),
+ * plus unpaid inscription balances (inscriptions − tuition payments without a month).
+ */
+export const duesSummary = async (branchId: string, now = new Date()) => {
+    const yearStart = `${currentSchoolYear(now).slice(0, 4)}-09`;
+    const thisMonth = currentMonth(now);
+    const students = await prisma.student.findMany({
+        where: { branchId, active: true, monthlyFee: { gt: 0 } },
+        select: { id: true, monthlyFee: true, tuitionStartMonth: true },
+    });
+    const ids = students.map((s) => s.id);
+    if (!ids.length) return { unpaid: 0, months: 0, inscriptions: 0 };
+    const [payments, inscriptions] = await Promise.all([
+        prisma.payment.findMany({ where: { branchId, studentId: { in: ids }, ...TUITION }, select: { studentId: true, amount: true, forMonth: true } }),
+        prisma.inscription.findMany({ where: { branchId, studentId: { in: ids } }, select: { studentId: true, amount: true } }),
+    ]);
+    const byMonth = new Map<string, number>();
+    const feesPaid = new Map<string, number>();
+    for (const p of payments) {
+        if (p.forMonth) byMonth.set(`${p.studentId}|${p.forMonth}`, (byMonth.get(`${p.studentId}|${p.forMonth}`) ?? 0) + p.amount);
+        else feesPaid.set(p.studentId, (feesPaid.get(p.studentId) ?? 0) + p.amount);
+    }
+    const feesDue = new Map<string, number>();
+    for (const i of inscriptions) feesDue.set(i.studentId, (feesDue.get(i.studentId) ?? 0) + i.amount);
+
+    let months = 0;
+    let fees = 0;
+    for (const s of students) {
+        const from = s.tuitionStartMonth && s.tuitionStartMonth > yearStart ? s.tuitionStartMonth : yearStart;
+        for (const m of dueMonthsBetween(from, thisMonth)) months += Math.max(0, (s.monthlyFee ?? 0) - (byMonth.get(`${s.id}|${m}`) ?? 0));
+        fees += Math.max(0, (feesDue.get(s.id) ?? 0) - (feesPaid.get(s.id) ?? 0));
+    }
+    return { unpaid: round(months + fees), months: round(months), inscriptions: round(fees) };
 };
 
 export const collectMonth = async (branchId: string, input: Record<string, any>) => {

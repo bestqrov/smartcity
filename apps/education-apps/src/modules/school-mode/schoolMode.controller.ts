@@ -2,7 +2,7 @@ import { Response } from 'express';
 import type { TenantRequest } from '../../middlewares/tenantScope.middleware';
 import { respond } from '../transport/http';
 import { sendError } from '../../utils/response';
-import { collectMonth, listDues } from './dues.service';
+import { collectMonth, duesSummary, listDues } from './dues.service';
 import { registerSchoolStudent } from './inscription.service';
 import { getTuitionGrid, saveTuitionGrid } from './tuitionFees.service';
 
@@ -22,3 +22,5 @@ export const dues = (req: TenantRequest, res: Response) => {
 };
 export const collect = (req: TenantRequest, res: Response) =>
     respond(res, () => collectMonth(req.branchId!, req.body ?? {}), { message: 'Payment recorded', failure: 'Failed to record the payment', status: 201 });
+export const summary = (req: TenantRequest, res: Response) =>
+    respond(res, () => duesSummary(req.branchId!), { message: 'Dues summary retrieved', failure: 'Failed to retrieve the dues summary' });

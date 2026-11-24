@@ -1,11 +1,12 @@
 // src/modules/school-mode/dues.service.test.ts
 import prisma from '../../config/database';
-import { collectMonth, listDues } from './dues.service';
+import { collectMonth, duesSummary, listDues } from './dues.service';
 
 jest.mock('../../config/database', () => {
     const db: any = {
         student: { findMany: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
         payment: { findMany: jest.fn(), create: jest.fn() },
+        inscription: { findMany: jest.fn() },
         transaction: { create: jest.fn() },
     };
     db.$transaction = jest.fn((cb: any) => cb(db));
@@ -29,7 +30,7 @@ describe('listDues', () => {
             { studentId: 's2', amount: 300 },
         ]);
         const result = await listDues('b1', '2026-11');
-        expect(db.student.findMany.mock.calls[0][0].where).toMatchObject({ branchId: 'b1', active: true, monthlyFee: { gt: 0 } });
+        expect(db.student.findMany.mock.calls[0][0].where).toMatchObject({ branchId: 'b1', monthlyFee: { gt: 0 }, OR: [{ active: true }, { id: { in: ['s1', 's2'] } }] });
         expect(result.rows.map((r) => [r.studentId, r.paid, r.status])).toEqual([
             ['s1', 600, 'PAID'],
             ['s2', 300, 'PARTIAL'],
@@ -53,6 +54,49 @@ describe('listDues', () => {
     it('has nothing due in July and August', async () => {
         expect(await listDues('b1', '2027-07')).toEqual({ month: '2027-07', rows: [], totals: { expected: 0, collected: 0, remaining: 0 } });
         expect(db.student.findMany).not.toHaveBeenCalled();
+    });
+});
+
+describe('listDues for a past month', () => {
+    it('keeps an inactive student who paid that month', async () => {
+        db.payment.findMany.mockResolvedValue([{ studentId: 'gone', amount: 600 }]);
+        db.student.findMany.mockResolvedValue([{ id: 'gone', name: 'Old', surname: 'Kid', schoolLevel: 'P1', monthlyFee: 600, parentPhone: null, groupIds: [], tuitionStartMonth: null }]);
+        const result = await listDues('b1', '2026-10');
+        expect(db.student.findMany.mock.calls[0][0].where.OR).toEqual([{ active: true }, { id: { in: ['gone'] } }]);
+        expect(result.rows[0]).toMatchObject({ studentId: 'gone', paid: 600, status: 'PAID' });
+    });
+});
+
+describe('duesSummary', () => {
+    const NOW = new Date('2026-11-24T10:00:00Z');
+    it('adds unpaid months since the year start and unpaid inscription balances', async () => {
+        db.student.findMany.mockResolvedValue([
+            { id: 's1', monthlyFee: 600, tuitionStartMonth: '2025-09' }, // old start: counted from 2026-09
+            { id: 's2', monthlyFee: 800, tuitionStartMonth: '2026-11' },
+        ]);
+        db.payment.findMany.mockResolvedValue([
+            { studentId: 's1', amount: 600, forMonth: '2026-09' },
+            { studentId: 's1', amount: 200, forMonth: '2026-10' },
+            { studentId: 's1', amount: 600, forMonth: '2026-06' }, // previous year: ignored
+            { studentId: 's2', amount: 300, forMonth: null }, // fees paid
+        ]);
+        db.inscription.findMany.mockResolvedValue([{ studentId: 's2', amount: 650 }, { studentId: 's1', amount: 500 }]);
+        const result = await duesSummary('b1', NOW);
+        // s1: oct 400 + nov 600 ; s2: nov 800 ; fees: s1 500 + s2 350
+        expect(result).toEqual({ unpaid: 2650, months: 1800, inscriptions: 850 });
+    });
+
+    it('counts nothing in the summer for July/August', async () => {
+        db.student.findMany.mockResolvedValue([{ id: 's1', monthlyFee: 600, tuitionStartMonth: '2026-06' }]);
+        db.payment.findMany.mockResolvedValue([{ studentId: 's1', amount: 600, forMonth: '2026-06' }]);
+        db.inscription.findMany.mockResolvedValue([]);
+        // 2026-08-15 is still the 2025/2026 school year: Sept 2025–June 2026, June paid
+        expect(await duesSummary('b1', new Date('2026-08-15T10:00:00Z'))).toEqual({ unpaid: 0, months: 0, inscriptions: 0 });
+    });
+
+    it('returns zero without school-mode students', async () => {
+        db.student.findMany.mockResolvedValue([]);
+        expect(await duesSummary('b1')).toEqual({ unpaid: 0, months: 0, inscriptions: 0 });
     });
 });
 
