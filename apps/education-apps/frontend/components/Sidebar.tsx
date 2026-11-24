@@ -49,7 +49,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
   const user = useAuthStore(state => state.user);
   const effectiveRole = role || user?.role || 'ADMIN';
   // Monthly tuition exists only in the complete private school mode (school cycles set).
-  const { schoolMode } = useSchoolCycles();
+  const { schoolMode } = useSchoolCycles(['ADMIN', 'OWNER', 'SECRETARY'].includes(effectiveRole));
   const showDues = schoolMode && effectiveRole !== 'SUPER_ADMIN';
 
   useEffect(() => {

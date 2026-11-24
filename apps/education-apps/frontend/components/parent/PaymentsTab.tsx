@@ -3,7 +3,7 @@
 import { Bus, FileText, Info, Receipt } from 'lucide-react';
 import type { Student } from '@/types';
 import type { ParentLang, ParentMessages } from '@/lib/parent/messages';
-import { formatDate, formatMoney, studentBalance, studentOwed, studentPaid } from '@/lib/parent/helpers';
+import { formatDate, formatMoney, studentBalance, studentOwed, studentPaidOnInscriptions } from '@/lib/parent/helpers';
 import { Card, EmptyState, Ltr, SectionTitle } from './ui';
 
 interface Props {
@@ -14,10 +14,14 @@ interface Props {
 
 export default function PaymentsTab({ student, t, lang }: Props) {
     const owed = studentOwed(student);
-    const paid = studentPaid(student);
+    const paid = studentPaidOnInscriptions(student); // inscription payments only, so owed − paid = balance
     const balance = studentBalance(student);
     const inscriptions = [...(student.inscriptions || [])].sort((a, b) => b.date.localeCompare(a.date));
-    const payments = [...(student.payments || [])].sort((a, b) => b.date.localeCompare(a.date));
+    const sorted = [...(student.payments || [])].sort((a, b) => b.date.localeCompare(a.date));
+    const groupsOfPayments = [
+        { key: 'insc', title: t.inscriptionPayments, items: sorted.filter((p) => !p.forMonth) },
+        { key: 'month', title: t.monthlyPayments, items: sorted.filter((p) => !!p.forMonth) },
+    ].filter((g) => g.items.length > 0);
     const transport = student.transportSubscriptions || [];
 
     return (
@@ -98,16 +102,23 @@ export default function PaymentsTab({ student, t, lang }: Props) {
                 )}
             </Card>
 
-            <Card>
-                <SectionTitle icon={Receipt}>{t.payments}</SectionTitle>
-                {payments.length === 0 ? (
+            {groupsOfPayments.length === 0 && (
+                <Card>
+                    <SectionTitle icon={Receipt}>{t.payments}</SectionTitle>
                     <EmptyState icon={Receipt} title={t.noPayments} />
-                ) : (
+                </Card>
+            )}
+            {groupsOfPayments.map((g) => (
+                <Card key={g.key}>
+                    <SectionTitle icon={Receipt}>{g.title}</SectionTitle>
                     <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {payments.map((p) => (
+                        {g.items.map((p) => (
                             <li key={p.id} className="flex items-center justify-between gap-3 py-2.5">
                                 <div className="min-w-0">
-                                    <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">{p.method}</p>
+                                    <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
+                                        {p.forMonth ? <>{t.monthLabel} <Ltr>{p.forMonth}</Ltr></> : null}
+                                        {p.forMonth ? ' · ' : ''}{p.method}
+                                    </p>
                                     <p className="text-xs text-slate-400">
                                         <Ltr>{formatDate(p.date, lang)}</Ltr>
                                     </p>
@@ -118,8 +129,8 @@ export default function PaymentsTab({ student, t, lang }: Props) {
                             </li>
                         ))}
                     </ul>
-                )}
-            </Card>
+                </Card>
+            ))}
         </div>
     );
 }

@@ -21,3 +21,6 @@ export const registerSchoolStudent = async (payload: Record<string, unknown>) =>
 export const getDues = async (month: string) => (await api.get<ApiResponse<DuesList>>('/school-mode/dues', { params: { month } })).data.data;
 export const collectMonth = async (payload: { studentId: string; forMonth: string; amount: number; method: string }) =>
     (await api.post('/school-mode/dues/payments', payload)).data.data;
+/** Unpaid months of the school year up to now + unpaid inscription balances, for active school-mode students. */
+export interface DuesSummary { unpaid: number; months: number; inscriptions: number }
+export const getDuesSummary = async () => (await api.get<ApiResponse<DuesSummary>>('/school-mode/dues/summary')).data.data;

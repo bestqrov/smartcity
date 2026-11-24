@@ -83,9 +83,11 @@ function StudentSpace() {
     }
 
     const totalPayable = (student.inscriptions || []).reduce((sum, i) => sum + i.amount, 0);
-    const totalPaid = (student.payments || []).reduce((sum, p) => sum + p.amount, 0);
-    // Monthly tuition (forMonth set) is tracked by the dues, not by the inscriptions.
-    const balanceDue = Math.max(0, totalPayable - (student.payments || []).filter((p) => !p.forMonth).reduce((sum, p) => sum + p.amount, 0));
+    // Monthly tuition (forMonth set) is tracked by the dues, not by the inscriptions: listed apart.
+    const inscriptionPayments = (student.payments || []).filter((p) => !p.forMonth);
+    const monthlyPayments = (student.payments || []).filter((p) => !!p.forMonth);
+    const totalPaid = inscriptionPayments.reduce((sum, p) => sum + p.amount, 0);
+    const balanceDue = Math.max(0, totalPayable - totalPaid);
 
     const todayAttendance = (student.attendances || []).find(
         (a) => new Date(a.date).toDateString() === new Date().toDateString()
@@ -343,24 +345,28 @@ function StudentSpace() {
                                         </div>
                                     )}
                                 </Card>
-                                <Card>
-                                    <h3 className="font-bold text-slate-900 dark:text-white mb-3">{tr("Paiements")}</h3>
-                                    {(student.payments || []).length === 0 ? (
-                                        <p className="text-sm text-slate-400">{tr("Aucun paiement enregistré.")}</p>
-                                    ) : (
-                                        <div className="space-y-2">
-                                            {(student.payments || []).map((p) => (
-                                                <div key={p.id} className="flex items-center justify-between text-sm py-1.5 border-b border-slate-50 dark:border-slate-700/50 last:border-0">
-                                                    <div>
-                                                        <p className="font-medium text-slate-700 dark:text-slate-300">{tr(p.method)}</p>
-                                                        <p className="text-xs text-slate-400">{new Date(p.date).toLocaleDateString(appLocale())}</p>
+                                {([['Paiements d\'inscription', inscriptionPayments], ['Mensualités payées', monthlyPayments]] as const).map(([title, list]) => (
+                                    <Card key={title}>
+                                        <h3 className="font-bold text-slate-900 dark:text-white mb-3">{tr(title)}</h3>
+                                        {list.length === 0 ? (
+                                            <p className="text-sm text-slate-400">{tr("Aucun paiement enregistré.")}</p>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {list.map((p) => (
+                                                    <div key={p.id} className="flex items-center justify-between text-sm py-1.5 border-b border-slate-50 dark:border-slate-700/50 last:border-0">
+                                                        <div>
+                                                            <p className="font-medium text-slate-700 dark:text-slate-300">
+                                                                {p.forMonth && <>{tr('Mensualité')} <bdi dir="ltr">{p.forMonth}</bdi> · </>}{tr(p.method)}
+                                                            </p>
+                                                            <p className="text-xs text-slate-400">{new Date(p.date).toLocaleDateString(appLocale())}</p>
+                                                        </div>
+                                                        <span className="font-semibold text-emerald-600">+{p.amount}{' '}{tr("MAD")}</span>
                                                     </div>
-                                                    <span className="font-semibold text-emerald-600">+{p.amount}{' '}{tr("MAD")}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </Card>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </Card>
+                                ))}
                             </div>
                         </div>
                     )}

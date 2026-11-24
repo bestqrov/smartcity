@@ -158,7 +158,7 @@ export const schoolMode: Record<string, string> = {
         'السلام عليكم، نذكّركم بأن الواجب الشهري لشهر {month} الخاص بـ {name} ({amount} درهم) لم يُؤدَّ بعد. شكراً.',
     'Impossible de charger les mensualités': 'تعذّر تحميل الواجبات الشهرية',
     "Échec de l'encaissement": 'تعذّر التحصيل',
-    'Mensualités du mois non réglées': 'واجبات الشهر غير المؤداة',
+    'Mensualités et inscriptions non réglées': 'الواجبات الشهرية والتسجيلات غير المؤداة',
     // ---- server messages of the monthly tuition
     'Le mois doit être au format AAAA-MM': 'يجب أن يكون الشهر بصيغة سنة-شهر (AAAA-MM)',
     'Choisissez un mois de septembre à juin': 'اختاروا شهراً من شتنبر إلى يونيو',
@@ -172,4 +172,11 @@ export const schoolMode: Record<string, string> = {
     'Il reste {amount} MAD à payer pour ce mois': 'يتبقى {amount} درهم للأداء عن هذا الشهر',
     'La scolarité de cet élève commence en {month}': 'يبدأ تمدرس هذا التلميذ في {month}',
     'Payé (statut)': 'مؤدّى',
+    'Encaisser {month} — {name}': 'استخلاص {month} — {name}',
+    'Encaisser': 'استخلاص',
+    'Reste à payer pour ce mois : {amount} MAD': 'المتبقي عن هذا الشهر: {amount} درهم',
+    'Montant entre 0 et {max} MAD': 'المبلغ بين 0 و {max} درهم',
+    'Tous les groupes': 'جميع المجموعات',
+    "Paiements d'inscription": 'أداءات التسجيل',
+    'Mensualités payées': 'الأقساط الشهرية المؤداة',
 };
