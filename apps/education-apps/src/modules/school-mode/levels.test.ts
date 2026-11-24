@@ -26,5 +26,9 @@ describe('level catalog', () => {
         expect(levelFromText('2 Bac')).toBe('B2');
         expect(levelFromText('P5')).toBe('P5');
         expect(levelFromText('Collège')).toBeNull(); // a cycle, not a level
+        // hamza and harakat variants schools type in Excel
+        expect(levelFromText('السنة الأُولى إعدادي')).toBe('C1');
+        expect(levelFromText('السنة الثانية إبتدائي')).toBe('P2');
+        expect(levelFromText('الأولى باك')).toBe('B1');
     });
 });

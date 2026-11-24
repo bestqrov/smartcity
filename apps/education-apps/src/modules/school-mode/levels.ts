@@ -21,9 +21,12 @@ export const levelsOfCycles = (cycles: readonly string[]): string[] => CYCLES.fi
 
 const fold = (text: string) =>
     text
+        .replace(/[إأآ]/g, 'ا') // before NFD, which would split these letters into alef + a combining hamza
+        .replace(/ئ/g, 'ي')
+        .replace(/ؤ/g, 'و')
         .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
-        .replace(/[إأآ]/g, 'ا')
+        .replace(/[\u0300-\u036f]/g, '') // Latin accents
+        .replace(/[\u064B-\u065F\u0670]/g, '') // Arabic harakat and combining hamza
         .replace(/ى/g, 'ي')
         .toLowerCase()
         .replace(/\s+/g, ' ')
@@ -54,8 +57,8 @@ export function levelFromText(raw: string | null | undefined): string | null {
     if (/الثانية باك/.test(text)) return 'B2';
     const n = ORDINALS.find(([rx]) => rx.test(text))?.[1];
     if (!n) return null;
-    if (/prescolaire|maternelle|روض|اولي/.test(text)) return n <= 3 ? `PS${n}` : null;
-    if (/primaire|ابتدا/.test(text)) return `P${n}`;
-    if (/college|اعدا/.test(text)) return n <= 3 ? `C${n}` : null;
+    if (/prescolaire|maternelle|روض|التعليم الاولي/.test(text)) return n <= 3 ? `PS${n}` : null;
+    if (/primaire|ابتدائي|ابتداي/.test(text)) return `P${n}`;
+    if (/college|اعدادي/.test(text)) return n <= 3 ? `C${n}` : null;
     return null;
 }
