@@ -264,6 +264,8 @@ export interface Settings {
     transportPricingMode?: TransportPricingMode | null;
     transportUniformPrice?: number | null;
     gradingPeriods?: string[];
+    schoolCycles?: string[];
+    schoolYear?: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -354,6 +356,8 @@ export interface SettingsFormData {
     transportPricingMode?: TransportPricingMode | null;
     transportUniformPrice?: number | null;
     gradingPeriods?: string[];
+    schoolCycles?: string[];
+    schoolYear?: string | null;
 }
 
 // Category options
