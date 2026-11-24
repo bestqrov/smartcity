@@ -6,12 +6,11 @@ import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware'
 
 const router = Router();
 
-// All routes require authentication and ADMIN role
+// Owner and admin change the settings; the secretary reads them too (the school cycles
+// decide which inscription form she gets).
 router.use(authMiddleware);
-router.use(roleMiddleware('ADMIN', 'OWNER'));
-router.use(tenantScopeMiddleware);
 
-router.get('/', get);
-router.put('/', update);
+router.get('/', roleMiddleware('ADMIN', 'OWNER', 'SECRETARY'), tenantScopeMiddleware, get);
+router.put('/', roleMiddleware('ADMIN', 'OWNER'), tenantScopeMiddleware, update);
 
 export default router;

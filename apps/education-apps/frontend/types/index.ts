@@ -15,7 +15,40 @@ export interface User {
 }
 
 // Student types
-export interface Student {
+/** A person allowed to pick the child up: a free text line ("Nom (lien) — téléphone") or, in older crèche data, an object. */
+export type AuthorizedPickup = string | { name: string; phone: string; relation: string };
+
+/** Fields of the complete private school file (school mode). null when the server has no value. */
+export interface StudentSchoolFields {
+    nameAr?: string | null;
+    surnameAr?: string | null;
+    gender?: 'M' | 'F' | null;
+    nationality?: string | null;
+    schoolYear?: string | null;
+    enrollmentKind?: 'NEW' | 'RETURNING' | null;
+    fatherCin?: string | null;
+    fatherPhone?: string | null;
+    fatherJob?: string | null;
+    motherCin?: string | null;
+    motherPhone?: string | null;
+    motherJob?: string | null;
+    payer?: 'FATHER' | 'MOTHER' | 'GUARDIAN' | null;
+    emergencyName?: string | null;
+    emergencyPhone?: string | null;
+    bloodGroup?: string | null;
+    chronicDiseases?: string | null;
+    medications?: string | null;
+    careConsent?: boolean | null;
+    documents?: string[];
+    /** Frozen at inscription, after the sibling discount. */
+    monthlyFee?: number | null;
+    /** Percent applied to the monthly fee. */
+    siblingDiscount?: number | null;
+    /** "YYYY-MM": first tuition month due. */
+    tuitionStartMonth?: string | null;
+}
+
+export interface Student extends StudentSchoolFields {
     id: string;
     name: string;
     surname: string;
@@ -34,8 +67,10 @@ export interface Student {
     currentSchool?: string;
     crecheSection?: 'NOURRISSON' | 'MOYENNE' | 'GRANDE';
     healthNotes?: string;
-    authorizedPickup?: { name: string; phone: string; relation: string }[];
+    authorizedPickup?: AuthorizedPickup[];
     massarNumber?: string;
+    /** Base64 image or file path. */
+    photo?: string | null;
     subjects?: any; // JSON
     active: boolean;
     parentId?: string;
@@ -171,6 +206,8 @@ export interface Payment {
     amount: number;
     method: string;
     note?: string;
+    /** "YYYY-MM" on monthly tuition (school mode): not counted in the balance due. */
+    forMonth?: string | null;
     date: string;
     createdAt: string;
     updatedAt: string;
@@ -262,6 +299,8 @@ export interface Settings {
     transportPricingMode?: TransportPricingMode | null;
     transportUniformPrice?: number | null;
     gradingPeriods?: string[];
+    schoolCycles?: string[];
+    schoolYear?: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -297,7 +336,7 @@ export interface RegisterAdminRequest {
 }
 
 // Form types
-export interface StudentFormData {
+export interface StudentFormData extends StudentSchoolFields {
     name: string;
     surname: string;
     phone?: string;
@@ -315,7 +354,7 @@ export interface StudentFormData {
     currentSchool?: string;
     crecheSection?: 'NOURRISSON' | 'MOYENNE' | 'GRANDE';
     healthNotes?: string;
-    authorizedPickup?: { name: string; phone: string; relation: string }[];
+    authorizedPickup?: AuthorizedPickup[];
     massarNumber?: string;
     subjects?: any;
 }
@@ -352,6 +391,8 @@ export interface SettingsFormData {
     transportPricingMode?: TransportPricingMode | null;
     transportUniformPrice?: number | null;
     gradingPeriods?: string[];
+    schoolCycles?: string[];
+    schoolYear?: string | null;
 }
 
 // Category options

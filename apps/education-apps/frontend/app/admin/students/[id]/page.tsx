@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { useParams, usePathname } from 'next/navigation';
 import { getStudentById, regenerateStudentToken, regenerateStudentPortalToken } from '@/lib/services/students';
 import type { Student } from '@/types';
 import { ATTENDANCE_META, formatTime } from '@/lib/attendanceStatus';
@@ -13,6 +14,8 @@ import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
 import { hasFeature } from '@/lib/packs';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import { levelLabel } from '@/lib/levels';
+import { LEVELS } from '@/lib/schoolLevels';
+import StudentSchoolInfo from '@/components/school-mode/StudentSchoolInfo';
 type Tab = 'attendance' | 'finance' | 'inscriptions' | 'info';
 
 const TABS: { key: Tab; label: string }[] = [
@@ -26,6 +29,7 @@ export default function StudentProfilePage() {
     const { tr } = useI18n();
     const { profile: schoolProfile } = useSchoolProfile(); // pack options decide which actions show
     const { id } = useParams<{ id: string }>();
+    const base = usePathname()?.startsWith('/secretary') ? '/secretary' : '/admin';
     const [student, setStudent] = useState<Student | null>(null);
     const [tab, setTab] = useState<Tab>('attendance');
     const [rawToken, setRawToken] = useState<string | null>(null);
@@ -60,11 +64,14 @@ export default function StudentProfilePage() {
     if (loading) return <div className="p-6">{tr("Chargement…")}</div>;
     if (!student) return <div className="p-6">{tr("Élève introuvable")}</div>;
 
+    // Private school students (catalog level) have the full inscription file.
+    const schoolFile = LEVELS.some((l) => l.code === student.schoolLevel);
+
     // Monthly payments are not inscriptions: paying them must not show a negative balance due.
     const balanceDue = Math.max(
         0,
         (student.inscriptions || []).reduce((sum, i) => sum + i.amount, 0) -
-            (student.payments || []).reduce((sum, p) => sum + p.amount, 0)
+            (student.payments || []).filter((p) => !p.forMonth).reduce((sum, p) => sum + p.amount, 0)
     );
 
     return (
@@ -77,6 +84,9 @@ export default function StudentProfilePage() {
                     <p className="text-slate-500 dark:text-slate-400 mt-1">{tr(levelLabel(student.schoolLevel)) || '—'}</p>
                 </div>
                 <div className="flex gap-2">
+                    {schoolFile && (
+                        <Link href={`${base}/students/${student.id}/dossier`} className="rounded-xl border border-slate-300 px-4 py-2.5 font-medium text-slate-700 dark:border-slate-600 dark:text-slate-200">{tr('Imprimer le dossier')}</Link>
+                    )}
                     {hasFeature(schoolProfile.features, 'STUDENT_PORTAL') && (
                         <button
                             className="rounded-xl bg-slate-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-slate-700"
@@ -223,6 +233,8 @@ export default function StudentProfilePage() {
                         </div>
                     )}
 
+                    {tab === 'info' && schoolFile && <StudentSchoolInfo student={student} onSaved={setStudent} />}
+
                     {tab === 'info' && (student.crecheSection || student.healthNotes || (student.authorizedPickup && student.authorizedPickup.length > 0)) && (
                         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                             <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">{tr("Crèche")}</h2>
@@ -241,7 +253,7 @@ export default function StudentProfilePage() {
                                         <span className="text-slate-500">{tr("Personnes autorisées :")}{' '}</span>
                                         <ul className="mt-1 list-disc list-inside">
                                             {student.authorizedPickup.map((p, i) => (
-                                                <li key={i}>{p.name} — {p.phone} ({p.relation})</li>
+                                                <li key={i}>{typeof p === 'string' ? p : <>{p.name} — <bdi dir="ltr">{p.phone}</bdi> ({p.relation})</>}</li>
                                             ))}
                                         </ul>
                                     </div>

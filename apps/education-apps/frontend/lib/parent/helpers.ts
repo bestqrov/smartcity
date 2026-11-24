@@ -10,8 +10,10 @@ export const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
 
 export const studentOwed = (s: Student) => sum((s.inscriptions || []).map((i) => i.amount));
 export const studentPaid = (s: Student) => sum((s.payments || []).map((p) => p.amount));
-/** Balance as on the former parent page: sum of inscriptions − sum of tuition payments. */
-export const studentBalance = (s: Student) => studentOwed(s) - studentPaid(s);
+/** Payments that settle inscriptions: monthly tuition (forMonth set) is tracked by the dues. */
+export const studentPaidOnInscriptions = (s: Student) => sum((s.payments || []).filter((p) => !p.forMonth).map((p) => p.amount));
+/** Balance: sum of inscriptions − sum of tuition payments without forMonth. */
+export const studentBalance = (s: Student) => studentOwed(s) - studentPaidOnInscriptions(s);
 
 const locale = (lang: ParentLang) => (lang === 'ar' ? 'ar-MA' : 'fr-FR');
 

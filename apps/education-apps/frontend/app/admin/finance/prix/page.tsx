@@ -17,6 +17,8 @@ import { formationsService, Formation } from '@/lib/services/formations';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { describeApiError } from '@/lib/apiError';
+import TuitionFeesTable from '@/components/school-mode/TuitionFeesTable';
+import { useSchoolCycles } from '@/hooks/useSchoolCycles';
 interface PricingItem {
     id: string;
     category: string; // 'SOUTIEN' | 'FORMATION'
@@ -31,6 +33,7 @@ const SOUTIEN_LEVELS = ['Primaire', 'Collège', 'Lycée'];
 
 export default function PrixPage() {
     const { tr } = useI18n();
+    const { schoolMode } = useSchoolCycles();
     const [pricing, setPricing] = useState<PricingItem[]>([]);
     const [formations, setFormations] = useState<Formation[]>([]);
     const [loading, setLoading] = useState(true);
@@ -214,7 +217,8 @@ export default function PrixPage() {
                 </div>
             ) : (
                 <>
-                    {/* Soutien Scolaire */}
+                    {/* Soutien Scolaire (school mode: tuition fees per level instead) */}
+                    {schoolMode ? <TuitionFeesTable /> : (
                     <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="bg-purple-100 p-2 rounded-lg">
@@ -351,6 +355,7 @@ export default function PrixPage() {
                                 <Plus size={16} />{tr("Ajouter")}</button>
                         </form>
                     </div>
+                    )}
 
                     {/* Formations Professionnelles */}
                     <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">

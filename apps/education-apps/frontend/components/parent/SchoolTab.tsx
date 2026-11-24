@@ -151,10 +151,16 @@ export default function SchoolTab({ token, parent, student, t, lang, setActiviti
                             <ul className="space-y-1.5">
                                 {pickup.map((p, i) => (
                                     <li key={i} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm dark:bg-slate-800/60">
-                                        <span className="min-w-0 truncate text-slate-800 dark:text-slate-100">
-                                            {p.name} <span className="text-xs text-slate-400">({p.relation})</span>
-                                        </span>
-                                        <Ltr className="shrink-0 text-xs text-slate-500">{p.phone}</Ltr>
+                                        {typeof p === 'string' ? (
+                                            <span className="min-w-0 text-slate-800 dark:text-slate-100">{p}</span>
+                                        ) : (
+                                            <>
+                                                <span className="min-w-0 truncate text-slate-800 dark:text-slate-100">
+                                                    {p.name} <span className="text-xs text-slate-400">({p.relation})</span>
+                                                </span>
+                                                <Ltr className="shrink-0 text-xs text-slate-500">{p.phone}</Ltr>
+                                            </>
+                                        )}
                                     </li>
                                 ))}
                             </ul>

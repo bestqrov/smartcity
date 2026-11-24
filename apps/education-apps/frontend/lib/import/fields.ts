@@ -3,7 +3,7 @@
 // Grow SYNONYMS as real school files come in.
 
 export type ImportFieldKey =
-    | 'surname' | 'name' | 'fullName' | 'birthDate' | 'birthPlace' | 'schoolLevel' | 'group' | 'currentSchool'
+    | 'surname' | 'name' | 'nameAr' | 'surnameAr' | 'gender' | 'fullName' | 'birthDate' | 'birthPlace' | 'schoolLevel' | 'group' | 'currentSchool'
     | 'massarNumber' | 'cin' | 'address' | 'phone' | 'email' | 'fatherName' | 'motherName' | 'parentName'
     | 'parentRelation' | 'parentPhone' | 'crecheSection' | 'healthNotes';
 
@@ -15,9 +15,13 @@ export interface ImportFieldDef {
     crecheOnly?: boolean;
 }
 
+// Keep in sync with src/modules/students-import/normalize.ts (IMPORT_FIELDS): both lists must stay identical.
 export const IMPORT_FIELDS: ImportFieldDef[] = [
     { key: 'surname', label: 'Nom', hint: 'النسب', example: 'Bennani' },
     { key: 'name', label: 'Prénom', hint: 'الاسم', example: 'Omar' },
+    { key: 'nameAr', label: 'Prénom (arabe)', hint: 'الاسم بالعربية', example: 'عمر' },
+    { key: 'surnameAr', label: 'Nom (arabe)', hint: 'النسب بالعربية', example: 'بناني' },
+    { key: 'gender', label: 'Sexe', hint: 'الجنس', example: 'M' },
     { key: 'fullName', label: 'Nom complet', hint: 'الاسم الكامل', example: '' },
     { key: 'birthDate', label: 'Date de naissance', hint: 'تاريخ الازدياد', example: '05/03/2015' },
     { key: 'birthPlace', label: 'Lieu de naissance', hint: 'مكان الازدياد', example: 'Rabat' },
@@ -57,6 +61,9 @@ export const foldHeader = (value: string): string =>
 const SYNONYMS: Record<ImportFieldKey, string[]> = {
     surname: ['nom', 'nom eleve', 'nom de famille', 'family name', 'last name', 'النسب', 'الاسم العائلي', 'اسم العائلة'],
     name: ['prenom', 'prenom eleve', 'first name', 'الاسم', 'الاسم الشخصي'],
+    nameAr: ['prenom arabe', 'prenom (arabe)', 'prenom ar', 'name ar', 'الاسم بالعربية', 'الاسم الشخصي بالعربية'],
+    surnameAr: ['nom arabe', 'nom (arabe)', 'nom ar', 'surname ar', 'النسب بالعربية', 'الاسم العائلي بالعربية'],
+    gender: ['sexe', 'genre', 'gender', 'sex', 'الجنس', 'النوع'],
     fullName: ['nom et prenom', 'nom prenom', 'nom complet', 'eleve', 'full name', 'الاسم الكامل', 'الاسم و النسب', 'الاسم والنسب', 'التلميذ'],
     birthDate: ['date de naissance', 'date naissance', 'ddn', 'ne le', 'nee le', 'naissance', 'birth date', 'date of birth', 'تاريخ الازدياد', 'تاريخ الولادة'],
     birthPlace: ['lieu de naissance', 'lieu naissance', 'ne a', 'place of birth', 'مكان الازدياد', 'مكان الولادة'],

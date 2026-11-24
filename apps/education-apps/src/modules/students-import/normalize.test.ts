@@ -1,5 +1,5 @@
 // src/modules/students-import/normalize.test.ts
-import { duplicateKeys, foldText, normalizeRow, parseImportDate, normalizePhone, splitFullName } from './normalize';
+import { duplicateKeys, foldText, normalizeRow, parseImportDate, normalizePhone, splitFullName, schoolModeFields } from './normalize';
 
 const TODAY = new Date('2026-11-12T12:00:00Z');
 
@@ -126,5 +126,24 @@ describe('normalizeRow', () => {
     it('ignores unknown keys', () => {
         const result = normalizeRow({ rowNumber: 6, surname: 'A', name: 'B', password: 'x', branchId: 'evil' } as any, TODAY);
         expect(result.data).toEqual({ surname: 'A', name: 'B' });
+    });
+});
+
+describe('schoolModeFields', () => {
+    it('maps the level to a catalog code when the school has cycles', () => {
+        expect(schoolModeFields({ schoolLevel: 'السنة الثالثة ابتدائي', nameAr: ' لينا ', gender: 'Fille' }, ['PRIMAIRE']).data).toEqual({
+            schoolLevel: 'P3', nameAr: 'لينا', gender: 'F',
+        });
+        expect(schoolModeFields({ schoolLevel: '3AP', gender: 'garçon' }, []).data).toEqual({ gender: 'M' }); // classic mode: level text kept as is
+        expect(schoolModeFields({ schoolLevel: '1AC' }, ['PRIMAIRE']).data).toEqual({}); // not one of the cycles: text kept
+    });
+
+    it('folds the sex text and warns on unknown sex and truncated Arabic names', () => {
+        expect(schoolModeFields({ gender: ' Féminin ' }, []).data).toEqual({ gender: 'F' });
+        expect(schoolModeFields({ gender: 'ذَكَـر' }, []).data).toEqual({ gender: 'M' });
+        const r = schoolModeFields({ gender: 'X?', nameAr: 'ا'.repeat(90) }, []);
+        expect(r.data.gender).toBeUndefined();
+        expect(r.data.nameAr).toHaveLength(80);
+        expect(r.warnings).toHaveLength(2);
     });
 });

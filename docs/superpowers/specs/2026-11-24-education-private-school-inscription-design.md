@@ -47,6 +47,8 @@ A private school can declare its cycles, set its fees per level, and register a 
   - The school year runs **September to June**, so July and August are not due.
 - **The health record is for every student, not only préscolaire.** The existing `healthNotes` field keeps its meaning (allergies and notes). New fields are added next to it.
 - **Authorized pickup (`authorizedPickup`) shows for préscolaire levels.** It is the existing crèche field.
+- **`Student.tuitionStartMonth`** (`YYYY-MM`) is set at inscription: the month of inscription, or September during the summer. No month before it is due.
+- **`transportError`:** transport is optional and committed apart from the inscription; its failure is reported in the 201 response, not thrown.
 - **The sibling discount is optional and manual.**
   - The form suggests one when another active student has the same guardian phone.
   - The office chooses the percentage (0, 10, 15 or 20 %), and it applies to the monthly fee only.
@@ -114,23 +116,26 @@ model Student {
 - **Settings:**
   - `PUT /settings` accepts `schoolCycles` and `schoolYear`.
   - `schoolCycles` is validated: known cycles only, and only for `PRIVATE_SCHOOL`.
-- **Tuition fees** (ADMIN/OWNER, tenant-scoped; the module includes a service and its tests):
-  - `GET /tuition-fees` returns the grid for the branch's levels.
-  - `PUT /tuition-fees` takes `{ items: [{ level, inscriptionFee, monthlyFee, insuranceFee }] }` and upserts them. Unknown levels and negative amounts answer 400.
-- **Inscription:** `POST /students/school-inscription` (ADMIN/OWNER/SECRETARY) runs in one transaction:
+- **Routes.** Everything lives under `/api/school-mode` (`src/modules/school-mode`), for ADMIN/OWNER/SECRETARY, tenant-scoped, behind a gate that answers 403 `SCHOOL_MODE_DISABLED` unless the school is `PRIVATE_SCHOOL` or the branch has cycles.
+- **Tuition fees** (the module includes a service and its tests):
+  - `GET /school-mode/tuition-fees` returns the grid for the branch's levels.
+  - `PUT /school-mode/tuition-fees` (ADMIN/OWNER only) takes `{ items: [{ level, inscriptionFee, monthlyFee, insuranceFee }] }` and upserts them. Unknown levels and negative amounts answer 400.
+- **Inscription:** `POST /school-mode/inscriptions` runs in one transaction:
   1. It validates the payload: names required, a level from the branch's cycles, a known gender, `MASSAR` as one letter + 9 digits (only checked when given), and phones normalized like the import.
   2. It reads `TuitionFee` for the level. The office may override the amounts, and the overrides win.
-  3. It creates the `Student` with the new fields. It also links or creates the `Parent` by guardian phone, the same way the Excel import does.
-  4. It creates an `Inscription` with `type: SCOLARITE`, `category: level`, `amount = inscriptionFee + insuranceFee + first month`, and the note « Inscription {schoolYear} ».
+  3. It checks the Massar duplicate again inside the transaction, then creates the `Student` with the new fields and `tuitionStartMonth` = the start month. It also links or creates the `Parent` by guardian phone, the same way the Excel import does.
+  4. It creates an `Inscription` with `type: SCOLARITE`, `category: level`, `amount = inscriptionFee + insuranceFee`, and the note « Inscription {schoolYear} ».
   5. It records the amount paid now in up to two `Payment`s, so the monthly dues stay exact:
      - The fees part, `min(paid, inscriptionFee + insuranceFee)`, has no `forMonth`.
      - The rest, capped at the first month's fee, has `forMonth` = the start month: the current month, or September when registering during the summer.
      - Anything above that is refused with 400. Advance months are collected from « Mensualités ».
-  6. With transport chosen, it creates the `TransportSubscription` through the existing transport service, with the route, the stop and the start date.
+     - The first month is therefore a dues payment (with `forMonth`), never part of the `Inscription` amount. The inscription balance is `sum(inscriptions) − sum(tuition payments without forMonth)`.
+  6. With transport chosen, after the transaction, it creates the `TransportSubscription` through the existing transport service, with the route, the stop and the start date. A transport failure does not undo the inscription: the response is still 201 and carries `transportError`. Without the `TRANSPORT` pack feature, no subscription is created and `transportError` is « Le transport n'est pas inclus dans le pack ».
   7. It returns the student with a summary of the amounts.
 - **Monthly dues:**
-  - `GET /tuition/dues?month=YYYY-MM` lists the active new-mode students. For each one it gives `monthlyFee`, the amount paid for that month, and the status `PAID`/`PARTIAL`/`UNPAID`. July and August answer an empty list.
-  - `POST /tuition/payments` takes `{ studentId, forMonth, amount, method }`. It creates a `Payment` with `forMonth` and refuses a month that is already fully paid. It also feeds the transactions income, the same way existing payments do.
+  - `GET /school-mode/dues?month=YYYY-MM` lists the active new-mode students, plus inactive ones that have a payment for that month (no deactivation date is stored), and leaves out students whose `tuitionStartMonth` is after the month. For each one it gives `monthlyFee`, the amount paid for that month, and the status `PAID`/`PARTIAL`/`UNPAID`. July and August answer an empty list.
+  - `GET /school-mode/dues/summary` returns `{ unpaid, months, inscriptions }` for the dashboard « Impayés »: unpaid months (September–June, Africa/Casablanca) from `max(tuitionStartMonth, school-year start)` to the current month for active students, plus unpaid inscription balances.
+  - `POST /school-mode/dues/payments` takes `{ studentId, forMonth, amount, method }`. It creates a `Payment` with `forMonth` and refuses a month that is already fully paid. It also feeds the transactions income, the same way existing payments do.
 - **Pack options stay as they are.** The new mode is not a pack option. Transport inside the form follows the `TRANSPORT` option (hidden and refused without it).
 
 ## Frontend

@@ -1,5 +1,5 @@
 import prisma from '../../config/database';
-import { tuitionPayments } from '../payments/tuitionFilter';
+import { balancePayments, tuitionPayments } from '../payments/tuitionFilter';
 import { assertBranchCapacity } from '../packs/packs.limits';
 
 export interface CreateBranchInput {
@@ -69,7 +69,7 @@ export const getBranchSummary = async (schoolId: string) => {
                     })
                     .then((rows) => rows.length),
                 prisma.inscription.aggregate({ where: { branchId: branch.id }, _sum: { amount: true } }),
-                prisma.payment.aggregate({ where: { branchId: branch.id, ...tuitionPayments.where }, _sum: { amount: true } }),
+                prisma.payment.aggregate({ where: { branchId: branch.id, AND: [tuitionPayments.where, balancePayments] }, _sum: { amount: true } }),
             ]);
 
             const balanceDue = (inscriptionTotal._sum.amount || 0) - (paymentTotal._sum.amount || 0);

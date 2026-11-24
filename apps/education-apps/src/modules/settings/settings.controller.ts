@@ -1,5 +1,7 @@
 import { Response } from 'express';
-import { getSettings, updateSettings, validateGradingPeriods } from './settings.service';
+import { getSettings, updateSettings, validateGradingPeriods, validateSchoolCycles } from './settings.service';
+import { isSchoolYear } from '../school-mode/schoolYear';
+import prisma from '../../config/database';
 import { sendSuccess, sendError } from '../../utils/response';
 import { TenantRequest } from '../../middlewares/tenantScope.middleware';
 
@@ -14,7 +16,7 @@ export const get = async (req: TenantRequest, res: Response): Promise<void> => {
 
 export const update = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
-        const { schoolName, logo, academicYear, contactInfo, transportPricingMode, transportUniformPrice, gradingPeriods } = req.body;
+        const { schoolName, logo, academicYear, contactInfo, transportPricingMode, transportUniformPrice, gradingPeriods, schoolCycles, schoolYear } = req.body;
 
         if (transportPricingMode !== undefined && !['ROUTE', 'STOP', 'UNIFORM'].includes(transportPricingMode)) {
             sendError(res, 'transportPricingMode must be ROUTE, STOP or UNIFORM', 'Validation error', 400);
@@ -39,6 +41,21 @@ export const update = async (req: TenantRequest, res: Response): Promise<void> =
             }
         }
 
+        let cycles: string[] | undefined;
+        if (schoolCycles !== undefined) {
+            const branch = await prisma.branch.findUnique({ where: { id: req.branchId! }, select: { school: { select: { institutionType: true } } } });
+            try {
+                cycles = validateSchoolCycles(schoolCycles, branch?.school.institutionType ?? null);
+            } catch (e: any) {
+                sendError(res, e.message, 'Validation error', 400);
+                return;
+            }
+        }
+        if (schoolYear !== undefined && schoolYear !== null && !isSchoolYear(schoolYear)) {
+            sendError(res, 'schoolYear must look like 2026/2027', 'Validation error', 400);
+            return;
+        }
+
         const updateData: any = {};
         if (periods !== undefined) updateData.gradingPeriods = periods;
         if (schoolName) updateData.schoolName = schoolName;
@@ -47,6 +64,9 @@ export const update = async (req: TenantRequest, res: Response): Promise<void> =
         if (contactInfo !== undefined) updateData.contactInfo = contactInfo;
         if (transportPricingMode !== undefined) updateData.transportPricingMode = transportPricingMode;
         if (transportUniformPrice !== undefined) updateData.transportUniformPrice = transportUniformPrice;
+
+        if (cycles !== undefined) updateData.schoolCycles = cycles;
+        if (schoolYear !== undefined) updateData.schoolYear = schoolYear;
 
         const settings = await updateSettings(req.branchId!, updateData);
 

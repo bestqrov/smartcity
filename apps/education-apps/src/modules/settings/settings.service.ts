@@ -1,5 +1,6 @@
 import prisma from '../../config/database';
 import { TransportPricingMode } from '../transport/pricing';
+import { CYCLES, isCycle } from '../school-mode/levels';
 
 interface UpdateSettingsData {
     schoolName?: string;
@@ -9,7 +10,20 @@ interface UpdateSettingsData {
     transportPricingMode?: TransportPricingMode;
     transportUniformPrice?: number | null;
     gradingPeriods?: string[];
+    schoolCycles?: string[];
+    schoolYear?: string | null;
 }
+
+// The complete private school mode exists for private schools only (null type = private school).
+export const validateSchoolCycles = (value: unknown, institutionType: string | null | undefined): string[] => {
+    if (!Array.isArray(value) || !value.every(isCycle)) {
+        throw new Error('schoolCycles must be a list of PRESCOLAIRE, PRIMAIRE, COLLEGE, LYCEE');
+    }
+    if (value.length > 0 && institutionType && institutionType !== 'PRIVATE_SCHOOL') {
+        throw new Error('School cycles are only for a private school');
+    }
+    return CYCLES.filter((cycle) => value.includes(cycle));
+};
 
 const MAX_PERIODS = 6;
 const MAX_PERIOD_NAME = 30;
@@ -51,6 +65,8 @@ export const updateSettings = async (branchId: string, data: UpdateSettingsData)
             ...(data.transportPricingMode !== undefined && { transportPricingMode: data.transportPricingMode }),
             ...(data.transportUniformPrice !== undefined && { transportUniformPrice: data.transportUniformPrice }),
             ...(data.gradingPeriods !== undefined && { gradingPeriods: data.gradingPeriods }),
+            ...(data.schoolCycles !== undefined && { schoolCycles: data.schoolCycles }),
+            ...(data.schoolYear !== undefined && { schoolYear: data.schoolYear }),
         },
     });
 };

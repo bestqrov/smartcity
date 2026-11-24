@@ -28,6 +28,9 @@ import type { Payment, Student } from '@/types';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { hasFeature } from '@/lib/packs';
+import { useSchoolCycles } from '@/hooks/useSchoolCycles';
+import { levelLabel } from '@/lib/schoolLevels';
+import { getDuesSummary } from '@/lib/services/schoolMode';
 const CRECHE_SECTIONS: Record<string, string> = { NOURRISSON: 'Nourrissons', MOYENNE: 'Moyenne section', GRANDE: 'Grande section' };
 
 export default function AdminDashboard() {
@@ -54,6 +57,13 @@ export default function AdminDashboard() {
 
     const [loading, setLoading] = useState(true);
     const [isInscriptionModalOpen, setIsInscriptionModalOpen] = useState(false);
+    // School mode: « Impayés » shows unpaid months of the school year + unpaid inscription balances (computed server-side, Morocco time).
+    const { schoolMode } = useSchoolCycles();
+    const [duesUnpaid, setDuesUnpaid] = useState<number | null>(null);
+    useEffect(() => {
+        if (!schoolMode) { setDuesUnpaid(null); return; }
+        getDuesSummary().then((d) => setDuesUnpaid(d.unpaid)).catch(() => setDuesUnpaid(null));
+    }, [schoolMode]);
 
     useEffect(() => {
         loadDashboardData(true);
@@ -181,19 +191,21 @@ export default function AdminDashboard() {
         return sumByMonth(all, months, (i) => i.date || i.createdAt, () => 1).slice(-6);
     }, [students, months]);
 
+    // A school-mode code (PS2, P3…) shows its level name; free text is translated when known.
+    const levelName = (raw?: string | null) => (raw?.trim() ? tr(levelLabel(raw.trim())) : '');
     const levelSlices = useMemo(
         () =>
             topCategories(
                 students
                     .filter((s) => s.active !== false)
-                    .map((s) => (isCreche && s.crecheSection ? tr(CRECHE_SECTIONS[s.crecheSection]) : s.schoolLevel?.trim()) || tr('Non renseigné'))
+                    .map((s) => (isCreche && s.crecheSection ? tr(CRECHE_SECTIONS[s.crecheSection]) : levelName(s.schoolLevel)) || tr('Non renseigné'))
             ),
         [students, isCreche, tr]
     );
 
     const withoutInscription = students.filter((s) => s.active !== false && (s.inscriptions?.length ?? 0) === 0).length;
     const todo = [
-        stats.unpaid > 0 && { key: 'unpaid', text: tr('Relancer les impayés ({amount})', { amount: mad(stats.unpaid) }), href: paymentsHref, color: '#D97706' },
+        (duesUnpaid ?? stats.unpaid) > 0 && { key: 'unpaid', text: tr('Relancer les impayés ({amount})', { amount: mad(duesUnpaid ?? stats.unpaid) }), href: duesUnpaid !== null ? '/admin/finance/mensualites' : paymentsHref, color: '#D97706' },
         withoutInscription > 0 && { key: 'noinsc', text: tr(isCreche ? '{n} enfants actifs sans inscription' : '{n} élèves actifs sans inscription', { n: num(withoutInscription) }), href: '/admin/inscriptions', color: '#059669' },
         advancedFinance && stats.netCash < 0 && { key: 'net', text: tr('Net du mois négatif ({amount}) : vérifier les dépenses', { amount: mad(stats.netCash) }), href: '/admin/finance/transactions', color: '#BE185D' },
     ].filter(Boolean) as { key: string; text: string; href: string; color: string }[];
@@ -266,10 +278,10 @@ export default function AdminDashboard() {
                 <VibrantKpi
                     tone="amber"
                     label={tr("Impayés")}
-                    value={mad(stats.unpaid)}
-                    sub={tr("CA théorique : {v0}", { v0: mad(stats.revenueThisMonth) })}
+                    value={mad(duesUnpaid ?? stats.unpaid)}
+                    sub={duesUnpaid !== null ? tr("Mensualités et inscriptions non réglées") : tr("CA théorique : {v0}", { v0: mad(stats.revenueThisMonth) })}
                     icon={<AlertCircle size={18} />}
-                    onClick={() => router.push(paymentsHref)}
+                    onClick={() => router.push(duesUnpaid !== null ? '/admin/finance/mensualites' : paymentsHref)}
                 />
                 {advancedFinance && <VibrantKpi
                     tone="pink"

@@ -26,6 +26,7 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 import { groupsService } from '@/lib/services/groups'; // Adjust path if needed
 import AddStudentForm from '@/components/forms/AddStudentForm'; // Adjust path
 import StudentGroupModal from '@/components/StudentGroupModal'; // Adjust path
+import { levelLabel } from '@/lib/schoolLevels';
 
 export default function StudentsPage() {
     const { tr } = useI18n();
@@ -277,7 +278,7 @@ export default function StudentsPage() {
                                                                 student.schoolLevel === 'PRIMAIRE' ? 'bg-amber-50 text-amber-700 border-amber-100' :
                                                                     'bg-slate-50 text-slate-400 border-slate-100 italic'
                                                         }`}>
-                                                        {student.schoolLevel || (
+                                                        {(student.schoolLevel && tr(levelLabel(student.schoolLevel))) || (
                                                             <button onClick={() => handleEdit(student)} className="hover:text-blue-500 transition-colors">{tr("Non renseigné")}</button>
                                                         )}
                                                     </span>
@@ -314,7 +315,7 @@ export default function StudentsPage() {
                                                     </span>
                                                     {student.parentRelation && (
                                                         <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-md text-blue-600 font-black uppercase">
-                                                            {student.parentRelation}
+                                                            {tr(student.parentRelation)}
                                                         </span>
                                                     )}
                                                 </div>
