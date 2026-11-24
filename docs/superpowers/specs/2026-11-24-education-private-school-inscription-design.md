@@ -122,7 +122,10 @@ model Student {
   2. It reads `TuitionFee` for the level. The office may override the amounts, and the overrides win.
   3. It creates the `Student` with the new fields. It also links or creates the `Parent` by guardian phone, the same way the Excel import does.
   4. It creates an `Inscription` with `type: SCOLARITE`, `category: level`, `amount = inscriptionFee + insuranceFee + first month`, and the note « Inscription {schoolYear} ».
-  5. It creates a `Payment` for the amount paid now. When it covers the first month, that part carries `forMonth` = the start month.
+  5. It records the amount paid now in up to two `Payment`s, so the monthly dues stay exact:
+     - The fees part, `min(paid, inscriptionFee + insuranceFee)`, has no `forMonth`.
+     - The rest, capped at the first month's fee, has `forMonth` = the start month: the current month, or September when registering during the summer.
+     - Anything above that is refused with 400. Advance months are collected from « Mensualités ».
   6. With transport chosen, it creates the `TransportSubscription` through the existing transport service, with the route, the stop and the start date.
   7. It returns the student with a summary of the amounts.
 - **Monthly dues:**
