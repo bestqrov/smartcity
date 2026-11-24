@@ -10,8 +10,12 @@ import PortalLinkCard from '@/components/PortalLinkCard';
 import { parentPortalMessage, publicUrl } from '@/lib/publicUrl';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
+import { hasFeature } from '@/lib/packs';
+import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 export default function ParentDetailPage() {
     const { tr } = useI18n();
+    const { profile: schoolProfile } = useSchoolProfile();
+    const parentPortal = hasFeature(schoolProfile.features, 'PARENT_PORTAL');
     const { id } = useParams<{ id: string }>();
     const [parent, setParent] = useState<Parent | null>(null);
     const [rawToken, setRawToken] = useState<string | null>(null);
@@ -86,6 +90,7 @@ export default function ParentDetailPage() {
                 </div>
             </div>
 
+            {parentPortal && (
             <div className="rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm p-6 space-y-4">
                 <div>
                     <h2 className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
@@ -113,6 +118,7 @@ export default function ParentDetailPage() {
                 )}
                 {error && <p className="text-sm font-medium text-red-600 dark:text-red-400">{tr(error)}</p>}
             </div>
+            )}
         </div>
     );
 }

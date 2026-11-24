@@ -16,8 +16,12 @@ import PortalLinkCard from '@/components/PortalLinkCard';
 import { parentPortalMessage, publicUrl } from '@/lib/publicUrl';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
+import { hasFeature } from '@/lib/packs';
+import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 export default function ParentsPage() {
     const { tr } = useI18n();
+    const { profile: schoolProfile } = useSchoolProfile();
+    const parentPortal = hasFeature(schoolProfile.features, 'PARENT_PORTAL');
     const [parents, setParents] = useState<Parent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -339,13 +343,13 @@ export default function ParentsPage() {
                 >
                     <div className="w-full max-w-2xl space-y-4 rounded-2xl bg-white dark:bg-slate-800 p-5 shadow-xl">
                         <p className="text-lg font-bold text-slate-900 dark:text-white">{tr("Parent «")}{' '}{created.parent.name}{' '}{tr("» créé")}</p>
-                        <PortalLinkCard
+                        {parentPortal && <PortalLinkCard
                             title={tr("Lien d'accès du parent")}
                             url={publicUrl(`/p/${created.rawToken}`)}
                             phone={created.parent.whatsapp || created.parent.phone}
                             message={parentPortalMessage(created.parent.name)}
                             warning={tr("Envoyez-le ou imprimez-le maintenant : il ne sera plus affiché. Vous pourrez en créer un nouveau depuis la fiche du parent.")}
-                        />
+                        />}
                         <div className="flex justify-end">
                             <button
                                 type="button"

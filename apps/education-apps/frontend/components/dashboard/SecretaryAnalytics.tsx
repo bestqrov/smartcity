@@ -8,6 +8,7 @@ import { getStudents } from '@/lib/services/students';
 import { ChartCard, DonutChart, SplineChart, VBarChart, VibrantKpi } from '@/components/dashboard/Charts';
 import { lastMonths, mad, madShort, num, pct, sumByMonth } from '@/lib/dashboard/vibrant';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
+import { hasFeature } from '@/lib/packs';
 import type { Inscription, Student } from '@/types';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
@@ -15,6 +16,7 @@ export default function SecretaryAnalytics() {
     const { tr } = useI18n();
     const router = useRouter();
     const { profile } = useSchoolProfile();
+    const advancedFinance = hasFeature(profile.features, 'FINANCE_ANALYTICS');
     const [analytics, setAnalytics] = useState<InscriptionAnalytics | null>(null);
     const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
@@ -107,10 +109,12 @@ export default function SecretaryAnalytics() {
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <ChartCard palette="vibrant" className="xl:col-span-2" title={tr("Montant des inscriptions")} hint={tr("12 derniers mois")}>
-                    <SplineChart palette="vibrant" points={amountPoints} rtl={false} format={mad} formatShort={madShort} />
-                </ChartCard>
-                <ChartCard palette="vibrant" title={tr("Inscriptions du mois par type")}>
+                {advancedFinance && (
+                    <ChartCard palette="vibrant" className="xl:col-span-2" title={tr("Montant des inscriptions")} hint={tr("12 derniers mois")}>
+                        <SplineChart palette="vibrant" points={amountPoints} rtl={false} format={mad} formatShort={madShort} />
+                    </ChartCard>
+                )}
+                <ChartCard palette="vibrant" className={advancedFinance ? undefined : 'xl:col-span-3'} title={tr("Inscriptions du mois par type")}>
                     <DonutChart palette="vibrant" data={typeSlices} totalLabel={tr("inscriptions")} formatValue={num} formatPct={pct} empty={tr("Aucune inscription ce mois")} />
                 </ChartCard>
             </div>

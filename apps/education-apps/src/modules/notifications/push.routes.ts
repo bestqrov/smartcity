@@ -4,6 +4,7 @@ import { sendSuccess, sendError } from '../../utils/response';
 import { vapidPublicKey } from './push.sender';
 import { subscribe, unsubscribe } from './push.service';
 
+import { parentTokenBranch, requireFeatureForToken } from '../packs/packFeatures';
 const router = Router();
 
 const subscribeLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
@@ -14,7 +15,9 @@ router.get('/public-key', (_req: Request, res: Response) => {
     sendSuccess(res, { publicKey: vapidPublicKey() });
 });
 
-router.post('/subscribe/:token', subscribeLimiter, async (req: Request, res: Response) => {
+// Push notifications belong to the parent space: same pack option.
+const parentPortal = requireFeatureForToken('PARENT_PORTAL', parentTokenBranch);
+router.post('/subscribe/:token', subscribeLimiter, parentPortal, async (req: Request, res: Response) => {
     try {
         sendSuccess(res, await subscribe(req.params.token, req.body?.subscription, req.body?.lang), 'Subscribed', 201);
     } catch (error: any) {

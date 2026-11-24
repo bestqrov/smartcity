@@ -417,4 +417,18 @@ export const pedagogy: Record<string, string> = {
     VIREMENT: 'تحويل بنكي',
     CARD: 'بطاقة بنكية',
     SOUTIEN: 'الدعم المدرسي',
+    // ---- pack options (FeatureLocked, portals)
+    '{feature} : option non incluse dans votre pack': '{feature}: خدمة غير مُدرجة في باقتك',
+    'Votre pack actuel : {pack}.': 'باقتك الحالية: {pack}.',
+    'Contactez-nous pour ajouter cette option ou passer à un pack qui la contient.': 'تواصل معنا لإضافة هذه الخدمة أو الانتقال إلى باقة تتضمنها.',
+    'Nous contacter sur WhatsApp': 'تواصل معنا عبر واتساب',
+    'Portail parents': 'بوابة أولياء الأمور',
+    'Portail élève': 'بوابة التلميذ',
+    'Présence QR': 'الحضور بـQR',
+    'Annonces & vacances': 'الإعلانات والعطل',
+    'Finance avancée': 'المالية المتقدمة',
+    'Transport scolaire': 'النقل المدرسي',
+    'Journal quotidien (crèche)': 'اليومية (الحضانة)',
+    "L'espace élève n'est pas inclus dans l'abonnement de l'établissement.": 'فضاء التلميذ غير مُدرج في اشتراك المؤسسة.',
+    "Cette fonction n'est pas incluse dans votre pack.": 'هذه الخدمة غير مُدرجة في باقتك.',
 };

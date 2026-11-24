@@ -9,6 +9,9 @@ import { Sidebar } from '@/components/Sidebar';
 
 import TopBar from '@/components/TopBar';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
+import FeatureLocked from '@/components/packs/FeatureLocked';
+import { useSchoolProfile } from '@/hooks/useSchoolProfile';
+import { featureForPath, hasFeature } from '@/lib/packs';
 import useAuthStore, { getActiveBranchId } from '@/store/useAuthStore';
 
 const SUPER_ADMIN_HOME = '/admin/platform';
@@ -20,6 +23,10 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    // A page whose option is not on the school's pack shows why instead of its content (the API refuses it too).
+    const { profile } = useSchoolProfile();
+    const lockedFeature = featureForPath(pathname);
+    const locked = lockedFeature && !hasFeature(profile.features, lockedFeature) ? lockedFeature : null;
     const router = useRouter();
     const user = useAuthStore((state) => state.user);
 
@@ -49,7 +56,7 @@ export default function AdminLayout({
                     <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pt-16 lg:pt-20">
                         <div className="container mx-auto p-4 sm:p-6 lg:px-4 lg:py-2">
                             {pathname === '/admin' && <PackUpgradeBanner />}
-                            {children}
+                            {locked ? <FeatureLocked feature={locked} packName={profile.packName} /> : children}
                         </div>
                     </main>
                 </div>

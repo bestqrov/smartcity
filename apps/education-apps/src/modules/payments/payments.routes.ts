@@ -5,6 +5,7 @@ import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
 
+import { requireFeature } from '../packs/packFeatures';
 const router = Router();
 
 // All routes require authentication and ADMIN/OWNER role
@@ -12,7 +13,7 @@ router.use(authMiddleware);
 router.use(roleMiddleware('ADMIN', 'OWNER'));
 router.use(tenantScopeMiddleware);
 
-router.post('/salary', createSalary); // New endpoint for salary payments
+router.post('/salary', requireFeature('FINANCE_ANALYTICS'), createSalary); // New endpoint for salary payments
 router.post('/', create);
 router.get('/', getAll);
 router.get('/analytics', getAnalytics);

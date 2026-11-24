@@ -10,10 +10,17 @@ export default function ParentSpacePage() {
     const { token } = useParams<{ token: string }>();
     const [parent, setParent] = useState<Parent | null>(null);
     const [error, setError] = useState(false);
+    const [notInPack, setNotInPack] = useState(false);
 
     useEffect(() => {
-        getPublicParentProfile(token).then(setParent).catch(() => setError(true));
+        getPublicParentProfile(token)
+            .then(setParent)
+            .catch((err) => {
+                // The school's pack has no parent portal: say so rather than "link not found".
+                setNotInPack(err?.response?.data?.error === 'FEATURE_NOT_IN_PACK');
+                setError(true);
+            });
     }, [token]);
 
-    return <ParentShell token={token} parent={parent} error={error} />;
+    return <ParentShell token={token} parent={parent} error={error} notInPack={notInPack} />;
 }

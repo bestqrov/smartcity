@@ -15,6 +15,9 @@ export interface SchoolProfile {
     status?: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
     trialEndsAt?: string | null;
     institutionType?: InstitutionType | null;
+    // Options checked on the school's pack; null = no pack (no restriction). See hasFeature() in lib/packs.
+    features?: string[] | null;
+    packName?: string | null;
 }
 
 const DEFAULT_PROFILE: SchoolProfile = {
@@ -63,6 +66,8 @@ export function useSchoolProfile() {
                 status: school.status,
                 trialEndsAt: school.trialEndsAt,
                 institutionType: school.institutionType ?? null,
+                features: school.pack ? school.pack.features ?? [] : null,
+                packName: school.pack?.name ?? null,
             };
             setProfile(next);
             localStorage.setItem('school-profile', JSON.stringify(next));

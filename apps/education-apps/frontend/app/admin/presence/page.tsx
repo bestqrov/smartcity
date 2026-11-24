@@ -30,6 +30,8 @@ import {
 import type { AttendanceStatus, WeeklyAttendance, WeeklyAttendanceRecord } from '@/types';
 
 import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
+import { hasFeature } from '@/lib/packs';
+import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 // Same window groups can be scheduled in (see groups page / API timetable validation).
 const DAY_START_MIN = 8 * 60; // 08:00
 const DAY_END_MIN = 23 * 60 + 30; // 23:30
@@ -109,6 +111,7 @@ const writeStorage = (key: string, value: string) => {
 
 export default function PresencePage() {
     const { tr } = useI18n();
+    const { profile: schoolProfile } = useSchoolProfile(); // pack options decide which actions show
     // Mounted under /admin and /secretary: keep links inside the current space.
     const isSecretary = (usePathname() || '').startsWith('/secretary');
     const base = isSecretary ? '/secretary' : '/admin';
@@ -231,11 +234,11 @@ export default function PresencePage() {
                     <p className="text-slate-500 dark:text-slate-400 mt-1">{tr("Les séances viennent de l'emploi du temps du groupe. Cliquez sur une séance pour faire l'appel.")}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <Link
+                    {hasFeature(schoolProfile.features, 'QR_ATTENDANCE') && <Link
                         href={`${base}/attendance/scan`}
                         className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
-                        <QrCode size={18} />{tr("Scanner QR")}</Link>
+                        <QrCode size={18} />{tr("Scanner QR")}</Link>}
                     <button
                         type="button"
                         onClick={() => window.print()}

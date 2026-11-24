@@ -27,6 +27,7 @@ import { greeting, lastMonths, mad, madShort, num, pct, sumByMonth, todayLabel, 
 import type { Payment, Student } from '@/types';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
+import { hasFeature } from '@/lib/packs';
 const CRECHE_SECTIONS: Record<string, string> = { NOURRISSON: 'Nourrissons', MOYENNE: 'Moyenne section', GRANDE: 'Grande section' };
 
 export default function AdminDashboard() {
@@ -34,6 +35,9 @@ export default function AdminDashboard() {
     const router = useRouter();
     const user = useAuthStore((state) => state.user);
     const { profile, loading: profileLoading, refreshProfile } = useSchoolProfile();
+    // Without the advanced finance option: no expenses, net, revenue curve or links to the cash book and salaries.
+    const advancedFinance = hasFeature(profile.features, 'FINANCE_ANALYTICS');
+    const paymentsHref = advancedFinance ? '/admin/finance/paiements' : '/admin/finance/recu';
     const [stats, setStats] = useState({
         totalStudents: 0,
         activeStudents: 0,
@@ -189,9 +193,9 @@ export default function AdminDashboard() {
 
     const withoutInscription = students.filter((s) => s.active !== false && (s.inscriptions?.length ?? 0) === 0).length;
     const todo = [
-        stats.unpaid > 0 && { key: 'unpaid', text: tr('Relancer les impayés ({amount})', { amount: mad(stats.unpaid) }), href: '/admin/finance/paiements', color: '#D97706' },
+        stats.unpaid > 0 && { key: 'unpaid', text: tr('Relancer les impayés ({amount})', { amount: mad(stats.unpaid) }), href: paymentsHref, color: '#D97706' },
         withoutInscription > 0 && { key: 'noinsc', text: tr(isCreche ? '{n} enfants actifs sans inscription' : '{n} élèves actifs sans inscription', { n: num(withoutInscription) }), href: '/admin/inscriptions', color: '#059669' },
-        stats.netCash < 0 && { key: 'net', text: tr('Net du mois négatif ({amount}) : vérifier les dépenses', { amount: mad(stats.netCash) }), href: '/admin/finance/transactions', color: '#BE185D' },
+        advancedFinance && stats.netCash < 0 && { key: 'net', text: tr('Net du mois négatif ({amount}) : vérifier les dépenses', { amount: mad(stats.netCash) }), href: '/admin/finance/transactions', color: '#BE185D' },
     ].filter(Boolean) as { key: string; text: string; href: string; color: string }[];
 
     if (loading || profileLoading) return (
@@ -242,7 +246,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${advancedFinance ? 'xl:grid-cols-4' : 'xl:grid-cols-3'} gap-4`}>
                 <VibrantKpi
                     tone="indigo"
                     label={tr(isCreche ? 'Enfants actifs' : 'Élèves actifs')}
@@ -255,9 +259,9 @@ export default function AdminDashboard() {
                     tone="emerald"
                     label={tr("Encaissé ce mois")}
                     value={mad(stats.totalReceivedMonth)}
-                    sub={tr("Net du mois : {v0}", { v0: mad(stats.netCash) })}
+                    sub={advancedFinance ? tr("Net du mois : {v0}", { v0: mad(stats.netCash) }) : undefined}
                     icon={<Wallet size={18} />}
-                    onClick={() => router.push('/admin/finance/paiements')}
+                    onClick={() => router.push(paymentsHref)}
                 />
                 <VibrantKpi
                     tone="amber"
@@ -265,24 +269,26 @@ export default function AdminDashboard() {
                     value={mad(stats.unpaid)}
                     sub={tr("CA théorique : {v0}", { v0: mad(stats.revenueThisMonth) })}
                     icon={<AlertCircle size={18} />}
-                    onClick={() => router.push('/admin/finance/paiements')}
+                    onClick={() => router.push(paymentsHref)}
                 />
-                <VibrantKpi
+                {advancedFinance && <VibrantKpi
                     tone="pink"
                     label={tr("Dépenses du mois")}
                     value={mad(stats.expenses)}
                     sub={tr("Inclut salaires et charges")}
                     icon={<ArrowDownRight size={18} />}
                     onClick={() => router.push('/admin/finance/transactions')}
-                />
+                />}
             </div>
 
             {/* Charts */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <ChartCard palette="vibrant" className="xl:col-span-2" title={tr("Encaissements mensuels")} hint={tr("12 derniers mois · {v0}", { v0: mad(revenue12) })}>
-                    <SplineChart palette="vibrant" points={revenuePoints} rtl={false} format={mad} formatShort={madShort} />
-                </ChartCard>
-                <ChartCard palette="vibrant" title={isCreche ? tr("Enfants par section") : tr("Élèves par niveau")} hint={tr(isCreche ? 'Enfants actifs' : 'Élèves actifs')}>
+                {advancedFinance && (
+                    <ChartCard palette="vibrant" className="xl:col-span-2" title={tr("Encaissements mensuels")} hint={tr("12 derniers mois · {v0}", { v0: mad(revenue12) })}>
+                        <SplineChart palette="vibrant" points={revenuePoints} rtl={false} format={mad} formatShort={madShort} />
+                    </ChartCard>
+                )}
+                <ChartCard palette="vibrant" className={advancedFinance ? undefined : 'xl:col-span-3'} title={isCreche ? tr("Enfants par section") : tr("Élèves par niveau")} hint={tr(isCreche ? 'Enfants actifs' : 'Élèves actifs')}>
                     <DonutChart
                         palette="vibrant"
                         data={levelSlices}
@@ -326,8 +332,15 @@ export default function AdminDashboard() {
                         {[
                             { label: tr(studentWord), icon: Users, href: '/admin/students', color: '#059669' },
                             { label: 'Profs', icon: Briefcase, href: '/admin/teachers', color: '#7C3AED' },
-                            { label: 'Paiements', icon: DollarSign, href: '/admin/finance/paiements', color: '#D97706' },
-                            { label: 'Rapports', icon: TrendingUp, href: '/admin/finance/transactions', color: '#4F46E5' },
+                            ...(advancedFinance
+                                ? [
+                                      { label: 'Paiements', icon: DollarSign, href: '/admin/finance/paiements', color: '#D97706' },
+                                      { label: 'Rapports', icon: TrendingUp, href: '/admin/finance/transactions', color: '#4F46E5' },
+                                  ]
+                                : [
+                                      { label: 'Inscriptions', icon: TrendingUp, href: '/admin/inscriptions', color: '#4F46E5' },
+                                      { label: 'Reçus', icon: DollarSign, href: '/admin/finance/recu', color: '#D97706' },
+                                  ]),
                         ].map((q) => (
                             <button
                                 key={q.href}

@@ -52,16 +52,24 @@ function StudentSpace() {
     const { token } = useParams<{ token: string }>();
     const [student, setStudent] = useState<Student | null>(null);
     const [error, setError] = useState(false);
+    const [notInPack, setNotInPack] = useState(false);
     const [tab, setTab] = useState<TabKey>('dashboard');
 
     useEffect(() => {
-        getPublicStudentProfile(token).then(setStudent).catch(() => setError(true));
+        getPublicStudentProfile(token)
+            .then(setStudent)
+            .catch((err) => {
+                setNotInPack(err?.response?.data?.error === 'FEATURE_NOT_IN_PACK');
+                setError(true);
+            });
     }, [token]);
 
     if (error) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6 dark:bg-slate-900">
-                <p className="text-center text-red-600 dark:text-red-400">{tr("Lien introuvable ou expiré.")}</p>
+                <p className="text-center text-red-600 dark:text-red-400">
+                    {notInPack ? tr("L'espace élève n'est pas inclus dans l'abonnement de l'établissement.") : tr("Lien introuvable ou expiré.")}
+                </p>
             </div>
         );
     }

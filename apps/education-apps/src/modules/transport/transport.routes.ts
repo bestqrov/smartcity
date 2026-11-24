@@ -8,11 +8,14 @@ import * as routes from './routes.controller';
 import * as subscriptions from './subscriptions.controller';
 import * as payments from './payments.controller';
 
+import { requireFeature } from '../packs/packFeatures';
 const router = Router();
 
 router.use(authMiddleware);
 router.use(roleMiddleware('ADMIN', 'SECRETARY', 'OWNER'));
 router.use(tenantScopeMiddleware);
+// Only for schools whose pack includes school transport.
+router.use(requireFeature('TRANSPORT'));
 
 router.get('/vehicles', vehicles.getAll);
 router.post('/vehicles', vehicles.create);

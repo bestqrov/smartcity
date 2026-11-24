@@ -4,11 +4,13 @@ import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
 
+import { requireFeature } from '../packs/packFeatures';
 const router = Router();
 
 router.use(authMiddleware);
 router.use(roleMiddleware('ADMIN', 'SECRETARY', 'OWNER'));
 router.use(tenantScopeMiddleware);
+router.use(requireFeature('ANNOUNCEMENTS'));
 
 router.get('/', getAll);
 router.post('/', roleMiddleware('ADMIN', 'OWNER'), create);

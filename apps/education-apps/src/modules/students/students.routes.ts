@@ -15,6 +15,7 @@ import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
 
+import { requireFeature, requireFeatureForToken, studentPortalTokenBranch } from '../packs/packFeatures';
 const router = Router();
 
 const publicProfileLimiter = rateLimit({
@@ -25,7 +26,7 @@ const publicProfileLimiter = rateLimit({
 });
 
 // Public, passwordless — must come before the authMiddleware below
-router.get('/profile/:token', publicProfileLimiter, getPublicProfile);
+router.get('/profile/:token', publicProfileLimiter, requireFeatureForToken('STUDENT_PORTAL', studentPortalTokenBranch), getPublicProfile);
 
 // All routes below require authentication
 router.use(authMiddleware);
@@ -40,7 +41,7 @@ router.get('/', getAll);
 router.get('/:id', getById);
 router.put('/:id', update);
 router.delete('/:id', remove);
-router.post('/:id/regenerate-token', regenerateToken);
-router.post('/:id/regenerate-portal-token', regeneratePortalToken);
+router.post('/:id/regenerate-token', requireFeature('QR_ATTENDANCE'), regenerateToken);
+router.post('/:id/regenerate-portal-token', requireFeature('STUDENT_PORTAL'), regeneratePortalToken);
 
 export default router;

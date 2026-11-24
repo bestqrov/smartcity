@@ -3,6 +3,7 @@
 type Tr = (text: string, params?: Record<string, string | number>) => string;
 
 const KNOWN: Record<string, string> = {
+    FEATURE_NOT_IN_PACK: "Cette fonction n'est pas incluse dans votre pack.",
     TRIAL_EXPIRED: "Votre période d'essai de 15 jours est terminée. Contactez-nous pour activer votre école.",
     'Insufficient permissions': "Votre compte n'a pas le droit de faire cette action (réservé au propriétaire ou à l'administrateur).",
     'A branch must be selected': 'Choisissez à nouveau votre établissement, puis réessayez.',

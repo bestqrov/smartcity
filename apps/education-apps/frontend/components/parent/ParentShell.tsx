@@ -65,9 +65,10 @@ interface Props {
     token: string;
     parent: Parent | null;
     error: boolean;
+    notInPack?: boolean; // the school's pack does not include the parent portal
 }
 
-export default function ParentShell({ token, parent: loaded, error }: Props) {
+export default function ParentShell({ token, parent: loaded, error, notInPack = false }: Props) {
     // Local copy so activity answers can be applied optimistically.
     const [parent, setParent] = useState<Parent | null>(loaded);
     useEffect(() => setParent(loaded), [loaded]);
@@ -222,8 +223,8 @@ export default function ParentShell({ token, parent: loaded, error }: Props) {
                             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 dark:bg-rose-500/10">
                                 <LinkIcon className="h-7 w-7" aria-hidden />
                             </div>
-                            <p className="font-semibold text-slate-900 dark:text-white">{t.errorTitle}</p>
-                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t.errorBody}</p>
+                            <p className="font-semibold text-slate-900 dark:text-white">{notInPack ? t.notInPackTitle : t.errorTitle}</p>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{notInPack ? t.notInPackBody : t.errorBody}</p>
                         </Card>
                     ) : !parent ? (
                         <div className="-mx-4 -mt-4">

@@ -4,6 +4,7 @@ import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { tenantScopeMiddleware } from '../../middlewares/tenantScope.middleware';
 
+import { requireFeature } from '../packs/packFeatures';
 const router = Router();
 
 // All routes require authentication; staff (admin or secretary) can scan/record attendance
@@ -11,7 +12,7 @@ router.use(authMiddleware);
 router.use(roleMiddleware('ADMIN', 'SECRETARY', 'OWNER'));
 router.use(tenantScopeMiddleware);
 
-router.post('/scan', scan);
+router.post('/scan', requireFeature('QR_ATTENDANCE'), scan);
 router.get('/week', week);
 router.put('/mark', mark);
 router.put('/session', markWholeSession);

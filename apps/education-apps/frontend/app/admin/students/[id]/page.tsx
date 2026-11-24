@@ -10,6 +10,8 @@ import { publicUrl } from '@/lib/publicUrl';
 import StudentTransportCard from '@/components/transport/StudentTransportCard';
 
 import { appLocale, useI18n } from '@/lib/i18n/I18nProvider';
+import { hasFeature } from '@/lib/packs';
+import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import { levelLabel } from '@/lib/levels';
 type Tab = 'attendance' | 'finance' | 'inscriptions' | 'info';
 
@@ -22,6 +24,7 @@ const TABS: { key: Tab; label: string }[] = [
 
 export default function StudentProfilePage() {
     const { tr } = useI18n();
+    const { profile: schoolProfile } = useSchoolProfile(); // pack options decide which actions show
     const { id } = useParams<{ id: string }>();
     const [student, setStudent] = useState<Student | null>(null);
     const [tab, setTab] = useState<Tab>('attendance');
@@ -74,14 +77,18 @@ export default function StudentProfilePage() {
                     <p className="text-slate-500 dark:text-slate-400 mt-1">{tr(levelLabel(student.schoolLevel)) || '—'}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button
-                        className="rounded-xl bg-slate-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-slate-700"
-                        onClick={handleRegeneratePortal}
-                    >{tr("Générer le lien de profil élève")}</button>
-                    <button
-                        className="rounded-xl bg-blue-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-                        onClick={handleRegenerate}
-                    >{tr("Régénérer le QR de présence")}</button>
+                    {hasFeature(schoolProfile.features, 'STUDENT_PORTAL') && (
+                        <button
+                            className="rounded-xl bg-slate-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-slate-700"
+                            onClick={handleRegeneratePortal}
+                        >{tr("Générer le lien de profil élève")}</button>
+                    )}
+                    {hasFeature(schoolProfile.features, 'QR_ATTENDANCE') && (
+                        <button
+                            className="rounded-xl bg-blue-600 px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                            onClick={handleRegenerate}
+                        >{tr("Régénérer le QR de présence")}</button>
+                    )}
                 </div>
             </div>
 

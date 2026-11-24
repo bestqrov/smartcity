@@ -27,6 +27,7 @@ import { useState, useEffect } from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import useAuthStore from '@/store/useAuthStore';
 import { applyInstitutionType, getInstitutionTypeConfig } from '@/lib/institutionTypes';
+import { FEATURE_BY_MENU_ID, featureForPath, hasFeature } from '@/lib/packs';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import LangSwitcher from '@/components/LangSwitcher';
 import { DECLARATIONS_CHANGED, getPendingDeclarationsCount } from '@/lib/services/paymentDeclarations';
@@ -352,9 +353,19 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
   const institutionType = effectiveRole === 'SUPER_ADMIN' ? null : profile.institutionType;
   const typeConfig = getInstitutionTypeConfig(institutionType);
   // Hidden ids, relabels and ordering of the institution type apply first; entries are then sorted into the groups.
+  // Entries of options not checked on the school's pack are hidden (whole entries, or single sub-entries).
+  const features = effectiveRole === 'SUPER_ADMIN' ? null : profile.features;
+  const allowedByPack = (item: any) => {
+    const feature = FEATURE_BY_MENU_ID[item.id] ?? featureForPath(item.path);
+    return !feature || hasFeature(features, feature);
+  };
+  const packMenuItems = (menuItems as any[])
+    .filter(allowedByPack)
+    .map((item) => (item.submenu ? { ...item, submenu: item.submenu.filter((sub: any) => allowedByPack(sub)) } : item))
+    .filter((item) => !item.submenu || item.submenu.length > 0);
   const visibleMenuItems: any[] = [
-    ...applyInstitutionType(menuItems as any[], institutionType),
-    ...typeConfig.comingSoon.map((entry) => ({
+    ...applyInstitutionType(packMenuItems, institutionType),
+    ...typeConfig.comingSoon.filter(allowedByPack).map((entry) => ({
       ...entry,
       icon: BookOpen,
       comingSoon: true,

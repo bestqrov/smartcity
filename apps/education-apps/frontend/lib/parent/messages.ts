@@ -10,6 +10,8 @@ const fr = {
     langSwitch: 'عربي',
     errorTitle: 'Lien introuvable ou expiré',
     errorBody: "Demandez un nouveau lien à l'établissement.",
+    notInPackTitle: "Espace parents non activé",
+    notInPackBody: "L'espace parents n'est pas inclus dans l'abonnement de l'établissement. Contactez l'établissement.",
     noChildren: 'Aucun enfant rattaché à ce compte.',
     attendanceStatus: {
         PRESENT: 'Présent',
@@ -141,6 +143,8 @@ const ar: ParentMessages = {
     langSwitch: 'FR',
     errorTitle: 'الرابط غير موجود أو منتهي الصلاحية',
     errorBody: 'المرجو طلب رابط جديد من المؤسسة.',
+    notInPackTitle: 'فضاء أولياء الأمور غير مفعّل',
+    notInPackBody: 'فضاء أولياء الأمور غير مُدرج في اشتراك المؤسسة. المرجو التواصل مع المؤسسة.',
     noChildren: 'لا يوجد أي طفل مرتبط بهذا الحساب.',
     attendanceStatus: {
         PRESENT: 'حاضر',
