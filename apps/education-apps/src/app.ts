@@ -37,6 +37,7 @@ import pushRoutes from './modules/notifications/push.routes';
 import whatsappRoutes from './modules/notifications/whatsapp.routes';
 import activitiesRoutes from './modules/activities/activities.routes';
 import homeworkRoutes from './modules/homework/homework.routes';
+import schoolRequestsRoutes from './modules/school-requests/schoolRequests.routes';
 
 const app: Application = express();
 
@@ -94,6 +95,7 @@ apiRouter.use('/push', pushRoutes);
 apiRouter.use('/whatsapp', whatsappRoutes);
 apiRouter.use('/activities', activitiesRoutes);
 apiRouter.use('/homework', homeworkRoutes);
+apiRouter.use('/school-requests', schoolRequestsRoutes);
 
 app.use('/api', apiRouter);
 

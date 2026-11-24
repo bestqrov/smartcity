@@ -3,6 +3,7 @@ import { authMiddleware } from '../../middlewares/auth.middleware';
 import { roleMiddleware } from '../../middlewares/role.middleware';
 import { banner, getSettings, overview, putSettings } from './platform.controller';
 import { confirm, getOne, list, pendingCount, reject } from '../sales-agents/paymentDeclarations.controller';
+import * as schoolRequests from '../school-requests/schoolRequests.controller';
 
 // Super admin platform dashboard.
 const router = Router();
@@ -24,5 +25,10 @@ router.get('/payment-declarations/pending-count', pendingCount);
 router.get('/payment-declarations/:id', getOne);
 router.post('/payment-declarations/:id/confirm', confirm);
 router.post('/payment-declarations/:id/reject', reject);
+
+// Requests sent by schools (smaller pack, feature, problem...): status and reply.
+router.get('/school-requests', schoolRequests.list);
+router.get('/school-requests/pending-count', schoolRequests.newCount);
+router.patch('/school-requests/:id', schoolRequests.update);
 
 export default router;

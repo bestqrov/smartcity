@@ -147,6 +147,7 @@ model School {
   payments            SchoolPayment[]
   packUpgrades        PackUpgrade[]
   paymentDeclarations PaymentDeclaration[]
+  schoolRequests      SchoolRequest[]
 
   // Partner offer taken at signup through a partner's referral link: period and price are frozen then.
   partnerOffer Boolean             @default(false)
@@ -1045,4 +1046,40 @@ model PlatformSettings {
   updatedAt       DateTime             @updatedAt
 
   @@map("platform_settings")
+}
+
+enum SchoolRequestKind {
+  PACK_DOWNGRADE
+  FEATURE
+  PACK_OPTION
+  PROBLEM
+  OTHER
+}
+
+enum SchoolRequestStatus {
+  NEW
+  IN_PROGRESS
+  DONE
+  REJECTED
+}
+
+// A school admin's request to the super admin: a move to a smaller pack (not done in the app), a feature, a problem...
+model SchoolRequest {
+  id             String              @id @default(auto()) @map("_id") @db.ObjectId
+  schoolId       String              @db.ObjectId
+  school         School              @relation(fields: [schoolId], references: [id])
+  branchId       String              @db.ObjectId
+  byUserId       String              @db.ObjectId
+  kind           SchoolRequestKind
+  message        String
+  targetPackId   String?             @db.ObjectId
+  targetPackName String?
+  status         SchoolRequestStatus @default(NEW)
+  reply          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([status, createdAt])
+  @@index([schoolId, createdAt])
+  @@map("school_requests")
 }
