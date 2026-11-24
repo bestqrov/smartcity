@@ -141,4 +141,29 @@ export const schoolMode: Record<string, string> = {
     // ---- student file (StudentSchoolInfo)
     "Type d'inscription": 'نوع التسجيل',
     'Identité': 'الهوية',
+    "Tuteur légal": 'ولي الأمر',
+    // ---- monthly tuition (Mensualités)
+    Mensualités: 'الواجبات الشهرية',
+    'Suivi des mensualités de scolarité, de septembre à juin': 'تتبع الواجبات الشهرية للتمدرس، من شتنبر إلى يونيو',
+    Attendu: 'المتوقع',
+    Encaissé: 'المحصَّل',
+    'Reste à encaisser': 'الباقي للتحصيل',
+    'Non payé': 'غير مؤدّى',
+    Partiel: 'جزئي',
+    'Encaisser {amount} MAD': 'تحصيل {amount} درهم',
+    'Encaissement…': 'جارٍ التحصيل…',
+    Rappel: 'تذكير',
+    'Aucune mensualité ce mois-ci (vacances d’été ou aucun élève inscrit avec une mensualité).': 'لا توجد واجبات شهرية لهذا الشهر (العطلة الصيفية أو لا يوجد تلميذ مسجل بواجب شهري).',
+    'Bonjour, nous vous rappelons que la mensualité de {month} de {name} ({amount} MAD) reste à régler. Merci.':
+        'السلام عليكم، نذكّركم بأن الواجب الشهري لشهر {month} الخاص بـ {name} ({amount} درهم) لم يُؤدَّ بعد. شكراً.',
+    'Impossible de charger les mensualités': 'تعذّر تحميل الواجبات الشهرية',
+    "Échec de l'encaissement": 'تعذّر التحصيل',
+    'Mensualités du mois non réglées': 'واجبات الشهر غير المؤداة',
+    // ---- server messages of the monthly tuition
+    'Le mois doit être au format AAAA-MM': 'يجب أن يكون الشهر بصيغة سنة-شهر (AAAA-MM)',
+    'Choisissez un mois de septembre à juin': 'اختاروا شهراً من شتنبر إلى يونيو',
+    'Cet élève est inactif': 'هذا التلميذ غير نشط',
+    'Aucune mensualité définie pour cet élève': 'لا يوجد واجب شهري محدد لهذا التلميذ',
+    'Ce mois est déjà payé': 'هذا الشهر مؤدّى',
+    "Le mode école privée n'est pas activé pour cet établissement": 'وضع المدرسة الخصوصية غير مفعّل لهذه المؤسسة',
 };
