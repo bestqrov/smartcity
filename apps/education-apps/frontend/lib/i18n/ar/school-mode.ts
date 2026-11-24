@@ -138,4 +138,7 @@ export const schoolMode: Record<string, string> = {
     'Signature du parent': 'توقيع ولي الأمر',
     "Cachet de l'établissement": 'خاتم المؤسسة',
     Marocaine: 'مغربية',
+    // ---- student file (StudentSchoolInfo)
+    "Type d'inscription": 'نوع التسجيل',
+    'Identité': 'الهوية',
 };
