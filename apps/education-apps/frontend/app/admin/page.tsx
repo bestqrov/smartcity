@@ -29,6 +29,7 @@ import type { Payment, Student } from '@/types';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { hasFeature } from '@/lib/packs';
 import { useSchoolCycles } from '@/hooks/useSchoolCycles';
+import { levelLabel } from '@/lib/schoolLevels';
 import { getDues } from '@/lib/services/schoolMode';
 const CRECHE_SECTIONS: Record<string, string> = { NOURRISSON: 'Nourrissons', MOYENNE: 'Moyenne section', GRANDE: 'Grande section' };
 
@@ -190,12 +191,14 @@ export default function AdminDashboard() {
         return sumByMonth(all, months, (i) => i.date || i.createdAt, () => 1).slice(-6);
     }, [students, months]);
 
+    // A school-mode code (PS2, P3…) shows its level name; free text is translated when known.
+    const levelName = (raw?: string | null) => (raw?.trim() ? tr(levelLabel(raw.trim())) : '');
     const levelSlices = useMemo(
         () =>
             topCategories(
                 students
                     .filter((s) => s.active !== false)
-                    .map((s) => (isCreche && s.crecheSection ? tr(CRECHE_SECTIONS[s.crecheSection]) : s.schoolLevel?.trim()) || tr('Non renseigné'))
+                    .map((s) => (isCreche && s.crecheSection ? tr(CRECHE_SECTIONS[s.crecheSection]) : levelName(s.schoolLevel)) || tr('Non renseigné'))
             ),
         [students, isCreche, tr]
     );

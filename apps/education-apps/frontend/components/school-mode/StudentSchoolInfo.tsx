@@ -109,7 +109,7 @@ export default function StudentSchoolInfo({ student, onSaved }: { student: Stude
                                 <dt className="text-xs text-slate-500">{tr(f.label)}</dt>
                                 {edit ? (
                                     f.options ? (
-                                        <select aria-label={tr(f.label)} className={input} value={form[f.key] ?? ''} onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}>
+                                        <select aria-label={tr(f.label)} dir={f.ltr ? 'ltr' : undefined} className={`${input} text-start`} value={form[f.key] ?? ''} onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}>
                                             <option value="">—</option>
                                             {f.options.map(([k, l]) => <option key={k} value={k}>{tr(l)}</option>)}
                                         </select>

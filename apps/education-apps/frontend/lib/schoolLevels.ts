@@ -23,6 +23,8 @@ export const LEVELS: { code: string; cycle: Cycle; label: string }[] = [
     { code: 'B1', cycle: 'LYCEE', label: '1ère année Bac' },
     { code: 'B2', cycle: 'LYCEE', label: '2ème année Bac' },
 ];
+// French name of a school-mode level code (PS2 → « 2ème année préscolaire »); other text is returned as is.
+export const levelLabel = (raw: string): string => LEVELS.find((l) => l.code === raw)?.label ?? raw;
 export const levelsOfCycles = (cycles: string[]) => LEVELS.filter((l) => cycles.includes(l.cycle));
 export const isPrescolaire = (code?: string | null) => !!code && LEVELS.some((l) => l.code === code && l.cycle === 'PRESCOLAIRE');
 export const DOCUMENT_CHECKLIST: { key: string; label: string; prescolaireOnly?: boolean }[] = [

@@ -186,7 +186,7 @@ export default function SchoolInscriptionForm({ cycles, schoolYear, studentsPath
                         {field('emergencyName', "Contact d'urgence (nom)")}{field('emergencyPhone', "Contact d'urgence (téléphone)", { type: 'tel', dir: 'ltr' })}
                     </>)}
                     {step === 3 && (<>
-                        <div><label className={label} htmlFor="f-blood">{tr('Groupe sanguin')}</label><select id="f-blood" className={input} value={f.bloodGroup ?? ''} onChange={(e) => set('bloodGroup', e.target.value || undefined)}><option value="">—</option>{['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((g) => <option key={g}>{g}</option>)}</select></div>
+                        <div><label className={label} htmlFor="f-blood">{tr('Groupe sanguin')}</label><select id="f-blood" dir="ltr" className={`${input} text-start`} value={f.bloodGroup ?? ''} onChange={(e) => set('bloodGroup', e.target.value || undefined)}><option value="">—</option>{['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((g) => <option key={g}>{g}</option>)}</select></div>
                         {field('allergies', 'Allergies')}{field('chronicDiseases', 'Maladies chroniques')}{field('medications', 'Médicaments')}
                         <label className="flex items-center gap-2 text-sm font-semibold sm:col-span-2"><input type="checkbox" checked={!!f.careConsent} onChange={(e) => set('careConsent', e.target.checked)} />{tr("J'autorise l'établissement à faire donner les premiers soins et à appeler les urgences")}</label>
                         {isPrescolaire(f.level) && (
