@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
+import { useSchoolCycles } from '@/hooks/useSchoolCycles';
 import useAuthStore from '@/store/useAuthStore';
 import { applyInstitutionType, getInstitutionTypeConfig } from '@/lib/institutionTypes';
 import { FEATURE_BY_MENU_ID, featureForPath, hasFeature } from '@/lib/packs';
@@ -47,6 +48,9 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
 
   const user = useAuthStore(state => state.user);
   const effectiveRole = role || user?.role || 'ADMIN';
+  // Monthly tuition exists only in the complete private school mode (school cycles set).
+  const { schoolMode } = useSchoolCycles();
+  const showDues = schoolMode && effectiveRole !== 'SUPER_ADMIN';
 
   useEffect(() => {
     if (user) {
@@ -125,6 +129,7 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       iconColor: 'text-[#34D399]',
       submenu: [
         { label: 'Paiements', path: '/admin/finance/paiements' },
+        ...(showDues ? [{ label: 'Mensualités', path: '/admin/finance/mensualites' }] : []),
         { label: 'Transactions', path: '/admin/finance/transactions' },
         { label: 'Prix', path: '/admin/finance/prix' },
         { label: 'Reçus', path: '/admin/finance/recu' },
@@ -288,6 +293,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       activeColor: 'bg-[#334155]/50 border-[#A78BFA]',
       iconColor: 'text-[#A78BFA]'
     },
+    ...(showDues ? [{
+      id: 'mensualites',
+      label: 'Mensualités',
+      icon: DollarSign,
+      path: '/secretary/finance/mensualites',
+      activeColor: 'bg-[#334155]/50 border-[#34D399]',
+      iconColor: 'text-[#34D399]'
+    }] : []),
     {
       id: 'recus',
       label: 'Reçus',
@@ -606,6 +619,7 @@ const ITEM_GROUP: Record<string, GroupId> = {
   'daily-log': 'vie',
   finance: 'finance',
   recus: 'finance',
+  mensualites: 'finance',
   personnel: 'etablissement',
   transport: 'etablissement',
   documents: 'etablissement',

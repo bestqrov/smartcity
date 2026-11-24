@@ -28,6 +28,8 @@ import type { Payment, Student } from '@/types';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { hasFeature } from '@/lib/packs';
+import { useSchoolCycles } from '@/hooks/useSchoolCycles';
+import { getDues } from '@/lib/services/schoolMode';
 const CRECHE_SECTIONS: Record<string, string> = { NOURRISSON: 'Nourrissons', MOYENNE: 'Moyenne section', GRANDE: 'Grande section' };
 
 export default function AdminDashboard() {
@@ -54,6 +56,13 @@ export default function AdminDashboard() {
 
     const [loading, setLoading] = useState(true);
     const [isInscriptionModalOpen, setIsInscriptionModalOpen] = useState(false);
+    // School mode: « Impayés » shows this month's unpaid tuition instead of the generic figure.
+    const { schoolMode } = useSchoolCycles();
+    const [duesUnpaid, setDuesUnpaid] = useState<number | null>(null);
+    useEffect(() => {
+        if (!schoolMode) { setDuesUnpaid(null); return; }
+        getDues(new Date().toISOString().slice(0, 7)).then((d) => setDuesUnpaid(d.totals.remaining)).catch(() => setDuesUnpaid(null));
+    }, [schoolMode]);
 
     useEffect(() => {
         loadDashboardData(true);
@@ -266,10 +275,10 @@ export default function AdminDashboard() {
                 <VibrantKpi
                     tone="amber"
                     label={tr("Impayés")}
-                    value={mad(stats.unpaid)}
-                    sub={tr("CA théorique : {v0}", { v0: mad(stats.revenueThisMonth) })}
+                    value={mad(duesUnpaid ?? stats.unpaid)}
+                    sub={duesUnpaid !== null ? tr("Mensualités du mois non réglées") : tr("CA théorique : {v0}", { v0: mad(stats.revenueThisMonth) })}
                     icon={<AlertCircle size={18} />}
-                    onClick={() => router.push(paymentsHref)}
+                    onClick={() => router.push(duesUnpaid !== null ? '/admin/finance/mensualites' : paymentsHref)}
                 />
                 {advancedFinance && <VibrantKpi
                     tone="pink"
