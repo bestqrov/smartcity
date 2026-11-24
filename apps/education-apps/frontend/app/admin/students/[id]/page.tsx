@@ -253,7 +253,7 @@ export default function StudentProfilePage() {
                                         <span className="text-slate-500">{tr("Personnes autorisées :")}{' '}</span>
                                         <ul className="mt-1 list-disc list-inside">
                                             {student.authorizedPickup.map((p, i) => (
-                                                <li key={i}>{p.name} — {p.phone} ({p.relation})</li>
+                                                <li key={i}>{typeof p === 'string' ? p : <>{p.name} — <bdi dir="ltr">{p.phone}</bdi> ({p.relation})</>}</li>
                                             ))}
                                         </ul>
                                     </div>

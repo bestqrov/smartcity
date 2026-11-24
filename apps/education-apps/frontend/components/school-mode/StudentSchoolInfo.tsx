@@ -5,8 +5,9 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 import { describeApiError } from '@/lib/apiError';
 import { updateStudent } from '@/lib/services/students';
 import { DOCUMENT_CHECKLIST, isPrescolaire } from '@/lib/schoolLevels';
+import type { Student, StudentFormData, StudentSchoolFields } from '@/types';
 
-type Field = { key: string; label: string; ltr?: boolean; options?: [string, string][] };
+type Field = { key: keyof StudentSchoolFields | 'healthNotes' | 'massarNumber'; label: string; ltr?: boolean; options?: [string, string][] };
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -51,7 +52,7 @@ const SECTIONS: { title: string; fields: Field[] }[] = [
 const FIELDS = SECTIONS.flatMap((s) => s.fields);
 
 /** Private school fields of the student file (Informations tab), shown and edited section by section. */
-export default function StudentSchoolInfo({ student, onSaved }: { student: any; onSaved: (s: any) => void }) {
+export default function StudentSchoolInfo({ student, onSaved }: { student: Student; onSaved: (s: Student) => void }) {
     const { tr } = useI18n();
     const [edit, setEdit] = useState(false);
     const [form, setForm] = useState<Record<string, string>>({});
@@ -62,7 +63,7 @@ export default function StudentSchoolInfo({ student, onSaved }: { student: any; 
     const docs = DOCUMENT_CHECKLIST.filter((d) => !d.prescolaireOnly || isPrescolaire(student.schoolLevel));
 
     const open = () => {
-        setForm(Object.fromEntries(FIELDS.map((f) => [f.key, student[f.key] ?? ''])));
+        setForm(Object.fromEntries(FIELDS.map((f) => [f.key, String(student[f.key] ?? '')])));
         setCareConsent(!!student.careConsent);
         setDocuments(student.documents ?? []);
         setError('');
@@ -73,12 +74,12 @@ export default function StudentSchoolInfo({ student, onSaved }: { student: any; 
         setSaving(true);
         try {
             // An emptied choice is sent as null: the endpoint rejects '' for its enum fields.
-            const body: Record<string, any> = { careConsent, documents };
+            const body: Record<string, unknown> = { careConsent, documents };
             for (const f of FIELDS) {
                 const v = (form[f.key] ?? '').trim();
                 body[f.key] = f.options && !v ? null : v;
             }
-            onSaved(await updateStudent(student.id, body as any));
+            onSaved(await updateStudent(student.id, body as Partial<StudentFormData>));
             setEdit(false);
         } catch (e) {
             setError(describeApiError(e, tr, "Échec de l'enregistrement"));
@@ -88,8 +89,9 @@ export default function StudentSchoolInfo({ student, onSaved }: { student: any; 
     };
 
     const display = (f: Field) => {
-        const v = student[f.key];
-        if (!v) return '—';
+        const raw = student[f.key];
+        if (raw === null || raw === undefined || raw === '') return '—';
+        const v = String(raw);
         const label = f.options?.find(([k]) => k === v)?.[1];
         if (label && label !== v) return tr(label);
         return f.ltr ? <bdi dir="ltr">{v}</bdi> : v;

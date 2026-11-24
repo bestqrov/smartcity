@@ -8,6 +8,8 @@ const KNOWN: Record<string, string> = {
     'Insufficient permissions': "Votre compte n'a pas le droit de faire cette action (réservé au propriétaire ou à l'administrateur).",
     'A branch must be selected': 'Choisissez à nouveau votre établissement, puis réessayez.',
     'Branch does not belong to your school': 'Choisissez à nouveau votre établissement, puis réessayez.',
+    // 403 of the whole /school-mode area for a school without cycles.
+    "Le mode école privée n'est pas activé pour cet établissement": "Le mode école privée n'est pas activé pour cet établissement",
     'User has no assigned branch': "Votre compte n'est rattaché à aucun établissement. Contactez le propriétaire de l'école.",
 };
 

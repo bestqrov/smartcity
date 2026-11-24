@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, CheckCircle2, Printer } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/I18nProvider';
@@ -12,6 +12,7 @@ import { getTuitionGrid, registerSchoolStudent, type InscriptionSummary, type Tu
 import { groupsService } from '@/lib/services/groups';
 import { getStudents } from '@/lib/services/students';
 import { transportService } from '@/lib/services/transport';
+import type { Student } from '@/types';
 
 type Pickup = { name: string; phone: string; relation: string };
 const MAX_PICKUP = 10;
@@ -55,10 +56,32 @@ export default function SchoolInscriptionForm({ cycles, schoolYear, studentsPath
     }, [f.level, grid]);
 
     // Same guardian phone as an active student: suggest the sibling discount.
+    // Debounced while typing; no request when the phone's last 9 digits did not change.
+    const lastSiblingPhone = useRef('');
     useEffect(() => {
-        const phone = String(f.parentPhone ?? '').replace(/\D/g, '');
-        if (phone.length < 9) return setSiblings([]);
-        getStudents().then((list: any[]) => setSiblings(list.filter((s) => s.active !== false && String(s.parentPhone ?? '').replace(/\D/g, '').endsWith(phone.slice(-9))).map((s) => `${s.name} ${s.surname}`))).catch(() => setSiblings([]));
+        const phone = String(f.parentPhone ?? '').replace(/\D/g, '').slice(-9);
+        if (phone.length < 9) {
+            lastSiblingPhone.current = '';
+            setSiblings([]);
+            return;
+        }
+        if (phone === lastSiblingPhone.current) return;
+        let cancelled = false;
+        const timer = setTimeout(() => {
+            getStudents()
+                .then((list: Student[]) => {
+                    if (cancelled) return;
+                    lastSiblingPhone.current = phone;
+                    setSiblings(list.filter((s) => s.active !== false && String(s.parentPhone ?? '').replace(/\D/g, '').endsWith(phone)).map((s) => `${s.name} ${s.surname}`));
+                })
+                .catch(() => {
+                    if (!cancelled) setSiblings([]);
+                });
+        }, 400);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
     }, [f.parentPhone]);
 
     const monthly = Math.round(fees.monthlyFee * (100 - Number(f.siblingDiscount)) ) / 100;

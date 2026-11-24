@@ -9,6 +9,8 @@ import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import { DOCUMENT_CHECKLIST, isPrescolaire } from '@/lib/schoolLevels';
 import { levelLabel } from '@/lib/levels';
 import { getStudentById } from '@/lib/services/students';
+import { pickupLine } from '@/lib/authorizedPickup';
+import type { AuthorizedPickup, Student } from '@/types';
 
 // Same approach as the report cards: everything but the dossier is hidden when printing.
 const PRINT_CSS = `
@@ -24,17 +26,13 @@ const PRINT_CSS = `
 #dossier-print-root { color: #0f172a; font-family: Tahoma, 'Segoe UI', Arial, sans-serif; }
 `;
 
-// Authorized pickup lines are stored as "Nom (lien) — téléphone"; older crèche data used objects.
-const pickupLine = (p: any): string =>
-    typeof p === 'string' ? p : [p?.name, p?.relation ? `(${p.relation})` : '', p?.phone ? `— ${p.phone}` : ''].filter(Boolean).join(' ');
-
 /** The inscription file handed to the parents, printed in the interface language. */
 export default function StudentDossierPage() {
     const { tr } = useI18n();
     const router = useRouter();
     const { id } = useParams<{ id: string }>();
     const { profile } = useSchoolProfile();
-    const [s, setS] = useState<any>(null);
+    const [s, setS] = useState<Student | false | null>(null);
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
     useEffect(() => {
@@ -58,7 +56,7 @@ export default function StudentDossierPage() {
     );
     const payer = s.payer === 'FATHER' ? tr('Père') : s.payer === 'MOTHER' ? tr('Mère') : s.payer === 'GUARDIAN' ? tr('Tuteur légal') : '';
     const docs = DOCUMENT_CHECKLIST.filter((d) => !d.prescolaireOnly || isPrescolaire(s.schoolLevel));
-    const pickup: any[] = Array.isArray(s.authorizedPickup) ? s.authorizedPickup : [];
+    const pickup: AuthorizedPickup[] = Array.isArray(s.authorizedPickup) ? s.authorizedPickup : [];
     const section = 'mt-5';
     const h2 = 'mb-1 border-b border-gray-900 pb-1 text-base font-bold';
 
