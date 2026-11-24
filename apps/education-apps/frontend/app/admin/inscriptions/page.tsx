@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FileSpreadsheet } from 'lucide-react';
+import SchoolInscriptionForm from '@/components/school-mode/SchoolInscriptionForm';
+import { useSchoolCycles } from '@/hooks/useSchoolCycles';
 import SoutienInscriptionForm from '@/components/forms/SoutienInscriptionForm';
 import AddStudentForm from '@/components/forms/AddStudentForm';
 import { useSchoolProfile } from '@/hooks/useSchoolProfile';
@@ -25,6 +27,16 @@ function ImportLink() {
 export default function RegisterStudentPage() {
     const router = useRouter();
     const { profile, loading } = useSchoolProfile();
+    const { cycles, schoolYear, schoolMode, loading: cyclesLoading } = useSchoolCycles();
+
+    if (!loading && !cyclesLoading && schoolMode) {
+        return (
+            <>
+                <ImportLink />
+                <SchoolInscriptionForm cycles={cycles} schoolYear={schoolYear} studentsPath="/admin/students" />
+            </>
+        );
+    }
 
     if (!loading && profile.institutionType === 'CRECHE') {
         return (
