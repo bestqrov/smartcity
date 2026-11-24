@@ -7,8 +7,8 @@ import { apiErrorMessage } from '@/lib/services/packs';
 import { resetSchoolOwnerPassword, updateSchoolByAdmin, type AdminSchoolUpdate, type SchoolListItem } from '@/lib/services/schools';
 
 const inputCls =
-    'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400';
-const labelCls = 'block text-xs font-medium text-gray-500 mb-1';
+    'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400';
+const labelCls = 'block text-xs font-medium text-gray-500 dark:text-gray-300 mb-1';
 
 const DAY = 24 * 60 * 60 * 1000;
 // yyyy-mm-dd in the browser's time zone, for <input type="date">.
@@ -149,7 +149,7 @@ export default function EditSchoolModal({ school, onClose, onSaved }: { school: 
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900">
                     <label>
                         <span className={labelCls}>Nouveau mot de passe du propriétaire (laisser vide pour ne pas changer)</span>
                         <input
