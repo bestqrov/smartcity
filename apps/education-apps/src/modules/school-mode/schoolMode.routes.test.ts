@@ -1,0 +1,32 @@
+import express from 'express';
+import request from 'supertest';
+import routes from './schoolMode.routes';
+import { saveTuitionGrid } from './tuitionFees.service';
+import { registerSchoolStudent } from './inscription.service';
+import { listDues } from './dues.service';
+
+jest.mock('./tuitionFees.service', () => ({ getTuitionGrid: jest.fn().mockResolvedValue([]), saveTuitionGrid: jest.fn().mockResolvedValue([]) }));
+jest.mock('./inscription.service', () => ({ registerSchoolStudent: jest.fn().mockResolvedValue({ student: { id: 's1' }, summary: {} }) }));
+jest.mock('./dues.service', () => ({ listDues: jest.fn().mockResolvedValue({ rows: [] }), collectMonth: jest.fn().mockResolvedValue({ id: 'p1' }) }));
+jest.mock('../../middlewares/tenantScope.middleware', () => ({ tenantScopeMiddleware: (req: any, _res: any, next: any) => ((req.branchId = 'b1'), next()) }));
+jest.mock('../../utils/jwt', () => ({ verifyToken: jest.fn((token: string) => ({ id: 'u1', email: 'u@test.local', role: token, schoolId: 's', branchId: 'b1' })) }));
+
+const app = express();
+app.use(express.json());
+app.use('/api/school-mode', routes);
+beforeAll(() => jest.spyOn(console, 'error').mockImplementation(() => undefined));
+afterEach(() => jest.clearAllMocks());
+
+it('lets the secretary register and see dues, not change the fee grid', async () => {
+    expect((await request(app).post('/api/school-mode/inscriptions').set('Authorization', 'Bearer SECRETARY').send({ name: 'x' })).status).toBe(201);
+    expect(registerSchoolStudent).toHaveBeenCalledWith('b1', { name: 'x' });
+    expect((await request(app).get('/api/school-mode/dues?month=2026-11').set('Authorization', 'Bearer SECRETARY')).status).toBe(200);
+    expect(listDues).toHaveBeenCalledWith('b1', '2026-11');
+    expect((await request(app).put('/api/school-mode/tuition-fees').set('Authorization', 'Bearer SECRETARY').send({ items: [] })).status).toBe(403);
+    expect(saveTuitionGrid).not.toHaveBeenCalled();
+});
+
+it('lets the owner save the grid and refuses sales agents', async () => {
+    expect((await request(app).put('/api/school-mode/tuition-fees').set('Authorization', 'Bearer OWNER').send({ items: [] })).status).toBe(200);
+    expect((await request(app).get('/api/school-mode/tuition-fees').set('Authorization', 'Bearer SALES_AGENT')).status).toBe(403);
+});
