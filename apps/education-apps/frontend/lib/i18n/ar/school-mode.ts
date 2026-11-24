@@ -24,4 +24,10 @@ export const schoolMode: Record<string, string> = {
     'Dernier bulletin': 'آخر بيان للنقط',
     'Copie CIN du parent': 'نسخة من البطاقة الوطنية لولي الأمر',
     'Carnet de vaccination': 'دفتر التلقيح',
+    // ---- settings card
+    "Cycles de l'établissement": 'أسلاك المؤسسة',
+    'Cochez les cycles de votre école : l’inscription passe au dossier complet (frais par niveau, code Massar, santé, mensualités).':
+        'حدّدوا الأسلاك التعليمية لمؤسستكم: يصبح التسجيل ملفًا متكاملًا (الرسوم حسب المستوى، رمز مسار، المعلومات الصحية، الأقساط الشهرية).',
+    'Cycles enregistrés': 'تم حفظ الأسلاك',
+    "Échec de l'enregistrement": 'تعذّر الحفظ',
 };

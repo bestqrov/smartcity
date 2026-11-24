@@ -22,6 +22,8 @@ import Button from '@/components/Button';
 import Input from '@/components/Input';
 import GradingPeriodsEditor from '@/components/grades/GradingPeriodsEditor';
 import WhatsappAutoCard from '@/components/settings/WhatsappAutoCard';
+import SchoolCyclesCard from '@/components/settings/SchoolCyclesCard';
+import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import api from '@/lib/api';
 import useAuthStore from '@/store/useAuthStore';
 import { getMySchool, updateMySchool } from '@/lib/services/schools';
@@ -42,6 +44,8 @@ interface User {
 
 export default function SettingsPage() {
     const { tr } = useI18n();
+    // Institution type decides if the private school cycles card is shown (the local schoolProfile state is the editable form).
+    const { profile: institution } = useSchoolProfile();
     const [activeTab, setActiveTab] = useState<'profile' | 'theme' | 'backup' | 'users'>('profile');
     const [saving, setSaving] = useState(false);
     const [success, setSuccess] = useState('');
@@ -499,6 +503,8 @@ export default function SettingsPage() {
                                 >
                                     <Save size={20} />{tr("Enregistrer le profil")}</Button>
                             </div>
+
+                            {(!institution.institutionType || institution.institutionType === 'PRIVATE_SCHOOL') && <SchoolCyclesCard />}
 
                             <GradingPeriodsEditor />
 
