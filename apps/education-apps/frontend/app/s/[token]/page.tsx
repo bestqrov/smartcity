@@ -84,8 +84,8 @@ function StudentSpace() {
 
     const totalPayable = (student.inscriptions || []).reduce((sum, i) => sum + i.amount, 0);
     const totalPaid = (student.payments || []).reduce((sum, p) => sum + p.amount, 0);
-    // Monthly payments are not inscriptions: paying them must not show a negative balance due.
-    const balanceDue = Math.max(0, totalPayable - totalPaid);
+    // Monthly tuition (forMonth set) is tracked by the dues, not by the inscriptions.
+    const balanceDue = Math.max(0, totalPayable - (student.payments || []).filter((p) => !p.forMonth).reduce((sum, p) => sum + p.amount, 0));
 
     const todayAttendance = (student.attendances || []).find(
         (a) => new Date(a.date).toDateString() === new Date().toDateString()

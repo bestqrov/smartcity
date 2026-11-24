@@ -1,6 +1,6 @@
 import prisma from '../../config/database';
 import { getBranchesForSchool, getBranchSummary } from './branches.service';
-import { tuitionPayments } from '../payments/tuitionFilter';
+import { balancePayments, tuitionPayments } from '../payments/tuitionFilter';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
@@ -60,7 +60,7 @@ describe('branch summary balance', () => {
         await getBranchSummary('school1');
 
         expect(prisma.payment.aggregate).toHaveBeenCalledWith({
-            where: { branchId: 'b1', ...tuitionPayments.where },
+            where: { branchId: 'b1', AND: [tuitionPayments.where, balancePayments] },
             _sum: { amount: true },
         });
     });

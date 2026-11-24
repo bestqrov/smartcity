@@ -171,6 +171,8 @@ export interface Payment {
     amount: number;
     method: string;
     note?: string;
+    /** "YYYY-MM" on monthly tuition (school mode): not counted in the balance due. */
+    forMonth?: string | null;
     date: string;
     createdAt: string;
     updatedAt: string;

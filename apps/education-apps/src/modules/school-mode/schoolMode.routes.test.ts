@@ -30,3 +30,10 @@ it('lets the owner save the grid and refuses sales agents', async () => {
     expect((await request(app).put('/api/school-mode/tuition-fees').set('Authorization', 'Bearer OWNER').send({ items: [] })).status).toBe(200);
     expect((await request(app).get('/api/school-mode/tuition-fees').set('Authorization', 'Bearer SALES_AGENT')).status).toBe(403);
 });
+
+it('returns 201 with the transport error when only the transport failed', async () => {
+    (registerSchoolStudent as jest.Mock).mockResolvedValueOnce({ student: { id: 's1' }, summary: {}, transportError: 'Plus de place' });
+    const res = await request(app).post('/api/school-mode/inscriptions').set('Authorization', 'Bearer SECRETARY').send({ name: 'x' });
+    expect(res.status).toBe(201);
+    expect(res.body.data.transportError).toBe('Plus de place');
+});

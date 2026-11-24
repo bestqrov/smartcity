@@ -64,7 +64,7 @@ export default function StudentProfilePage() {
     const balanceDue = Math.max(
         0,
         (student.inscriptions || []).reduce((sum, i) => sum + i.amount, 0) -
-            (student.payments || []).reduce((sum, p) => sum + p.amount, 0)
+            (student.payments || []).filter((p) => !p.forMonth).reduce((sum, p) => sum + p.amount, 0)
     );
 
     return (

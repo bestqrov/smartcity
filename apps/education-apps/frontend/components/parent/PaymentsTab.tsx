@@ -3,7 +3,7 @@
 import { Bus, FileText, Info, Receipt } from 'lucide-react';
 import type { Student } from '@/types';
 import type { ParentLang, ParentMessages } from '@/lib/parent/messages';
-import { formatDate, formatMoney, studentOwed, studentPaid } from '@/lib/parent/helpers';
+import { formatDate, formatMoney, studentBalance, studentOwed, studentPaid } from '@/lib/parent/helpers';
 import { Card, EmptyState, Ltr, SectionTitle } from './ui';
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
 export default function PaymentsTab({ student, t, lang }: Props) {
     const owed = studentOwed(student);
     const paid = studentPaid(student);
-    const balance = owed - paid;
+    const balance = studentBalance(student);
     const inscriptions = [...(student.inscriptions || [])].sort((a, b) => b.date.localeCompare(a.date));
     const payments = [...(student.payments || [])].sort((a, b) => b.date.localeCompare(a.date));
     const transport = student.transportSubscriptions || [];

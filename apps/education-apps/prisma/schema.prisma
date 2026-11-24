@@ -195,54 +195,55 @@ model Branch {
 }
 
 model Student {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
-  name             String
-  surname          String
-  phone            String?
-  email            String?
-  cin              String?
-  address          String?
-  birthDate        DateTime?
-  birthPlace       String?
-  fatherName       String?
-  motherName       String?
-  parentName       String?
-  parentPhone      String?
-  parentRelation   String?
-  schoolLevel      String?
-  currentSchool    String?
-  crecheSection    String? // NOURRISSON | MOYENNE | GRANDE — crèche only
-  healthNotes      String? // allergies / health notes — crèche only
-  authorizedPickup Json? // [{ name, phone, relation }] — crèche only
-  massarNumber     String? // set only when crecheSection = GRANDE
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  surname           String
+  phone             String?
+  email             String?
+  cin               String?
+  address           String?
+  birthDate         DateTime?
+  birthPlace        String?
+  fatherName        String?
+  motherName        String?
+  parentName        String?
+  parentPhone       String?
+  parentRelation    String?
+  schoolLevel       String?
+  currentSchool     String?
+  crecheSection     String? // NOURRISSON | MOYENNE | GRANDE — crèche only
+  healthNotes       String? // allergies / health notes — crèche only
+  authorizedPickup  Json? // [{ name, phone, relation }] — crèche only
+  massarNumber      String? // set only when crecheSection = GRANDE
   // Complete private school file (all optional; set by the professional inscription)
-  nameAr           String?
-  surnameAr        String?
-  gender           String? // M | F
-  nationality      String?
-  schoolYear       String? // "2026/2027" of the current inscription
-  enrollmentKind   String? // NEW | RETURNING
-  fatherCin        String?
-  fatherPhone      String?
-  fatherJob        String?
-  motherCin        String?
-  motherPhone      String?
-  motherJob        String?
-  payer            String? // FATHER | MOTHER | GUARDIAN
-  emergencyName    String?
-  emergencyPhone   String?
-  bloodGroup       String?
-  chronicDiseases  String?
-  medications      String?
-  careConsent      Boolean?
-  documents        String[]
-  monthlyFee       Float? // frozen at inscription, after the sibling discount
-  siblingDiscount  Float? // percent applied to the monthly fee
-  subjects         Json?
-  photo            String? // Base64 encoded image or file path
-  active           Boolean   @default(true)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  nameAr            String?
+  surnameAr         String?
+  gender            String? // M | F
+  nationality       String?
+  schoolYear        String? // "2026/2027" of the current inscription
+  enrollmentKind    String? // NEW | RETURNING
+  fatherCin         String?
+  fatherPhone       String?
+  fatherJob         String?
+  motherCin         String?
+  motherPhone       String?
+  motherJob         String?
+  payer             String? // FATHER | MOTHER | GUARDIAN
+  emergencyName     String?
+  emergencyPhone    String?
+  bloodGroup        String?
+  chronicDiseases   String?
+  medications       String?
+  careConsent       Boolean?
+  documents         String[]
+  monthlyFee        Float? // frozen at inscription, after the sibling discount
+  siblingDiscount   Float? // percent applied to the monthly fee
+  tuitionStartMonth String? // "YYYY-MM": first tuition month due (private school mode); null = no restriction
+  subjects          Json?
+  photo             String? // Base64 encoded image or file path
+  active            Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   parentId        String? @db.ObjectId
   parent          Parent? @relation(fields: [parentId], references: [id])
@@ -366,7 +367,7 @@ model Payment {
 
   transportSubscriptionId String?                @db.ObjectId
   transportSubscription   TransportSubscription? @relation(fields: [transportSubscriptionId], references: [id])
-  forMonth                String? // "YYYY-MM", only set on transport payments
+  forMonth                String? // "YYYY-MM": transport payments and school-mode monthly tuition; balances (inscriptions − payments) count only payments without forMonth
 
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
