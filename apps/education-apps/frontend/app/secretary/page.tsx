@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import SecretaryAnalytics from '@/components/dashboard/SecretaryAnalytics';
 import useAuthStore from '@/store/useAuthStore';
 import { greeting, todayLabel } from '@/lib/dashboard/vibrant';
+import PlatformBanner from '@/components/dashboard/PlatformBanner';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
 export default function SecretaryDashboard() {
@@ -19,6 +20,7 @@ export default function SecretaryDashboard() {
 
     return (
         <div className="space-y-6">
+            <PlatformBanner />
             <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                     {greeting()}{name ? `${tr(',')} ${name}` : ''}

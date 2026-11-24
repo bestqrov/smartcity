@@ -12,6 +12,8 @@ import { INSTITUTION_TYPES, INSTITUTION_TYPE_LABELS, isInstitutionType, type Ins
 import { checkReferralCode } from '../../lib/services/salesAgents';
 import { whatsappUrl } from '../../lib/landing/whatsapp';
 import { fetchPublicPacks, type PublicPack } from '../../lib/services/packs';
+import PlatformBrand from '@/components/PlatformBrand';
+import { usePublicPlatform } from '@/lib/services/platformSettings';
 import {
     OFFER_PERIODS,
     fetchPartnerOffer,
@@ -34,6 +36,9 @@ function SignupForm() {
     const setAccessTokenState = useAuthStore((state) => state.setAccessToken);
 
     const searchParams = useSearchParams();
+    const platform = usePublicPlatform();
+    // Periods offered at signup are chosen by the super admin.
+    const allowedPeriods = OFFER_PERIODS.filter((period) => platform.signupPeriods.includes(period));
     const initialType = searchParams.get('type');
     const [form, setForm] = useState({ ownerName: '', ownerEmail: '', password: '' });
     const [institutionType, setInstitutionType] = useState<InstitutionType | ''>(
@@ -59,6 +64,12 @@ function SignupForm() {
             ? packOfferPrice(selectedPack, offer, offerPeriod)
             : packBasePrice(selectedPack, offerPeriod)
         : 0;
+
+    // A period the platform no longer offers falls back to the first one offered.
+    useEffect(() => {
+        if (allowedPeriods.length > 0 && !allowedPeriods.includes(offerPeriod)) setOfferPeriod(allowedPeriods[0]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [platform.signupPeriods.join(','), offerPeriod]);
 
     // The code a pending check is for; a response for an older code is dropped so it can't overwrite the status.
     const checkedCode = useRef('');
@@ -148,6 +159,7 @@ function SignupForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        if (!platform.signupOpen) { setError(tr('Inscriptions fermées')); return; }
         if (!institutionType) { setError(tr('Choisissez le type de votre établissement.')); return; }
         const code = referralCode.trim();
         if (!code) { setError(tr('Le code commercial est obligatoire.')); return; }
@@ -167,7 +179,9 @@ function SignupForm() {
             router.push('/admin/settings');
         } catch (err: any) {
             const msg = err.response?.data?.error || err.response?.data?.message || '';
-            if (msg === 'Invalid referral code' || msg === 'Referral code is required') {
+            if (msg === 'SIGNUP_CLOSED') {
+                setError(tr('Inscriptions fermées'));
+            } else if (msg === 'Invalid referral code' || msg === 'Referral code is required') {
                 setCodeStatus('invalid');
                 setError(tr(msg === 'Invalid referral code' ? 'Code commercial invalide.' : 'Le code commercial est obligatoire.'));
             } else if (msg === 'This offer is only available through a partner') {
@@ -198,7 +212,7 @@ function SignupForm() {
                         </div>
                     </div>
                     <h2 className="text-6xl font-black text-white mb-6 tracking-tight leading-[1.1]">
-                        Arwa<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400">Educ</span>
+                        <PlatformBrand name={platform.platformName} accentClass="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-blue-400" />
                     </h2>
                     <div className="h-1.5 w-24 bg-indigo-500 rounded-full mx-auto mb-8 shadow-[0_0_20px_rgba(99,102,241,0.6)]"></div>
                     <p className="text-indigo-100/60 text-xl font-medium leading-relaxed">
@@ -230,6 +244,13 @@ function SignupForm() {
                         </h1>
                         <p className="text-slate-400 font-medium">{tr('Démarrez votre essai en créant votre premier établissement.')}</p>
                     </div>
+
+                    {!platform.signupOpen && (
+                        <div role="status" className="mb-6 p-4 bg-amber-50 text-amber-800 text-sm rounded-3xl border-2 border-amber-100 font-extrabold">
+                            {tr('Inscriptions fermées')}
+                            <span className="block font-medium">{tr('Les inscriptions sont momentanément fermées. Contactez-nous pour créer votre école.')}</span>
+                        </div>
+                    )}
 
                     {/* Error Notification */}
                     {error && (
@@ -286,7 +307,7 @@ function SignupForm() {
                                 <div className="grid gap-2" role="radiogroup" aria-label={tr('Durée')}>
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">{tr('Durée')}</p>
                                     <div className="grid grid-cols-3 gap-2">
-                                        {OFFER_PERIODS.map((period) => (
+                                        {allowedPeriods.map((period) => (
                                             <label
                                                 key={period}
                                                 className={`cursor-pointer rounded-2xl border-2 px-3 py-2 text-center ${
@@ -349,7 +370,7 @@ function SignupForm() {
                                             )}
                                         </label>
                                     ))}
-                                    <p className="text-xs text-slate-400">{tr("15 jours d'essai gratuit, sans carte bancaire.")}</p>
+                                    <p className="text-xs text-slate-400">{tr("{n} jours d'essai gratuit, sans carte bancaire.", { n: platform.trialDays })}</p>
                                 </div>
                             )}
                         </div>
@@ -458,7 +479,7 @@ function SignupForm() {
                         />
 
                         <div className="pt-4 lg:pt-6">
-                            <Button isLoading={loading} disabled={loading} className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-xl shadow-[0_20px_45px_-10px_rgba(79,70,229,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-4 group">
+                            <Button isLoading={loading} disabled={loading || !platform.signupOpen} className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-xl shadow-[0_20px_45px_-10px_rgba(79,70,229,0.4)] transform active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-4 group">
                                 {loading ? tr('Création…') : tr('Créer mon compte')}
                                 {!loading && (
                                     <svg className="w-6 h-6 transform group-hover:translate-x-1.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-1.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -476,10 +497,12 @@ function SignupForm() {
                                 {tr('Déjà un compte ?')}{' '}
                                 <a href="/login" className="text-indigo-600 hover:underline font-bold">{tr('Se connecter')}</a>
                             </span>
-                            <div className="flex items-center justify-center gap-2">
-                                <span>📧 {tr('Email :')}</span>
-                                <a href="mailto:contact@smartecole.com" className="text-indigo-600 hover:underline font-bold">contact@smartecole.com</a>
-                            </div>
+                            {platform.supportEmail && (
+                                <div className="flex items-center justify-center gap-2">
+                                    <span>📧 {tr('Email :')}</span>
+                                    <a href={`mailto:${platform.supportEmail}`} className="text-indigo-600 hover:underline font-bold">{platform.supportEmail}</a>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

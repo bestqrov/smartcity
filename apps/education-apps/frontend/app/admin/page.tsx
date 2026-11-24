@@ -31,6 +31,7 @@ import { hasFeature } from '@/lib/packs';
 import { useSchoolCycles } from '@/hooks/useSchoolCycles';
 import { levelLabel } from '@/lib/schoolLevels';
 import { getDuesSummary } from '@/lib/services/schoolMode';
+import PlatformBanner from '@/components/dashboard/PlatformBanner';
 const CRECHE_SECTIONS: Record<string, string> = { NOURRISSON: 'Nourrissons', MOYENNE: 'Moyenne section', GRANDE: 'Grande section' };
 
 export default function AdminDashboard() {
@@ -223,6 +224,7 @@ export default function AdminDashboard() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            <PlatformBanner />
 
             {/* Greeting & actions */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">

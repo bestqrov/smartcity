@@ -17,6 +17,8 @@ export const settings: Record<string, string> = {
     "Gérer les paramètres de l'application": 'تسيير إعدادات التطبيق',
     "Votre période d'essai de 15 jours est terminée. Contactez-nous pour activer votre école.":
         'انتهت فترتك التجريبية (15 يوماً). تواصل معنا لتفعيل مؤسستك.',
+    "Votre période d'essai de {n} jours est terminée. Contactez-nous pour activer votre école.":
+        'انتهت فترتك التجريبية ({n} يوماً). تواصل معنا لتفعيل مؤسستك.',
     'Essai gratuit : il vous reste {daysLeft} jour(s).': 'التجربة المجانية: بقي لك {daysLeft} يوم.',
     "Profil de l'École": 'ملف المؤسسة',
     "Gérer les informations de l'établissement": 'تسيير معلومات المؤسسة',

@@ -8,6 +8,8 @@ import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import { GraduationCap, X } from 'lucide-react';
 import LangSwitcher from '@/components/LangSwitcher';
 import { I18nProvider, useI18n } from '@/lib/i18n/I18nProvider';
+import PlatformBrand from '@/components/PlatformBrand';
+import { usePublicPlatform, whatsappLink } from '@/lib/services/platformSettings';
 
 // Server messages are English: the known ones get a French source text, which the dictionary translates.
 const LOGIN_ERRORS: Record<string, string> = {
@@ -31,6 +33,7 @@ function LoginForm() {
     const router = useRouter();
     const login = useAuthStore(state => state.login);
     const { profile, loading } = useSchoolProfile();
+    const platform = usePublicPlatform();
 
     useEffect(() => {
         const token = (typeof window !== 'undefined') ? localStorage.getItem('accessToken') : null;
@@ -71,7 +74,7 @@ function LoginForm() {
                         </div>
                     </div>
                     <h2 className="text-6xl font-black text-white mb-6 tracking-tight leading-[1.1]">
-                        Arwa<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300">Educ</span>
+                        <PlatformBrand name={platform.platformName} accentClass="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300" />
                     </h2>
                     <div className="h-1.5 w-24 bg-emerald-500 rounded-full mx-auto mb-8 shadow-[0_0_20px_rgba(16,185,129,0.6)]"></div>
                     <p className="text-emerald-100/60 text-xl font-medium leading-relaxed">
@@ -155,10 +158,12 @@ function LoginForm() {
                                 <span>🌐 {tr('Site :')}</span>
                                 <a href="https://education.morosmartcitys.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline font-bold">education.morosmartcitys.com</a>
                             </div>
-                            <div className="flex items-center justify-center gap-2">
-                                <span>📱 {tr('Gsm / WhatsApp :')}</span>
-                                <a href="https://wa.me/212608183886" target="_blank" rel="noopener noreferrer" dir="ltr" className="text-emerald-600 hover:underline font-bold">+212 608183886</a>
-                            </div>
+                            {(platform.supportWhatsapp || platform.supportPhone) && (
+                                <div className="flex items-center justify-center gap-2">
+                                    <span>📱 {tr('Gsm / WhatsApp :')}</span>
+                                    <a href={whatsappLink(platform.supportWhatsapp || platform.supportPhone || '')} target="_blank" rel="noopener noreferrer" dir="ltr" className="text-emerald-600 hover:underline font-bold">{platform.supportPhone || platform.supportWhatsapp}</a>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

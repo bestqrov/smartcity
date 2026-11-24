@@ -343,6 +343,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       path: '/admin/sales-agents',
       activeColor: 'bg-[#334155]/50 border-[#34D399]',
       iconColor: 'text-[#34D399]'
+    },
+    {
+      id: 'platform-settings',
+      label: 'Paramètres plateforme',
+      icon: Settings,
+      path: '/admin/platform/settings',
+      activeColor: 'bg-[#334155]/50 border-[#94A3B8]',
+      iconColor: 'text-[#94A3B8]'
     }
     // Platform-only: the super admin doesn't manage what happens inside a school.
   ];
@@ -628,6 +636,7 @@ const ITEM_GROUP: Record<string, GroupId> = {
   schools: 'etablissement',
   packs: 'etablissement',
   'sales-agents': 'etablissement',
+  'platform-settings': 'etablissement',
 };
 
 // Sub-entries that belong to another group than their parent menu, with their own icon.

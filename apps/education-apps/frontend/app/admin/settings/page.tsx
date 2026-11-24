@@ -27,6 +27,7 @@ import { useSchoolProfile } from '@/hooks/useSchoolProfile';
 import api from '@/lib/api';
 import useAuthStore from '@/store/useAuthStore';
 import { getMySchool, updateMySchool } from '@/lib/services/schools';
+import { usePublicPlatform } from '@/lib/services/platformSettings';
 
 import { useI18n } from '@/lib/i18n/I18nProvider';
 interface User {
@@ -61,6 +62,7 @@ export default function SettingsPage() {
         director: '',
         logo: '',
     });
+    const platform = usePublicPlatform();
     const [trialInfo, setTrialInfo] = useState<{ status: string; trialEndsAt: string | null } | null>(null);
 
     // Theme State
@@ -336,9 +338,16 @@ export default function SettingsPage() {
                         }`}
                     >
                         <AlertCircle size={20} />
-                        {expired
-                            ? tr("Votre période d'essai de 15 jours est terminée. Contactez-nous pour activer votre école.")
-                            : tr("Essai gratuit : il vous reste {daysLeft} jour(s).", { daysLeft })}
+                        <span>
+                            {expired
+                                ? tr("Votre période d'essai de {n} jours est terminée. Contactez-nous pour activer votre école.", { n: platform.trialDays })
+                                : tr("Essai gratuit : il vous reste {daysLeft} jour(s).", { daysLeft })}
+                            {expired && (platform.supportPhone || platform.supportEmail) && (
+                                <span className="block text-sm font-semibold" dir="auto">
+                                    {[platform.supportPhone, platform.supportEmail].filter(Boolean).join(' · ')}
+                                </span>
+                            )}
+                        </span>
                     </div>
                 );
             })()}

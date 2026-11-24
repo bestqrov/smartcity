@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Briefcase, Building, LayoutDashboard, Package } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Briefcase, Building, LayoutDashboard, Package, Settings } from 'lucide-react';
 import { RequireRole } from '@/components/auth/RequireRole';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import useAuthStore from '@/store/useAuthStore';
@@ -11,6 +11,7 @@ import { DECLARATIONS_CHANGED, getPendingDeclarationsCount } from '@/lib/service
 
 function Shell({ children }: { children: React.ReactNode }) {
     const router = useRouter();
+    const pathname = usePathname();
     const user = useAuthStore((state) => state.user);
     const { lang, setLang, m, theme, toggleTheme } = usePlatformPrefs();
 
@@ -40,10 +41,11 @@ function Shell({ children }: { children: React.ReactNode }) {
     }, [user?.role]);
 
     const nav = [
-        { key: 'dashboard', label: m.nav_dashboard, icon: LayoutDashboard, href: '/admin/platform', active: true, badge: pending },
+        { key: 'dashboard', label: m.nav_dashboard, icon: LayoutDashboard, href: '/admin/platform', active: pathname === '/admin/platform', badge: pending },
         { key: 'schools', label: m.nav_schools, icon: Building, href: '/admin/schools', active: false },
         { key: 'packs', label: m.nav_packs, icon: Package, href: '/admin/packs', active: false },
         { key: 'agents', label: m.nav_agents, icon: Briefcase, href: '/admin/sales-agents', active: false },
+        { key: 'settings', label: m.nav_settings, icon: Settings, href: '/admin/platform/settings', active: pathname?.startsWith('/admin/platform/settings') ?? false },
     ];
 
     return (
