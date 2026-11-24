@@ -30,4 +30,17 @@ export const schoolMode: Record<string, string> = {
         'حدّدوا الأسلاك التعليمية لمؤسستكم: يصبح التسجيل ملفًا متكاملًا (الرسوم حسب المستوى، رمز مسار، المعلومات الصحية، الأقساط الشهرية).',
     'Cycles enregistrés': 'تم حفظ الأسلاك',
     "Échec de l'enregistrement": 'تعذّر الحفظ',
+    // ---- tuition fee table (Prix page)
+    'Frais de scolarité par niveau': 'رسوم التمدرس حسب المستوى',
+    "Utilisés automatiquement par le formulaire d'inscription. Les élèves déjà inscrits gardent leur mensualité.":
+        'تُعتمد تلقائيًا في استمارة التسجيل. يحتفظ التلاميذ المسجّلون مسبقًا بقسطهم الشهري.',
+    'Impossible de charger les prix': 'تعذّر تحميل الأسعار',
+    'Tarifs enregistrés': 'تم حفظ التعريفات',
+    "Frais d'inscription": 'رسوم التسجيل',
+    'Mensualité': 'القسط الشهري',
+    'Assurance (année)': 'التأمين (سنويًا)',
+    'Niveau': 'المستوى',
+    'MAD': 'درهم',
+    'Enregistrement…': 'جارٍ الحفظ…',
+    'Enregistrer': 'حفظ',
 };
