@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useAuthStore from '@/store/useAuthStore';
 import { getAllSchools, updateSchoolStatus, SchoolListItem } from '@/lib/services/schools';
-import { Building2, CheckCircle, Wallet } from 'lucide-react';
+import { Building2, CheckCircle, Pencil, Wallet } from 'lucide-react';
+import EditSchoolModal from '@/components/admin/EditSchoolModal';
 import SchoolPaymentsModal from '@/components/admin/SchoolPaymentsModal';
 import { assignSchoolAgent, getSalesAgents, type SalesAgentListItem, type SubscriptionPeriod } from '@/lib/services/salesAgents';
 import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
@@ -24,6 +25,7 @@ export default function SuperAdminSchoolsPage() {
     const [packs, setPacks] = useState<AdminPack[]>([]);
     const [assigningId, setAssigningId] = useState<string | null>(null);
     const [agents, setAgents] = useState<SalesAgentListItem[]>([]);
+    const [editSchool, setEditSchool] = useState<SchoolListItem | null>(null);
     const [paymentsSchool, setPaymentsSchool] = useState<{ id: string; name: string; offerPeriod: SubscriptionPeriod | null; offerPrice: number | null } | null>(null);
 
     useEffect(() => {
@@ -160,6 +162,9 @@ export default function SuperAdminSchoolsPage() {
                     {activatingId === school.id ? 'Activation…' : 'Activer'}
                 </button>
             )}
+            <button onClick={() => setEditSchool(school)} className={`${btn} bg-gray-100 hover:bg-gray-200 text-gray-800`}>
+                <Pencil size={16} /> Modifier
+            </button>
             <button
                 onClick={() => setPaymentsSchool({ id: school.id, name: school.name, offerPeriod: school.offerPeriod ?? null, offerPrice: school.offerPrice ?? null })}
                 className={`${btn} bg-gray-100 hover:bg-gray-200 text-gray-800`}
@@ -256,6 +261,7 @@ export default function SuperAdminSchoolsPage() {
                     </>
                 )}
             </div>
+            {editSchool && <EditSchoolModal key={editSchool.id} school={editSchool} onClose={() => setEditSchool(null)} onSaved={fetchSchools} />}
             {paymentsSchool && <SchoolPaymentsModal key={paymentsSchool.id} school={paymentsSchool} onClose={() => setPaymentsSchool(null)} />}
         </div>
     );

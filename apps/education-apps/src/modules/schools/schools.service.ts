@@ -168,7 +168,11 @@ export const listSchools = async () => {
         select: {
             id: true,
             name: true,
+            ownerName: true,
             ownerEmail: true,
+            ownerPhone: true,
+            city: true,
+            address: true,
             status: true,
             trialEndsAt: true,
             createdAt: true,

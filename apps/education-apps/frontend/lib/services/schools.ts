@@ -72,7 +72,11 @@ export async function updateMySchool(data: UpdateSchoolProfilePayload): Promise<
 export interface SchoolListItem {
     id: string;
     name: string;
+    ownerName?: string;
     ownerEmail: string;
+    ownerPhone?: string | null;
+    city?: string | null;
+    address?: string | null;
     status: SchoolStatus;
     trialEndsAt: string | null;
     createdAt: string;
@@ -94,4 +98,24 @@ export async function getAllSchools(): Promise<SchoolListItem[]> {
 export async function updateSchoolStatus(id: string, status: SchoolStatus): Promise<SchoolListItem> {
     const response = await api.patch<ApiResponse<SchoolListItem>>(`/schools/${id}/status`, { status });
     return response.data.data;
+}
+
+export interface AdminSchoolUpdate {
+    name?: string;
+    ownerName?: string;
+    ownerEmail?: string;
+    ownerPhone?: string;
+    city?: string;
+    address?: string;
+    institutionType?: InstitutionType;
+    trialEndsAt?: string | null;
+}
+
+export async function updateSchoolByAdmin(id: string, data: AdminSchoolUpdate): Promise<SchoolListItem> {
+    const response = await api.patch<ApiResponse<SchoolListItem>>(`/schools/${id}`, data);
+    return response.data.data;
+}
+
+export async function resetSchoolOwnerPassword(id: string, password: string): Promise<void> {
+    await api.patch(`/schools/${id}/owner-password`, { password });
 }
