@@ -53,7 +53,7 @@ export function levelFromText(raw: string | null | undefined): string | null {
     if (/tronc|جذع/.test(text) || /^tc$/.test(text)) return 'TC';
     const bac = text.match(/\b([12])\s*(ere|eme|e)?\s*(annee)?\s*bac\b|bac\s*([12])\b/);
     if (bac) return `B${bac[1] ?? bac[4]}`;
-    if (/الاولى باك/.test(text)) return 'B1';
+    if (/الاولي باك/.test(text)) return 'B1';
     if (/الثانية باك/.test(text)) return 'B2';
     const n = ORDINALS.find(([rx]) => rx.test(text))?.[1];
     if (!n) return null;
