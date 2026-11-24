@@ -128,4 +128,14 @@ export const schoolMode: Record<string, string> = {
     "Date de naissance invalide": "تاريخ الازدياد غير صالح",
     "Montant invalide": "مبلغ غير صالح",
     "Le sexe doit être M ou F": "يجب أن يكون الجنس ذكرًا أو أنثى",
+    // ---- printable inscription file (dossier)
+    'Nom et prénom': 'الاسم الكامل',
+    'Nom et prénom (arabe)': 'الاسم الكامل بالعربية',
+    'Date et lieu de naissance': 'تاريخ ومكان الازدياد',
+    'Responsable du paiement': 'المسؤول عن الأداء',
+    "Contact d'urgence": 'جهة الاتصال في حالة الطوارئ',
+    'Autorisation de soins': 'الإذن بالإسعافات',
+    'Signature du parent': 'توقيع ولي الأمر',
+    "Cachet de l'établissement": 'خاتم المؤسسة',
+    Marocaine: 'مغربية',
 };
