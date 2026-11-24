@@ -1,5 +1,5 @@
 import prisma from '../../config/database';
-import { getSettings, updateSettings, validateGradingPeriods } from './settings.service';
+import { getSettings, updateSettings, validateGradingPeriods, validateSchoolCycles } from './settings.service';
 
 jest.mock('../../config/database', () => ({
     __esModule: true,
@@ -96,5 +96,19 @@ describe('validateGradingPeriods', () => {
         ['Semestre 1'],
     ])('rejects %o', (value) => {
         expect(() => validateGradingPeriods(value)).toThrow('gradingPeriods');
+    });
+});
+
+describe('validateSchoolCycles', () => {
+    it('keeps known cycles in school order, once', () => {
+        expect(validateSchoolCycles(['PRIMAIRE', 'PRESCOLAIRE', 'PRIMAIRE'], 'PRIVATE_SCHOOL')).toEqual(['PRESCOLAIRE', 'PRIMAIRE']);
+        expect(validateSchoolCycles([], 'PRIVATE_SCHOOL')).toEqual([]);
+    });
+
+    it('refuses unknown cycles and other institution types', () => {
+        expect(() => validateSchoolCycles(['CRECHE'], 'PRIVATE_SCHOOL')).toThrow('schoolCycles');
+        expect(() => validateSchoolCycles('PRIMAIRE', 'PRIVATE_SCHOOL')).toThrow('schoolCycles');
+        expect(() => validateSchoolCycles(['PRIMAIRE'], 'TUTORING_CENTER')).toThrow('private school');
+        expect(validateSchoolCycles(['PRIMAIRE'], null)).toEqual(['PRIMAIRE']); // null type = private school
     });
 });
