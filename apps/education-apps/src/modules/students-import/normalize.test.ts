@@ -131,10 +131,19 @@ describe('normalizeRow', () => {
 
 describe('schoolModeFields', () => {
     it('maps the level to a catalog code when the school has cycles', () => {
-        expect(schoolModeFields({ schoolLevel: 'السنة الثالثة ابتدائي', nameAr: ' لينا ', gender: 'Fille' }, ['PRIMAIRE'])).toEqual({
+        expect(schoolModeFields({ schoolLevel: 'السنة الثالثة ابتدائي', nameAr: ' لينا ', gender: 'Fille' }, ['PRIMAIRE']).data).toEqual({
             schoolLevel: 'P3', nameAr: 'لينا', gender: 'F',
         });
-        expect(schoolModeFields({ schoolLevel: '3AP', gender: 'garçon' }, [])).toEqual({ gender: 'M' }); // classic mode: level text kept as is
-        expect(schoolModeFields({ schoolLevel: '1AC' }, ['PRIMAIRE'])).toEqual({}); // not one of the cycles: text kept
+        expect(schoolModeFields({ schoolLevel: '3AP', gender: 'garçon' }, []).data).toEqual({ gender: 'M' }); // classic mode: level text kept as is
+        expect(schoolModeFields({ schoolLevel: '1AC' }, ['PRIMAIRE']).data).toEqual({}); // not one of the cycles: text kept
+    });
+
+    it('folds the sex text and warns on unknown sex and truncated Arabic names', () => {
+        expect(schoolModeFields({ gender: ' Féminin ' }, []).data).toEqual({ gender: 'F' });
+        expect(schoolModeFields({ gender: 'ذَكَـر' }, []).data).toEqual({ gender: 'M' });
+        const r = schoolModeFields({ gender: 'X?', nameAr: 'ا'.repeat(90) }, []);
+        expect(r.data.gender).toBeUndefined();
+        expect(r.data.nameAr).toHaveLength(80);
+        expect(r.warnings).toHaveLength(2);
     });
 });

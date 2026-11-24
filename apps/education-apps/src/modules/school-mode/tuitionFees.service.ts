@@ -34,13 +34,15 @@ export const saveTuitionGrid = async (branchId: string, items: unknown): Promise
         if (!levels.includes(item?.level)) throw new Error(`Level ${item?.level} is not one of this school's cycles`);
         return { level: item.level as string, inscriptionFee: amount(item.inscriptionFee), monthlyFee: amount(item.monthlyFee), insuranceFee: amount(item.insuranceFee) };
     });
-    for (const { level, ...fees } of rows) {
-        await prisma.tuitionFee.upsert({
-            where: { branchId_level: { branchId, level } },
-            create: { branchId, level, ...fees },
-            update: fees,
-        });
-    }
+    await prisma.$transaction(
+        rows.map(({ level, ...fees }) =>
+            prisma.tuitionFee.upsert({
+                where: { branchId_level: { branchId, level } },
+                create: { branchId, level, ...fees },
+                update: fees,
+            }),
+        ),
+    );
     return getTuitionGrid(branchId);
 };
 

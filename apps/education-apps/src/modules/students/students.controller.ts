@@ -90,6 +90,50 @@ export const getById = async (req: TenantRequest, res: Response): Promise<void> 
     }
 };
 
+const SCHOOL_STRING_FIELDS = [
+    'nameAr', 'surnameAr', 'nationality', 'fatherCin', 'fatherPhone', 'fatherJob',
+    'motherCin', 'motherPhone', 'motherJob', 'emergencyName', 'emergencyPhone', 'chronicDiseases', 'medications',
+] as const;
+const SCHOOL_FIELDS = [
+    ...SCHOOL_STRING_FIELDS, 'gender', 'schoolYear', 'enrollmentKind', 'payer', 'bloodGroup', 'careConsent', 'documents',
+    'monthlyFee', 'siblingDiscount',
+] as const;
+const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+const oneOf = (value: unknown, allowed: string[]) => value === undefined || value === null || (typeof value === 'string' && allowed.includes(value));
+
+// Returns a French message for the first invalid private school field, or null.
+export const validateSchoolFields = (body: Record<string, unknown>): string | null => {
+    for (const key of SCHOOL_STRING_FIELDS) {
+        const value = body[key];
+        if (value !== undefined && value !== null && (typeof value !== 'string' || value.length > 120)) {
+            return `Le champ ${key} doit être un texte de 120 caractères au plus`;
+        }
+    }
+    if (body.careConsent !== undefined && body.careConsent !== null && typeof body.careConsent !== 'boolean') {
+        return 'Le consentement de soins doit être oui ou non';
+    }
+    const docs = body.documents;
+    if (docs !== undefined && (!Array.isArray(docs) || docs.length > 30 || docs.some((d) => typeof d !== 'string' || d.length > 120))) {
+        return 'Les documents doivent être une liste de 30 textes au plus (120 caractères chacun)';
+    }
+    if (!oneOf(body.payer, ['FATHER', 'MOTHER', 'GUARDIAN'])) return 'Le payeur doit être FATHER, MOTHER ou GUARDIAN';
+    if (!oneOf(body.enrollmentKind, ['NEW', 'RETURNING'])) return "Le type d'inscription doit être NEW ou RETURNING";
+    if (!oneOf(body.gender, ['M', 'F'])) return 'Le sexe doit être M ou F';
+    const year = body.schoolYear;
+    if (year !== undefined && year !== null && (typeof year !== 'string' || !/^\d{4}\/\d{4}$/.test(year))) {
+        return "L'année scolaire doit ressembler à 2026/2027";
+    }
+    if (!oneOf(body.bloodGroup, ['', ...BLOOD_GROUPS])) return 'Groupe sanguin invalide';
+    for (const key of ['monthlyFee', 'siblingDiscount'] as const) {
+        const value = body[key];
+        if (value !== undefined && value !== null && (typeof value !== 'number' || !Number.isFinite(value) || value < 0)) {
+            return `Le champ ${key} doit être un nombre positif`;
+        }
+    }
+    return null;
+};
+
 export const update = async (req: TenantRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
@@ -125,22 +169,24 @@ export const update = async (req: TenantRequest, res: Response): Promise<void> =
         if (parentId !== undefined) updateData.parentId = parentId;
 
         // Complete private school file (see src/modules/school-mode)
-        const SCHOOL_FIELDS = [
-            'nameAr', 'surnameAr', 'gender', 'nationality', 'schoolYear', 'enrollmentKind', 'fatherCin', 'fatherPhone', 'fatherJob',
-            'motherCin', 'motherPhone', 'motherJob', 'payer', 'emergencyName', 'emergencyPhone', 'bloodGroup', 'chronicDiseases',
-            'medications', 'careConsent', 'documents',
-        ] as const;
-        for (const key of SCHOOL_FIELDS) if (req.body[key] !== undefined) updateData[key] = req.body[key];
-        if (req.body.gender !== undefined && req.body.gender !== null && !['M', 'F'].includes(req.body.gender)) {
-            sendError(res, 'Le sexe doit être M ou F', 'Validation error', 400);
+        const schoolError = validateSchoolFields(req.body);
+        if (schoolError) {
+            sendError(res, schoolError, 'Validation error', 400);
             return;
         }
+        for (const key of SCHOOL_FIELDS) if (req.body[key] !== undefined) updateData[key] = req.body[key];
 
         const student = await updateStudent(id, req.branchId!, updateData);
 
         sendSuccess(res, stripTokenHash(student), 'Student updated successfully', 200);
     } catch (error: any) {
-        sendError(res, error.message, 'Failed to update student', 400);
+        if (error instanceof Error && error.name.startsWith('PrismaClient')) {
+            console.error(error);
+            sendError(res, 'Internal server error', 'Failed to update student', 500);
+            return;
+        }
+        const message = error instanceof Error ? error.message : String(error);
+        sendError(res, message, 'Failed to update student', /not found$/i.test(message) ? 404 : 400);
     }
 };
 

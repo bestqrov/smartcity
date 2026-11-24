@@ -16,6 +16,7 @@ export const TEXT_FIELDS = [
     'healthNotes',
 ] as const;
 
+// Keep in sync with frontend/lib/import/fields.ts (IMPORT_FIELDS): both lists must stay identical.
 export const IMPORT_FIELDS = [
     'surname',
     'name',
@@ -199,19 +200,27 @@ export const normalizeRow = (row: ImportRow, today: Date = new Date()): Normaliz
     return { rowNumber: row.rowNumber, data, group: group || null, errors, warnings };
 };
 
+// Folds a sex cell: strips accents, tatweel and Arabic diacritics, lowercases and trims.
+const foldGender = (value: string): string =>
+    value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\u0640\u064B-\u0652\u0670]/g, '').toLowerCase().trim();
+
 // Extra columns and level codes for a complete private school (branch with cycles).
 export function schoolModeFields(row: Partial<Record<'schoolLevel' | 'nameAr' | 'surnameAr' | 'gender', string>>, cycles: string[]) {
-    const out: Record<string, string> = {};
+    const data: Record<string, string> = {};
+    const warnings: string[] = [];
     const code = levelFromText(row.schoolLevel);
-    if (cycles.length > 0 && code && cycles.includes(levelCycle(code) ?? '')) out.schoolLevel = code;
+    if (cycles.length > 0 && code && cycles.includes(levelCycle(code) ?? '')) data.schoolLevel = code;
     for (const key of ['nameAr', 'surnameAr'] as const) {
         const value = row[key]?.trim();
-        if (value) out[key] = value.slice(0, 80);
+        if (!value) continue;
+        data[key] = value.slice(0, 80);
+        if (value.length > 80) warnings.push(`${key === 'nameAr' ? 'Prénom' : 'Nom'} arabe tronqué à 80 caractères`);
     }
-    const g = row.gender?.trim().toLowerCase();
+    const g = row.gender ? foldGender(row.gender) : '';
     if (g) {
-        if (/^(m|h|garcon|garçon|masculin|homme|ذكر)$/.test(g)) out.gender = 'M';
-        else if (/^(f|fille|feminin|féminin|femme|أنثى|انثى)$/.test(g)) out.gender = 'F';
+        if (/^(m|h|garcon|masculin|homme|ذكر)$/.test(g)) data.gender = 'M';
+        else if (/^(f|fille|feminin|femme|أنثى|انثى)$/.test(g)) data.gender = 'F';
+        else warnings.push(`Sexe « ${row.gender!.trim()} » non reconnu`);
     }
-    return out;
+    return { data, warnings };
 }

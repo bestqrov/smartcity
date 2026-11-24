@@ -15,6 +15,7 @@ export interface ImportFieldDef {
     crecheOnly?: boolean;
 }
 
+// Keep in sync with src/modules/students-import/normalize.ts (IMPORT_FIELDS): both lists must stay identical.
 export const IMPORT_FIELDS: ImportFieldDef[] = [
     { key: 'surname', label: 'Nom', hint: 'النسب', example: 'Bennani' },
     { key: 'name', label: 'Prénom', hint: 'الاسم', example: 'Omar' },

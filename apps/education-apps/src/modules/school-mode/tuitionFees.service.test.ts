@@ -6,6 +6,7 @@ jest.mock('../../config/database', () => ({
     default: {
         settings: { findUnique: jest.fn() },
         tuitionFee: { findMany: jest.fn(), upsert: jest.fn(), findUnique: jest.fn() },
+        $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
     },
 }));
 const db = prisma as any;

@@ -62,7 +62,9 @@ export const validateImport = async (branchId: string, input: unknown, today: Da
     const checked: CheckedRow[] = rows.map((row) => {
         const normalized = normalizeRow(row, today);
         // Arabic names, sex and level code for a complete private school (extra keys of the raw row)
-        Object.assign(normalized.data, schoolModeFields(row, cycles));
+        const school = schoolModeFields(row, cycles);
+        Object.assign(normalized.data, school.data);
+        normalized.warnings.push(...school.warnings);
         if (normalized.errors.length > 0) return { ...normalized, status: 'error' };
 
         const keys = duplicateKeys(normalized.data);
