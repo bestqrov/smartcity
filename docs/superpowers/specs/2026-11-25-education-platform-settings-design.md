@@ -77,6 +77,37 @@ Routes, all SA:
 - `GET /api/platform/broadcasts` and `GET /api/platform/broadcasts/:id`.
 - `POST /api/platform/broadcasts/:id/retry`.
 
+## 4. School admin dashboard: change pack and send requests
+
+On the school admin dashboard (ADMIN and OWNER), a new card **«Mon abonnement»** shows:
+- the current pack, its options and its limits (students used out of the maximum);
+- the trial end date or the status.
+
+It has two actions:
+- **«Changer de pack»** opens the existing `PackUpgradeDialog` in a "browse" mode that does not depend on reaching a limit.
+  - Moving to a bigger pack is immediate, through the existing `upgradePack` flow (PackUpgrade plus a pending payment, as today).
+  - Moving to a smaller pack does not happen in the app. It creates a request to the SA (see below), because of billing and the limits already in use.
+- **«Demander une fonctionnalité»** opens a form with:
+  - a type: Nouvelle fonctionnalité / Option du pack / Problème / Autre;
+  - a message.
+
+Requests are stored in a new model `SchoolRequest`. Its fields:
+- `schoolId`, `branchId`, `byUserId`;
+- `kind` (PACK_DOWNGRADE | FEATURE | PACK_OPTION | PROBLEM | OTHER);
+- `message`, `targetPackId?`;
+- `status` (NEW | IN_PROGRESS | DONE | REJECTED);
+- `reply?`, `createdAt`, `updatedAt`.
+
+On the SA side:
+- A new page **«Demandes des écoles»** lists the requests with status filters. The SA can change the status and write a reply.
+- A badge on the SA menu shows the number of NEW requests, using the same pattern as the pending payment declarations.
+
+On the school side, the card lists the school's requests with their status and the SA reply.
+
+Routes:
+- `POST /api/school-requests` and `GET /api/school-requests/mine` for ADMIN and OWNER, tenant-scoped.
+- `GET /api/platform/school-requests`, `GET /api/platform/school-requests/pending-count` and `PATCH /api/platform/school-requests/:id` (status and reply) for SA.
+
 ## Languages, security, tests
 - Every SA page is in FR and AR, using the platform prefs/messages pattern of the existing SA pages.
 - Every route is SA-only (`roleMiddleware('SUPER_ADMIN')`).
