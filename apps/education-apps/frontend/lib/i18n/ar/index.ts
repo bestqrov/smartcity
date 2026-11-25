@@ -6,6 +6,7 @@ import { school } from './school';
 import { schoolMode } from './school-mode';
 import { settings } from './settings';
 import { shell } from './shell';
+import { onboarding } from './onboarding';
 import { subscription } from './subscription';
 
-export const AR: Record<string, string> = { ...shell, ...auth, ...school, ...settings, ...finance, ...pedagogy, ...schoolMode, ...subscription };
+export const AR: Record<string, string> = { ...shell, ...auth, ...school, ...settings, ...finance, ...pedagogy, ...schoolMode, ...subscription, ...onboarding };
