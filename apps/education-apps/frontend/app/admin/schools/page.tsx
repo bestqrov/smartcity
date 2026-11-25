@@ -6,6 +6,7 @@ import useAuthStore from '@/store/useAuthStore';
 import { getAllSchools, updateSchoolStatus, SchoolListItem } from '@/lib/services/schools';
 import { Building2, CheckCircle, Pencil, Wallet } from 'lucide-react';
 import EditSchoolModal from '@/components/admin/EditSchoolModal';
+import PhoneContact from '@/components/common/PhoneContact';
 import SchoolPaymentsModal from '@/components/admin/SchoolPaymentsModal';
 import { assignSchoolAgent, getSalesAgents, type SalesAgentListItem, type SubscriptionPeriod } from '@/lib/services/salesAgents';
 import { INSTITUTION_TYPE_LABELS, DEFAULT_INSTITUTION_TYPE } from '@/lib/institutionTypes';
@@ -207,6 +208,7 @@ export default function SuperAdminSchoolsPage() {
                                     <div className="min-w-0">
                                         <div className="font-semibold text-gray-800">{school.name}</div>
                                         <div className="break-all text-sm text-gray-600">{school.ownerEmail}</div>
+                                        <PhoneContact phone={school.ownerPhone} className="text-sm text-gray-600" />
                                     </div>
                                     {statusBadge(school.status)}
                                 </div>
@@ -227,7 +229,7 @@ export default function SuperAdminSchoolsPage() {
                         <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
                             <tr>
                                 <th className="px-4 py-3">École</th>
-                                <th className="px-4 py-3">Email propriétaire</th>
+                                <th className="px-4 py-3">Contact propriétaire</th>
                                 <th className="px-4 py-3">Inscrite le</th>
                                 <th className="px-4 py-3">Statut</th>
                                 <th className="px-4 py-3">Fin essai</th>
@@ -244,7 +246,10 @@ export default function SuperAdminSchoolsPage() {
                                         {school.name}
                                         {partnerBadge(school)}
                                     </td>
-                                    <td className="px-4 py-3 text-gray-600">{school.ownerEmail}</td>
+                                    <td className="px-4 py-3 text-gray-600">
+                                        <div className="break-all">{school.ownerEmail}</div>
+                                        <PhoneContact phone={school.ownerPhone} className="text-sm" />
+                                    </td>
                                     <td className="px-4 py-3 whitespace-nowrap tabular-nums text-gray-600">{signupLabel(school)}</td>
                                     <td className="px-4 py-3">{statusBadge(school.status)}</td>
                                     <td className="px-4 py-3 text-gray-600">{trialLabel(school)}</td>

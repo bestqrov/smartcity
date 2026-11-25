@@ -36,6 +36,12 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const phoneDigits = typeof ownerPhone === 'string' ? ownerPhone.replace(/\D/g, '') : '';
+        if (phoneDigits.length < 9 || phoneDigits.length > 15) {
+            sendError(res, 'PHONE_REQUIRED', 'Validation error', 400);
+            return;
+        }
+
         if (password.length < 8) {
             sendError(res, 'Password must be at least 8 characters', 'Validation error', 400);
             return;
@@ -45,7 +51,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
             schoolName,
             ownerName,
             ownerEmail,
-            ownerPhone,
+            ownerPhone: ownerPhone.trim(),
             password,
             branchName,
             branchCity,

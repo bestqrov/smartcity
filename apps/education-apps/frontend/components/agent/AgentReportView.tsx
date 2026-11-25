@@ -10,6 +10,7 @@ import { referralUrl, type AgentReport, type ClientStatus, type RateTableRow, ty
 import { agentMessages, type AgentLang, type AgentMessages } from '@/lib/agent/messages';
 import { fmtDate, fmtDay, fmtMAD, fmtMADShort, fmtMonthShort, fmtMonthYear, fmtNumber } from '@/lib/agent/format';
 import type { AgentSection } from '@/lib/agent/prefs';
+import PhoneContact from '@/components/common/PhoneContact';
 import { ClientStatusBadge, PayoutStatusBadge, StatusLegend } from './StatusBadge';
 import { cardClass, ChartCard, dailyCounts, DonutChart, HBarChart, KpiCard, SplineChart, VBarChart } from '@/components/dashboard/Charts';
 import { cardEmptyClass, cardItemClass, cardListClass, emptyRowClass, mutedClass, rowClass, Slicer, TabButton, tdClass, theadClass, thClass } from '@/components/dashboard/ui';
@@ -592,7 +593,7 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                                         {m.institution_type[data.typeOf(school)]} · {school.packName ?? m.no_pack}
                                     </div>
                                     <div className={mutedClass}>
-                                        {school.ownerName} · <span dir="ltr">{school.ownerPhone || '—'}</span>
+                                        {school.ownerName} · <PhoneContact phone={school.ownerPhone} />
                                     </div>
                                     <div className="flex items-baseline justify-between gap-2">
                                         <span className={`${mutedClass} tabular-nums`}>
@@ -628,8 +629,8 @@ export default function AgentReportView({ report, onDeletePayout, busy, ratesTit
                                         </td>
                                         <td className={tdClass}>
                                             {school.ownerName}
-                                            <div className={mutedClass} dir="ltr">
-                                                {school.ownerPhone || '—'}
+                                            <div className={mutedClass}>
+                                                <PhoneContact phone={school.ownerPhone} />
                                             </div>
                                         </td>
                                         <td className={tdClass}>

@@ -5,6 +5,7 @@ import type { InstitutionType } from '../institutionTypes';
 export interface SignupSchoolData {
     ownerName: string;
     ownerEmail: string;
+    ownerPhone: string;
     password: string;
     institutionType: InstitutionType;
     packCode?: string;

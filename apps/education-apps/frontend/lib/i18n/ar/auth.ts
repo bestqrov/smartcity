@@ -3,6 +3,8 @@ export const auth: Record<string, string> = {
     // Shared
     'Gestion Administrative v2.0': 'التسيير الإداري v2.0',
     'Adresse e-mail': 'البريد الإلكتروني',
+    'GSM / WhatsApp (ex. 06 12 34 56 78)': 'الهاتف / واتساب (مثال: 06 12 34 56 78)',
+    'Numéro GSM / WhatsApp invalide.': 'رقم الهاتف / واتساب غير صحيح.',
     'Mot de passe': 'كلمة المرور',
     'Site :': 'الموقع:',
     'Gsm / WhatsApp :': 'الهاتف / واتساب:',

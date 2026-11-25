@@ -105,7 +105,7 @@ describe('signup closed', () => {
         (signupSchool as jest.Mock).mockRejectedValue(new (SignupClosedError as any)('SIGNUP_CLOSED'));
         const res = await request(app)
             .post('/api/schools/signup')
-            .send({ ownerName: 'A', ownerEmail: 'a@b.co', password: 'password1', institutionType: 'PRIVATE_SCHOOL' });
+            .send({ ownerName: 'A', ownerEmail: 'a@b.co', ownerPhone: '0600000000', password: 'password1', institutionType: 'PRIVATE_SCHOOL' });
         expect(res.status).toBe(403);
         expect(res.body.error).toBe('SIGNUP_CLOSED');
     });

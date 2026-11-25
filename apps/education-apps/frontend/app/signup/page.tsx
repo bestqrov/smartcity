@@ -40,7 +40,7 @@ function SignupForm() {
     // Periods offered at signup are chosen by the super admin.
     const allowedPeriods = OFFER_PERIODS.filter((period) => platform.signupPeriods.includes(period));
     const initialType = searchParams.get('type');
-    const [form, setForm] = useState({ ownerName: '', ownerEmail: '', password: '' });
+    const [form, setForm] = useState({ ownerName: '', ownerEmail: '', ownerPhone: '', password: '' });
     const [institutionType, setInstitutionType] = useState<InstitutionType | ''>(
         isInstitutionType(initialType) ? initialType : ''
     );
@@ -152,7 +152,7 @@ function SignupForm() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const update = (field: 'ownerName' | 'ownerEmail' | 'password') => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const update = (field: 'ownerName' | 'ownerEmail' | 'ownerPhone' | 'password') => (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
     };
 
@@ -164,6 +164,8 @@ function SignupForm() {
         const code = referralCode.trim();
         if (!code) { setError(tr('Le code commercial est obligatoire.')); return; }
         if (codeStatus === 'invalid') { setError(tr('Code commercial invalide.')); return; }
+        const phoneDigits = form.ownerPhone.replace(/\D/g, '');
+        if (phoneDigits.length < 9 || phoneDigits.length > 15) { setError(tr('Numéro GSM / WhatsApp invalide.')); return; }
         setLoading(true);
         try {
             const { token, user, branch } = await signupSchool({
@@ -181,6 +183,8 @@ function SignupForm() {
             const msg = err.response?.data?.error || err.response?.data?.message || '';
             if (msg === 'SIGNUP_CLOSED') {
                 setError(tr('Inscriptions fermées'));
+            } else if (msg === 'PHONE_REQUIRED') {
+                setError(tr('Numéro GSM / WhatsApp invalide.'));
             } else if (msg === 'Invalid referral code' || msg === 'Referral code is required') {
                 setCodeStatus('invalid');
                 setError(tr(msg === 'Invalid referral code' ? 'Code commercial invalide.' : 'Le code commercial est obligatoire.'));
@@ -465,6 +469,18 @@ function SignupForm() {
                             autoComplete="off"
                             className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm"
                             placeholder={tr('Adresse e-mail')}
+                        />
+
+                        <Input
+                            type="tel"
+                            inputMode="tel"
+                            dir="ltr"
+                            value={form.ownerPhone}
+                            onChange={update('ownerPhone')}
+                            required
+                            autoComplete="tel"
+                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:bg-white focus:border-indigo-500 focus:ring-8 focus:ring-indigo-500/5 transition-all duration-300 placeholder:text-slate-400 font-bold text-lg shadow-sm rtl:text-right"
+                            placeholder={tr('GSM / WhatsApp (ex. 06 12 34 56 78)')}
                         />
 
                         <Input
