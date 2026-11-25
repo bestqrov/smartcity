@@ -178,7 +178,7 @@ function SignupForm() {
             setAccessTokenState(token);
             setUser(user);
             setActiveBranchId(branch.id);
-            router.push('/admin/settings');
+            router.push('/admin');
         } catch (err: any) {
             const msg = err.response?.data?.error || err.response?.data?.message || '';
             if (msg === 'SIGNUP_CLOSED') {

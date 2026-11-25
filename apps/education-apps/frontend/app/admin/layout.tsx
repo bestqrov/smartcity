@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { RequireRole } from '@/components/auth/RequireRole';
 import PackUpgradeBanner from '@/components/packs/PackUpgradeBanner';
+import OnboardingStepBanner from '@/components/onboarding/OnboardingStepBanner';
 import PackUpgradeHost from '@/components/packs/PackUpgradeHost';
 import { Sidebar } from '@/components/Sidebar';
 
@@ -56,6 +57,7 @@ export default function AdminLayout({
                     <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pt-16 lg:pt-20">
                         <div className="container mx-auto p-4 sm:p-6 lg:px-4 lg:py-2">
                             {pathname === '/admin' && <PackUpgradeBanner />}
+                            <OnboardingStepBanner />
                             {locked ? <FeatureLocked feature={locked} packName={profile.packName} /> : children}
                         </div>
                     </main>
