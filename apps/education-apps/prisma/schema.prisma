@@ -451,6 +451,9 @@ model Settings {
   // Empty = classic mode (tutoring form, subject prices).
   schoolCycles   String[]
   schoolYear     String? // "2026/2027"; null = computed (September to August)
+  // Onboarding checklist: optional steps the admin skipped, and the checklist hidden by the admin.
+  onboardingSkipped   String[]
+  onboardingDismissed Boolean  @default(false)
 
   branchId String @db.ObjectId
   branch   Branch @relation(fields: [branchId], references: [id])
