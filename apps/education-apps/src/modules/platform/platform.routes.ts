@@ -4,6 +4,7 @@ import { roleMiddleware } from '../../middlewares/role.middleware';
 import { banner, getSettings, overview, putSettings } from './platform.controller';
 import { confirm, getOne, list, pendingCount, reject } from '../sales-agents/paymentDeclarations.controller';
 import * as schoolRequests from '../school-requests/schoolRequests.controller';
+import * as broadcasts from './broadcasts.controller';
 
 // Super admin platform dashboard.
 const router = Router();
@@ -30,5 +31,17 @@ router.post('/payment-declarations/:id/reject', reject);
 router.get('/school-requests', schoolRequests.list);
 router.get('/school-requests/pending-count', schoolRequests.newCount);
 router.patch('/school-requests/:id', schoolRequests.update);
+
+// Platform WhatsApp number (instance "arwa-platform") used by broadcasts.
+router.get('/whatsapp', broadcasts.whatsappStatus);
+router.post('/whatsapp/connect', broadcasts.whatsappConnect);
+router.post('/whatsapp/disconnect', broadcasts.whatsappDisconnect);
+
+// Broadcasts to school owners (email + WhatsApp).
+router.post('/broadcasts/preview', broadcasts.preview);
+router.get('/broadcasts', broadcasts.list);
+router.post('/broadcasts', broadcasts.create);
+router.get('/broadcasts/:id', broadcasts.getOne);
+router.post('/broadcasts/:id/retry', broadcasts.retry);
 
 export default router;

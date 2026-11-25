@@ -1086,3 +1086,67 @@ model SchoolRequest {
   @@index([schoolId, createdAt])
   @@map("school_requests")
 }
+
+// Platform WhatsApp number of the super admin (Evolution instance "arwa-platform"), for broadcasts.
+model PlatformWhatsapp {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique @default("default")
+  instance  String   @default("arwa-platform")
+  status    String   @default("DISCONNECTED") // DISCONNECTED | CONNECTING | CONNECTED
+  phone     String?
+  updatedAt DateTime @updatedAt
+
+  @@map("platform_whatsapp")
+}
+
+enum BroadcastChannel {
+  EMAIL
+  WHATSAPP
+}
+
+// A message from the super admin to school owners, chosen by filters.
+model Broadcast {
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  subject         String
+  body            String
+  channels        BroadcastChannel[]
+  filters         Json?
+  total           Int                @default(0)
+  emailSent       Int                @default(0)
+  emailFailed     Int                @default(0)
+  emailSkipped    Int                @default(0)
+  whatsappSent    Int                @default(0)
+  whatsappFailed  Int                @default(0)
+  whatsappSkipped Int                @default(0)
+  createdBy       String?            @db.ObjectId
+  createdAt       DateTime           @default(now())
+
+  messages BroadcastMessage[]
+
+  @@index([createdAt])
+  @@map("broadcasts")
+}
+
+// One per school and channel. Separate queue from OutboundMessage (parents).
+model BroadcastMessage {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  broadcastId String           @db.ObjectId
+  broadcast   Broadcast        @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  schoolId    String           @db.ObjectId
+  schoolName  String
+  channel     BroadcastChannel
+  to          String?
+  subject     String?
+  body        String
+  status      String           @default("PENDING") // PENDING | SENDING | SENT | FAILED | SKIPPED
+  error       String?
+  attempts    Int              @default(0)
+  sendAfter   DateTime         @default(now())
+  lockedAt    DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@index([status, channel, sendAfter])
+  @@index([broadcastId])
+  @@map("broadcast_messages")
+}

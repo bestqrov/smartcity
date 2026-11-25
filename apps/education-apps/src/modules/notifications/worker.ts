@@ -1,6 +1,7 @@
 import prisma from '../../config/database';
 import { isEvolutionConfigured, sendText, instanceName } from './evolution.client';
 import { isPushConfigured, sendPush, isAllowedPushEndpoint } from './push.sender';
+import { processBroadcasts } from './broadcast.worker';
 
 export const PUSH_BATCH_SIZE = 50;
 export const WHATSAPP_GAP_MS = 4_000;
@@ -145,6 +146,11 @@ export const startOutboxWorker = (intervalMs = 5_000): void => {
                 if (removed) console.log(`[outbox] retention cleanup removed ${removed} rows`);
             }
             await processOutbox(now);
+            try {
+                await processBroadcasts(now);
+            } catch (error) {
+                console.error('[broadcasts] run failed:', (error as Error).message);
+            }
         } catch (error) {
             console.error('[outbox] run failed:', error);
         } finally {

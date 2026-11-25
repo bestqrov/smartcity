@@ -355,6 +355,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       iconColor: 'text-[#60A5FA]'
     },
     {
+      id: 'platform-broadcasts',
+      label: 'Messages aux écoles',
+      icon: Megaphone,
+      path: '/admin/platform/broadcasts',
+      activeColor: 'bg-[#334155]/50 border-[#F472B6]',
+      iconColor: 'text-[#F472B6]'
+    },
+    {
       id: 'platform-settings',
       label: 'Paramètres plateforme',
       icon: Settings,

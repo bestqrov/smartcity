@@ -5,6 +5,7 @@ import { DashboardBanner } from '@/components/dashboard/DashboardShell';
 import { apiErrorMessage } from '@/lib/services/packs';
 import { usePlatformPrefs } from '@/lib/platform/prefs';
 import { localizeApiError } from '@/lib/agent/messages';
+import PlatformWhatsappCard from '@/components/platform/PlatformWhatsappCard';
 import {
     SIGNUP_PERIODS,
     getPlatformSettings,
@@ -167,6 +168,8 @@ export default function PlatformSettingsPage() {
                         <textarea value={form.bannerText} onChange={(e) => set('bannerText', e.target.value)} maxLength={300} rows={3} className={inputClass} />
                     </label>
                 </section>
+
+                <PlatformWhatsappCard m={m} className={`${cardClass} lg:col-span-2`} />
             </div>
 
             {error && (

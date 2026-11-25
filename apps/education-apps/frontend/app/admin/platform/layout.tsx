@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Briefcase, Building, Inbox, LayoutDashboard, Package, Settings } from 'lucide-react';
+import { Briefcase, Building, Inbox, Megaphone, LayoutDashboard, Package, Settings } from 'lucide-react';
 import { RequireRole } from '@/components/auth/RequireRole';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import useAuthStore from '@/store/useAuthStore';
@@ -61,6 +61,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         { key: 'packs', label: m.nav_packs, icon: Package, href: '/admin/packs', active: false },
         { key: 'agents', label: m.nav_agents, icon: Briefcase, href: '/admin/sales-agents', active: false },
         { key: 'requests', label: m.nav_requests, icon: Inbox, href: '/admin/platform/requests', active: pathname?.startsWith('/admin/platform/requests') ?? false, badge: newRequests },
+        { key: 'broadcasts', label: m.nav_broadcasts, icon: Megaphone, href: '/admin/platform/broadcasts', active: pathname?.startsWith('/admin/platform/broadcasts') ?? false },
         { key: 'settings', label: m.nav_settings, icon: Settings, href: '/admin/platform/settings', active: pathname?.startsWith('/admin/platform/settings') ?? false },
     ];
 
