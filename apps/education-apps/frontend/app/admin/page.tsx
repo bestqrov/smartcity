@@ -32,6 +32,7 @@ import { useSchoolCycles } from '@/hooks/useSchoolCycles';
 import { levelLabel } from '@/lib/schoolLevels';
 import { getDuesSummary } from '@/lib/services/schoolMode';
 import PlatformBanner from '@/components/dashboard/PlatformBanner';
+import SubscriptionCard from '@/components/subscription/SubscriptionCard';
 const CRECHE_SECTIONS: Record<string, string> = { NOURRISSON: 'Nourrissons', MOYENNE: 'Moyenne section', GRANDE: 'Grande section' };
 
 export default function AdminDashboard() {
@@ -294,6 +295,11 @@ export default function AdminDashboard() {
                     onClick={() => router.push('/admin/finance/transactions')}
                 />}
             </div>
+
+            {/* Subscription: school ADMIN / OWNER only, never the super admin */}
+            {(user?.role === 'ADMIN' || user?.role === 'OWNER') && (
+                <SubscriptionCard trialEndsAt={profile.trialEndsAt} features={profile.features} onChanged={refreshProfile} />
+            )}
 
             {/* Charts */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
