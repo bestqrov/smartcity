@@ -8,6 +8,7 @@ import {
   FileText,
   DollarSign,
   Settings,
+  Inbox,
   LogOut,
   ChevronDown,
   Menu,
@@ -32,6 +33,7 @@ import { FEATURE_BY_MENU_ID, featureForPath, hasFeature } from '@/lib/packs';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import LangSwitcher from '@/components/LangSwitcher';
 import { DECLARATIONS_CHANGED, getPendingDeclarationsCount } from '@/lib/services/paymentDeclarations';
+import { SCHOOL_REQUESTS_CHANGED, getNewSchoolRequestsCount } from '@/lib/services/schoolRequests';
 
 interface SidebarProps {
   currentPath: string;
@@ -345,6 +347,14 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
       iconColor: 'text-[#34D399]'
     },
     {
+      id: 'school-requests',
+      label: 'Demandes des écoles',
+      icon: Inbox,
+      path: '/admin/platform/requests',
+      activeColor: 'bg-[#334155]/50 border-[#60A5FA]',
+      iconColor: 'text-[#60A5FA]'
+    },
+    {
       id: 'platform-settings',
       label: 'Paramètres plateforme',
       icon: Settings,
@@ -369,6 +379,16 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
     refresh();
     window.addEventListener(DECLARATIONS_CHANGED, refresh);
     return () => window.removeEventListener(DECLARATIONS_CHANGED, refresh);
+  }, [effectiveRole]);
+
+  // Super admin: new requests sent by schools, as a count on the «Demandes des écoles» entry.
+  const [newSchoolRequests, setNewSchoolRequests] = useState(0);
+  useEffect(() => {
+    if (effectiveRole !== 'SUPER_ADMIN') return;
+    const refresh = () => getNewSchoolRequestsCount().then(setNewSchoolRequests).catch(() => {});
+    refresh();
+    window.addEventListener(SCHOOL_REQUESTS_CHANGED, refresh);
+    return () => window.removeEventListener(SCHOOL_REQUESTS_CHANGED, refresh);
   }, [effectiveRole]);
 
   const institutionType = effectiveRole === 'SUPER_ADMIN' ? null : profile.institutionType;
@@ -557,6 +577,9 @@ export function Sidebar({ currentPath, role }: SidebarProps) {
                             <span className="truncate text-[13px]">{tr(item.label)}</span>
                             {item.id === 'platform' && pendingDeclarations > 0 && (
                               <span className="ms-auto min-w-[1.4rem] rounded-full bg-red-600 px-1.5 text-center text-[11px] font-bold leading-5 text-white">{pendingDeclarations}</span>
+                            )}
+                            {item.id === 'school-requests' && newSchoolRequests > 0 && (
+                              <span className="ms-auto min-w-[1.4rem] rounded-full bg-red-600 px-1.5 text-center text-[11px] font-bold leading-5 text-white">{newSchoolRequests}</span>
                             )}
                             {item.comingSoon && (
                               <span className="ms-auto rounded-full bg-amber-100 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300 px-2 py-0.5 text-[10px] font-bold">{tr('Bientôt')}</span>

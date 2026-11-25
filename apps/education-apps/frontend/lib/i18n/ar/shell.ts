@@ -50,6 +50,7 @@ export const shell: Record<string, string> = {
     Packs: 'الباقات',
     Commerciaux: 'المندوبون التجاريون',
     'Paramètres plateforme': 'إعدادات المنصة',
+    'Demandes des écoles': 'طلبات المؤسسات',
     // Crèche relabels
     Enfants: 'الأطفال',
     'État des enfants': 'وضعية الأطفال',

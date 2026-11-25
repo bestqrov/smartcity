@@ -140,6 +140,23 @@ const fr = {
     upgrades_date: 'Date',
     upgrades_due: 'Échéance',
     upgrades_overdue: 'En retard',
+    // school requests page
+    nav_requests: 'Demandes des écoles',
+    rq_title: 'Demandes des écoles',
+    rq_sub: 'Packs inférieurs, fonctionnalités, options et problèmes envoyés par les écoles.',
+    rq_all: 'Toutes',
+    rq_empty: 'Aucune demande.',
+    rq_loading: 'Chargement…',
+    rq_kinds: { PACK_DOWNGRADE: 'Pack inférieur', FEATURE: 'Nouvelle fonctionnalité', PACK_OPTION: 'Option du pack', PROBLEM: 'Problème', OTHER: 'Autre' },
+    rq_statuses: { NEW: 'Nouvelle', IN_PROGRESS: 'En cours', DONE: 'Traitée', REJECTED: 'Refusée' },
+    rq_target: 'Pack demandé',
+    rq_current: 'Pack actuel',
+    rq_status: 'Statut',
+    rq_reply: 'Réponse à l’école',
+    rq_save: 'Enregistrer',
+    rq_saving: 'Enregistrement…',
+    rq_saved: 'Demande mise à jour.',
+    rq_owner: 'Propriétaire',
 };
 
 export type PlatformMessages = typeof fr;
@@ -272,6 +289,22 @@ const ar: PlatformMessages = {
     upgrades_date: 'التاريخ',
     upgrades_due: 'آخر أجل',
     upgrades_overdue: 'متأخرة',
+    nav_requests: 'طلبات المؤسسات',
+    rq_title: 'طلبات المؤسسات',
+    rq_sub: 'باقات أدنى، ميزات، خيارات ومشاكل أرسلتها المؤسسات.',
+    rq_all: 'الكل',
+    rq_empty: 'لا توجد طلبات.',
+    rq_loading: 'جارٍ التحميل…',
+    rq_kinds: { PACK_DOWNGRADE: 'باقة أدنى', FEATURE: 'ميزة جديدة', PACK_OPTION: 'خيار في الباقة', PROBLEM: 'مشكلة', OTHER: 'أخرى' },
+    rq_statuses: { NEW: 'جديد', IN_PROGRESS: 'قيد المعالجة', DONE: 'تمت المعالجة', REJECTED: 'مرفوض' },
+    rq_target: 'الباقة المطلوبة',
+    rq_current: 'الباقة الحالية',
+    rq_status: 'الحالة',
+    rq_reply: 'الرد على المؤسسة',
+    rq_save: 'حفظ',
+    rq_saving: 'جارٍ الحفظ…',
+    rq_saved: 'تم تحديث الطلب.',
+    rq_owner: 'المالك',
 };
 
 export const platformMessages: Record<AgentLang, PlatformMessages> = { fr, ar };
