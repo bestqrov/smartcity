@@ -83,7 +83,8 @@ export const getOnboarding = async (branchId: string): Promise<OnboardingState> 
     });
     return {
         steps,
-        completed: steps.every((s) => s.done || s.skipped),
+        // Optional steps are suggestions: they never keep the checklist open, so running schools are not nagged.
+        completed: steps.every((s) => s.done || s.optional),
         dismissed: settings?.onboardingDismissed ?? false,
     };
 };

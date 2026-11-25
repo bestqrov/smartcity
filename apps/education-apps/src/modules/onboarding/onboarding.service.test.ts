@@ -122,6 +122,13 @@ describe('completed, skipped, href', () => {
         expect(step(r, 'staff')).toMatchObject({ skipped: true, optional: true, done: false });
     });
 
+    it('optional steps never block completion (schools already running are not nagged)', async () => {
+        setup({ counts: { pricing: 1, group: 1, teacher: 1, student: 1 } });
+        const r = await getOnboarding(B);
+        expect(r.completed).toBe(true);
+        expect(step(r, 'staff')).toMatchObject({ done: false, skipped: false });
+    });
+
     it('not completed while a required step is missing', async () => {
         setup({ counts: { pricing: 1, group: 1, teacher: 1 }, settings: { onboardingSkipped: ['staff', 'transport'] } });
         expect((await getOnboarding(B)).completed).toBe(false);

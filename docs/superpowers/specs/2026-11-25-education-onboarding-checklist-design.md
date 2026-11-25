@@ -41,7 +41,7 @@ Both routes are for ADMIN and OWNER, and are tenant-scoped through the existing 
 
 - `GET /api/onboarding` returns `{ steps: [{ key, done, skipped, optional, href }], completed, dismissed }`.
   - It runs light `count` queries, in parallel, for the visible steps.
-  - `completed` is true when every visible step is either done or skipped.
+  - `completed` is true when every required visible step is done. Optional steps (staff, transport) never keep it open, so schools already running are not shown the checklist.
 - `PATCH /api/onboarding` with `{ skip: key }`, `{ unskip: key }` or `{ dismissed: boolean }`.
   - Only optional keys can be skipped. Any other key answers 400.
 
